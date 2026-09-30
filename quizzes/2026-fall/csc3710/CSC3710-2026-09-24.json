@@ -1,0 +1,673 @@
+{
+ "title": "CSC3710 2026-09-24 — Deterministic Finite Automata: Definition, Acceptance, and Design",
+ "course": "CSC3710",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "Formal definition of a DFA",
+   "topic": "The five components",
+   "q": "Which list gives exactly the components of a DFA M = (Q, Σ, δ, q0, F)?",
+   "choices": [
+    "A finite set of states, an alphabet, a transition relation, a set of initial states, and a set of final states",
+    "A finite set of states, a finite alphabet, a total transition function δ : Q × Σ → Q, one initial state q0 ∈ Q, and a set of final states F ⊆ Q",
+    "A finite set of states, a finite alphabet, a tape, one initial state, and one final state",
+    "A finite set of states, a finite alphabet, a total transition function, one initial state, and a non-empty set of final states"
+   ],
+   "answer": 1,
+   "explain": "A DFA has **five** components: Q (finite), Σ (finite), δ : Q × Σ → Q (a **total function**), exactly one start state q0 ∈ Q, and F ⊆ Q. The only constraint on F is F ⊆ Q, so F may be empty. δ is a function, not a relation, and a DFA has no tape (that is the Turing machine)."
+  },
+  {
+   "type": "multi",
+   "category": "Formal definition of a DFA",
+   "topic": "What the definition allows",
+   "q": "Which of the following are allowed in a DFA under the course definition?",
+   "choices": [
+    "F = ∅ (no final states)",
+    "F = Q (every state is final)",
+    "Two different initial states",
+    "Q = ∅ (no states at all)",
+    "A single state with a self-loop on every symbol"
+   ],
+   "answer": [0, 1, 4],
+   "explain": "The only constraint on F is **F ⊆ Q**. ∅ is a subset of every set and Q is a subset of itself, so both extremes are legal. There is exactly **one** q0, and q0 ∈ Q forces Q to have **at least one** state. A one-state machine that loops on every symbol has a total δ, so it is a DFA."
+  },
+  {
+   "type": "tf",
+   "category": "Formal definition of a DFA",
+   "topic": "Diagram vs. formal definition",
+   "q": "A state diagram and a formal definition (5-tuple plus δ table) of the same DFA carry exactly the same information, so on a test either one is an acceptable answer to \"design a DFA\".",
+   "answer": true,
+   "explain": "The diagram *is* the definition drawn as a picture. Circles are the elements of Q, the start arrow marks q0, double circles are the elements of F, and an arrow p → q labeled a means δ(p, a) = q. The instructor said both forms are accepted on tests."
+  },
+  {
+   "type": "mc",
+   "category": "Formal definition of a DFA",
+   "topic": "Reading a δ table",
+   "q": "In the vending-machine DFA, the row for state $0 reads: quarter → $0.25, half dollar → $0.50. What does this row say?",
+   "choices": [
+    "δ($0.25, quarter) = $0 and δ($0.50, half dollar) = $0",
+    "In state $0 the machine accepts quarters and half dollars",
+    "δ($0, quarter) = $0.25 and δ($0, half dollar) = $0.50",
+    "The machine outputs $0.25 or $0.50 of change"
+   ],
+   "answer": 2,
+   "explain": "Rows are **current states**, columns are **input symbols**, and each entry is the **next state**: the entry at row p, column a is δ(p, a). So \"in $0, a quarter moves to $0.25 deposited and a half dollar moves to $0.50 deposited.\" A DFA produces no output, only accept or reject."
+  },
+  {
+   "type": "mc",
+   "category": "Formal definition of a DFA",
+   "topic": "Symbols as units",
+   "q": "Why does it make sense to treat \"quarter\" and \"half dollar\" as the two **symbols** of the vending machine's alphabet?",
+   "choices": [
+    "A symbol is an indivisible unit of information. The machine never looks inside a coin, it just recognizes which one it is",
+    "Symbols must be letters, and 'q' and 'h' are letters",
+    "Coins have numeric values, and alphabets must contain numbers",
+    "The alphabet must have as many symbols as the machine has states"
+   ],
+   "answer": 0,
+   "explain": "In automata theory a symbol is an **atomic unit**. The machine reacts to *which* symbol arrives and never to its internal structure. Any finite set of distinguishable inputs, whether coins, key presses or characters, can serve as Σ. |Σ| and |Q| are unrelated: the vending machine has 2 symbols and 5 states."
+  },
+  {
+   "type": "mc",
+   "category": "Transition function and determinism",
+   "topic": "Why δ is total",
+   "q": "Why must a DFA have an arrow for **every** symbol out of **every** state?",
+   "choices": [
+    "Because JFLAP refuses to run machines with missing arrows",
+    "Because otherwise some strings would be accepted twice",
+    "Because every state must be reachable from q0",
+    "Because δ is a function with domain Q × Σ, and a function assigns exactly one value to every element of its domain"
+   ],
+   "answer": 3,
+   "explain": "δ : Q × Σ → Q is a **function**, and a function is defined on its **whole** domain with **exactly one** value for each element. A missing arrow means δ(p, a) is undefined, and two arrows on one symbol mean δ(p, a) has two values. Either way δ is only a **relation**, and the machine is not a DFA."
+  },
+  {
+   "type": "num",
+   "category": "Transition function and determinism",
+   "topic": "Counting transitions",
+   "q": "A DFA has 6 states over the alphabet Σ = {a, b, c}. Exactly how many transitions (arrows, counting each symbol separately) does it have?",
+   "answer": 18,
+   "explain": "δ has one value for each pair in Q × Σ, and |Q × Σ| = |Q| · |Σ| = 6 · 3 = **18**. An arrow labeled \"a, b\" counts as two transitions."
+  },
+  {
+   "type": "num",
+   "category": "Transition function and determinism",
+   "topic": "Counting transitions",
+   "q": "The vending machine has states {$0, $0.25, $0.50, $0.75, $1 or more} and accepts quarters and half dollars. How many transitions does its δ table contain?",
+   "answer": 10,
+   "explain": "5 states × 2 symbols = **10** transitions. In the diagram the arrow labeled \"quarter, half\" from $0.75 to $1 or more counts as 2 of them. Counting |Q| · |Σ| is a quick check on any DFA you draw."
+  },
+  {
+   "type": "multi",
+   "category": "Transition function and determinism",
+   "topic": "Is it a DFA?",
+   "q": "Over Σ = {a, b}, a drawing has start state q1 and states q1, q2, with arrows q1 —a→ q2, q2 —b→ q2 and q2 —b→ q1. Which statements are true?",
+   "choices": [
+    "δ(q2, a) is undefined",
+    "δ(q1, b) is undefined",
+    "δ(q2, b) has two different values",
+    "It is a DFA, because each state has at least one outgoing arrow",
+    "The drawing describes a relation, not a function"
+   ],
+   "answer": [0, 1, 2, 4],
+   "explain": "This is Machine 1 from class, and it fails **three** ways: no a-arrow out of q2, no b-arrow out of q1, and two b-arrows out of q2. The first two mean δ is not defined on its whole domain. The third means one pair gets two values. Either failure makes δ a mere **relation**, so this is not a DFA (it is a legal NFA, studied later)."
+  },
+  {
+   "type": "tf",
+   "category": "Transition function and determinism",
+   "topic": "One-state machine",
+   "q": "Over Σ = {a, b}, a machine with a single state q1 (the start state) that has a self-loop on a and a self-loop on b is a DFA, even though it never moves.",
+   "answer": true,
+   "explain": "Check the definition, not your intuition (the \"chair\" analogy). Q = {q1}, q0 = q1, F is some subset of {q1}, and δ(q1, a) = δ(q1, b) = q1. That is 1 · 2 = 2 transitions, all present and none duplicated, so δ is total and single-valued. It is a DFA."
+  },
+  {
+   "type": "mc",
+   "category": "Transition function and determinism",
+   "topic": "Relation vs. function",
+   "q": "A machine over {a, b} has the table: q0: a → q1, b → q0; q1: a → q0 **and** q1, b → (none). Which is the most complete diagnosis?",
+   "choices": [
+    "It is a DFA, because q0's row is complete",
+    "It is not a DFA only because δ(q1, b) is missing",
+    "It is not a DFA for two reasons: δ(q1, a) has two values, and δ(q1, b) is undefined",
+    "It is not a DFA only because δ(q1, a) has two values"
+   ],
+   "answer": 2,
+   "explain": "Both conditions of a function are violated. **Single-valued:** δ(q1, a) = q0 and δ(q1, a) = q1. **Total:** δ(q1, b) has no value. Either one alone would disqualify it. It would be a legitimate NFA, where δ maps to a *set* of states, possibly empty."
+  },
+  {
+   "type": "mc",
+   "category": "Transition function and determinism",
+   "topic": "NFA preview",
+   "q": "Machines that break the DFA rules (missing arrows, several arrows on the same symbol) are not useless. What are they studied as later in the course?",
+   "choices": [
+    "Nondeterministic finite automata (NFAs), whose δ returns a set of next states",
+    "Turing machines, which have a tape",
+    "Regular expressions",
+    "Minimized DFAs"
+   ],
+   "answer": 0,
+   "explain": "An **NFA** has δ : Q × Σ → 𝒫(Q), a *set* of next states (possibly empty), and may have λ-arrows. It accepts if *some* path ends in a final state. Every NFA can be converted into an equivalent DFA with the subset construction, so NFAs also accept exactly the regular languages."
+  },
+  {
+   "type": "mc",
+   "category": "Computation and acceptance",
+   "topic": "Acceptance rule",
+   "q": "When does a DFA accept an input string w?",
+   "choices": [
+    "As soon as it enters a final state, even if input remains",
+    "If it passes through at least one final state while reading w",
+    "If it reads w left to right, consuming every symbol, and the state it is in after the last symbol is final",
+    "If at least one path through the diagram spelling w ends in a final state"
+   ],
+   "answer": 2,
+   "explain": "The computation starts in q0, reads **one symbol at a time, left to right**, and ends **only when the whole string has been consumed**. It accepts iff that last state is in F. Passing through a final state earlier does not count. \"Some path\" is the NFA rule; a DFA has only one path. Formally: w is accepted iff δ̂(q0, w) ∈ F."
+  },
+  {
+   "type": "mc",
+   "category": "Computation and acceptance",
+   "topic": "Tracing: odd number of a's",
+   "q": "The DFA has q0 (start), q1 (final); a toggles between q0 and q1, and b loops on the current state. What happens on input `bbaab`?",
+   "choices": [
+    "Ends in q1: accepted",
+    "Ends in q0: rejected",
+    "Ends in q0: accepted",
+    "The machine gets stuck on the second a"
+   ],
+   "answer": 1,
+   "explain": "q0 —b→ q0 —b→ q0 —a→ q1 —a→ q0 —b→ **q0**. q0 ∉ F, so the string is **rejected**. That fits the language: bbaab has 2 a's, an even number. A DFA never gets stuck because δ is total."
+  },
+  {
+   "type": "text",
+   "category": "Computation and acceptance",
+   "topic": "Tracing: odd number of a's",
+   "q": "Using the same \"odd number of a's\" DFA (states q0, q1), in which state does the machine end on input `abbaba`? Give the state name.",
+   "answer": ["q1"],
+   "explain": "q0 —a→ q1 —b→ q1 —b→ q1 —a→ q0 —b→ q0 —a→ **q1**. The input is consumed in q1 ∈ F, so abbaba is accepted (3 a's). This is the trace done in class with JFLAP's *Step by State*."
+  },
+  {
+   "type": "mc",
+   "category": "Computation and acceptance",
+   "topic": "Tracing: contains aa",
+   "q": "The \"contains aa\" DFA: q0 —a→ q1, q0 —b→ q0, q1 —a→ q2, q1 —b→ q0, q2 (final) loops on a and b. What is the sequence of states on `ababaab`?",
+   "choices": [
+    "q0, q1, q0, q1, q0, q1, q2, q2 (accepted)",
+    "q0, q1, q2, q2, q2, q2, q2, q2 (accepted)",
+    "q0, q1, q0, q1, q0, q1, q0, q0 (rejected)",
+    "q0, q1, q1, q1, q1, q2, q2, q2 (accepted)"
+   ],
+   "answer": 0,
+   "explain": "Each b after a single a sends the machine back to q0 (the run toward aa is broken). The a's at positions 5 and 6 form aa: q0 → q1 → **q2**, and q2 loops on the final b. The machine ends in q2 ∈ F, so the string is accepted."
+  },
+  {
+   "type": "mc",
+   "category": "Computation and acceptance",
+   "topic": "Language of a machine",
+   "q": "What is L(M), the language of a DFA M?",
+   "choices": [
+    "The set of symbols in Σ",
+    "The set of all strings in Σ*, λ included, that M accepts",
+    "The set of all non-empty strings that M accepts",
+    "The set of strings that lead M to a trap state"
+   ],
+   "answer": 1,
+   "explain": "L(M) = { w ∈ Σ* | δ̂(q0, w) ∈ F }. It ranges over **all** of Σ*, **including λ**. To state a machine's language you must say exactly which strings end in a final state, and that includes deciding about λ."
+  },
+  {
+   "type": "mc",
+   "category": "Computation and acceptance",
+   "topic": "Extended transition function",
+   "q": "The extended transition function δ̂ is defined by δ̂(q, λ) = q and δ̂(q, ua) = δ(δ̂(q, u), a). What is δ̂(q0, ab) for the \"odd number of a's\" DFA (a toggles q0/q1, b loops)?",
+   "choices": [
+    "q0",
+    "q1",
+    "undefined, because ab contains two symbols",
+    "{q0, q1}"
+   ],
+   "answer": 1,
+   "explain": "δ̂(q0, ab) = δ(δ̂(q0, a), b) = δ(δ(δ̂(q0, λ), a), b) = δ(δ(q0, a), b) = δ(q1, b) = **q1**. δ̂ just runs δ one symbol at a time. Because δ is total, δ̂(q0, w) is defined for every w, and it is always a single state, never a set."
+  },
+  {
+   "type": "mc",
+   "category": "Computation and acceptance",
+   "topic": "Language acceptors",
+   "q": "In what sense is a DFA a **language acceptor**, unlike a Turing machine?",
+   "choices": [
+    "A DFA can accept any language, while a Turing machine cannot",
+    "A DFA's only output is accept or reject, while a Turing machine can also leave a computed result on its tape",
+    "A DFA dispenses products, like a vending machine",
+    "A DFA's input must already be in L"
+   ],
+   "answer": 1,
+   "explain": "A DFA answers one yes/no question: is the input in the language? A Turing machine can also accept or reject, but it can **compute**: the solution ends up on its tape. A real vending machine also *does* something (releases a bottle), which is more than pure acceptance."
+  },
+  {
+   "type": "tf",
+   "category": "Computation and acceptance",
+   "topic": "No early stopping",
+   "q": "Once a DFA enters a trap state, it stops reading and rejects immediately, leaving the rest of the input unread.",
+   "answer": false,
+   "explain": "A DFA **always consumes the entire input**. On `abaa` in the \"begins with aa\" machine it goes q0 → q1 → q3 and then still reads the last two a's, staying in q3. The result is the same (rejected), but the model never stops early."
+  },
+  {
+   "type": "tf",
+   "category": "λ, Σ* and ∅",
+   "topic": "λ and q0",
+   "q": "A DFA accepts the empty string λ if and only if its initial state q0 is final.",
+   "answer": true,
+   "explain": "On input λ the machine makes no moves: δ̂(q0, λ) = q0. So λ ∈ L(M) ⇔ q0 ∈ F, in both directions. In JFLAP, running an empty input on a machine whose start state is final reports *accepted* immediately."
+  },
+  {
+   "type": "mc",
+   "category": "λ, Σ* and ∅",
+   "topic": "Two-state parity machines",
+   "q": "Over {a, b}, q0 (start) and q1 swap on every symbol (both a and b). Which assignment of F gives the language of **even-length** strings?",
+   "choices": [
+    "F = {q1}",
+    "F = {q0}",
+    "F = {q0, q1}",
+    "F = ∅"
+   ],
+   "answer": 1,
+   "explain": "The state records the parity of the length read so far: q0 = even, q1 = odd. So F = {q0} accepts even lengths, **including λ** (length 0). F = {q1} gives odd lengths, F = Q gives Σ*, and F = ∅ gives ∅. The arrows are the same in all four machines; only F changes the language."
+  },
+  {
+   "type": "mc",
+   "category": "λ, Σ* and ∅",
+   "topic": "No final states",
+   "q": "What is the language of a DFA with F = ∅?",
+   "choices": [
+    "{λ}",
+    "Σ*",
+    "∅, the empty language",
+    "It has no language, because it is not a valid DFA"
+   ],
+   "answer": 2,
+   "explain": "Every computation ends in a non-final state, so the machine accepts **nothing**: L(M) = ∅. That is a legitimate DFA (∅ ⊆ Q) and a legitimate language (∅ ⊆ Σ*). It is **not** {λ}, which contains one string."
+  },
+  {
+   "type": "tf",
+   "category": "λ, Σ* and ∅",
+   "topic": "∅ vs {λ}",
+   "q": "∅ and {λ} are the same language, because both contain no symbols.",
+   "answer": false,
+   "explain": "∅ contains **no strings at all**. {λ} contains **exactly one string**, the empty one. A DFA for {λ} makes q0 final and sends every symbol to a non-final trap. A DFA for ∅ simply has no final states."
+  },
+  {
+   "type": "mc",
+   "category": "λ, Σ* and ∅",
+   "topic": "One-state DFAs",
+   "q": "Why can no one-state DFA over {a, b} accept exactly the language {a}?",
+   "choices": [
+    "Because {a} is not a regular language",
+    "Because a one-state machine cannot have an initial state",
+    "Because with one state every string ends in q0, so the machine accepts either everything (q0 ∈ F) or nothing (q0 ∉ F)",
+    "Because one state can hold only one arrow"
+   ],
+   "answer": 2,
+   "explain": "Both arrows must loop on the single state, so every string, λ included, ends in q0. The only two languages possible are **Σ*** and **∅**. Any language that accepts some strings and rejects others needs **at least two states**. {a} is regular; it just needs more states."
+  },
+  {
+   "type": "mc",
+   "category": "λ, Σ* and ∅",
+   "topic": "DFA for {λ}",
+   "q": "Which DFA over {a, b} accepts exactly {λ}?",
+   "choices": [
+    "One state q0, not final, looping on a and b",
+    "One state q0, final, looping on a and b",
+    "q0 final, with a and b going to q1, and q1 a non-final state looping on a and b",
+    "q0 not final, with a and b going to q1, and q1 a final state looping on a and b"
+   ],
+   "answer": 2,
+   "explain": "λ must be accepted, so **q0 must be final**. Every non-empty string must be rejected forever, so the first symbol goes to a **non-final trap**. Option 1 accepts ∅, option 2 accepts Σ*, and option 4 accepts every non-empty string, which is the complement of {λ}."
+  },
+  {
+   "type": "mc",
+   "category": "DFA design and trap states",
+   "topic": "Begins with aa",
+   "q": "Designing a DFA for \"strings that begin with aa\", we add q0 —a→ q1. Why must q1 **not** be final?",
+   "choices": [
+    "Because a trap state can never be final",
+    "Because then the string `a` would be accepted, and a is not in the language",
+    "Because only the last state added may be final",
+    "Because q1 has no outgoing b-arrow yet"
+   ],
+   "answer": 1,
+   "explain": "Reaching q1 means exactly one a has been read. If q1 were final, `a` would end there and be accepted, but a does not begin with aa. Always test each state against a concrete string: which strings end here, and should they be accepted?"
+  },
+  {
+   "type": "mc",
+   "category": "DFA design and trap states",
+   "topic": "Begins with aa",
+   "q": "In the finished \"begins with aa\" DFA (q0 —a→ q1 —a→ q2 final, q2 loops on a, b), where must the b-arrows out of q0 and q1 go, and why?",
+   "choices": [
+    "Back to q0, because the machine should start over",
+    "To q2, because anything may follow",
+    "To a new non-final trap state q3 that loops on a and b, because a string that starts with b or ab can never begin with aa",
+    "Nowhere: missing arrows mean reject"
+   ],
+   "answer": 2,
+   "explain": "A b at position 1 or 2 ruins the prefix **forever**, so those strings need a state that is never left and never accepts: a **trap (dead) state**. Sending b back to q0 would wrongly accept `baa`. Leaving arrows out makes δ partial, which under the course definition is **not a DFA**. On tests, draw the trap and its arrows."
+  },
+  {
+   "type": "text",
+   "category": "DFA design and trap states",
+   "topic": "Trap state",
+   "q": "What is the name for a non-accepting state whose outgoing arrows all loop back to itself, so that once entered, the string is certain to be rejected? (The instructor prefers one name and the book uses another; either is fine.)",
+   "answer": ["trap state", "dead state", "trap", "dead", "error state"],
+   "explain": "A **trap state** (the instructor's preferred name: **dead state**). Sudkamp calls it an \"error\" state: you add it to an incompletely specified DFA and send every missing transition there, which makes δ total."
+  },
+  {
+   "type": "mc",
+   "category": "DFA design and trap states",
+   "topic": "Contains aa",
+   "q": "In the \"contains aa\" DFA, q0 —a→ q1 —a→ q2 (final). Where should δ(q1, b) go?",
+   "choices": [
+    "q2",
+    "q1",
+    "A trap state",
+    "q0"
+   ],
+   "answer": 3,
+   "explain": "q1 means \"no aa yet, and the last symbol was a\". A b breaks the run, so the progress is lost and the machine is back in q0's situation: no aa yet, and the last symbol was not a. It is **not** a trap: a later aa can still make the string acceptable (for example, `abaa`)."
+  },
+  {
+   "type": "multi",
+   "category": "DFA design and trap states",
+   "topic": "When a trap is needed",
+   "q": "For which of these languages over {a, b} does a (complete) DFA need a trap state, meaning a situation from which no continuation can ever be accepted?",
+   "choices": [
+    "Strings that begin with aa",
+    "Strings that contain aa",
+    "`a* ∪ b*`",
+    "`a⁺b⁺`",
+    "Strings with an odd number of a's",
+    "Strings that end with ab"
+   ],
+   "answer": [0, 2, 3],
+   "explain": "A trap is needed exactly when some prefix can **never** be extended to a string in L. A bad start (b or ab) kills \"begins with aa\"; mixing letters kills `a* ∪ b*`; starting with b, or an a after the b's, kills `a⁺b⁺`. For \"contains aa\", \"odd a's\" and \"ends with ab\", every prefix can still be completed, so there is no trap."
+  },
+  {
+   "type": "mc",
+   "category": "DFA design and trap states",
+   "topic": "a* ∪ b*",
+   "q": "In the DFA for `a* ∪ b*`, why must the start state q0 be **final**?",
+   "choices": [
+    "Because the language contains λ, and on input λ the machine stays in q0",
+    "Because every state of this machine is final",
+    "Because q0 has a self-loop",
+    "Because the language is infinite"
+   ],
+   "answer": 0,
+   "explain": "λ ∈ `a*` (zero a's), so λ ∈ L. With no input the machine never leaves q0, so q0 ∈ F is required. The final design is F = {q0, q1, q2}, with the trap q3 non-final. Not every state is final: if all were, it would accept Σ*, including ab."
+  },
+  {
+   "type": "mc",
+   "category": "DFA design and trap states",
+   "topic": "a* ∪ b*",
+   "q": "The correct `a* ∪ b*` DFA has q0 (start, final), q1 (final: only a's so far), q2 (final: only b's so far), and a trap q3. What are δ(q1, b) and δ(q2, a)?",
+   "choices": [
+    "δ(q1, b) = q2 and δ(q2, a) = q1",
+    "Both go to q0",
+    "Both go to q3",
+    "δ(q1, b) = q1 and δ(q2, a) = q2"
+   ],
+   "answer": 2,
+   "explain": "Once a's and b's are **mixed**, no continuation can put the string back in `a* ∪ b*`, so both go to the non-final trap q3. Sending q1 —b→ q2 would accept `ab`. Sending them to q0 would accept `abb` or `ba`, because q0 is final."
+  },
+  {
+   "type": "mc",
+   "category": "DFA design and trap states",
+   "topic": "a⁺b⁺",
+   "q": "The `a⁺b⁺` DFA uses q0 —a→ q1, q1 —a→ q1, q1 —b→ q2 (final), q2 —b→ q2, plus a trap q3. Why is q1 **not** final?",
+   "choices": [
+    "Because q1 has a self-loop",
+    "Because the language needs at least one b, so strings like `a` and `aa` (which end in q1) must be rejected",
+    "Because only one state may be final",
+    "Because q1 is reachable from q0"
+   ],
+   "answer": 1,
+   "explain": "q1 means \"one or more a's so far, no b yet\". `a⁺b⁺` requires at least one b, so a and aa, which end in q1, are not in L. The first final state is q2, reached by at least one a followed by at least one b."
+  },
+  {
+   "type": "mc",
+   "category": "DFA design and trap states",
+   "topic": "Designing: ends with ab",
+   "q": "A DFA for \"strings over {a, b} that end with ab\" uses q0 (no progress), q1 (ends in a), q2 (final: ends in ab). q0: a→q1, b→q0; q1: a→q1, b→q2. What must δ(q2, a) and δ(q2, b) be?",
+   "choices": [
+    "δ(q2, a) = q1, δ(q2, b) = q0",
+    "δ(q2, a) = q2, δ(q2, b) = q2",
+    "δ(q2, a) = q0, δ(q2, b) = q1",
+    "δ(q2, a) = trap, δ(q2, b) = trap"
+   ],
+   "answer": 0,
+   "explain": "Ask what the input ends with after the new symbol. From \"…ab\", reading a gives \"…aba\", which ends in a: **q1**. Reading b gives \"…abb\", which has no progress toward ab: **q0**. Looping on q2 would accept `aba`. A trap would reject `abab`, which does end with ab."
+  },
+  {
+   "type": "mc",
+   "category": "DFA design and trap states",
+   "topic": "Complement",
+   "q": "Starting from the \"contains aa\" DFA (q0, q1, q2 with F = {q2}), how do you get a DFA for strings that **do not** contain aa?",
+   "choices": [
+    "Reverse every arrow",
+    "Delete q2",
+    "Swap final and non-final states: F = {q0, q1}",
+    "Make q0 the only final state"
+   ],
+   "answer": 2,
+   "explain": "Swapping F with Q − F accepts exactly the strings the original rejected, giving the complement Σ* − L(M). q2 then becomes a trap. This trick works **only because δ is total**: every string ends in some state. That is one more reason always to draw the trap state. Deleting q2 would leave q1 without an a-arrow."
+  },
+  {
+   "type": "tf",
+   "category": "DFA design and trap states",
+   "topic": "Many correct answers",
+   "q": "A DFA that uses more states than necessary is still a correct answer, as long as it accepts exactly the target language.",
+   "answer": true,
+   "explain": "Many DFAs accept the same language, so there is no single right answer. Extra states are like correct but unoptimized code. **Minimization** (merging equivalent states) comes later and gives the unique smallest DFA."
+  },
+  {
+   "type": "multi",
+   "category": "Testing designs and regular expressions",
+   "topic": "Counterexamples",
+   "q": "A student's `a⁺b⁺` DFA is the correct one except that **q2 —a→ q1** (instead of going to the trap). Which strings are counterexamples that prove it wrong?",
+   "choices": [
+    "`abab`",
+    "`abaab`",
+    "`aba`",
+    "`ab`",
+    "`ba`"
+   ],
+   "answer": [0, 1],
+   "explain": "A counterexample is a string the machine accepts but should reject, or the reverse. `abab`: q0→q1→q2→q1→q2, **accepted**, but it is not in `a⁺b⁺`. `abaab`: q1→q2→q1→q1→q2, also wrongly accepted. `aba` ends in q1 (non-final), a correct rejection. `ab` is correctly accepted and `ba` is correctly trapped. One counterexample is enough to disprove a design."
+  },
+  {
+   "type": "mc",
+   "category": "Testing designs and regular expressions",
+   "topic": "Counterexample method",
+   "q": "A first attempt at `a* ∪ b*` had one final state with loops on both symbols. Which single string best shows the design is wrong?",
+   "choices": [
+    "λ",
+    "`aaa`",
+    "`ab`",
+    "`bbb`"
+   ],
+   "answer": 2,
+   "explain": "That machine accepts everything. To break it, find a string that is **accepted but should be rejected**: `ab` mixes the letters, so it is not in `a* ∪ b*`, yet it is accepted. λ, aaa and bbb are all in L, so they cannot reveal the bug."
+  },
+  {
+   "type": "mc",
+   "category": "Testing designs and regular expressions",
+   "topic": "Regex for odd a's",
+   "q": "Which regular expression describes the strings over {a, b} with an **odd** number of a's?",
+   "choices": [
+    "`(ab*a)*b*`",
+    "`b*a(b ∪ ab*a)*`",
+    "`b*ab*ab*`",
+    "`(a ∪ b)*a`"
+   ],
+   "answer": 1,
+   "explain": "`b*a` supplies the first a. `(b ∪ ab*a)*` is exactly the strings with an **even** number of a's, and odd + even = odd. It equals the class version `b*ab*(ab*ab*)*` by identity 12, in the form `u*(vu*)* = (u ∪ v)*` with u = b, v = ab*a. `(ab*a)*b*` has an even count, `b*ab*ab*` has exactly two a's, and `(a ∪ b)*a` only requires the string to end in a."
+  },
+  {
+   "type": "mc",
+   "category": "Testing designs and regular expressions",
+   "topic": "Regex ↔ DFA",
+   "q": "Which regular expression matches the \"contains aa\" DFA?",
+   "choices": [
+    "`aa(a ∪ b)*`",
+    "`(a ∪ b)*aa`",
+    "`(a ∪ b)*aa(a ∪ b)*`",
+    "`(aa)*`"
+   ],
+   "answer": 2,
+   "explain": "aa may appear anywhere: anything, then aa, then anything. `aa(a ∪ b)*` is \"begins with aa\" (the section 8 machine), `(a ∪ b)*aa` is \"ends with aa\", and `(aa)*` is even-length runs of a's only. One way to check a DFA is to convert it to a regex (JFLAP: *Convert FA to RE*) and test equivalence with the target."
+  },
+  {
+   "type": "mc",
+   "category": "Testing designs and regular expressions",
+   "topic": "Simplifying with identities",
+   "q": "A student wrote `a*b*(a ∪ b)*` for the machine that accepts everything. What is true about it?",
+   "choices": [
+    "It is wrong, because it forces the a's before the b's",
+    "It is correct, and equals `(a ∪ b)*`",
+    "It is wrong, because it excludes λ",
+    "It describes only strings of the form aⁿbᵐ"
+   ],
+   "answer": 1,
+   "explain": "The trailing `(a ∪ b)*` can produce any string on its own, so the prefix adds nothing. Formally, identity 12 in the form `u*(u ∪ v)* = (u ∪ v)*`, applied twice (u = b, then u = a), reduces it to `(a ∪ b)*` = Σ*. It includes λ, since each starred part can be empty."
+  },
+  {
+   "type": "mc",
+   "category": "Testing designs and regular expressions",
+   "topic": "Kleene's theorem",
+   "q": "What is the relationship between regular expressions and DFAs?",
+   "choices": [
+    "DFAs accept strictly more languages than regular expressions describe",
+    "Regular expressions describe strictly more languages than DFAs accept",
+    "They describe exactly the same class of languages, the regular languages",
+    "They are unrelated models"
+   ],
+   "answer": 2,
+   "explain": "**Kleene's theorem:** a language is regular (has a regular expression) iff some DFA accepts it, and iff some NFA accepts it. So for a regular language you may either design a DFA or write a regex. Regex → NFA uses Thompson's construction, NFA → DFA uses the subset construction, and DFA → regex uses state elimination."
+  },
+  {
+   "type": "mc",
+   "category": "Testing designs and regular expressions",
+   "topic": "Regex for a⁺b⁺",
+   "q": "Using a⁺ = aa*, which expression is the same language as `a⁺b⁺`?",
+   "choices": [
+    "`a*b*`",
+    "`aa*bb*`",
+    "`(ab)*`",
+    "`a(a ∪ b)*b`"
+   ],
+   "answer": 1,
+   "explain": "`a⁺b⁺` = `aa*bb*`: at least one a, then at least one b, with no mixing. `a*b*` also allows λ, `a` and `b`. `(ab)*` gives ab, abab and so on. `a(a ∪ b)*b` allows `abab`."
+  },
+  {
+   "type": "mc",
+   "category": "JFLAP",
+   "topic": "Commas on arrows",
+   "q": "In class an arrow labeled \"a, b\" is shorthand for two transitions. What happens if you type `a,b` as a single label in JFLAP?",
+   "choices": [
+    "JFLAP makes two transitions, one for a and one for b",
+    "JFLAP treats it as a multi-character string, so the machine is no longer a DFA with single-symbol labels",
+    "JFLAP rejects the label with an error",
+    "JFLAP treats the comma as λ"
+   ],
+   "answer": 1,
+   "explain": "JFLAP reads the label as the **string** \"a,b\", not as two symbols. Draw a **separate transition for each symbol**; JFLAP stacks the labels on one arrow. String labels (and empty labels, meaning λ) make JFLAP treat the automaton as an NFA, and *Test → Highlight Nondeterminism* shows the offending states."
+  },
+  {
+   "type": "mc",
+   "category": "JFLAP",
+   "topic": "Running inputs",
+   "q": "In JFLAP's *Input → Step by State*, how do you test λ, and how is the result shown?",
+   "choices": [
+    "Type the letter L; the result prints in the console",
+    "Leave the input empty and press OK; after the input is used up, green means accepted and red means rejected",
+    "λ cannot be tested in JFLAP",
+    "Type `lambda`; a dialog says Yes or No"
+   ],
+   "answer": 1,
+   "explain": "An empty input is λ. Stepping shades the current state and grays out consumed symbols, and at the end the configuration turns **green (accept)** or **red (reject)**. For many strings at once, *Input → Multiple Run* (with *Enter Lambda* for λ) is the fastest way to test counterexamples."
+  },
+  {
+   "type": "mc",
+   "category": "JFLAP",
+   "topic": "Notation clash",
+   "q": "In JFLAP's regular-expression editor, what does `a+b` mean?",
+   "choices": [
+    "One or more a's, then b",
+    "a ∪ b (union)",
+    "a concatenated with b",
+    "a, then one or more b's"
+   ],
+   "answer": 1,
+   "explain": "In JFLAP, **`+` is union**, so `a+b` is a ∪ b. In the course notation a⁺ means one or more, and the online equivalence tool writes union as `|`. Translate carefully when moving expressions between the three notations."
+  },
+  {
+   "type": "mc",
+   "category": "JFLAP",
+   "topic": "Marking initial/final",
+   "q": "How do you make a state initial or final in JFLAP, and how does JFLAP draw the initial state?",
+   "choices": [
+    "Use the State Creator twice; the initial state is shaded",
+    "Right-click the state with the Attribute Editor and tick Initial or Final; the initial state gets a white triangle to its left",
+    "Double-click the state; the initial state is a double circle",
+    "Name the state q0; JFLAP detects it automatically"
+   ],
+   "answer": 1,
+   "explain": "With the Attribute Editor (selection arrow), right-click a state and tick **Initial** or **Final**. JFLAP marks the initial state with a **white triangle**, where the textbook uses an incoming arrow tip. Final states are double circles in both."
+  },
+  {
+   "type": "mc",
+   "category": "Finite memory vs. Turing machines",
+   "topic": "What states remember",
+   "q": "In the \"contains aa\" DFA, what does being in state q1 tell you about the input read so far?",
+   "choices": [
+    "The input contains aa",
+    "The input has an odd number of a's",
+    "aa has not appeared yet, and the last symbol read was a",
+    "The input is empty"
+   ],
+   "answer": 2,
+   "explain": "The only way into q1 is an a read while in q0 (no aa yet). So q1 = \"no aa yet, one a of progress\". q0 = no aa and the last symbol was not a (or nothing was read), and q2 = aa seen. Describing what each state *remembers* is the core DFA design technique."
+  },
+  {
+   "type": "mc",
+   "category": "Finite memory vs. Turing machines",
+   "topic": "Finite memory",
+   "q": "What does it mean that a DFA has **finite memory**?",
+   "choices": [
+    "It can only read strings up to some maximum length",
+    "Its only memory is which of its finitely many states it is in, so it can distinguish only |Q| situations however long the input is",
+    "It forgets the input once it reaches a final state",
+    "It stores the last |Q| symbols read"
+   ],
+   "answer": 1,
+   "explain": "A DFA reads inputs of **any** length, but everything it knows about the past is compressed into one of |Q| states. A 3-state machine can tell apart only 3 situations. That is why languages like {aⁿbⁿ | n ≥ 0}, which require counting without bound, have **no** DFA (formalized by the Myhill–Nerode theorem)."
+  },
+  {
+   "type": "mc",
+   "category": "Finite memory vs. Turing machines",
+   "topic": "Turing machine memory",
+   "q": "Why is it reasonable to model a real computer as a Turing machine rather than as a DFA, even though its memory is physically finite?",
+   "choices": [
+    "Because real computers have no states",
+    "Because a Turing machine's tape is unbounded, and a computer's storage can always be extended (more disks, more terabytes), so treating it as unlimited is a reasonable idealization",
+    "Because Turing machines are faster than DFAs",
+    "Because a DFA cannot read binary input"
+   ],
+   "answer": 1,
+   "explain": "A Turing machine's memory is a **tape unbounded in both directions** (in the model from class; a one-way-infinite tape is equivalent in power). A computer's memory is finite at any moment, but you can keep adding storage, so modeling it as unbounded fits better than a fixed finite set of states."
+  },
+  {
+   "type": "tf",
+   "category": "Finite memory vs. Turing machines",
+   "topic": "Unbounded counting",
+   "q": "Some DFA over {a, b} accepts exactly {aⁿbⁿ | n ≥ 0}, as long as it has enough states.",
+   "answer": false,
+   "explain": "Deciding aⁿbⁿ requires remembering n, which is unbounded. Any fixed number of states eventually runs out: two different counts aⁱ and aʲ must lead to the same state, and then the machine would treat aⁱbⁱ and aʲbⁱ the same. The language is **not regular**. A machine with unbounded memory, such as a Turing machine, can decide it."
+  }
+ ]
+}
