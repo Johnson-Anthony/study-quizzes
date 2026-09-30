@@ -1,0 +1,947 @@
+{
+ "title": "CSC2770 Module 0 — Class Introduction",
+ "course": "CSC2770",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "Abstraction layers",
+   "topic": "Layer order",
+   "q": "Which ordering lists the layers you rely on in everyday computer use from **top (closest to you) to bottom**?",
+   "choices": [
+    "Applications → operating system → hardware → physical components",
+    "Operating system → applications → hardware → physical components",
+    "Applications → hardware → operating system → physical components",
+    "Hardware → operating system → applications → physical components"
+   ],
+   "answer": 0,
+   "explain": "You run **applications** (written by other programmers) that run on an **OS** (written by other developers) that runs on **hardware** (built by other manufacturers) made of **physical components** (metal, plastic, electricity). Each layer depends on the one below it.",
+   "fixed": false
+  },
+  {
+   "type": "mc",
+   "category": "Abstraction layers",
+   "topic": "Abstraction defined",
+   "q": "Which statement best captures **abstraction** as used in this lesson?",
+   "choices": [
+    "Hiding how something works behind a simpler interface so its user only needs to know *what* it does",
+    "Writing code without comments so it is harder to reverse-engineer",
+    "Translating a high-level language directly into electricity",
+    "Replacing hardware with software emulation"
+   ],
+   "answer": 0,
+   "explain": "Abstraction hides the *how* behind an interface that exposes the *what*. Each layer of the stack gives the layer above a simplified view: applications see files and windows, not disk sectors; the OS sees \"a CPU that executes instructions,\" not transistor layouts."
+  },
+  {
+   "type": "mc",
+   "category": "Abstraction layers",
+   "topic": "Why systems courses",
+   "q": "If abstraction lets millions of people use computers without knowing the internals, why study the lower layers at all?",
+   "choices": [
+    "When something breaks, runs slowly, or must be secured, the explanation usually lives in a lower layer",
+    "Because the upper layers are going away and will be replaced by hardware",
+    "Because applications cannot run unless the user understands the hardware",
+    "Because abstraction is an insult to programmers"
+   ],
+   "answer": 0,
+   "explain": "\"Superficial\" is not an insult: abstraction is what makes computers usable. The catch is that bugs, performance problems and security holes are usually explained by what happens *underneath*, which is what a systems course teaches."
+  },
+  {
+   "type": "mc",
+   "category": "Abstraction layers",
+   "topic": "File Explorer vs file system",
+   "q": "You drag a file into a folder in File Explorer. What actually decides which disk blocks get updated?",
+   "choices": [
+    "The operating system's file-system code, which File Explorer asks to make the change",
+    "File Explorer itself, which writes directly to the SSD's blocks",
+    "The SSD, which reorganizes folders on its own when a file is moved",
+    "The CPU's ALU"
+   ],
+   "answer": 0,
+   "explain": "File Explorer is only an **application** that *shows* the file system. It asks the OS (via system calls) to make the change, and the OS's **file system** (NTFS, ext4, APFS…) maps named files and directories onto raw numbered storage blocks and updates metadata."
+  },
+  {
+   "type": "tf",
+   "category": "Abstraction layers",
+   "topic": "File system role",
+   "q": "A file system is the scheme the OS uses to organize raw, numbered storage blocks into named files inside a tree of directories, including metadata such as sizes, timestamps and permissions.",
+   "answer": true,
+   "explain": "Physically a drive is just a huge array of fixed-size blocks. The file system (NTFS, APFS, ext4, FAT32/exFAT) is the OS-level organization that turns those blocks into files, folders and metadata."
+  },
+  {
+   "type": "mc",
+   "category": "Abstraction layers",
+   "topic": "What each layer sees",
+   "q": "Which pairing of layer and \"what it sees\" is correct?",
+   "choices": [
+    "Application: files, windows and network connections",
+    "Application: disk sectors and radio signals",
+    "Operating system: the internal layout of transistors",
+    "Hardware designer: HTTP requests"
+   ],
+   "answer": 0,
+   "explain": "An application sees high-level abstractions (files, windows, connections). The OS sees a CPU, addressable memory and device controllers, but not transistor layout. The hardware designer works with gates built from transistors."
+  },
+  {
+   "type": "multi",
+   "category": "OS and hardware",
+   "topic": "OS roles",
+   "q": "Which of these are jobs of an **operating system**?",
+   "choices": [
+    "Loading programs into memory and switching the CPU among them so many appear to run at once",
+    "Giving each program the illusion of its own private memory (virtualization)",
+    "Offering system calls such as `open()`, `write()` and `fork()`",
+    "Stopping one program from reading or corrupting another's memory",
+    "Translating C++ source into assembly",
+    "Physically storing bits as magnetized regions"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "explain": "The OS runs programs, virtualizes hardware, manages resources, provides system calls and enforces protection. Compiling is the job of a **compiler** (an application), and storing bits physically is the job of **hardware**."
+  },
+  {
+   "type": "mc",
+   "category": "OS and hardware",
+   "topic": "Protection",
+   "q": "A game crashes, but your browser and the rest of the desktop keep running. Which OS role does this best illustrate?",
+   "choices": [
+    "Protection",
+    "Hardware abstraction",
+    "Standard library of services",
+    "Compilation"
+   ],
+   "answer": 0,
+   "explain": "**Protection** keeps one program's failure or misbehaviour from reading or corrupting another's memory and files, so one crash does not take down the whole system."
+  },
+  {
+   "type": "mc",
+   "category": "OS and hardware",
+   "topic": "System calls",
+   "q": "A C++ program writes \"hello world\" to a file. How does the data get to the disk?",
+   "choices": [
+    "The program makes system calls (`open`, `write`, `close`); the OS's file system works out where the data goes and issues I/O requests to the storage device",
+    "The program writes the bytes directly into the SSD's controller registers",
+    "The compiler stores the text in the executable, which the disk copies at boot",
+    "The CPU's control unit decides which block to use on its own"
+   ],
+   "answer": 0,
+   "explain": "Applications request OS services through **system calls**. The OS routes file operations to its file system, which picks disk locations and issues the device I/O. Even saving a Notepad file triggers this hidden chain."
+  },
+  {
+   "type": "mc",
+   "category": "OS and hardware",
+   "topic": "Volatility",
+   "q": "Which component loses its contents when power is removed?",
+   "choices": [
+    "Main memory (DRAM)",
+    "An SSD",
+    "A hard disk",
+    "A USB flash drive"
+   ],
+   "answer": 0,
+   "explain": "RAM is **volatile**: it holds the programs and data currently in use, and is fast, but its contents vanish without power. Secondary storage (SSD, HDD, flash) is non-volatile. (Caveat 2 applies: non-volatile memory like Optane exists, and DRAM fades over seconds, not instantly.)"
+  },
+  {
+   "type": "mc",
+   "category": "OS and hardware",
+   "topic": "CPU parts",
+   "q": "Inside the CPU, which part performs addition and Boolean operations like AND/OR?",
+   "choices": [
+    "The ALU (arithmetic logic unit)",
+    "The control unit",
+    "The system bus",
+    "The I/O bridge"
+   ],
+   "answer": 0,
+   "explain": "The **ALU** does arithmetic and logic. The **control unit** directs the fetch–decode–execute cycle, **registers** are small fast storage cells, and **buses** are shared wires carrying addresses, data and control signals between parts."
+  },
+  {
+   "type": "mc",
+   "category": "OS and hardware",
+   "topic": "Buses",
+   "q": "What is a **bus** in computer hardware?",
+   "choices": [
+    "A shared group of wires carrying addresses, data and control signals between components",
+    "A program that moves files between folders",
+    "A type of non-volatile memory",
+    "The OS component that schedules processes"
+   ],
+   "answer": 0,
+   "explain": "The system bus has address, data and control lines connecting the CPU, main memory and the I/O bridge/controllers."
+  },
+  {
+   "type": "mc",
+   "category": "OS and hardware",
+   "topic": "Hardware meaning",
+   "q": "In the lesson, \"hardware\" one step above raw materials refers to…",
+   "choices": [
+    "Organized components: CPU, main memory, secondary storage, I/O devices with controllers, and buses",
+    "Only the metal case and the plastic keyboard",
+    "The operating system's drivers",
+    "Anything that stores data, including files"
+   ],
+   "answer": 0,
+   "explain": "The slides describe the lowest layer as metal, rubber, plastic and electricity, but those materials are organized into standard components: CPU, RAM, storage, I/O devices (through controllers/adapters) and buses. Module 2 tours them."
+  },
+  {
+   "type": "mc",
+   "category": "From electricity to logic",
+   "topic": "Why binary",
+   "q": "Why do computers represent signals with just two voltage states (high ≈ 1, low ≈ 0) instead of, say, ten?",
+   "choices": [
+    "Two well-separated states are much easier to build reliably and to distinguish through electrical noise",
+    "Transistors physically cannot hold more than two voltages",
+    "Binary uses less memory than decimal for the same number",
+    "The C++ standard requires binary hardware"
+   ],
+   "answer": 0,
+   "explain": "With only two states you can leave a wide margin between them, so noise rarely flips a 0 into a 1. Ten levels packed into the same voltage range would be much closer together and error-prone. Module 1 revisits *why binary*."
+  },
+  {
+   "type": "mc",
+   "category": "From electricity to logic",
+   "topic": "Transistor",
+   "q": "What is a transistor, in the terms of this lesson?",
+   "choices": [
+    "A tiny electrically controlled switch: a voltage on one terminal decides whether current flows between the other two",
+    "A logic gate that computes AND",
+    "A small memory cell that holds one byte",
+    "A wire that carries data between the CPU and RAM"
+   ],
+   "answer": 0,
+   "explain": "Transistors are the switches from which everything is built: a few make a **logic gate**, gates make adders, multiplexers and flip-flops, and those make ALUs, registers and a whole CPU."
+  },
+  {
+   "type": "num",
+   "category": "From electricity to logic",
+   "topic": "Truth table",
+   "q": "Using the truth table, what is the output of `(A AND B) OR (NOT A)` when A = 0 and B = 1? (Enter 0 or 1)",
+   "answer": 1,
+   "explain": "A AND B = 0 AND 1 = **0**. NOT A = NOT 0 = **1**. Then 0 OR 1 = **1**."
+  },
+  {
+   "type": "mc",
+   "category": "From electricity to logic",
+   "topic": "Half adder",
+   "q": "Adding two 1-bit numbers A = 1 and B = 1 with sum = `A XOR B` and carry = `A AND B` gives…",
+   "choices": [
+    "sum = 0, carry = 1, i.e. binary `10` = 2",
+    "sum = 1, carry = 1, i.e. binary `11` = 3",
+    "sum = 1, carry = 0, i.e. binary `01` = 1",
+    "sum = 0, carry = 0, i.e. binary `00` = 0"
+   ],
+   "answer": 0,
+   "explain": "1 XOR 1 = 0 (the bits are equal), and 1 AND 1 = 1, so the result is carry 1, sum 0 → `10`₂ = 2. Chaining 32 or 64 such adders with carries passed along gives an ALU's integer adder."
+  },
+  {
+   "type": "mc",
+   "category": "From electricity to logic",
+   "topic": "Building hierarchy",
+   "q": "Which chain correctly describes how hardware is built up?",
+   "choices": [
+    "Transistors → logic gates → adders/multiplexers/flip-flops → ALUs and registers → CPU",
+    "Logic gates → transistors → CPU → ALUs → registers",
+    "Flip-flops → transistors → gates → buses",
+    "CPU → ALU → gates → transistors"
+   ],
+   "answer": 0,
+   "explain": "It is layered abstraction again, in hardware: switches make gates, gates make functional circuits (adders, multiplexers, memory cells), and those combine into the processor."
+  },
+  {
+   "type": "tf",
+   "category": "From electricity to logic",
+   "topic": "NOT gate",
+   "q": "For a NOT gate, an input of 1 produces an output of 1.",
+   "answer": false,
+   "explain": "NOT inverts its input: NOT 1 = 0 and NOT 0 = 1."
+  },
+  {
+   "type": "multi",
+   "category": "Programming and translation",
+   "topic": "Programming is superficial",
+   "q": "A classmate says, \"When I write C++ I'm talking directly to the hardware.\" Which facts from this module contradict that?",
+   "choices": [
+    "The editor or IDE is itself an application written by someone else, running on the OS",
+    "C++ is a human-readable language designed by others that the hardware cannot run directly",
+    "The code must be preprocessed, compiled, assembled and linked by other programs, then loaded by the OS",
+    "Printing output goes through library code and an OS system call",
+    "C++ source is executed by the CPU one line at a time"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "explain": "Every step between your text and the CPU is software someone else wrote: the editor, the language design, the tool chain, the loader and the OS's system calls. The CPU only executes **machine code**, never C++ source."
+  },
+  {
+   "type": "mc",
+   "category": "Programming and translation",
+   "topic": "Language levels",
+   "q": "Which statement about language levels is correct?",
+   "choices": [
+    "Assembly is roughly one line per machine instruction and is tied to a specific CPU family's instruction set",
+    "High-level languages are tied to one specific CPU",
+    "Machine code is human-readable mnemonics like `mov` and `ret`",
+    "Assembly runs on any CPU without changes"
+   ],
+   "answer": 0,
+   "explain": "High-level code (Python, C++) is portable and must be translated. **Assembly** is mnemonics for one CPU family's instructions. **Machine code** is the raw bytes (e.g. `48 89 df`) the CPU decodes."
+  },
+  {
+   "type": "mc",
+   "category": "Programming and translation",
+   "topic": "Compiler vs interpreter",
+   "q": "How does standard Python (CPython) run your program?",
+   "choices": [
+    "It compiles source into intermediate bytecode, then interprets that bytecode in a virtual machine",
+    "It compiles the whole program ahead of time into a native executable, like g++",
+    "The CPU executes Python source directly",
+    "The OS translates Python line by line into assembly on disk"
+   ],
+   "answer": 0,
+   "explain": "A **compiler** (e.g. for C/C++) translates the whole program ahead of time to machine code; you run the executable. An **interpreter** carries out the program step by step as it runs. CPython does both: source → bytecode, then interprets the bytecode. Either way, another program sits between your code and the hardware."
+  },
+  {
+   "type": "mc",
+   "category": "Programming and translation",
+   "topic": "Pipeline order",
+   "q": "Put the Hello World build pipeline in order.",
+   "choices": [
+    "Preprocessor → compiler → assembler → linker → loader (OS)",
+    "Compiler → preprocessor → linker → assembler → loader",
+    "Preprocessor → assembler → compiler → loader → linker",
+    "Linker → compiler → preprocessor → assembler → loader"
+   ],
+   "answer": 0,
+   "explain": "`hello.cpp` → (preprocess) `hello.ii` expanded source → (compile) `hello.s` assembly → (assemble) `hello.o` object code → (link with libraries) `hello` executable → (OS loader) running process. Each arrow is a program someone else wrote."
+  },
+  {
+   "type": "mc",
+   "category": "Programming and translation",
+   "topic": "Preprocessed size",
+   "q": "Running `g++ -E` on the 10-line Hello World produces about 45,000 lines. Why?",
+   "choices": [
+    "`#include <iostream>` is replaced by the full contents of the iostream header and everything it includes",
+    "The preprocessor unrolls the `cout` statement into machine code",
+    "The linker adds the whole C++ standard library as source",
+    "Comments are expanded into documentation"
+   ],
+   "answer": 0,
+   "explain": "The **preprocessor** handles `#` directives before real compilation. `#include` pastes in the header's text, which declares `std::cout`, `std::endl` and the rest of stream I/O, so the source grows enormously."
+  },
+  {
+   "type": "mc",
+   "category": "Programming and translation",
+   "topic": "Linker",
+   "q": "What does the **linker** do in the pipeline?",
+   "choices": [
+    "Joins the object file with library code (like the C++ standard library) to produce a runnable executable",
+    "Converts assembly mnemonics into machine-code bytes",
+    "Expands `#include` directives",
+    "Loads the program into memory and starts it"
+   ],
+   "answer": 0,
+   "explain": "The assembler makes `hello.o` (machine code); the **linker** combines it with libraries into an executable (here a 16 KB ELF 64-bit file); the **OS loader** puts it in memory and runs it."
+  },
+  {
+   "type": "num",
+   "category": "Programming and translation",
+   "topic": "Hex 0xd",
+   "q": "The Hello World machine code contains `mov $0xd,%edx`. What is `0xd` in decimal?",
+   "answer": 13,
+   "explain": "Hex D = 13 (binary 1101). It is the length of `Hello, world!`: 5 + 1 (comma) + 1 (space) + 5 + 1 (!) = **13**. The compiler worked out the length ahead of time to pass to the output routine."
+  },
+  {
+   "type": "mc",
+   "category": "Programming and translation",
+   "topic": "How output reaches terminal",
+   "q": "When the running Hello World finally prints, how does the text reach your terminal?",
+   "choices": [
+    "Library code for `cout` makes a `write` system call, and the OS sends the bytes to the terminal",
+    "The CPU writes pixels to the screen directly from `main`",
+    "The linker embedded the text into the terminal program",
+    "The preprocessor printed it during compilation"
+   ],
+   "answer": 0,
+   "explain": "Output goes through the C++ library and then an OS **system call** (`write`). The program never touches the display hardware itself."
+  },
+  {
+   "type": "multi",
+   "category": "Programming and translation",
+   "topic": "Editors vs IDEs",
+   "q": "Which of these are **IDEs** (not just text editors)?",
+   "choices": [
+    "Visual Studio",
+    "CLion",
+    "Eclipse",
+    "Notepad",
+    "Nano"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "An IDE bundles an editor with build/compile, debugger, error highlighting, code completion and project management (Visual Studio, CLion, Code::Blocks, Eclipse, PyCharm). Notepad, Nano and Vim are plain text editors. Either way, it's an application at the top of the stack."
+  },
+  {
+   "type": "mc",
+   "category": "Hello World in C++",
+   "topic": "Slide bug",
+   "q": "The slides' Hello World contains `using namespace std` on its own line. What happens when you compile it with g++?",
+   "choices": [
+    "It fails: the line is missing its semicolon, and g++ reports `expected ';' before 'int'`",
+    "It compiles and prints Hello, world!",
+    "It compiles but crashes at runtime",
+    "It fails because `main` must return `void`"
+   ],
+   "answer": 0,
+   "explain": "`using namespace std` needs a terminating `;`. The fix is `using namespace std;`."
+  },
+  {
+   "type": "mc",
+   "category": "Hello World in C++",
+   "topic": "Error location",
+   "q": "Why does g++ point at `int` on the line *after* `using namespace std` rather than at the end of that line itself?",
+   "choices": [
+    "The compiler reports where it *noticed* the problem: it expected `;` and found `int` instead",
+    "Line numbers in g++ are off by two",
+    "`int` is not allowed at the start of a line",
+    "The preprocessor moved the line"
+   ],
+   "answer": 0,
+   "explain": "Parsers only know a `;` is missing when they hit the next token that can't continue the statement. So compiler errors often point just *after* the real mistake, a useful debugging habit to remember."
+  },
+  {
+   "type": "mc",
+   "category": "Hello World in C++",
+   "topic": "Namespace",
+   "q": "What does `using namespace std;` do?",
+   "choices": [
+    "Lets you write `cout` instead of `std::cout` by bringing standard-library names into scope",
+    "Includes the iostream header",
+    "Declares `main` as the entry point",
+    "Links the standard library into the executable"
+   ],
+   "answer": 0,
+   "explain": "The C++ standard library lives in the **namespace** `std`, a named scope that prevents name clashes. The directive pulls those names into scope. It's common in teaching code but discouraged in large programs and headers because it imports *every* `std` name."
+  },
+  {
+   "type": "mc",
+   "category": "Hello World in C++",
+   "topic": "endl vs newline",
+   "q": "What is the difference between `endl` and `'\\n'`?",
+   "choices": [
+    "`endl` inserts a newline **and flushes** the stream; `'\\n'` only inserts the newline, so it's usually faster",
+    "`'\\n'` flushes the stream; `endl` does not",
+    "They are identical in every way",
+    "`endl` ends the program"
+   ],
+   "answer": 0,
+   "explain": "Flushing forces buffered output out immediately, which costs time. Prefer `'\\n'` unless you need the flush."
+  },
+  {
+   "type": "mc",
+   "category": "Hello World in C++",
+   "topic": "Missing return",
+   "q": "What happens if you delete `return 0;` from `main` in the corrected program?",
+   "choices": [
+    "Nothing changes: reaching the end of `main` has the same effect as `return 0;`",
+    "It fails to compile",
+    "The exit status becomes a random value",
+    "The program prints nothing"
+   ],
+   "answer": 0,
+   "explain": "The C++ standard special-cases `main`: falling off its end is equivalent to `return 0;`. This rule applies **only** to `main`, not other functions returning `int`."
+  },
+  {
+   "type": "num",
+   "category": "Hello World in C++",
+   "topic": "Exit status",
+   "q": "After running the corrected `./hello`, what does `echo $?` print?",
+   "answer": 0,
+   "explain": "`return 0;` hands 0 to the OS as the **exit status**. By convention 0 means success and non-zero means failure; `$?` shows the last command's status."
+  },
+  {
+   "type": "mc",
+   "category": "Hello World in C++",
+   "topic": "include",
+   "q": "`#include <iostream>` is an example of a…",
+   "choices": [
+    "Preprocessor directive, handled before compilation proper",
+    "Linker flag",
+    "System call",
+    "Namespace declaration"
+   ],
+   "answer": 0,
+   "explain": "Lines starting with `#` are handled by the **preprocessor**, which replaces this one with the text of the `<iostream>` header (declaring `std::cout`, `std::endl`, etc.)."
+  },
+  {
+   "type": "mc",
+   "category": "Hello World in C++",
+   "topic": "main",
+   "q": "Why does every C++ program need `int main()`?",
+   "choices": [
+    "Execution starts at `main`, and its `int` return value is reported to whoever started the program (the OS or shell)",
+    "It tells the preprocessor which header to include",
+    "It is required only by IDEs, not by g++",
+    "It declares the `std` namespace"
+   ],
+   "answer": 0,
+   "explain": "`main` is the program's entry point, and its return value becomes the process's exit status."
+  },
+  {
+   "type": "mc",
+   "category": "Defining a computer",
+   "topic": "No perfect definition",
+   "q": "Why does the lesson say there is **no perfect definition** of a computer?",
+   "choices": [
+    "Any sharp definition either excludes things we call computers or includes things we don't, so the word is defined by typical characteristics",
+    "Because computers change model numbers every year",
+    "Because the word \"computer\" was only coined in 1946",
+    "Because only electronic devices with an OS count, and that changes by vendor"
+   ],
+   "answer": 0,
+   "explain": "Borderline devices pass some tests and fail others (cash registers, player pianos, pocket calculators). The slides say modern computers **tend to** have five characteristics, a checklist rather than a rule."
+  },
+  {
+   "type": "mc",
+   "category": "Defining a computer",
+   "topic": "Original meaning",
+   "q": "For most of history, what did the word \"computer\" refer to?",
+   "choices": [
+    "A person employed to perform calculations by hand or with simple tools",
+    "A mechanical adding machine",
+    "An electronic vacuum-tube machine",
+    "A punched-card loom"
+   ],
+   "answer": 0,
+   "explain": "\"Computer\" was a job title: e.g. the Harvard Observatory's human computers, WWII ballistics teams computing firing tables, and NACA/NASA's computer pools (Katherine Johnson). The meaning moved to machines when machines took over the job."
+  },
+  {
+   "type": "mc",
+   "category": "Defining a computer",
+   "topic": "ENIAC motivation",
+   "q": "Why did the U.S. Army fund ENIAC?",
+   "choices": [
+    "Human computers could not calculate artillery firing tables fast enough; one trajectory took a person about 20 hours",
+    "To replace the Harvard Observatory's star catalogs",
+    "To run the first web server",
+    "To tabulate the 1890 census"
+   ],
+   "answer": 0,
+   "explain": "The Ballistic Research Laboratory fell far behind on firing tables. ENIAC did a trajectory in seconds, and six of the women computers became its first programmers."
+  },
+  {
+   "type": "multi",
+   "category": "Defining a computer",
+   "topic": "Five characteristics",
+   "q": "Which are among the five characteristics modern computers **tend** to have?",
+   "choices": [
+    "Operate automatically",
+    "Perform arithmetic/logical operations",
+    "Store, process and retrieve data",
+    "Programmable",
+    "Electronic",
+    "Connected to the Internet",
+    "Have a graphical user interface"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "explain": "The five: **automatic, arithmetic/logical, store/process/retrieve data, programmable, electronic**. Network connectivity and GUIs are common but are not part of the list."
+  },
+  {
+   "type": "mc",
+   "category": "Defining a computer",
+   "topic": "Player piano",
+   "q": "A player piano plays music from a punched roll, and swapping the roll changes the piece. Why is it still not normally called a computer?",
+   "choices": [
+    "It is mechanical/pneumatic rather than electronic, does no arithmetic or logic on data, and its roll cannot make decisions (no conditional branching)",
+    "Because it doesn't operate automatically",
+    "Because the roll is not a sequence of instructions at all",
+    "Because it was invented after the cash register"
+   ],
+   "answer": 0,
+   "explain": "It is automatic and the roll resembles a program, but it fails the electronic and arithmetic/logic tests and is fixed-function: it can only play notes in order, with no \"if this, then skip ahead.\""
+  },
+  {
+   "type": "mc",
+   "category": "Defining a computer",
+   "topic": "Cash register",
+   "q": "A mechanical cash register adds sales, stores a running total and displays it, all automatically. Which checklist items does it clearly **fail**?",
+   "choices": [
+    "Programmable and electronic",
+    "Operates automatically and performs arithmetic",
+    "Stores data and operates automatically",
+    "It passes all five"
+   ],
+   "answer": 0,
+   "explain": "It automatically does arithmetic (addition only) and stores a running total, so it \"arguably\" computes. But it's gear-driven (not electronic) and can only add up sales (not programmable/general-purpose)."
+  },
+  {
+   "type": "mc",
+   "category": "Defining a computer",
+   "topic": "Stored program",
+   "q": "What is the key idea of the **stored-program (von Neumann)** architecture?",
+   "choices": [
+    "Program instructions and data are kept in the same memory, so changing the job means loading different instructions",
+    "Programs are set by plugging patch cords and switches",
+    "The program is stored on a separate read-only punched roll",
+    "Data is stored only on disk, never in memory"
+   ],
+   "answer": 0,
+   "explain": "ENIAC was originally programmed by rewiring, which took days. A stored-program machine changes jobs by loading new instructions into memory. Nearly every modern computer works this way, and it's why software is \"stored as data.\""
+  },
+  {
+   "type": "mc",
+   "category": "Defining a computer",
+   "topic": "General-purpose",
+   "q": "What does it take for a machine to be **general-purpose** (Turing complete) in practice?",
+   "choices": [
+    "Conditional branching (decisions) plus the ability to read and write an unbounded amount of memory",
+    "A clock speed above 1 GHz",
+    "An operating system and a GUI",
+    "Being electronic rather than mechanical"
+   ],
+   "answer": 0,
+   "explain": "Turing completeness means able to simulate a universal Turing machine, i.e. compute anything computable given enough memory. Babbage's mechanical Analytical Engine design was general-purpose; a piano roll, lacking branching, falls far short."
+  },
+  {
+   "type": "mc",
+   "category": "Defining a computer",
+   "topic": "Classify smartphone",
+   "q": "Applying the five-item checklist, a smartphone is…",
+   "choices": [
+    "A computer: it passes all five tests",
+    "Borderline, because it's not a desktop",
+    "Not a computer, because it's fixed-function",
+    "Not a computer, because it's not programmable"
+   ],
+   "answer": 0,
+   "explain": "A smartphone is automatic, does arithmetic/logic, stores and retrieves data, is programmable (it runs arbitrary apps) and is electronic. People often forget it's a computer."
+  },
+  {
+   "type": "mc",
+   "category": "Defining a computer",
+   "topic": "Pocket calculator",
+   "q": "A pocket calculator is electronic, automatic and does arithmetic. Which characteristic makes it *usually* not called a computer?",
+   "choices": [
+    "It is essentially fixed-function, not programmable/general-purpose",
+    "It isn't electronic",
+    "It can't do arithmetic",
+    "It doesn't operate automatically"
+   ],
+   "answer": 0,
+   "explain": "It's fast and electronic, but it does one kind of job. The checklist shows why the line between \"computer\" and \"device\" is a judgment call."
+  },
+  {
+   "type": "mc",
+   "category": "Defining a computer",
+   "topic": "Human computer",
+   "q": "Against the checklist, why is a 1940s human computer not a computer in the *modern* sense?",
+   "choices": [
+    "It is not automatic and not electronic, though it does arithmetic, stores data on paper and follows procedures",
+    "It cannot perform arithmetic",
+    "It cannot store data",
+    "It cannot follow a procedure"
+   ],
+   "answer": 0,
+   "explain": "The person does arithmetic, stores results on paper and follows written procedures (a kind of program), but a human is neither automatic in the machine sense nor electronic. It's the *original* meaning of the word."
+  },
+  {
+   "type": "mc",
+   "category": "Computer systems",
+   "topic": "Definition",
+   "q": "Which is the lesson's definition of a **computer system**?",
+   "choices": [
+    "The set of components that work together to enable a computing device to function",
+    "A computer plus its monitor and keyboard",
+    "The operating system and its applications",
+    "Any network of two or more computers"
+   ],
+   "answer": 0,
+   "explain": "A computer system is the set of cooperating components that let a computer function, and it has four kinds of component: **hardware, software, data and protocols**."
+  },
+  {
+   "type": "multi",
+   "category": "Computer systems",
+   "topic": "Four components",
+   "q": "Which are the four kinds of components of a computer system?",
+   "choices": [
+    "Hardware",
+    "Software",
+    "Data",
+    "Protocols",
+    "Users",
+    "Electricity"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "explain": "Hardware (material components), software (instructions for the hardware), data (information and its physical form) and protocols (standards and procedures). Electricity is part of how hardware and data physically work, not a separate category."
+  },
+  {
+   "type": "mc",
+   "category": "Computer systems",
+   "topic": "Classify driver",
+   "q": "A printer's **device driver** is best classified as…",
+   "choices": [
+    "Software (system software)",
+    "Hardware",
+    "Data",
+    "Protocol"
+   ],
+   "answer": 0,
+   "explain": "Drivers are instructions that tell hardware what to do, part of system software along with the OS and utilities."
+  },
+  {
+   "type": "mc",
+   "category": "Computer systems",
+   "topic": "Classify magnetization",
+   "q": "The magnetized regions on a hard-disk platter that encode a file are best classified as…",
+   "choices": [
+    "Data, in its physical form",
+    "Hardware",
+    "Software",
+    "Protocol"
+   ],
+   "answer": 0,
+   "explain": "The platter itself is hardware, but the magnetization pattern *is* the file's data in physical form. The slide's phrase \"(and its physical form)\" is exactly this point."
+  },
+  {
+   "type": "mc",
+   "category": "Computer systems",
+   "topic": "Classify USB spec",
+   "q": "The USB specification is best classified as…",
+   "choices": [
+    "Protocol (a standard)",
+    "Hardware",
+    "Software",
+    "Data"
+   ],
+   "answer": 0,
+   "explain": "A specification is a set of agreed rules. It lets a USB stick from one company work with a laptop from another."
+  },
+  {
+   "type": "mc",
+   "category": "Computer systems",
+   "topic": "Classify photo",
+   "q": "A photo stored on your SSD is best classified as…",
+   "choices": [
+    "Data",
+    "Hardware",
+    "Software",
+    "Protocol"
+   ],
+   "answer": 0,
+   "explain": "Information present in the system is **data**. The SSD holding it is hardware."
+  },
+  {
+   "type": "mc",
+   "category": "Computer systems",
+   "topic": "Why protocols",
+   "q": "Why does the definition of a computer system include **protocols**, not just hardware and software?",
+   "choices": [
+    "Independently built parts and machines can only cooperate if they follow shared rules (USB, PCIe/SATA, TCP/IP, HTTP)",
+    "Because protocols are a kind of hardware",
+    "Because only networked computers are computer systems",
+    "Because protocols store the operating system"
+   ],
+   "answer": 0,
+   "explain": "Nothing in a computer works without agreed rules, even inside one box (PCIe, SATA, NVMe, ASCII/Unicode). Protocols also bridge to networking."
+  },
+  {
+   "type": "multi",
+   "category": "Computer systems",
+   "topic": "Protocol definition",
+   "q": "Per Kurose & Ross, a protocol defines which of the following?",
+   "choices": [
+    "The **format** of messages exchanged",
+    "The **order** of messages exchanged",
+    "The **actions** taken on sending/receiving a message or other event",
+    "The physical color of the cables",
+    "The programming language used to implement it"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Format, order and actions. Human analogy: \"Hi\" → \"Hi\" → \"Got the time?\" → \"2:00\" has a format, a greeting-first order and an expected action (answer when asked)."
+  },
+  {
+   "type": "multi",
+   "category": "Computer systems",
+   "topic": "Physical form of bits",
+   "q": "Which pairings of *where a bit lives* and *its physical form* are correct?",
+   "choices": [
+    "DRAM: presence/absence of charge on a capacitor",
+    "Hard disk: direction of magnetization",
+    "Flash/SSD: charge trapped in a transistor's gate or charge-trap layer",
+    "Optical disc: pits vs. lands reflecting a laser",
+    "Fiber-optic cable: magnetized regions of glass",
+    "Wires and CPU logic: color of the insulation"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "explain": "Every bit must be a physical state: voltage (wires, logic), capacitor charge (DRAM, which must be refreshed), flip-flop state (SRAM), trapped charge (flash), magnetization (HDD), pits/lands (optical), light pulses (fiber), radio-wave modulation (Wi-Fi)."
+  },
+  {
+   "type": "mc",
+   "category": "Computer systems",
+   "topic": "Protocol inside box",
+   "q": "Which of these is a protocol/standard for connecting components **inside** one computer?",
+   "choices": [
+    "NVMe / PCI Express",
+    "HTTP",
+    "TCP",
+    "Wi-Fi (IEEE 802.11)"
+   ],
+   "answer": 0,
+   "explain": "PCIe, SATA and NVMe govern internal connections. HTTP and TCP are between programs over a network (IETF); Wi-Fi is local wireless networking (IEEE)."
+  },
+  {
+   "type": "mc",
+   "category": "Computer systems",
+   "topic": "Network",
+   "q": "Which best describes a **computer network**?",
+   "choices": [
+    "Hosts connected by communication links and packet switches (routers, switches), exchanging data using shared protocols",
+    "The set of hardware, software, data and protocols in one computer",
+    "A single computer with many CPU cores",
+    "The OS's file system"
+   ],
+   "answer": 0,
+   "explain": "A computer *system* makes one computer function; a *network* connects many systems. The Internet is a network of networks joined by IP. The NIC is just another I/O device, so protocols bridge the two halves of the course."
+  },
+  {
+   "type": "tf",
+   "category": "Computer systems",
+   "topic": "Software as data",
+   "q": "Software is itself stored as data (for example, the machine-code bytes of a compiled program), which is the stored-program idea again.",
+   "answer": true,
+   "explain": "Programs are just bytes in memory or on disk. That's why a stored-program computer can change jobs by loading different bytes."
+  },
+  {
+   "type": "mc",
+   "category": "Roadmap and caveats",
+   "topic": "Module order",
+   "q": "Which lists Modules 1–4 in the correct order?",
+   "choices": [
+    "Binary & Hexadecimal → Tour of Computer Systems → Memory Hierarchy → Operating Systems",
+    "Tour of Computer Systems → Binary & Hexadecimal → Operating Systems → Memory Hierarchy",
+    "Operating Systems → Memory Hierarchy → Binary & Hexadecimal → Tour of Computer Systems",
+    "Binary & Hexadecimal → Memory Hierarchy → Tour of Computer Systems → Networking Essentials"
+   ],
+   "answer": 0,
+   "explain": "0 Class Intro, 1 Binary & Hex, 2 Tour of Computer Systems, 3 Memory Hierarchy, 4 Operating Systems, 5 Networking Essentials, 6 OSI Model / Network Stack, 7 High-Performance Computing. Modules 1–3 go *down* into data and hardware, 4 comes back *up* to the OS."
+  },
+  {
+   "type": "mc",
+   "category": "Roadmap and caveats",
+   "topic": "Roadmap logic",
+   "q": "How do Modules 5–7 relate to the abstraction stack?",
+   "choices": [
+    "5–6 go *outward* to connect machines, and 7 *scales up* to many machines working together",
+    "5–7 go further down into transistor physics",
+    "5–7 revisit binary notation",
+    "5–7 cover application programming"
+   ],
+   "answer": 0,
+   "explain": "After a single system is understood (1–4), networking connects systems (5–6, with OSI/TCP-IP layering as another abstraction), and HPC combines many networked systems to compute in parallel (7)."
+  },
+  {
+   "type": "mc",
+   "category": "Roadmap and caveats",
+   "topic": "Caveat 2",
+   "q": "Which is an example of caveat 2, \"virtually no statement is both useful and categorically true\"?",
+   "choices": [
+    "\"An IP address identifies one computer,\" yet NAT puts many devices behind one address",
+    "\"The world's fastest supercomputer changes every six months\"",
+    "\"We can't cover every aspect of networking in one course\"",
+    "\"C++ requires a semicolon after `using namespace std`\""
+   ],
+   "answer": 0,
+   "explain": "Caveat 2 is about useful rules of thumb that have exceptions. Others: RAM is volatile (Optane), a byte is 8 bits (historically not always, hence \"octet\"), CPUs run instructions in order (out-of-order execution). The supercomputer example is caveat **3** (technology changes), and the coverage one is caveat **1**."
+  },
+  {
+   "type": "mc",
+   "category": "Roadmap and caveats",
+   "topic": "Caveat 3",
+   "q": "The end of Dennard scaling around 2005 pushed the industry from ever-faster clock speeds to multicore CPUs. Which caveat does this illustrate?",
+   "choices": [
+    "What is true today may not be true tomorrow",
+    "We must prioritize the major points",
+    "There is no perfect definition of a computer",
+    "Protocols define format, order and actions"
+   ],
+   "answer": 0,
+   "explain": "\"CPUs get faster clocks every year\" was true until the power wall stopped it. Other expired facts: storage means spinning disks, there are enough IPv4 addresses (the IANA pool ran out in 2011)."
+  },
+  {
+   "type": "mc",
+   "category": "Roadmap and caveats",
+   "topic": "Caveat 1",
+   "q": "A detail seems glossed over in lecture. According to caveat 1, the most likely reason is…",
+   "choices": [
+    "The field is enormous, so the course deliberately prioritizes major points and gives you the map, not every road",
+    "The detail is false",
+    "The detail is covered by the syllabus policies",
+    "Technology will soon make it obsolete"
+   ],
+   "answer": 0,
+   "explain": "Each module is the subject of whole textbooks and graduate courses. An intro course teaches the major concepts, vocabulary and how pieces fit together."
+  },
+  {
+   "type": "tf",
+   "category": "Roadmap and caveats",
+   "topic": "Tend to",
+   "q": "The word **tend** in \"computers tend to have these characteristics\" connects to caveat 2: the list is a typical-features checklist with exceptions, not a strict definition.",
+   "answer": true,
+   "explain": "Both \"no perfect definition\" and \"there is always an exception\" express the same humility about sharp rules."
+  },
+  {
+   "type": "mc",
+   "category": "Roadmap and caveats",
+   "topic": "TCP exception",
+   "q": "\"TCP guarantees delivery\" is a useful statement. What is its exception?",
+   "choices": [
+    "It guarantees reliable, ordered delivery *or* an error; if the link is cut, nothing is delivered",
+    "TCP never delivers data in order",
+    "TCP is a hardware component",
+    "TCP only works on Wi-Fi"
+   ],
+   "answer": 0,
+   "explain": "A classic caveat-2 case: TCP provides reliability over an unreliable network where possible, but it can't beat physics. It reports failure rather than guaranteeing arrival."
+  },
+  {
+   "type": "text",
+   "category": "Roadmap and caveats",
+   "topic": "Module 7",
+   "q": "Which module (give the number) covers high-performance computing: parallelism, clusters and supercomputers?",
+   "answer": [
+    "7",
+    "Module 7",
+    "module 7"
+   ],
+   "explain": "Module 7 covers multicore CPUs, GPUs, clusters and supercomputers ranked by the TOP500 list (LINPACK/HPL, in FLOP/s). It builds on everything before it, since many networked systems compute together."
+  }
+ ]
+}

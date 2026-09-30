@@ -1,0 +1,991 @@
+{
+ "title": "CSC3710 2026-09-01 — Recursive Definitions: Strings, ℕ and Addition",
+ "course": "CSC3710",
+ "questions": [
+  {
+   "type": "multi",
+   "category": "Foundations and precise definitions",
+   "topic": "Disciplines behind CS theory",
+   "q": "According to the textbook view in lecture, the theoretical foundations of computer science draw on which disciplines?",
+   "choices": [
+    "Logic",
+    "Electrical engineering",
+    "Brain research",
+    "Linguistics",
+    "Economics"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "explain": "The slide lists logic (correct reasoning, proofs), electrical engineering (circuits), brain research (McCulloch–Pitts neurons, which led to finite automata) and linguistics (grammars, formal languages). Economics is not on the list. The lecture also noted the list is dated: quantum computing now draws on quantum mechanics too."
+  },
+  {
+   "type": "mc",
+   "category": "Foundations and precise definitions",
+   "topic": "Why linguistics matters",
+   "q": "Why was linguistics, and Noam Chomsky in particular, called \"a big part of our course\"?",
+   "choices": [
+    "Chomsky's classification of grammars (the Chomsky hierarchy) organizes the languages and machines the course studies",
+    "The course studies natural-language translation software",
+    "Chomsky invented the successor function",
+    "Linguistics supplies the Boolean algebra used in circuits"
+   ],
+   "answer": 0,
+   "explain": "Chomsky (1956) classified grammars into four nested types — regular, context-free, context-sensitive, recursively enumerable — each matched to a machine (finite automaton, pushdown automaton, linear-bounded automaton, Turing machine). Much of the course follows this hierarchy, and a *language* here is just a set of strings."
+  },
+  {
+   "type": "mc",
+   "category": "Foundations and precise definitions",
+   "topic": "Chomsky hierarchy machines",
+   "q": "In the Chomsky hierarchy, which machine recognizes the **regular** languages (type 3)?",
+   "choices": [
+    "Finite automaton (DFA/NFA)",
+    "Pushdown automaton",
+    "Linear-bounded automaton",
+    "Turing machine"
+   ],
+   "answer": 0,
+   "explain": "Type 3 (regular) ↔ finite automata, like the vending-machine DFA. Context-free ↔ pushdown automata, context-sensitive ↔ linear-bounded automata, recursively enumerable ↔ Turing machines."
+  },
+  {
+   "type": "tf",
+   "category": "Foundations and precise definitions",
+   "topic": "Languages are sets of strings",
+   "q": "In this course, a recursive definition of a set of strings over {a, b} is already a definition of a *language*.",
+   "answer": true,
+   "explain": "A language is simply a set of strings, so every recursively defined string set in the lecture (even-length strings, odd number of a's, …) is a language."
+  },
+  {
+   "type": "mc",
+   "category": "Foundations and precise definitions",
+   "topic": "Theory uses only its own definitions",
+   "q": "The textbook principle says theorems and proofs in a theory may use only the definitions of the theory's concepts. What does this require?",
+   "choices": [
+    "Precise definitions of both the objects of the domain and the operations on them",
+    "A list of the first few elements of every set, followed by \"…\"",
+    "Use of commutativity and other familiar arithmetic facts",
+    "That all sets be finite"
+   ],
+   "answer": 0,
+   "explain": "If proofs can use only definitions, then both the **objects** (here ℕ, built from 0 and s) and the **operations** (here addition) must be defined precisely. Familiar facts such as commutativity cannot be assumed; they must be proven from those definitions."
+  },
+  {
+   "type": "mc",
+   "category": "Foundations and precise definitions",
+   "topic": "Beginning of the world",
+   "q": "\"We are at the beginning of the world.\" Under this view, which of the following exists and may be used when working with ℕ in this lecture?",
+   "choices": [
+    "0 and the successor operation s",
+    "The number 5",
+    "Multiplication",
+    "The fact that m + n = n + m"
+   ],
+   "answer": 0,
+   "explain": "Only 0 and s exist at the start. 5 is only a name for s(s(s(s(s(0))))), multiplication has not been defined, and commutativity is a theorem that has not been proven yet — none of those may be used as given."
+  },
+  {
+   "type": "tf",
+   "category": "Foundations and precise definitions",
+   "topic": "Dots are not a definition",
+   "q": "Writing ℕ = {0, 1, 2, 3, …} counts as a precise definition of ℕ.",
+   "answer": false,
+   "explain": "The three dots make the reader guess the pattern, and a pattern can be continued in more than one way. A recursive definition replaces the \"…\" with an exact recipe. That is why the instructor erased the trailing dots from the list of strings with an odd number of a's."
+  },
+  {
+   "type": "mc",
+   "category": "Structure of recursive definitions",
+   "topic": "Parts of a recursive definition",
+   "q": "What are the three parts of a recursive definition?",
+   "choices": [
+    "Basis, recursive step, closure",
+    "Basis, induction hypothesis, conclusion",
+    "Alphabet, string, language",
+    "Hypothesis, lemma, theorem"
+   ],
+   "answer": 0,
+   "explain": "Basis: finitely many elements put in directly. Recursive step: operations that build new elements from existing ones (a recipe). Closure: nothing else belongs — only what the basis and finitely many rule applications produce."
+  },
+  {
+   "type": "mc",
+   "category": "Structure of recursive definitions",
+   "topic": "Purpose of recursive definitions",
+   "q": "Why do we need recursive definitions at all?",
+   "choices": [
+    "To define sets with infinitely many elements precisely",
+    "To define finite sets more compactly than listing them",
+    "To avoid needing a basis",
+    "To make sets unordered"
+   ],
+   "answer": 0,
+   "explain": "A finite set can simply be listed. Recursive definitions exist so that **infinite** sets can be defined precisely, without resorting to an imprecise \"…\"."
+  },
+  {
+   "type": "mc",
+   "category": "Structure of recursive definitions",
+   "topic": "Role of the closure clause",
+   "q": "What goes wrong if a recursive definition leaves out the closure clause?",
+   "choices": [
+    "Nothing rules out extra elements, so the set is not pinned down — anything could also be in it",
+    "The set becomes finite",
+    "No elements can be generated from the basis",
+    "The recursive step can no longer be applied"
+   ],
+   "answer": 0,
+   "explain": "The basis and rules only say what *is* in the set. Without closure (\"nothing else\"), a string with the wrong property could also be in the set without contradicting anything. Closure makes the set **exactly** what the recipe generates."
+  },
+  {
+   "type": "mc",
+   "category": "Structure of recursive definitions",
+   "topic": "Definition of ℕ",
+   "q": "Which is the recursive definition of ℕ used in the course?",
+   "choices": [
+    "Basis: 0 ∈ ℕ. Step: if n ∈ ℕ then s(n) ∈ ℕ. Closure: only 0 and what is obtained from 0 by finitely many applications of s.",
+    "Basis: 1 ∈ ℕ. Step: if n ∈ ℕ then s(n) ∈ ℕ. Closure: nothing else.",
+    "Basis: 0 ∈ ℕ. Step: if n ∈ ℕ then n + n ∈ ℕ. Closure: nothing else.",
+    "ℕ = {0, 1, 2, …}"
+   ],
+   "answer": 0,
+   "explain": "In this course 0 is a natural number, so 0 is the basis, and the successor s generates the rest. Starting at 1 omits 0; using n + n from 0 only ever gives 0 (and uses an undefined operation); and the listing with \"…\" is not a definition."
+  },
+  {
+   "type": "tf",
+   "category": "Structure of recursive definitions",
+   "topic": "0 is natural",
+   "q": "In this course, 0 ∈ ℕ.",
+   "answer": true,
+   "explain": "The course uses ℕ = {0, 1, 2, …}; 0 is the basis of the recursive definition of ℕ."
+  },
+  {
+   "type": "mc",
+   "category": "Structure of recursive definitions",
+   "topic": "Finitely many applications",
+   "q": "The closure clause of ℕ says elements are obtained from 0 by a **finite** number of applications of s. What would \"infinitely many\" allow that we do not want?",
+   "choices": [
+    "An \"infinite\" object like s(s(s(…))) that is not any natural number",
+    "The number 0 would be excluded",
+    "Only finitely many natural numbers would exist",
+    "Nothing — finite and infinite give the same set"
+   ],
+   "answer": 0,
+   "explain": "Every natural number is sᵏ(0) for some finite k. The set ℕ is infinite, but each element is reached in finitely many steps; allowing infinite chains would admit objects that are not natural numbers. (The transcript's \"infinity many\" was a mishearing.)"
+  },
+  {
+   "type": "text",
+   "category": "Structure of recursive definitions",
+   "topic": "sᵏ notation",
+   "q": "Write s³(0) in full using nested s's and parentheses.",
+   "answer": [
+    "s(s(s(0)))",
+    "s(s(s(0))) ",
+    "sss0"
+   ],
+   "explain": "sᵏ(0) means s applied k times to 0, so s³(0) = s(s(s(0))), also written sss0. Its number name is 3, but number names are only for checking."
+  },
+  {
+   "type": "tf",
+   "category": "Structure of recursive definitions",
+   "topic": "Basis is finite",
+   "q": "In a recursive definition, the basis may contain infinitely many elements.",
+   "answer": false,
+   "explain": "The basis designates a **finite** number of elements. If you could put infinitely many elements in the basis you would need another way to describe them — which is the problem recursive definitions solve."
+  },
+  {
+   "type": "mc",
+   "category": "Checking definitions and counterexamples",
+   "topic": "The standard method",
+   "q": "What is the course's standard method (\"we will always do it like this\") for checking a recursive definition of a set of strings?",
+   "choices": [
+    "Describe the target set S in words, define K recursively, generate K's shortest elements, argue whether S = K",
+    "Define K, prove K is infinite, then list S alphabetically",
+    "List S up to length 3 and add \"…\"",
+    "Write a regular expression, then convert it to a DFA"
+   ],
+   "answer": 0,
+   "explain": "Pink rectangle: describe S. Blue rectangle: define K. Then generate the shortest elements of K and compare against S. A real proof of S = K would use structural induction."
+  },
+  {
+   "type": "mc",
+   "category": "Checking definitions and counterexamples",
+   "topic": "Why a different name",
+   "q": "Why does the method name the defined set K instead of reusing S?",
+   "choices": [
+    "The description and the definition are different objects, and the claim to check is S = K",
+    "K is always a subset of S",
+    "S is reserved for the successor function",
+    "It makes no difference; it is only style"
+   ],
+   "answer": 0,
+   "explain": "S is described in words; K is built by rules. They are separate objects that might or might not coincide. If both were called S, the claim \"S = K\" would look trivially true and there would be nothing to check."
+  },
+  {
+   "type": "multi",
+   "category": "Checking definitions and counterexamples",
+   "topic": "Kinds of counterexample",
+   "q": "Which of these is a valid counterexample showing a recursive definition K does **not** define the described set S?",
+   "choices": [
+    "A string K generates that is not in S",
+    "A string in S that K cannot generate",
+    "A string in both S and K",
+    "A string in neither S nor K"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "A counterexample shows K is too big (it generates something outside S) or too small (it misses something in S). A string in both, or in neither, is consistent with S = K and proves nothing."
+  },
+  {
+   "type": "tf",
+   "category": "Checking definitions and counterexamples",
+   "topic": "One counterexample suffices",
+   "q": "To show a recursive definition is wrong, you need a full structural-induction proof.",
+   "answer": false,
+   "explain": "Showing a definition is **wrong** is easy: one counterexample suffices, no proof needed. It is showing a definition is **right** that needs structural induction."
+  },
+  {
+   "type": "tf",
+   "category": "Checking definitions and counterexamples",
+   "topic": "Agreement is not proof",
+   "q": "If a program shows K and S agree on all strings up to length 10, that proves K = S.",
+   "answer": false,
+   "explain": "Agreement up to some length is evidence, not proof — a difference could appear at length 11. A *disagreement*, however, is a genuine counterexample."
+  },
+  {
+   "type": "multi",
+   "category": "Checking definitions and counterexamples",
+   "topic": "Generation housekeeping",
+   "q": "Which statements about generating elements of a recursively defined set are correct?",
+   "choices": [
+    "Elements may be listed in any order",
+    "The same string produced twice by different rules is not an error",
+    "t·a and ta mean the same thing",
+    "λ has odd length",
+    "Elements must be listed alphabetically"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Sets are unordered, so any order is fine (shortest-first is just practical). Repetitions are harmless. The dot is concatenation and may be omitted. |λ| = 0 and 0 is even, so λ has even length. Alphabetical order is not required."
+  },
+  {
+   "type": "mc",
+   "category": "Checking definitions and counterexamples",
+   "topic": "Other section's even-length definition",
+   "q": "The other section proposed: basis λ ∈ K; if t ∈ K then t·t·a ∈ K and t·t·b ∈ K. Why is this wrong as a definition of the even-length strings?",
+   "choices": [
+    "With t = λ it generates a, which has odd length",
+    "It never generates λ",
+    "It generates aa, which has odd length",
+    "It is correct; nothing is wrong"
+   ],
+   "answer": 0,
+   "explain": "λ is the only element at first, so t = λ gives λ·λ·a = a. |a| = 1 is odd, so K generates a string outside V. That single counterexample settles it."
+  },
+  {
+   "type": "num",
+   "category": "Checking definitions and counterexamples",
+   "topic": "Lengths in the t·t·a set",
+   "q": "In the definition basis λ; rules t·t·a and t·t·b, each rule maps a string of length n to one of length 2n + 1. Starting from λ (length 0), what is the length of the strings produced at the **third** execution of the recursive step (lengths go 0 → 1 → 3 → ?)",
+   "answer": 7,
+   "explain": "2·3 + 1 = 7. The lengths in K are 0, 1, 3, 7, 15, … = 2ᵏ − 1, so apart from λ every string in K has odd length — the definition generates almost none of the right strings."
+  },
+  {
+   "type": "tf",
+   "category": "Checking definitions and counterexamples",
+   "topic": "λ·λ·a is acceptable",
+   "q": "Writing the generated string as λ·λ·a instead of a is incorrect.",
+   "answer": false,
+   "explain": "λ can be inserted into a concatenation any number of times without changing the string, so λ·λ·a = a. There is no built-in notion of \"simplification\" in the theory — just as 2 + 2 is a correct answer to \"3 + 1\"."
+  },
+  {
+   "type": "mc",
+   "category": "Checking definitions and counterexamples",
+   "topic": "Practice: t·a·b and t·b",
+   "q": "Basis λ ∈ K; if t ∈ K then t·a·b ∈ K and t·b ∈ K. Is K the set of even-length strings over {a, b}?",
+   "choices": [
+    "No — t = λ gives b, which has odd length",
+    "Yes — each rule adds an even number of symbols",
+    "No — it cannot generate λ",
+    "Yes — it generates ab and b, covering both letters"
+   ],
+   "answer": 0,
+   "explain": "λ·b = b has length 1, so K contains an odd-length string. (It also fails the other way: aa is never generated, since every non-λ string ends in b.)"
+  },
+  {
+   "type": "mc",
+   "category": "Even- and odd-length string definitions",
+   "topic": "Shortest even-length string",
+   "q": "What is the shortest string of even length over {a, b}?",
+   "choices": [
+    "λ",
+    "aa",
+    "ab",
+    "There is no shortest one"
+   ],
+   "answer": 0,
+   "explain": "|λ| = 0, and 0 is even, so λ is the shortest even-length string and belongs in the basis."
+  },
+  {
+   "type": "mc",
+   "category": "Even- and odd-length string definitions",
+   "topic": "Even-length definition",
+   "q": "Which definition generates exactly the even-length strings over {a, b}?",
+   "choices": [
+    "Basis λ; if t ∈ K then t·aa, t·ab, t·ba, t·bb ∈ K",
+    "Basis a, b; if t ∈ K then t·aa, t·ab, t·ba, t·bb ∈ K",
+    "Basis λ; if t ∈ K then t·a, t·b ∈ K",
+    "Basis aa; if t ∈ K then t·aa ∈ K"
+   ],
+   "answer": 0,
+   "explain": "Starting at λ and appending any two-symbol block keeps length even and reaches every even-length string. Basis a, b gives the odd-length strings; t·a, t·b gives all strings; basis aa with t·aa only gives a²,a⁴,… (and misses λ)."
+  },
+  {
+   "type": "num",
+   "category": "Even- and odd-length string definitions",
+   "topic": "Counting length-4 strings",
+   "q": "How many strings of length 4 are there over {a, b}?",
+   "answer": 16,
+   "explain": "Each of the 4 positions has 2 choices: 2⁴ = 16. Rules 1–4 applied to the four length-2 strings give 4 × 4 = 16 strings, so none is missing — the \"orange rectangle\" argument."
+  },
+  {
+   "type": "mc",
+   "category": "Even- and odd-length string definitions",
+   "topic": "Odd-length definition",
+   "q": "The odd-length strings were defined with the same four rules (t·aa, t·ab, t·ba, t·bb). What changed?",
+   "choices": [
+    "Only the basis: a and b instead of λ",
+    "The rules prepend instead of append",
+    "A closure clause was removed",
+    "Nothing; the sets are the same"
+   ],
+   "answer": 0,
+   "explain": "Adding two symbols preserves parity, so the basis decides it: λ (length 0) gives even lengths, a and b (length 1) give odd lengths. Rules applied to a, b give all 8 length-3 strings."
+  },
+  {
+   "type": "tf",
+   "category": "Even- and odd-length string definitions",
+   "topic": "Seem redundant",
+   "q": "In lecture, Rules 5 (t·aaaa) and 6 (a·t·aaa) of the even-length definition were **proven** redundant.",
+   "answer": false,
+   "explain": "The word was \"**seem**\": they appeared to add nothing, but nothing was proven in class. (The lesson's enrichment proof does show they are redundant: Rules 1–4 already produce every even-length string, and Rules 5–6 produce only even-length strings.)"
+  },
+  {
+   "type": "mc",
+   "category": "Even- and odd-length string definitions",
+   "topic": "Redundant rule",
+   "q": "What makes a rule *redundant* in a recursive definition?",
+   "choices": [
+    "It is correct but only produces strings the other rules already produce",
+    "It produces strings outside the target set",
+    "It uses two variables",
+    "It is applied to the basis only"
+   ],
+   "answer": 0,
+   "explain": "A redundant rule is harmless — it never generates a wrong string — but removing it does not change the defined set. A rule that produces wrong strings is not redundant; it is incorrect."
+  },
+  {
+   "type": "mc",
+   "category": "Even- and odd-length string definitions",
+   "topic": "Why Rules 1–4 suffice",
+   "q": "Why does every even-length string w with |w| ≥ 2 get generated by Rules 1–4 (t·aa, t·ab, t·ba, t·bb)?",
+   "choices": [
+    "w = t·xy where xy are its last two symbols and t is shorter and even-length, so by induction t ∈ K and one rule appends xy",
+    "Because Rule 5 covers the rest",
+    "Because every even-length string starts with a",
+    "Because 16 is a power of 2"
+   ],
+   "answer": 0,
+   "explain": "Induction on length: λ is the basis; any longer even-length string splits into an even-length prefix t plus a final pair xy ∈ {aa, ab, ba, bb}, and the matching rule builds it from t."
+  },
+  {
+   "type": "num",
+   "category": "Even- and odd-length string definitions",
+   "topic": "Count of length-3 strings",
+   "q": "Applying t·aa, t·ab, t·ba, t·bb to the basis {a, b} produces how many distinct strings of length 3?",
+   "answer": 8,
+   "explain": "2 choices of t × 4 rules = 8, and there are exactly 2³ = 8 strings of length 3, so every length-3 string is generated."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definition of addition",
+   "topic": "Addition definition",
+   "q": "Which is the recursive definition of addition on ℕ?",
+   "choices": [
+    "m + 0 = m;  m + s(n) = s(m + n)",
+    "0 + m = m;  s(m) + n = m + n",
+    "m + 0 = 0;  m + s(n) = s(m) + s(n)",
+    "m + 1 = s(m);  m + n = n + m"
+   ],
+   "answer": 0,
+   "explain": "Basis: adding 0 gives the same number. Recursive step: adding the successor of n gives the successor of m + n. It only ever handles an s on the **right** argument, and uses only 0 and s."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definition of addition",
+   "topic": "What a step does",
+   "q": "What does each application of the recursive step m + s(n) = s(m + n) do?",
+   "choices": [
+    "Peels one s off the second argument and moves it outside",
+    "Peels one s off the first argument",
+    "Swaps the two arguments",
+    "Adds 1 to both arguments"
+   ],
+   "answer": 0,
+   "explain": "The outer s of the right argument moves outside the sum. Repeat until the right argument is 0, then the basis m + 0 = m finishes."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definition of addition",
+   "topic": "Worked: 4 + 2 first step",
+   "q": "In s(s(s(s(0)))) + s(s(0)), applying the recursive step once gives:",
+   "choices": [
+    "s( s(s(s(s(0)))) + s(0) )",
+    "s(s(s(0))) + s(s(s(0)))",
+    "s( s(s(s(0))) + s(s(0)) )",
+    "s(s(s(s(s(s(0))))))"
+   ],
+   "answer": 0,
+   "explain": "Match the second argument s(s(0)) to s(n) with n = s(0). Then m + s(n) = s(m + n) = s( s(s(s(s(0)))) + s(0) ). The fully computed answer (option 4) takes one more step and the basis."
+  },
+  {
+   "type": "num",
+   "category": "Recursive definition of addition",
+   "topic": "Recursive steps for 3 + 5",
+   "q": "Computing s(s(s(0))) + s(s(s(s(s(0))))) using only the definition (without swapping), how many applications of the **recursive step** are needed before the basis applies?",
+   "answer": 5,
+   "explain": "Each step peels one s off the second argument, which has five s's. After 5 steps you reach s⁵(sss0 + 0), and the basis gives s⁸(0)."
+  },
+  {
+   "type": "num",
+   "category": "Recursive definition of addition",
+   "topic": "Result of 3 + 5",
+   "q": "How many s's are in the final result of s(s(s(0))) + s(s(s(s(s(0)))))?",
+   "answer": 8,
+   "explain": "The result is s(s(s(s(s(sss0))))) = s⁸(0). Number names are only for checking: 3 + 5 = 8."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definition of addition",
+   "topic": "Computing 2 + 3",
+   "q": "Using only the definition, s(s(0)) + s(s(s(0))) equals:",
+   "choices": [
+    "s(s(s(s(s(0)))))",
+    "s(s(s(0)))",
+    "s(s(s(s(0))))",
+    "s(s(0)) + s(s(s(0))) cannot be computed without commutativity"
+   ],
+   "answer": 0,
+   "explain": "Three recursive steps: s(ss0 + ss0) → s(s(ss0 + s0)) → s(s(s(ss0 + 0))) → basis → s(s(s(ss0))) = s⁵(0). No commutativity is needed; the definition works for any order of arguments."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definition of addition",
+   "topic": "When is it finished",
+   "q": "How do you know an addition computation built from the definition is finished?",
+   "choices": [
+    "The expression contains no \"+\", so it is a natural number sᵏ(0)",
+    "The second argument has one s left",
+    "The first argument is 0",
+    "You have applied the recursive step exactly twice"
+   ],
+   "answer": 0,
+   "explain": "Once the basis m + 0 = m removes the last \"+\", what remains is a string of s's around 0 — a natural number — and nothing more can be applied."
+  },
+  {
+   "type": "tf",
+   "category": "Recursive definition of addition",
+   "topic": "Number names",
+   "q": "It is fine to replace s(s(s(0))) by 3 in the middle of a computation to speed it up.",
+   "answer": false,
+   "explain": "Number names \"are not in this world\"; only 0 and s exist. Use names like 3 only to **check** your answer at the end."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definition of addition",
+   "topic": "Addition is like recursion",
+   "q": "The instructor said the definition of addition is \"like an implementation of addition\". Which programming idea does it mirror?",
+   "choices": [
+    "A recursive function: base case n = 0 returns m, otherwise return s(add(m, n − 1))",
+    "A for-loop over the first argument",
+    "A lookup table of all sums",
+    "Sorting the two arguments"
+   ],
+   "answer": 0,
+   "explain": "The basis is the base case, and the recursive step is the recursive call on a smaller second argument; the result is assembled on the way back, one s per call."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definition of addition",
+   "topic": "Multiplication built on addition",
+   "q": "A recursive definition of multiplication (m · 0 = 0; m · s(n) = (m · n) + m) illustrates what about how theories are built?",
+   "choices": [
+    "New operations are defined using ones already defined — here, addition",
+    "Multiplication must be taken as an axiom",
+    "Multiplication is concatenation of strings",
+    "Addition is defined in terms of multiplication"
+   ],
+   "answer": 0,
+   "explain": "Multiplication's recursive step uses +, which is already defined. Theories grow by defining new concepts from existing ones. (Here \"·\" means numeric multiplication, not concatenation.)"
+  },
+  {
+   "type": "num",
+   "category": "Recursive definition of addition",
+   "topic": "2 + 0",
+   "q": "Using the definition, how many s's are in s(s(0)) + 0?",
+   "answer": 2,
+   "explain": "Directly by the basis m + 0 = m: s(s(0)) + 0 = s(s(0)). No recursive step is needed."
+  },
+  {
+   "type": "mc",
+   "category": "Commutativity and proofs",
+   "topic": "Why not just swap",
+   "q": "A student wanted to compute 3 + 5 as 5 + 3 to peel fewer s's. Why is that not allowed for free?",
+   "choices": [
+    "Swapping uses commutativity, which must be stated and proven from the definitions first",
+    "Addition is not commutative",
+    "The definition forbids the first argument from being larger",
+    "5 + 3 gives a different answer"
+   ],
+   "answer": 0,
+   "explain": "Addition *is* commutative, but in a theory built from only 0 and s, m + n = n + m is a **theorem**. The definition only handles an s on the right, so you must prove commutativity before using it."
+  },
+  {
+   "type": "tf",
+   "category": "Commutativity and proofs",
+   "topic": "Commutativity is an axiom",
+   "q": "In the theory built from 0, s and the definition of addition, m + n = n + m is one of the given definitions.",
+   "answer": false,
+   "explain": "It is not given; it has to be proven by induction, using two lemmas: 0 + n = n and s(m) + n = s(m + n)."
+  },
+  {
+   "type": "multi",
+   "category": "Commutativity and proofs",
+   "topic": "Lemmas for commutativity",
+   "q": "Which lemmas are used in the standard proof that m + n = n + m?",
+   "choices": [
+    "0 + n = n",
+    "s(m) + n = s(m + n)",
+    "m + n = m · n",
+    "m + m = s(m)"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "Lemma 1 (0 + n = n) handles the base case, and Lemma 2 (s(m) + n = s(m + n)) handles the step: m + s(n) = s(m + n) = s(n + m) = s(n) + m. The other two are false."
+  },
+  {
+   "type": "mc",
+   "category": "Commutativity and proofs",
+   "topic": "Structural induction",
+   "q": "What is structural induction?",
+   "choices": [
+    "Proving a property holds for every element of a recursively defined set by checking the basis and showing every rule preserves it",
+    "Listing elements until a pattern appears",
+    "Finding one counterexample",
+    "Induction on the number of rules"
+   ],
+   "answer": 0,
+   "explain": "It is \"a version of mathematical induction for sets\": the basis elements have the property, each rule turns elements with the property into elements with the property, and closure says nothing else is in the set."
+  },
+  {
+   "type": "mc",
+   "category": "Commutativity and proofs",
+   "topic": "Soundness vs completeness",
+   "q": "To prove S = K for a recursively defined K, you show two directions. Which is **soundness**?",
+   "choices": [
+    "K ⊆ S — the definition generates nothing wrong",
+    "S ⊆ K — the definition misses nothing",
+    "K is infinite",
+    "K has no redundant rules"
+   ],
+   "answer": 0,
+   "explain": "Soundness (K ⊆ S) is usually by structural induction on K's rules. Completeness (S ⊆ K) is usually by induction on string length: show every string in S can be built."
+  },
+  {
+   "type": "mc",
+   "category": "Commutativity and proofs",
+   "topic": "Induction on n is valid because…",
+   "q": "Proofs about all natural numbers by induction on n (prove for 0, then from n to s(n)) are valid because of which part of ℕ's definition?",
+   "choices": [
+    "The closure clause: every natural number is reached from 0 by finitely many s's",
+    "The basis alone",
+    "The definition of addition",
+    "Commutativity"
+   ],
+   "answer": 0,
+   "explain": "If the claim holds for 0 and passes from n to s(n), it holds for everything reachable from 0 in finitely many steps — and closure says that is all of ℕ."
+  },
+  {
+   "type": "mc",
+   "category": "Commutativity and proofs",
+   "topic": "Soundness for odd a's",
+   "q": "For the five-rule odd-number-of-a's definition, which invariant does the soundness proof show every rule preserves?",
+   "choices": [
+    "The number of a's is odd",
+    "The length is odd",
+    "The string starts with a",
+    "The number of b's is even"
+   ],
+   "answer": 0,
+   "explain": "t·b and b·t leave #a unchanged; t·aa, a·t·a, a·a·t add 2. Either way an odd count stays odd, and the basis a has one a."
+  },
+  {
+   "type": "multi",
+   "category": "Odd number of a's",
+   "topic": "Members of S",
+   "q": "Which strings over {a, b} have an odd number of a's?",
+   "choices": [
+    "a",
+    "ab",
+    "abb",
+    "bab",
+    "aa",
+    "λ",
+    "baba"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "explain": "a, ab, abb, bab each have one a. aa has two, λ has zero (0 is even), baba has two. Students in class first forgot abb and bab."
+  },
+  {
+   "type": "num",
+   "category": "Odd number of a's",
+   "topic": "Count length 4",
+   "q": "How many strings of length 4 over {a, b} have an odd number of a's?",
+   "answer": 8,
+   "explain": "Exactly half of all 2⁴ = 16 strings: C(4,1) + C(4,3) = 4 + 4 = 8. In general the count is 2ⁿ⁻¹."
+  },
+  {
+   "type": "mc",
+   "category": "Odd number of a's",
+   "topic": "Basis choice",
+   "q": "Why must a be in the basis of any recursive definition of the strings with an odd number of a's (using concatenation rules)?",
+   "choices": [
+    "a is the shortest element, and concatenation only makes strings longer, so no rule could produce it",
+    "a is alphabetically first",
+    "The basis must always contain every single symbol",
+    "Because λ has an odd number of a's"
+   ],
+   "answer": 0,
+   "explain": "Rules built from concatenation always produce strings at least as long as t (usually longer). The shortest element can never be the output of a rule, so it must be put in directly."
+  },
+  {
+   "type": "mc",
+   "category": "Odd number of a's",
+   "topic": "Reject t·a",
+   "q": "Why was the proposed rule t·a ∈ K rejected?",
+   "choices": [
+    "With t = a it gives aa, which has an even number of a's",
+    "It never produces new strings",
+    "It is redundant",
+    "It produces λ"
+   ],
+   "answer": 0,
+   "explain": "Appending one a flips parity, so from a it produces aa — outside the target set. One incorrect string is enough to reject a rule."
+  },
+  {
+   "type": "mc",
+   "category": "Odd number of a's",
+   "topic": "Accept t·aa",
+   "q": "Why is t·aa ∈ K an acceptable rule?",
+   "choices": [
+    "Adding two a's changes the count by 2, so an odd count stays odd",
+    "It generates every string in S",
+    "It is the only rule needed",
+    "Because aa has odd length"
+   ],
+   "answer": 0,
+   "explain": "Parity is preserved by adding an even number of a's. The rule is **sound**; whether the rules together are **complete** is a separate question."
+  },
+  {
+   "type": "multi",
+   "category": "Odd number of a's",
+   "topic": "Sound rules",
+   "q": "Assuming t has an odd number of a's, which rules always produce a string that also has an odd number of a's?",
+   "choices": [
+    "t·b",
+    "b·t",
+    "a·t·a",
+    "a·a·t",
+    "t·a",
+    "a·t"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "explain": "Adding b's changes nothing and adding two a's keeps parity. t·a and a·t add one a and flip parity, producing strings outside S."
+  },
+  {
+   "type": "mc",
+   "category": "Odd number of a's",
+   "topic": "First execution",
+   "q": "Basis a; rules t·b, t·aa, b·t. What does the first execution of the recursive step produce?",
+   "choices": [
+    "ab, aaa, ba",
+    "ab, aa, ba",
+    "abb, aaa, bab",
+    "a, ab, ba"
+   ],
+   "answer": 0,
+   "explain": "Only t = a is available: a·b = ab, a·aa = aaa, b·a = ba."
+  },
+  {
+   "type": "multi",
+   "category": "Odd number of a's",
+   "topic": "Second execution, t = ab and ba",
+   "q": "Basis a; rules t·b, t·aa, b·t. Which strings come from t = ab or t = ba in the second execution?",
+   "choices": [
+    "abb",
+    "abaa",
+    "bab",
+    "baaa",
+    "bba",
+    "aab"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "explain": "t = ab: abb, abaa, bab. t = ba: bab, baaa, bba. bab appears twice — repetitions are fine. aab has two a's and cannot appear."
+  },
+  {
+   "type": "mc",
+   "category": "Odd number of a's",
+   "topic": "Three rules are not enough",
+   "q": "With basis a and rules t·b, t·aa, b·t, why can ababa never be generated?",
+   "choices": [
+    "Every generated string other than a ends in b, ends in aa, or starts with b — ababa does none of these",
+    "ababa has an even number of a's",
+    "ababa is too long",
+    "The rules can generate it; it just takes many steps"
+   ],
+   "answer": 0,
+   "explain": "ababa has three a's, so it is in S, but it starts with a and ends in ba, matching no rule's output shape. That makes it a counterexample: K is too small."
+  },
+  {
+   "type": "text",
+   "category": "Odd number of a's",
+   "topic": "Shortest missing string",
+   "q": "With basis a and rules t·b, t·aa, b·t, what is the **shortest** string with an odd number of a's that cannot be generated? (length 4)",
+   "answer": [
+    "aaba"
+   ],
+   "explain": "aaba has three a's, starts with a and ends in ba — the same shape argument as ababa, one symbol shorter. A program confirms it is the shortest missing string."
+  },
+  {
+   "type": "mc",
+   "category": "Odd number of a's",
+   "topic": "Rule 4 builds ababa",
+   "q": "Which added rule produces ababa from t = bab?",
+   "choices": [
+    "a·t·a",
+    "t·aa",
+    "a·a·t",
+    "t·b"
+   ],
+   "answer": 0,
+   "explain": "a·bab·a = ababa. a·t·a adds two a's, so it is sound, and it fills the \"starts and ends with a\" gap."
+  },
+  {
+   "type": "mc",
+   "category": "Odd number of a's",
+   "topic": "t·aba not enough",
+   "q": "Adding t·aba to rules t·b, t·aa, b·t still misses a string. Which one?",
+   "choices": [
+    "aabba",
+    "ababa",
+    "abb",
+    "bab"
+   ],
+   "answer": 0,
+   "explain": "aabba has three a's, starts with a and ends in bba; none of t·b, t·aa, b·t, t·aba can produce that ending. ababa = ab·aba *is* produced; abb and bab were already produced."
+  },
+  {
+   "type": "tf",
+   "category": "Odd number of a's",
+   "topic": "Three rules suffice",
+   "q": "The student's claim that t·b, b·t, a·t·a alone (with basis a) define exactly the strings with an odd number of a's is correct.",
+   "answer": true,
+   "explain": "Completeness: a string w in S ending in b is t·b; starting with b is b·t; otherwise it starts and ends with a, so w = a·u·a with u having an odd number of a's (since #a(w) ≥ 3). Induction on length finishes it. So Rules 2 and 5 are redundant."
+  },
+  {
+   "type": "mc",
+   "category": "Odd number of a's",
+   "topic": "Completeness case",
+   "q": "In the completeness proof for rules t·b, b·t, a·t·a, a string w ∈ S of length ≥ 2 that neither starts nor ends with b is written w = a·u·a. Why does u have an odd number of a's?",
+   "choices": [
+    "#a(w) is odd and at least 3, so #a(u) = #a(w) − 2 is odd",
+    "u is shorter than w",
+    "u starts with a",
+    "Every substring of w has an odd number of a's"
+   ],
+   "answer": 0,
+   "explain": "w starts and ends with a, so #a(w) ≥ 2; odd means ≥ 3. Removing two a's keeps parity odd, so u ∈ S, u is shorter, and by induction u ∈ K; then a·t·a builds w."
+  },
+  {
+   "type": "mc",
+   "category": "Reading given definitions and notation",
+   "topic": "Set defined by t·t·t",
+   "q": "Basis a ∈ K, b ∈ K; if t ∈ K then t·t·t ∈ K. Which set is K?",
+   "choices": [
+    "{a^(3ᵏ), b^(3ᵏ) : k ≥ 0} — a single repeated letter, length a power of 3",
+    "All strings over {a, b} whose length is a multiple of 3",
+    "All nonempty strings over {a, b}",
+    "{a, b, aaa, bbb} only"
+   ],
+   "answer": 0,
+   "explain": "Each application triples the length, and since t has one value within the rule, a's and b's never mix: a, aaa, a⁹, a²⁷, … and b, bbb, b⁹, …"
+  },
+  {
+   "type": "tf",
+   "category": "Reading given definitions and notation",
+   "topic": "Mixing in t·t·t",
+   "q": "From basis {a, b} with rule t·t·t, the string aba can be generated by choosing t = a, t = b, t = a for the three copies.",
+   "answer": false,
+   "explain": "A variable has **one value within a rule**: all three t's are the same string. So t·t·t never mixes letters, and aba is not generated."
+  },
+  {
+   "type": "mc",
+   "category": "Reading given definitions and notation",
+   "topic": "Allowing mixing",
+   "q": "Which rule, with basis {a, b}, generates every nonempty string over {a, b}?",
+   "choices": [
+    "If t ∈ K and w ∈ K, then t·w ∈ K",
+    "If t ∈ K, then t·t ∈ K",
+    "If t ∈ K, then t·t·t ∈ K",
+    "If t ∈ K, then a·t·a ∈ K"
+   ],
+   "answer": 0,
+   "explain": "Two different variables can take different values (t = a, w = b gives ab), so any nonempty string can be assembled. The single-variable rules only repeat one string."
+  },
+  {
+   "type": "num",
+   "category": "Reading given definitions and notation",
+   "topic": "Length after t·t·t",
+   "q": "In the t·t·t definition, what is the length of the string produced from t = a⁹?",
+   "answer": 27,
+   "explain": "a⁹·a⁹·a⁹ = a²⁷: each application triples the length, giving lengths 1, 3, 9, 27, …"
+  },
+  {
+   "type": "mc",
+   "category": "Reading given definitions and notation",
+   "topic": "Basis b; rule t·t",
+   "q": "Basis b ∈ K; if t ∈ K then t·t ∈ K. Which set is K?",
+   "choices": [
+    "{b^(2ᵏ) : k ≥ 0} = {b, bb, b⁴, b⁸, …}",
+    "All strings of b's",
+    "{bⁿ : n even}",
+    "{b, bb}"
+   ],
+   "answer": 0,
+   "explain": "Doubling from length 1 gives lengths 1, 2, 4, 8, …, powers of 2. b³ is never produced, so it is not all strings of b's; and b itself has odd length."
+  },
+  {
+   "type": "mc",
+   "category": "Reading given definitions and notation",
+   "topic": "Exponent notation",
+   "q": "What does b⁹ mean in this course?",
+   "choices": [
+    "Nine b's concatenated: bbbbbbbbb",
+    "b multiplied by itself nine times",
+    "b followed by the digit 9",
+    "The ninth symbol of the alphabet"
+   ],
+   "answer": 0,
+   "explain": "Exponent notation is repetition by concatenation. \"We are not in the world of numbers\", so do not read it as a numeric power."
+  },
+  {
+   "type": "text",
+   "category": "Reading given definitions and notation",
+   "topic": "a⁰",
+   "q": "What string does a⁰ denote? (give its symbol)",
+   "answer": [
+    "λ",
+    "lambda",
+    "ε",
+    "the empty string",
+    "empty string"
+   ],
+   "explain": "Zero copies of a concatenated is the empty string λ (some books write ε)."
+  },
+  {
+   "type": "tf",
+   "category": "Reading given definitions and notation",
+   "topic": "Spaces between copies",
+   "q": "aaa aaa aaa written with spaces denotes three separate strings.",
+   "answer": false,
+   "explain": "The spaces (or dots) only show the pattern. Everything is concatenation, so it is one string, a⁹."
+  },
+  {
+   "type": "multi",
+   "category": "Reading given definitions and notation",
+   "topic": "Members of the t·t·t set",
+   "q": "Basis a, b; rule t·t·t. Which strings are in K?",
+   "choices": [
+    "a",
+    "bbb",
+    "a⁹",
+    "aaaaaa",
+    "ab",
+    "b²⁷"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    5
+   ],
+   "explain": "Lengths must be powers of 3 with a single letter: a (1), bbb (3), a⁹ (9), b²⁷ (27). aaaaaa has length 6, not a power of 3; ab mixes letters."
+  },
+  {
+   "type": "multi",
+   "category": "Reading given definitions and notation",
+   "topic": "String basics",
+   "q": "Which statements about strings are true?",
+   "choices": [
+    "λ·w = w·λ = w",
+    "|λ| = 0",
+    "|abba| = 4",
+    "In this course, a·b means a multiplied by b",
+    "{a, b}\\* contains λ"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    4
+   ],
+   "explain": "λ is the identity for concatenation and has length 0. The dot means concatenation, not multiplication. Σ\\* is all strings over Σ, including λ."
+  },
+  {
+   "type": "mc",
+   "category": "Reading given definitions and notation",
+   "topic": "Start with a",
+   "q": "Which recursive definition gives exactly the strings over {a, b} that **start with a**?",
+   "choices": [
+    "Basis a; if t ∈ K then t·a ∈ K and t·b ∈ K",
+    "Basis a; if t ∈ K then a·t ∈ K and b·t ∈ K",
+    "Basis λ; if t ∈ K then a·t ∈ K",
+    "Basis a, b; if t ∈ K then t·a ∈ K"
+   ],
+   "answer": 0,
+   "explain": "Appending never changes the first symbol, and any string starting with a can be built from a by appending its remaining symbols. Prepending b (option 2) would produce ba; option 3 gives only a's (plus λ); option 4 includes b."
+  }
+ ]
+}

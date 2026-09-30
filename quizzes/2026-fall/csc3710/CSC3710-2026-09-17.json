@@ -1,0 +1,1158 @@
+{
+ "title": "CSC3710 2026-09-17 — Regular Sets and Regular Expressions",
+ "course": "CSC3710",
+ "questions": [
+  {
+   "type": "multi",
+   "category": "Regular sets: definition",
+   "topic": "Basis sets",
+   "q": "Over Σ = {a, b}, which sets are \\*\\*basis\\*\\* elements in the recursive definition of the regular sets?",
+   "choices": [
+    "∅",
+    "{λ}",
+    "{a}",
+    "{b}",
+    "{a, b}",
+    "{aa}"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "explain": "The basis is ∅, {λ}, and {x} for every symbol x ∈ Σ, so over {a, b}: ∅, {λ}, {a}, {b}. {a, b} is regular, but only after one union step; {aa} needs a concatenation step."
+  },
+  {
+   "type": "mc",
+   "category": "Regular sets: definition",
+   "topic": "Recursive step operations",
+   "q": "Which list is exactly the set of operations allowed in the recursive step for regular sets?",
+   "choices": [
+    "Union, concatenation, Kleene star",
+    "Union, intersection, complement",
+    "Concatenation, Kleene star, complement",
+    "Union, concatenation, intersection, Kleene star"
+   ],
+   "answer": 0,
+   "explain": "The recursive step allows X ∪ Y, XY and X\\*, and nothing else. Intersection and complement do preserve regularity (a later theorem), but they are not part of the definition."
+  },
+  {
+   "type": "mc",
+   "category": "Regular sets: definition",
+   "topic": "Closure clause",
+   "q": "What is the job of the \\*\\*closure\\*\\* clause in the definition of the regular sets?",
+   "choices": [
+    "It says the regular sets are closed under intersection",
+    "It says a set is regular only if it can be built from the basis by finitely many applications of the recursive step",
+    "It says every set of strings over Σ is regular",
+    "It says the Kleene star may only be applied once"
+   ],
+   "answer": 1,
+   "explain": "Basis and recursive step say which sets \\*are\\* regular; closure says \\*no other\\* sets are: a set is regular only if some finite number of applications of the recursive step builds it from the basis."
+  },
+  {
+   "type": "tf",
+   "category": "Regular sets: definition",
+   "topic": "∅ vs {λ}",
+   "q": "∅ and {λ} are the same set, because both contain \"nothing\".",
+   "answer": false,
+   "explain": "∅ has zero elements. {λ} has one element, the empty string. They behave differently: X∅ = ∅ but X{λ} = X. They are listed separately in the basis for this reason."
+  },
+  {
+   "type": "mc",
+   "category": "Regular sets: definition",
+   "topic": "Concatenation of sets",
+   "q": "What is {a, ab}{b, λ}?",
+   "choices": [
+    "{ab, abλ}",
+    "{ab, abb}",
+    "{a, ab, abb}",
+    "{a, b, ab, λ}"
+   ],
+   "answer": 2,
+   "explain": "XY = {uv | u ∈ X, v ∈ Y}: a·b = ab, a·λ = a, ab·b = abb, ab·λ = ab. Duplicates collapse, giving {a, ab, abb}."
+  },
+  {
+   "type": "tf",
+   "category": "Regular sets: definition",
+   "topic": "Order in concatenation",
+   "q": "For sets of strings, XY = YX always.",
+   "answer": false,
+   "explain": "Order matters: {a}{b} = {ab} but {b}{a} = {ba}. The recursive step covers both XY and YX because X and Y are arbitrary, but they are generally different sets."
+  },
+  {
+   "type": "tf",
+   "category": "Regular sets: definition",
+   "topic": "λ in every star",
+   "q": "For every set X of strings, λ ∈ X\\*.",
+   "answer": true,
+   "explain": "X\\* = X⁰ ∪ X¹ ∪ …, and X⁰ = {λ}. So λ is in X\\* for every X, including X = ∅."
+  },
+  {
+   "type": "multi",
+   "category": "Regular sets: definition",
+   "topic": "Boundary cases",
+   "q": "Which equalities of \\*\\*sets\\*\\* are true?",
+   "choices": [
+    "{λ}\\* = {λ}",
+    "∅\\* = {λ}",
+    "∅\\* = ∅",
+    "{a}∅ = ∅"
+   ],
+   "answer": [
+    0,
+    1,
+    3
+   ],
+   "explain": "{λ}\\* = {λ} (copies of λ give λ). ∅\\* = {λ} because ∅⁰ = {λ} and ∅ⁿ = ∅ for n ≥ 1. X∅ = ∅ (nothing to pair with). ∅\\* is not ∅, since it contains λ."
+  },
+  {
+   "type": "tf",
+   "category": "Regular sets: definition",
+   "topic": "Operation need not create new set",
+   "q": "Applying the recursive step to a regular set always produces a \\*\\*new\\*\\* regular set, different from the ones used.",
+   "answer": false,
+   "explain": "Not necessarily. {λ} is regular by the basis and {λ}\\* is regular by the star step, but {λ}\\* = {λ}. Likewise X ∪ X = X."
+  },
+  {
+   "type": "mc",
+   "category": "Regular sets: definition",
+   "topic": "X⁺",
+   "q": "For a set X of strings, which is X⁺?",
+   "choices": [
+    "X\\* ∪ {λ}",
+    "XX\\*",
+    "X\\*X\\*",
+    "X ∪ {λ}"
+   ],
+   "answer": 1,
+   "explain": "X⁺ = X¹ ∪ X² ∪ … = XX\\*: one or more concatenated elements of X. It contains λ only if λ ∈ X."
+  },
+  {
+   "type": "mc",
+   "category": "Proving a set is regular",
+   "topic": "Proof steps for {a,b}*{aaa}",
+   "q": "In the proof that L = {a, b}\\*{aaa} is regular, which step is justified by \\*\\*union\\*\\*?",
+   "choices": [
+    "{aa} from {a} and {a}",
+    "{aaa} from {aa} and {a}",
+    "{a, b} from {a} and {b}",
+    "{a, b}\\* from {a, b}"
+   ],
+   "answer": 2,
+   "explain": "{a, b} is built from the basis sets {a} and {b} by union. {aa} and {aaa} come from concatenation, {a, b}\\* from the star, and the final set from concatenating {a, b}\\* with {aaa}."
+  },
+  {
+   "type": "mc",
+   "category": "Proving a set is regular",
+   "topic": "Order of the final concatenation",
+   "q": "The last step of the proof concatenates {a, b}\\* and {aaa}. Why does the order matter?",
+   "choices": [
+    "{a, b}\\*{aaa} ends with aaa, but {aaa}{a, b}\\* starts with aaa",
+    "It doesn't: concatenation is commutative",
+    "The star must always be applied last",
+    "Only the order of the basis steps matters"
+   ],
+   "answer": 0,
+   "explain": "{a, b}\\*{aaa} is the strings that \\*\\*end\\*\\* with aaa; {aaa}{a, b}\\* would be those that \\*\\*start\\*\\* with aaa. Concatenation is not commutative, so the order you cite must match the target set."
+  },
+  {
+   "type": "tf",
+   "category": "Proving a set is regular",
+   "topic": "Rules for step order",
+   "q": "In a \"prove this set is regular\" table, the steps may be done in any order, as long as every set used in a step has already been shown to be regular.",
+   "answer": true,
+   "explain": "For example you can build {a, b}\\* before {aaa}. What matters is that every justification cites earlier rows (or the basis)."
+  },
+  {
+   "type": "mc",
+   "category": "Proving a set is regular",
+   "topic": "Begins with bb",
+   "q": "Which construction proves that the strings over {a, b} that \\*\\*begin with bb\\*\\* form a regular set?",
+   "choices": [
+    "{a, b}\\*{bb}",
+    "{bb}{a, b}\\*",
+    "{bb}{b}\\*",
+    "{b}{b} ∪ {λ}"
+   ],
+   "answer": 1,
+   "explain": "The set is {bb}{a, b}\\*: {b} (basis), {bb} = {b}{b} (concatenation), {a}, {a, b} (union), {a, b}\\* (star), then {bb}{a, b}\\* (concatenation in that order). Option 1 is ends-with-bb; option 3 only allows b's afterwards; option 4 is only {bb}."
+  },
+  {
+   "type": "mc",
+   "category": "Proving a set is regular",
+   "topic": "Why the proof finishes",
+   "q": "After building {a, b}\\*{aaa} from the basis in 7 justified steps, which clause lets you conclude that the set is regular?",
+   "choices": [
+    "The basis alone",
+    "Finitely many applications of the recursive step starting from the basis (recursive step + closure)",
+    "The fact that the set is infinite",
+    "The identity u ∪ u = u"
+   ],
+   "answer": 1,
+   "explain": "The recursive step says each individual step produces a regular set; the closure clause frames the result: a set obtained from the basis by finitely many applications of the recursive step is exactly what a regular set is. (Most books accept citing either; the key point is the construction is finite and every step is justified.)"
+  },
+  {
+   "type": "multi",
+   "category": "Proving a set is regular",
+   "topic": "Checking a construction",
+   "q": "Which strings belong to {a, b}\\*{aaa}?",
+   "choices": [
+    "aaa",
+    "aab",
+    "baaa",
+    "abaaa",
+    "aaab"
+   ],
+   "answer": [
+    0,
+    2,
+    3
+   ],
+   "explain": "Any string (including λ) followed by aaa: aaa = λ·aaa, baaa = b·aaa, abaaa = ab·aaa. aab and aaab do not end in aaa."
+  },
+  {
+   "type": "mc",
+   "category": "Proving a set is regular",
+   "topic": "Pattern in a set listing",
+   "q": "A set is listed as {ba, baa, bab, baaa, baab, baba, babb, …}. Which regular-set construction describes it?",
+   "choices": [
+    "{ba}{a, b}\\*",
+    "{a, b}\\*{ba}",
+    "{ba}{a}\\*",
+    "{b}{a, b}\\*{a}"
+   ],
+   "answer": 0,
+   "explain": "Every string starts with ba and is followed by any string over {a, b}: {b}{a}{a, b}\\*. The other options either end with ba or force a fixed third symbol."
+  },
+  {
+   "type": "mc",
+   "category": "Regex syntax, precedence and abbreviations",
+   "topic": "Precedence order",
+   "q": "What is the precedence of the regular-expression operators, from most binding to least?",
+   "choices": [
+    "Star, concatenation, union",
+    "Union, concatenation, star",
+    "Concatenation, star, union",
+    "Star, union, concatenation"
+   ],
+   "answer": 0,
+   "explain": "Star binds tightest, then concatenation, then union — like exponent, multiplication, addition in arithmetic."
+  },
+  {
+   "type": "mc",
+   "category": "Regex syntax, precedence and abbreviations",
+   "topic": "ab*",
+   "q": "How is ab\\* read?",
+   "choices": [
+    "(ab)\\*",
+    "a(b\\*)",
+    "(a\\*)(b\\*)",
+    "a ∪ b\\*"
+   ],
+   "answer": 1,
+   "explain": "The star applies only to the symbol immediately before it: a(b\\*). It describes {a, ab, abb, …}, not (ab)\\* = {λ, ab, abab, …}."
+  },
+  {
+   "type": "mc",
+   "category": "Regex syntax, precedence and abbreviations",
+   "topic": "ab ∪ c",
+   "q": "How is ab ∪ c read?",
+   "choices": [
+    "(ab) ∪ c",
+    "a(b ∪ c)",
+    "(a ∪ c)b",
+    "a ∪ b ∪ c"
+   ],
+   "answer": 0,
+   "explain": "Concatenation binds tighter than union: (ab) ∪ c, describing {ab, c}. a(b ∪ c) would be {ab, ac}."
+  },
+  {
+   "type": "mc",
+   "category": "Regex syntax, precedence and abbreviations",
+   "topic": "Parenthesize (ab)*a ∪ b*",
+   "q": "Which full parenthesization matches (ab)\\*a ∪ b\\*?",
+   "choices": [
+    "(ab)\\*(a ∪ b)\\*",
+    "((ab)\\*(a ∪ b))\\*",
+    "((ab)\\*a) ∪ (b\\*)",
+    "(ab)\\*(a ∪ b\\*)"
+   ],
+   "answer": 2,
+   "explain": "Star first, then concatenation, then union: ((ab)\\*a) ∪ (b\\*). Its shortest strings are λ (from b\\*), a, b."
+  },
+  {
+   "type": "mc",
+   "category": "Regex syntax, precedence and abbreviations",
+   "topic": "Shortest strings of a ∪ b*a",
+   "q": "What are the three shortest strings described by a ∪ b\\*a?",
+   "choices": [
+    "λ, a, b",
+    "a, b, ba",
+    "λ, a, ba",
+    "a, ba, bba"
+   ],
+   "answer": 3,
+   "explain": "Read as a ∪ ((b\\*)a). b\\*a gives a, ba, bba, …; the separate a is the same string a, which a set lists once. So a, ba, bba. λ is not in the set: b\\*a always ends with a."
+  },
+  {
+   "type": "multi",
+   "category": "Regex syntax, precedence and abbreviations",
+   "topic": "u⁺",
+   "q": "Which expressions are equal to u⁺ for every regular expression u?",
+   "choices": [
+    "uu\\*",
+    "u\\*u",
+    "u\\*",
+    "u ∪ λ"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "u⁺ = uu\\* = u\\*u (one or more copies). u\\* also contains λ even when u doesn't, and u ∪ λ allows at most one copy."
+  },
+  {
+   "type": "mc",
+   "category": "Regex syntax, precedence and abbreviations",
+   "topic": "Powers",
+   "q": "What does (a ∪ b)³ abbreviate?",
+   "choices": [
+    "a³ ∪ b³",
+    "(a ∪ b)(a ∪ b)(a ∪ b)",
+    "(a ∪ b) ∪ (a ∪ b)² ∪ (a ∪ b)³",
+    "(a ∪ b)\\*, restricted to three stars"
+   ],
+   "answer": 1,
+   "explain": "uⁿ is u concatenated with itself n times, so (a ∪ b)³ = (a ∪ b)(a ∪ b)(a ∪ b): all 8 strings of length exactly 3. It is not the union of lengths up to 3, and not a³ ∪ b³."
+  },
+  {
+   "type": "mc",
+   "category": "Regex syntax, precedence and abbreviations",
+   "topic": "u⁰",
+   "q": "By convention, u⁰ is",
+   "choices": [
+    "λ",
+    "∅",
+    "u",
+    "u\\*"
+   ],
+   "answer": 0,
+   "explain": "u⁰ = λ, matching X⁰ = {λ} for sets. That is also why u\\* = u⁰ ∪ u¹ ∪ … always contains λ."
+  },
+  {
+   "type": "mc",
+   "category": "Regex syntax, precedence and abbreviations",
+   "topic": "Mirror of definitions",
+   "q": "In the definition of regular expressions, the regular expression \\*\\*λ\\*\\* corresponds to which regular set?",
+   "choices": [
+    "∅",
+    "{λ}",
+    "{a}",
+    "Σ\\*"
+   ],
+   "answer": 1,
+   "explain": "Regular expressions mirror regular sets clause by clause with the braces dropped: ∅ ↔ ∅, λ ↔ {λ}, a ↔ {a}."
+  },
+  {
+   "type": "mc",
+   "category": "Regex syntax, precedence and abbreviations",
+   "topic": "Pattern reading",
+   "q": "In a regular expression viewed as a pattern, which roles do concatenation, star and ∪ play?",
+   "choices": [
+    "Order, repetition, selection",
+    "Selection, order, repetition",
+    "Repetition, selection, order",
+    "Order, selection, repetition"
+   ],
+   "answer": 0,
+   "explain": "Concatenation fixes order (a string from u followed by a string from v), the star permits repetition, and ∪ permits selection between alternatives."
+  },
+  {
+   "type": "mc",
+   "category": "Regex syntax, precedence and abbreviations",
+   "topic": "Describes vs =",
+   "q": "Which sentence uses the course's preferred wording?",
+   "choices": [
+    "ab\\*b = {ab, abb, abbb, …}",
+    "ab\\*b accepts {ab, abb, abbb, …}",
+    "ab\\*b describes {ab, abb, abbb, …}",
+    "ab\\*b is an element of {ab, abb, …}"
+   ],
+   "answer": 2,
+   "explain": "An expression is notation; a set is a set. Say the expression \\*\\*describes\\*\\* the set. \"=\" is reserved for two expressions that describe the same set. (Writing \"=\" between an expression and a set is accepted on a test but discouraged.)"
+  },
+  {
+   "type": "mc",
+   "category": "Reading expressions and membership",
+   "topic": "a*b",
+   "q": "Which description of a\\*b is exactly right?",
+   "choices": [
+    "Strings that end with b",
+    "One or more a's followed by a b",
+    "Zero or more a's followed by exactly one b",
+    "Strings with exactly one b"
+   ],
+   "answer": 2,
+   "explain": "a\\*b is zero or more a's followed by exactly one b. \"Ends with b\" is too loose (abab ends with b but isn't in it); \"one or more a's\" wrongly excludes b."
+  },
+  {
+   "type": "mc",
+   "category": "Reading expressions and membership",
+   "topic": "ab*b = ab⁺",
+   "q": "ab\\*b describes the same set as which expression?",
+   "choices": [
+    "(ab)\\*b",
+    "ab⁺",
+    "ab\\*",
+    "a⁺b⁺"
+   ],
+   "answer": 1,
+   "explain": "b\\* followed by b gives b, bb, bbb, …, i.e. b⁺. So ab\\*b = ab⁺: an a followed by one or more b's."
+  },
+  {
+   "type": "mc",
+   "category": "Reading expressions and membership",
+   "topic": "(ab⁺)* shortest strings",
+   "q": "What are the shortest strings, in order, of (ab\\*b)\\*?",
+   "choices": [
+    "λ, ab, abb, abab, abbb",
+    "ab, abb, abbb, abab",
+    "λ, a, ab, abb",
+    "ab, abb, abab, abbb"
+   ],
+   "answer": 0,
+   "explain": "(ab\\*b)\\* = (ab⁺)\\*: repeat blocks ab, abb, abbb, …. The outer star gives λ; then ab (2), abb (3), then abab and abbb (4). Forgetting λ was the mistake made in class."
+  },
+  {
+   "type": "multi",
+   "category": "Reading expressions and membership",
+   "topic": "(ab⁺)* vs ab⁺",
+   "q": "Which strings belong to the set described by (ab⁺)\\* but \\*\\*not\\*\\* to the set described by ab⁺?",
+   "choices": [
+    "λ",
+    "abbb",
+    "abab",
+    "abbab"
+   ],
+   "answer": [
+    0,
+    2,
+    3
+   ],
+   "explain": "ab⁺ is a single a followed by b's. (ab⁺)\\* allows λ and any sequence of blocks: abab = ab·ab, abbab = abb·ab. abbb is in both."
+  },
+  {
+   "type": "multi",
+   "category": "Reading expressions and membership",
+   "topic": "a*bb* length 3",
+   "q": "Which length-3 strings belong to the set described by a\\*bb\\*?",
+   "choices": [
+    "aab",
+    "abb",
+    "bbb",
+    "aba",
+    "aaa"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "a\\*bb\\* = a\\*b⁺: zero or more a's, then one or more b's. Length 3: aab, abb, bbb. Don't forget bbb (no a's). aba has an a after a b; aaa has no b."
+  },
+  {
+   "type": "multi",
+   "category": "Reading expressions and membership",
+   "topic": "(aba)* membership",
+   "q": "Which strings belong to the set described by (aba)\\*?",
+   "choices": [
+    "λ",
+    "aba",
+    "abaab",
+    "abaaba",
+    "ab"
+   ],
+   "answer": [
+    0,
+    1,
+    3
+   ],
+   "explain": "There is only one block, aba, so strings are λ, aba, abaaba, …. abaab is not a sequence of aba blocks."
+  },
+  {
+   "type": "multi",
+   "category": "Reading expressions and membership",
+   "topic": "a(a ∪ bb)* membership",
+   "q": "Which strings belong to the set described by a(a ∪ bb)\\*?",
+   "choices": [
+    "aabbbbbbaabb",
+    "abbaabb",
+    "aab",
+    "abb",
+    "abab",
+    "bba"
+   ],
+   "answer": [
+    0,
+    1,
+    3
+   ],
+   "explain": "Split into the leading a and then blocks a / bb. aabbbbbbaabb = a|a|bb|bb|bb|a|a|bb ✓; abbaabb = a|bb|a|a|bb ✓; abb = a|bb ✓. aab leaves a single b; abab has a single b before an a; bba doesn't start with a."
+  },
+  {
+   "type": "mc",
+   "category": "Reading expressions and membership",
+   "topic": "Characterize a(a ∪ bb)*",
+   "q": "Which is an equivalent description of the set described by a(a ∪ bb)\\*?",
+   "choices": [
+    "Strings that start with a and have an even number of symbols",
+    "Strings that start with a in which every run of b's has even length",
+    "Strings with an even number of b's",
+    "Strings that start with a and end with bb"
+   ],
+   "answer": 1,
+   "explain": "Blocks a and bb in any order mean every maximal run of b's has even length, and the leading a forces the string to start with a (so it is non-empty)."
+  },
+  {
+   "type": "multi",
+   "category": "Reading expressions and membership",
+   "topic": "(a ∪ b)(a ∪ b)*bbb",
+   "q": "Which statements about (a ∪ b)(a ∪ b)\\*bbb are true?",
+   "choices": [
+    "It equals (a ∪ b)⁺bbb",
+    "It describes the strings that end with bbb and have length at least 4",
+    "bbb belongs to the set it describes",
+    "bbbb belongs to the set it describes"
+   ],
+   "answer": [
+    0,
+    1,
+    3
+   ],
+   "explain": "(a ∪ b)(a ∪ b)\\* = (a ∪ b)⁺, so the expression is (a ∪ b)⁺bbb: strings ending in bbb with at least one symbol before it, i.e. length ≥ 4. bbb itself (length 3) is not in it; bbbb is."
+  },
+  {
+   "type": "mc",
+   "category": "Reading expressions and membership",
+   "topic": "ab ∪ aba*",
+   "q": "Which set does ab ∪ aba\\* describe?",
+   "choices": [
+    "{ab} ∪ {λ, aba, abaaba, …}",
+    "{ab, aba}",
+    "{ab, aba, abaa, abaaa, …}",
+    "{λ, ab, aba, abab, …}"
+   ],
+   "answer": 2,
+   "explain": "The star applies only to the last a: aba\\* = ab·a\\* = {ab, aba, abaa, …}. Union with {ab} adds nothing new."
+  },
+  {
+   "type": "multi",
+   "category": "Reading expressions and membership",
+   "topic": "(a ∪ bb)*b up to length 4",
+   "q": "Which strings of length ≤ 4 belong to the set described by (a ∪ bb)\\*b?",
+   "choices": [
+    "b",
+    "ab",
+    "bbb",
+    "aaab",
+    "bb",
+    "bbab"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3,
+    5
+   ],
+   "explain": "A block sequence from (a ∪ bb)\\* followed by b. Length 1: b; 2: ab; 3: aab, bbb; 4: aaab, abbb, bbab. bb (length 2) would need the blocks to produce a single b, which is impossible."
+  },
+  {
+   "type": "mc",
+   "category": "Reading expressions and membership",
+   "topic": "Word descriptions on tests",
+   "q": "Why does the instructor avoid asking for \\*\\*word descriptions\\*\\* of regular expressions on tests?",
+   "choices": [
+    "They are always longer than the expression",
+    "They are risky and subjective; answers vary too much",
+    "The tool cannot check them",
+    "They require knowing DFAs"
+   ],
+   "answer": 1,
+   "explain": "Word descriptions are subjective and everyone phrases them differently, so they are hard to grade. Tests focus on shortest strings and \"does this string belong to the set described by…\" questions."
+  },
+  {
+   "type": "text",
+   "category": "Reading expressions and membership",
+   "topic": "Shortest strings of ab* ∪ b",
+   "q": "List the three shortest strings of ab\\* ∪ b, separated by commas (use shortlex order).",
+   "answer": [
+    "a, b, ab",
+    "a,b,ab"
+   ],
+   "explain": "Read as (a(b\\*)) ∪ b: a(b\\*) gives a, ab, abb, …; plus b. Shortlex: a, b, ab."
+  },
+  {
+   "type": "mc",
+   "category": "Equivalence and counterexamples",
+   "topic": "Counterexample strategy",
+   "q": "You are asked whether two regular expressions are equivalent. What should you try first?",
+   "choices": [
+    "Look for a string that belongs to one set but not the other",
+    "Count the number of stars in each",
+    "Compare the lengths of the two expressions",
+    "Prove both inclusions immediately"
+   ],
+   "answer": 0,
+   "explain": "Look for a counterexample: a string in one set but not the other. A single counterexample proves the sets differ. If you can't find one, suspect equality and then prove it (both inclusions, or identities)."
+  },
+  {
+   "type": "tf",
+   "category": "Equivalence and counterexamples",
+   "topic": "Redundant block aa",
+   "q": "(a ∪ bb ∪ aa)\\* and (a ∪ bb)\\* are equivalent.",
+   "answer": true,
+   "explain": "The block aa is redundant: it can be built from two copies of the block a. Every string of one is a string of the other."
+  },
+  {
+   "type": "mc",
+   "category": "Equivalence and counterexamples",
+   "topic": "(a ∪ bb)* vs (a ∪ b)*",
+   "q": "Which string is a counterexample showing (a ∪ bb)\\* and (a ∪ b)\\* are not equivalent?",
+   "choices": [
+    "λ",
+    "b",
+    "bb",
+    "abb"
+   ],
+   "answer": 1,
+   "explain": "b belongs to the set described by (a ∪ b)\\* but not to (a ∪ bb)\\*, where b's only come in pairs. λ, bb and abb belong to both."
+  },
+  {
+   "type": "multi",
+   "category": "Equivalence and counterexamples",
+   "topic": "(ab)* vs a*b*",
+   "q": "Which strings are counterexamples showing (ab)\\* and a\\*b\\* are not equivalent?",
+   "choices": [
+    "a",
+    "ab",
+    "abab",
+    "aab",
+    "λ"
+   ],
+   "answer": [
+    0,
+    2,
+    3
+   ],
+   "explain": "a and aab are in a\\*b\\* but not (ab)\\* (whose non-empty strings are ab repeated). abab is in (ab)\\* but not a\\*b\\* (a b is followed by an a). λ and ab are in both."
+  },
+  {
+   "type": "mc",
+   "category": "Equivalence and counterexamples",
+   "topic": "a*(a ∪ b)*",
+   "q": "Are a\\*(a ∪ b)\\* and (a ∪ b)\\* equivalent?",
+   "choices": [
+    "Yes: choose λ from a\\*, and anything over {a,b} is in (a ∪ b)\\*",
+    "No: a\\*(a ∪ b)\\* has more strings",
+    "No: b is a counterexample",
+    "No: λ is a counterexample"
+   ],
+   "answer": 0,
+   "explain": "Yes. Every string in a\\*(a ∪ b)\\* is a string over {a, b}; conversely, any w over {a, b} is λ·w with λ from a\\*. (Instance of identity 12: u\\*(u ∪ v)\\* = (u ∪ v)\\*.)"
+  },
+  {
+   "type": "mc",
+   "category": "Equivalence and counterexamples",
+   "topic": "Wording for differing infinite sets",
+   "q": "Two infinite sets differ. Which wording does the course recommend?",
+   "choices": [
+    "The first set has more elements",
+    "The first set is bigger",
+    "There are strings that belong to the first set but not to the second",
+    "The first set is infinite and the second is not"
+   ],
+   "answer": 2,
+   "explain": "With infinite sets, \"more elements\" is misleading (sizes of infinite sets are counterintuitive). Say there are elements that belong to one set but not the other."
+  },
+  {
+   "type": "tf",
+   "category": "Equivalence and counterexamples",
+   "topic": "What proves equivalence",
+   "q": "Checking that two expressions agree on every string up to length 5 proves they are equivalent.",
+   "answer": false,
+   "explain": "Agreement on short strings is evidence, not proof: a difference might appear at a longer length. To prove equivalence you show both inclusions or use identities. Only non-equivalence is proven by one example."
+  },
+  {
+   "type": "mc",
+   "category": "Equivalence and counterexamples",
+   "topic": "Identity for ab ∪ aba*",
+   "q": "In the algebraic proof ab ∪ aba\\* = aba\\*, the step abλ ∪ aba\\* = ab(λ ∪ aa\\*) uses which identity?",
+   "choices": [
+    "u ∪ u = u",
+    "u(v ∪ w) = uv ∪ uw",
+    "(uv)\\*u = u(vu)\\*",
+    "λ\\* = λ"
+   ],
+   "answer": 1,
+   "explain": "Factoring ab out on the left is distributivity: u(v ∪ w) = uv ∪ uw. The next step uses λ ∪ aa\\* = λ ∪ a⁺ = a\\*."
+  },
+  {
+   "type": "mc",
+   "category": "Equivalence and counterexamples",
+   "topic": "Simplify ab ∪ ab(b)* ∪ λ*ab",
+   "q": "Which is a correct simplification of ab ∪ ab(b)\\* ∪ λ\\*ab?",
+   "choices": [
+    "ab",
+    "ab\\*",
+    "(ab)\\*",
+    "ab⁺"
+   ],
+   "answer": 3,
+   "explain": "λ\\*ab = λab = ab; ab ∪ ab = ab; and ab already belongs to abb\\* (take λ from b\\*), so the whole thing is abb\\* = ab⁺. Not ab\\* (that contains a), and not ab."
+  },
+  {
+   "type": "multi",
+   "category": "Equivalence and counterexamples",
+   "topic": "Identities true?",
+   "q": "Which are valid regular-expression identities?",
+   "choices": [
+    "∅u = ∅",
+    "λu = u",
+    "u\\* = (u\\*)\\*",
+    "(u ∪ v)\\* = u\\* ∪ v\\*",
+    "(uv)\\*u = u(vu)\\*"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    4
+   ],
+   "explain": "∅u = ∅; λu = u; u\\* = (u\\*)\\*; (uv)\\*u = u(vu)\\* all hold. (u ∪ v)\\* = u\\* ∪ v\\* is false: ab is in the left side but not the right."
+  },
+  {
+   "type": "text",
+   "category": "Equivalence and counterexamples",
+   "topic": "(u ∪ v)* vs u* ∪ v*",
+   "q": "Give the shortest counterexample (over {a, b}) showing (a ∪ b)\\* ≠ a\\* ∪ b\\*. If several tie, give the first in shortlex order.",
+   "answer": [
+    "ab"
+   ],
+   "explain": "a\\* ∪ b\\* contains only strings of a single letter. The shortest mixed strings are ab and ba (length 2); ab comes first in shortlex order."
+  },
+  {
+   "type": "mc",
+   "category": "Equivalence and counterexamples",
+   "topic": "Redundant term",
+   "q": "Why is (a ∪ b)\\*aa(a ∪ b)\\* ∪ (a ∪ b)\\*aaa(a ∪ b)\\* equivalent to (a ∪ b)\\*aa(a ∪ b)\\*?",
+   "choices": [
+    "Every string containing aaa already contains aa",
+    "aaa and aa have the same length",
+    "The second term is empty",
+    "They are not equivalent: aaa is a counterexample"
+   ],
+   "answer": 0,
+   "explain": "Any string containing aaa also contains aa, so the second term's strings already belong to the first. A union with a subset adds nothing."
+  },
+  {
+   "type": "tf",
+   "category": "Stars and finiteness",
+   "topic": "Star implies infinite?",
+   "q": "If a regular expression contains a Kleene star, the set it describes is infinite.",
+   "answer": false,
+   "explain": "Counterexamples: λ\\* describes {λ} and ∅\\* describes {λ}. For example aaλ\\* describes {aa}."
+  },
+  {
+   "type": "tf",
+   "category": "Stars and finiteness",
+   "topic": "No star implies finite",
+   "q": "A regular expression with no Kleene star always describes a finite set.",
+   "answer": true,
+   "explain": "Without a star it is built from finitely many basis pieces by union and concatenation, and those operations on finite sets give finite sets."
+  },
+  {
+   "type": "mc",
+   "category": "Stars and finiteness",
+   "topic": "Necessary vs sufficient",
+   "q": "For a regular expression to describe an infinite set, a Kleene star is",
+   "choices": [
+    "Necessary and sufficient",
+    "Sufficient but not necessary",
+    "Necessary but not sufficient",
+    "Neither necessary nor sufficient"
+   ],
+   "answer": 2,
+   "explain": "Necessary (no star ⇒ finite, so infinite ⇒ some star) but not sufficient (λ\\* and ∅\\* are finite)."
+  },
+  {
+   "type": "multi",
+   "category": "Stars and finiteness",
+   "topic": "Which are finite",
+   "q": "Which expressions describe \\*\\*finite\\*\\* sets?",
+   "choices": [
+    "aaλ\\*",
+    "∅\\*",
+    "(∅\\* ∪ a)b",
+    "(a ∪ λ)\\*",
+    "(λ ∪ ∅)\\*"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    4
+   ],
+   "explain": "aaλ\\* = {aa}; ∅\\* = {λ}; (∅\\* ∪ a)b = (λ ∪ a)b = {b, ab}; (λ ∪ ∅)\\* = λ\\* = {λ}. (a ∪ λ)\\* contains a, aa, aaa, … — infinite, because a is a non-empty string."
+  },
+  {
+   "type": "mc",
+   "category": "Stars and finiteness",
+   "topic": "When u* is infinite",
+   "q": "When does u\\* describe an infinite set?",
+   "choices": [
+    "Always",
+    "Exactly when u describes at least one non-empty string",
+    "Exactly when u is infinite",
+    "Exactly when u contains λ"
+   ],
+   "answer": 1,
+   "explain": "Exactly when u describes at least one non-empty string: repeating it gives strings of unbounded length. If u describes only ∅ or {λ}, u\\* is {λ}."
+  },
+  {
+   "type": "mc",
+   "category": "Stars and finiteness",
+   "topic": "∅* in expressions",
+   "q": "As a regular expression, ∅\\* simplifies to",
+   "choices": [
+    "λ",
+    "∅",
+    "(a ∪ b)\\*",
+    "It cannot be simplified"
+   ],
+   "answer": 0,
+   "explain": "∅\\* = λ (identity 3): as sets, ∅\\* = {λ} since ∅⁰ = {λ}."
+  },
+  {
+   "type": "tf",
+   "category": "Stars and finiteness",
+   "topic": "Contrapositive",
+   "q": "If a regular set is infinite, every regular expression that describes it contains a star.",
+   "answer": true,
+   "explain": "This is the contrapositive of \"no star ⇒ finite\". Every expression for an infinite set must contain at least one star."
+  },
+  {
+   "type": "multi",
+   "category": "Writing regular expressions",
+   "topic": "Length exactly three",
+   "q": "Which expressions describe the strings over {a, b, c} of length exactly three?",
+   "choices": [
+    "aaa ∪ aab ∪ aac ∪ … ∪ ccc (all 27 strings)",
+    "(a ∪ b ∪ c)(a ∪ b ∪ c)(a ∪ b ∪ c)",
+    "(a ∪ b ∪ c)³",
+    "aaa ∪ bbb ∪ ccc"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "A union listing all 27 strings works, as do (a ∪ b ∪ c)(a ∪ b ∪ c)(a ∪ b ∪ c) and (a ∪ b ∪ c)³. There is no preferred form. aaa ∪ bbb ∪ ccc misses the mixed strings such as aab."
+  },
+  {
+   "type": "mc",
+   "category": "Writing regular expressions",
+   "topic": "Length less than three",
+   "q": "Which expression describes the strings over {a, b, c} of length less than three?",
+   "choices": [
+    "(a ∪ b ∪ c)(a ∪ b ∪ c)",
+    "(a ∪ b ∪ c)\\*",
+    "(a ∪ b ∪ c ∪ λ)(a ∪ b ∪ c ∪ λ)",
+    "a ∪ b ∪ c ∪ aa ∪ ab ∪ ac ∪ ba ∪ bb ∪ bc ∪ ca ∪ cb ∪ cc"
+   ],
+   "answer": 2,
+   "explain": "Each factor (a ∪ b ∪ c ∪ λ) contributes one symbol or nothing, giving lengths 0, 1, 2 (13 strings, including λ). (a ∪ b ∪ c)² gives only length 2; the third option forgets λ."
+  },
+  {
+   "type": "num",
+   "category": "Writing regular expressions",
+   "topic": "Count length < 3",
+   "q": "How many strings over {a, b, c} have length less than three?",
+   "answer": 13,
+   "explain": "1 (λ) + 3 (length 1) + 9 (length 2) = 13."
+  },
+  {
+   "type": "multi",
+   "category": "Writing regular expressions",
+   "topic": "Length greater than three",
+   "q": "Let s = (a ∪ b ∪ c). Which describe the strings of length \\*\\*greater than three\\*\\*?",
+   "choices": [
+    "s⁴s\\*",
+    "s³s⁺",
+    "s³s\\*",
+    "s⁴s⁺"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "Greater than three means at least 4. s⁴s\\* and s³s⁺ both force at least four symbols. s³s\\* allows length 3; s⁴s⁺ forces at least 5."
+  },
+  {
+   "type": "mc",
+   "category": "Writing regular expressions",
+   "topic": "Contains aa and bb — flaw",
+   "q": "A student writes (a ∪ b)\\*aa(a ∪ b)\\*bb(a ∪ b)\\* for \"contains both aa and bb\". Which string shows it is wrong?",
+   "choices": [
+    "aabb",
+    "bbaa",
+    "aaabb",
+    "baabb"
+   ],
+   "answer": 1,
+   "explain": "It only covers aa before bb. bbaa contains both but is not produced. Fix: union with (a ∪ b)\\*bb(a ∪ b)\\*aa(a ∪ b)\\*."
+  },
+  {
+   "type": "mc",
+   "category": "Writing regular expressions",
+   "topic": "Union inside slots",
+   "q": "Why is (a ∪ b)\\*(aa ∪ bb)(a ∪ b)\\*(aa ∪ bb)(a ∪ b)\\* wrong for \"contains both aa and bb\"?",
+   "choices": [
+    "It misses bbaa",
+    "It misses aabb",
+    "It accepts bbbb, which contains no aa",
+    "It is not a valid regular expression"
+   ],
+   "answer": 2,
+   "explain": "Each (aa ∪ bb) slot chooses independently, so both can pick bb: bbbb belongs to the set but has no aa. Moving the union inside loses the \"and\" requirement; the set is too big."
+  },
+  {
+   "type": "mc",
+   "category": "Writing regular expressions",
+   "topic": "Contains ab and ba — overlap",
+   "q": "(a ∪ b)\\*ab(a ∪ b)\\*ba(a ∪ b)\\* ∪ (a ∪ b)\\*ba(a ∪ b)\\*ab(a ∪ b)\\* is proposed for \"contains both ab and ba\". What is wrong?",
+   "choices": [
+    "Nothing, it is correct",
+    "It misses aba and bab, where ab and ba overlap",
+    "It accepts abab, which lacks ba",
+    "It accepts bbaa"
+   ],
+   "answer": 1,
+   "explain": "The pattern forces ab and ba to be disjoint, so every string has length ≥ 4. But in aba (and bab) the two substrings overlap on the middle letter. Add (a ∪ b)\\*aba(a ∪ b)\\* ∪ (a ∪ b)\\*bab(a ∪ b)\\*."
+  },
+  {
+   "type": "tf",
+   "category": "Writing regular expressions",
+   "topic": "Short form for ab and ba",
+   "q": "a⁺b⁺a(a ∪ b)\\* ∪ b⁺a⁺b(a ∪ b)\\* describes the strings over {a, b} containing both ab and ba.",
+   "answer": true,
+   "explain": "Containing both ab and ba means the letter changes at least twice: a run of one letter, a run of the other, then the first letter again, then anything."
+  },
+  {
+   "type": "multi",
+   "category": "Writing regular expressions",
+   "topic": "All a's before b's",
+   "q": "Which describe the strings over {a, b} of length ≥ 2 in which all a's come before all b's (all-a and all-b strings allowed)?",
+   "choices": [
+    "a⁺b⁺ ∪ aa⁺ ∪ bb⁺",
+    "a⁺b⁺ ∪ aaa\\* ∪ bbb\\*",
+    "a\\*(aa ∪ ab ∪ bb)b\\*",
+    "a⁺b⁺",
+    "a\\*b\\*"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "a⁺b⁺ ∪ aa⁺ ∪ bb⁺ and a⁺b⁺ ∪ aaa\\* ∪ bbb\\* are the same answer (aa⁺ = aaa\\*). a\\*(aa ∪ ab ∪ bb)b\\* works via the length-2 core. a⁺b⁺ misses aa, bb; a\\*b\\* includes λ, a, b."
+  },
+  {
+   "type": "mc",
+   "category": "Writing regular expressions",
+   "topic": "aa*b* ∪ a*bb*",
+   "q": "What is wrong with aa\\*b\\* ∪ a\\*bb\\* for the \"length ≥ 2, all a's before all b's\" language?",
+   "choices": [
+    "It includes a and b, which have length 1",
+    "It misses aa",
+    "It misses ab",
+    "It includes ba"
+   ],
+   "answer": 0,
+   "explain": "Each side can produce a single letter (a from aa\\*b\\*, b from a\\*bb\\*), so length-1 strings sneak in. Counterexample: a."
+  },
+  {
+   "type": "tf",
+   "category": "Writing regular expressions",
+   "topic": "Unique expression",
+   "q": "Every regular language has one preferred regular expression, and answers in other forms lose credit.",
+   "answer": false,
+   "explain": "There is no unique or preferred expression, and no rule about when to stop simplifying: \"if it's good, it's good.\" A DFA-derived expression can look very different from a hand-written one."
+  },
+  {
+   "type": "mc",
+   "category": "Writing regular expressions",
+   "topic": "Length at most two, no c",
+   "q": "Which describes the strings over {a, b, c} of length at most two that contain no c?",
+   "choices": [
+    "(a ∪ b ∪ c)(a ∪ b ∪ c)",
+    "(a ∪ b)(a ∪ b)",
+    "(a ∪ b)\\*",
+    "(a ∪ b ∪ λ)(a ∪ b ∪ λ)"
+   ],
+   "answer": 3,
+   "explain": "No c means the alphabet is effectively {a, b}; each of two positions is a, b or nothing. (a ∪ b)² misses λ, a, b; (a ∪ b)\\* is unbounded."
+  },
+  {
+   "type": "multi",
+   "category": "Writing regular expressions",
+   "topic": "Shortest strings with aa and bb",
+   "q": "Which are the shortest strings of the correct expression for \"contains both aa and bb\"?",
+   "choices": [
+    "aabb",
+    "bbaa",
+    "abab",
+    "aab"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "Both substrings need 4 symbols without overlap (aa and bb can't share a letter). The shortest are aabb and bbaa."
+  },
+  {
+   "type": "mc",
+   "category": "The equivalence tool and everyday regex",
+   "topic": "λ in the tool",
+   "q": "In the online equivalence tool, how do you write a ∪ λ?",
+   "choices": [
+    "`a|λ`",
+    "`(a|)`",
+    "`a|e`",
+    "`a| ` with the space standing for λ"
+   ],
+   "answer": 1,
+   "explain": "The tool has no λ symbol; an \\*\\*empty alternative\\*\\* is λ. So `a|` or `(a|)` (or `a?`). A space is ignored, so `a| ` is still a ∪ λ, but the space does nothing."
+  },
+  {
+   "type": "mc",
+   "category": "The equivalence tool and everyday regex",
+   "topic": "Empty field",
+   "q": "What does the tool treat an \\*\\*empty\\*\\* input field as?",
+   "choices": [
+    "λ",
+    "∅",
+    "An error",
+    "Σ\\*"
+   ],
+   "answer": 0,
+   "explain": "An empty field means λ. That's why in class, typing into only one field made the tool compare against λ."
+  },
+  {
+   "type": "mc",
+   "category": "The equivalence tool and everyday regex",
+   "topic": "Compare a ∪ λ with a*",
+   "q": "You enter `a|` and `a*`. What does the tool report?",
+   "choices": [
+    "Equivalent",
+    "Accepted by first but not second: a",
+    "Accepted by second but not first: aa",
+    "Accepted by second but not first: [empty string]"
+   ],
+   "answer": 2,
+   "explain": "λ and a are in both sets. The shortlex-first difference is aa: it belongs to the set described by a\\* but not a ∪ λ."
+  },
+  {
+   "type": "mc",
+   "category": "The equivalence tool and everyday regex",
+   "topic": "Shortlex order",
+   "q": "Which list is in shortlex order?",
+   "choices": [
+    "a, aa, aaa, ab, b",
+    "λ, a, aa, b, bb",
+    "a, b, λ, aa, ab",
+    "λ, a, b, aa, ab, ba, bb"
+   ],
+   "answer": 3,
+   "explain": "Shortlex: shorter strings first, then alphabetical within each length."
+  },
+  {
+   "type": "tf",
+   "category": "The equivalence tool and everyday regex",
+   "topic": "One string per direction",
+   "q": "When two expressions differ, the tool lists every string in the difference.",
+   "answer": false,
+   "explain": "It shows only one string per direction: the shortlex-first string in the difference. Fixing that string makes it move on to the next one."
+  },
+  {
+   "type": "tf",
+   "category": "The equivalence tool and everyday regex",
+   "topic": "Tool on tests",
+   "q": "The course's online regex-equivalence tool may be used during tests and reviews.",
+   "answer": true,
+   "explain": "The instructor announced it (and repeated it on 2026-09-22). It is a checking aid; you still produce the answer yourself."
+  },
+  {
+   "type": "text",
+   "category": "The equivalence tool and everyday regex",
+   "topic": "Translate to tool syntax",
+   "q": "Write (a ∪ bb)\\*a in the tool's syntax (no spaces).",
+   "answer": [
+    "(a|bb)\\*a"
+   ],
+   "explain": "∪ becomes `|`, concatenation is juxtaposition, and the star is `*`: `(a|bb)*a`."
+  },
+  {
+   "type": "mc",
+   "category": "The equivalence tool and everyday regex",
+   "topic": "Glob vs Kleene star",
+   "q": "In the shell glob `*.pdf`, what does `*` mean?",
+   "choices": [
+    "The Kleene star of the preceding symbol",
+    "Any string of characters, i.e. Σ\\*",
+    "Exactly one character",
+    "One or more dots"
+   ],
+   "answer": 1,
+   "explain": "In a glob, `*` means any string of characters (Σ\\*). It is not the Kleene star of the preceding symbol; globs have no general star operator."
+  },
+  {
+   "type": "tf",
+   "category": "The equivalence tool and everyday regex",
+   "topic": "Backreferences",
+   "q": "Programming-language regex engines with backreferences (e.g. `(a+)b\\1`) can describe some languages that are not regular.",
+   "answer": true,
+   "explain": "Backreferences go beyond ∅, λ, symbols, ∪, concatenation and star; `(a+)b\\1` describes {aⁿbaⁿ}, which is not regular."
+  },
+  {
+   "type": "mc",
+   "category": "The equivalence tool and everyday regex",
+   "topic": "Whole-string matching",
+   "q": "A library regex search finds a match \\*inside\\* a string. How do you make it behave like a formal regular expression?",
+   "choices": [
+    "Use full-match or anchor with `^…$`",
+    "Add `.*` at both ends",
+    "Remove all stars",
+    "Use a glob instead"
+   ],
+   "answer": 0,
+   "explain": "A formal regular expression describes whole strings, so use a full-match function or anchors `^…$`."
+  },
+  {
+   "type": "mc",
+   "category": "The equivalence tool and everyday regex",
+   "topic": "Accepted vs belongs",
+   "q": "The tool says \"Accepted by first but not second: w\". How should you say this in course wording?",
+   "choices": [
+    "w equals the first expression",
+    "w belongs to the set described by the first expression but not the second",
+    "The first expression is bigger",
+    "w rejects the second expression"
+   ],
+   "answer": 1,
+   "explain": "\"Accepted\" is machine (automaton) vocabulary. For expressions, say w \\*\\*belongs to the set described by\\*\\* the first expression but not the second."
+  }
+ ]
+}

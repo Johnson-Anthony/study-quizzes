@@ -1,0 +1,702 @@
+{
+ "title": "CSC3710 2026-08-27 — Sets, Relations, Graphs and Recursive Definitions",
+ "course": "CSC3710",
+ "questions": [
+  {
+   "type": "multi",
+   "category": "Sets and power sets",
+   "topic": "Order and repetition",
+   "q": "Which of the following equalities are true?",
+   "choices": [
+    "{a, a, b} = {a, b, a}",
+    "{a, a, b} = {a, b}",
+    "ℕ ∪ {2, 3, 5} = ℕ",
+    "(1, 2) = (2, 1)"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "A set is determined only by which objects are members: listing an element twice or in another order changes nothing, and 2, 3, 5 are already natural numbers. Ordered pairs are different: (1, 2) ≠ (2, 1) because position matters."
+  },
+  {
+   "type": "mc",
+   "category": "Sets and power sets",
+   "topic": "Set vs multiset vs pair",
+   "q": "Which kind of object distinguishes [1, 1, 2] from [1, 2] but treats [1, 2] and [2, 1] as the same?",
+   "choices": [
+    "A set",
+    "A multiset (bag)",
+    "An ordered pair / sequence",
+    "None of these"
+   ],
+   "answer": 1,
+   "explain": "A **multiset** counts occurrences (so 1 twice ≠ 1 once) but ignores order. A set ignores both; an ordered pair cares about both."
+  },
+  {
+   "type": "mc",
+   "category": "Sets and power sets",
+   "topic": "Power set of the empty set",
+   "q": "What is 𝒫(∅)?",
+   "choices": [
+    "∅",
+    "{∅}",
+    "{∅, {∅}}",
+    "It is undefined"
+   ],
+   "answer": 1,
+   "explain": "The only subset of ∅ is ∅ itself, so 𝒫(∅) = {∅}: a set with **one** element (a box containing an empty box), not the empty set."
+  },
+  {
+   "type": "tf",
+   "category": "Sets and power sets",
+   "topic": "Power sets are never empty",
+   "q": "For every set A, the power set 𝒫(A) contains at least one element.",
+   "answer": true,
+   "explain": "∅ ⊆ A for every A, so ∅ ∈ 𝒫(A). Hence the smallest possible power set is {∅}, which has one element."
+  },
+  {
+   "type": "num",
+   "category": "Sets and power sets",
+   "topic": "Size of a power set",
+   "q": "Let A = {p, q, r}. How many elements does 𝒫(A) have?",
+   "answer": 8,
+   "explain": "Each of the 3 elements is independently in or out of a subset: 2 · 2 · 2 = 2³ = 8. They are ∅, {p}, {q}, {r}, {p,q}, {p,r}, {q,r}, {p,q,r}."
+  },
+  {
+   "type": "num",
+   "category": "Sets and power sets",
+   "topic": "Nested set cardinality",
+   "q": "What is |{a, {a}, a}|?",
+   "answer": 2,
+   "explain": "Remove the repeat: the set is {a, {a}}. The object a and the set {a} are different elements, so there are 2 distinct elements."
+  },
+  {
+   "type": "tf",
+   "category": "Sets and power sets",
+   "topic": "Cardinality with repeats",
+   "q": "|{a, a, b}| = 3.",
+   "answer": false,
+   "explain": "Cardinality counts **distinct** elements. {a, a, b} = {a, b}, so its cardinality is 2."
+  },
+  {
+   "type": "num",
+   "category": "Cardinality, complements and universes",
+   "topic": "A ∩ complement of A",
+   "q": "For an arbitrary set A (inside some universe U), what is |A ∩ Ā|?",
+   "answer": 0,
+   "explain": "Ā = U − A contains exactly the elements of U not in A, so A and Ā share nothing: A ∩ Ā = ∅, cardinality 0. Even for A = ∅, Ā = U and ∅ ∩ U = ∅."
+  },
+  {
+   "type": "mc",
+   "category": "Cardinality, complements and universes",
+   "topic": "Why a universe",
+   "q": "Why must a complement Ā always be taken relative to a universe U?",
+   "choices": [
+    "Because A might be infinite",
+    "Because complements are only defined for finite sets",
+    "Because \"everything not in A\" only makes sense once we fix the set of all objects under discussion",
+    "Because A ∩ Ā would otherwise be nonempty"
+   ],
+   "answer": 2,
+   "explain": "\"Everything not in A\" is meaningless until you fix what \"everything\" is. Defining Ā = {x ∈ U : x ∉ A} makes the complement a definite set; changing U changes Ā."
+  },
+  {
+   "type": "mc",
+   "category": "Cardinality, complements and universes",
+   "topic": "Complement in a finite universe",
+   "q": "Let U = {1, 2, 3, 4, 5} and A = {2, 4}. What is Ā?",
+   "choices": [
+    "{1, 3, 5}",
+    "{2, 4}",
+    "∅",
+    "{1, 2, 3, 4, 5}"
+   ],
+   "answer": 0,
+   "explain": "Ā = U − A: remove 2 and 4 from U, leaving {1, 3, 5}. Then A ∩ Ā = ∅ and A ∪ Ā = U."
+  },
+  {
+   "type": "num",
+   "category": "Cardinality, complements and universes",
+   "topic": "Set given by a condition over ℤ",
+   "q": "What is |{x ∈ ℤ : x² + 5 = 0}|?",
+   "answer": 0,
+   "explain": "The equation says x² = −5, but the square of any integer (indeed any real) is ≥ 0. No element satisfies it, so the set is ∅ with cardinality 0."
+  },
+  {
+   "type": "num",
+   "category": "Cardinality, complements and universes",
+   "topic": "Changing the universe",
+   "q": "What is |{x ∈ ℝ : x² − 5 = 0}|?",
+   "answer": 2,
+   "explain": "Over the reals, x = ±√5, so the set is {−√5, √5}. Over ℤ the same equation gives ∅, since √5 is not an integer: the set after \"∈\" acts as the universe and changes the answer."
+  },
+  {
+   "type": "num",
+   "category": "Cardinality, complements and universes",
+   "topic": "Naturals vs integers",
+   "q": "What is |{x ∈ ℕ : x² = 9}|?",
+   "answer": 1,
+   "explain": "Over ℤ the solutions are −3 and 3, but −3 ∉ ℕ, so only {3} remains: cardinality 1."
+  },
+  {
+   "type": "tf",
+   "category": "Cardinality, complements and universes",
+   "topic": "Condition plus universe",
+   "q": "The condition in set-builder notation (e.g. x² + 5 = 0) alone determines which set is described.",
+   "answer": false,
+   "explain": "The condition **together with its universe** determines the set. x² + 5 = 0 gives ∅ over ℤ or ℝ, but two solutions ±i√5 over ℂ."
+  },
+  {
+   "type": "tf",
+   "category": "Cartesian products",
+   "topic": "Order in a product",
+   "q": "For nonempty sets A = {0, 1, 2} and B = {x, y}, A × B = B × A.",
+   "answer": false,
+   "explain": "The set of pairs is unordered, but each **pair** is ordered: (0, x) ∈ A × B while B × A contains (x, 0), and (0, x) ≠ (x, 0). So A × B ≠ B × A in general."
+  },
+  {
+   "type": "mc",
+   "category": "Cartesian products",
+   "topic": "Product with the empty set",
+   "q": "Let B = {x, y} and C = ∅. What is B × C?",
+   "choices": [
+    "∅",
+    "B",
+    "{(x), (y)}",
+    "{(x, ∅), (y, ∅)}"
+   ],
+   "answer": 0,
+   "explain": "A pair needs a second component from C, and C has none, so no pair can be formed: B × ∅ = ∅ (and |B × C| = 2 · 0 = 0)."
+  },
+  {
+   "type": "num",
+   "category": "Cartesian products",
+   "topic": "Size of a product",
+   "q": "Let A = {1, 2} and B = {a, b, c}. What is |A × A × B|?",
+   "answer": 12,
+   "explain": "|A₁ × … × Aₙ| = |A₁| · … · |Aₙ|, so 2 · 2 · 3 = 12 ordered triples."
+  },
+  {
+   "type": "multi",
+   "category": "Cartesian products",
+   "topic": "Membership in a product",
+   "q": "Let A = {0, 1, 2} and B = {x, y}. Which are elements of B × A?",
+   "choices": [
+    "(x, 0)",
+    "(0, x)",
+    "(x, y)",
+    "(y, 2)"
+   ],
+   "answer": [
+    0,
+    3
+   ],
+   "explain": "B × A has first component from B and second from A: pairs like (x, 0) and (y, 2). (0, x) is in A × B instead, and (x, y) has its second component from B, not A."
+  },
+  {
+   "type": "mc",
+   "category": "Cartesian products",
+   "topic": "Meaning of the dot",
+   "q": "In the formula |A × B| = |A| · |B|, what does \"·\" mean, and what will \"·\" mean for the rest of the course?",
+   "choices": [
+    "Concatenation in both cases",
+    "Cartesian product in both cases",
+    "Multiplication of numbers here; concatenation of strings from now on",
+    "Set intersection here; multiplication later"
+   ],
+   "answer": 2,
+   "explain": "Here the dot multiplies two **numbers** (cardinalities). From now on in this course \"·\" is applied to strings and means **concatenation**. Read the dot by what it is applied to."
+  },
+  {
+   "type": "mc",
+   "category": "Relations and directed graphs",
+   "topic": "Definition of a relation",
+   "q": "What is a binary relation on a set S?",
+   "choices": [
+    "A subset of S × S that is reflexive",
+    "Any subset of S × S",
+    "A function from S to S",
+    "A subset of 𝒫(S)"
+   ],
+   "answer": 1,
+   "explain": "**Any** subset of S × S is a binary relation on S; no further condition is needed. (A ternary relation is a subset of S × S × S.)"
+  },
+  {
+   "type": "multi",
+   "category": "Relations and directed graphs",
+   "topic": "Empty and full relation",
+   "q": "Let S be a set. Which of the following are relations on S?",
+   "choices": [
+    "∅",
+    "S × S",
+    "{(s, s)} for some s ∈ S",
+    "S"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "∅ ⊆ S × S (the empty relation: nothing related) and S × S ⊆ S × S (the largest relation: everything related, including itself). {(s, s)} is a subset too. S itself is a set of elements, not of pairs, so it is not a subset of S × S."
+  },
+  {
+   "type": "num",
+   "category": "Relations and directed graphs",
+   "topic": "Arrows in the largest relation",
+   "q": "S = {Anne, Ben, Chris, Don}. In the directed graph of the largest relation R = S × S (\"everyone knows everyone's number, including their own\"), how many arrows are there?",
+   "answer": 16,
+   "explain": "|S × S| = 4 · 4 = 16 ordered pairs, one arrow per pair: 12 arrows between distinct people plus 4 loops."
+  },
+  {
+   "type": "mc",
+   "category": "Relations and directed graphs",
+   "topic": "Reading a relation as a graph",
+   "q": "In the phone-number graph, (x, y) ∈ R means \"x knows y's number\". Ben knows Don's number but Don does not know Ben's. How is this drawn?",
+   "choices": [
+    "An undirected edge between B and D",
+    "An arrow B → D and no arrow D → B",
+    "An arrow D → B only",
+    "Arrows in both directions"
+   ],
+   "answer": 1,
+   "explain": "Each pair (x, y) is an arrow x → y. (B, D) ∈ R gives B → D; since (D, B) ∉ R there is no D → B. Order matters because the two facts are different."
+  },
+  {
+   "type": "mc",
+   "category": "Relations and directed graphs",
+   "topic": "Loops",
+   "q": "How is the pair (B, B) in a relation drawn in its directed graph?",
+   "choices": [
+    "It is not drawn",
+    "As a node with no arrows",
+    "As a loop from B to itself",
+    "As a double arrow"
+   ],
+   "answer": 2,
+   "explain": "A pair (x, x) is drawn as a **loop**: an arrow from the node back to itself. In the example it meant \"Ben knows his own number\"."
+  },
+  {
+   "type": "mc",
+   "category": "Relations and directed graphs",
+   "topic": "Adjacency",
+   "q": "S = {1, 2, 3}, R = {(1, 2), (2, 1), (3, 3)}. Which node(s) are adjacent to node 2 (i.e. y with (2, y) ∈ R)?",
+   "choices": [
+    "1 only",
+    "2 only",
+    "1 and 3",
+    "None"
+   ],
+   "answer": 0,
+   "explain": "y is adjacent to x when (x, y) ∈ R, i.e. there is an arrow x → y. The only pair with first component 2 is (2, 1), so node 1 is adjacent to 2."
+  },
+  {
+   "type": "tf",
+   "category": "Relations and directed graphs",
+   "topic": "Pairs vs diagrams",
+   "q": "A directed graph given as a set of ordered pairs and the same graph drawn as a diagram are equivalent: each can be reconstructed from the other.",
+   "answer": true,
+   "explain": "Nodes are the elements of S and there is exactly one arrow per pair in R, so no information is lost either way. The course draws machines (state diagrams) this way."
+  },
+  {
+   "type": "mc",
+   "category": "Relations and directed graphs",
+   "topic": "Why graphs matter here",
+   "q": "Why does this course review relations and directed graphs?",
+   "choices": [
+    "To prove theorems about graph coloring",
+    "Because shortest-path algorithms are a main topic",
+    "To define multisets",
+    "Because machines in the course will be represented as directed graphs (state diagrams)"
+   ],
+   "answer": 3,
+   "explain": "Machines (finite automata, later Turing machines) will be drawn as diagrams: nodes are states, arrows are transitions. Formally, labeled arrows are triples (p, symbol, q) — a ternary relation."
+  },
+  {
+   "type": "tf",
+   "category": "Peano and the natural numbers",
+   "topic": "Is 0 natural?",
+   "q": "In this course, 0 is a natural number.",
+   "answer": true,
+   "explain": "The course (and its textbook) uses ℕ = {0, 1, 2, …} and writes ℕ⁺ = {1, 2, 3, …} for the positive naturals. Books differ; it is a convention. Note that Peano's original 1889 list started at 1."
+  },
+  {
+   "type": "mc",
+   "category": "Peano and the natural numbers",
+   "topic": "Dots are notation",
+   "q": "Why is ℤ = {…, −2, −1, 0, 1, 2, …} not a proper *definition* of the integers?",
+   "choices": [
+    "Because sets cannot contain negative numbers",
+    "Because \"…\" relies on the reader guessing the pattern; it is not a precise recipe a machine could follow",
+    "Because the elements are listed in order",
+    "Because ℤ is finite"
+   ],
+   "answer": 1,
+   "explain": "The dots only work because the reader already knows the pattern; a computer (or a child) cannot follow them. An infinite set needs a finite, mechanical recipe — a recursive definition."
+  },
+  {
+   "type": "multi",
+   "category": "Peano and the natural numbers",
+   "topic": "Undefined terms",
+   "q": "Which are the undefined (primitive) terms in Peano's definition of the natural numbers?",
+   "choices": [
+    "natural (number)",
+    "zero",
+    "addition",
+    "successor",
+    "set"
+   ],
+   "answer": [
+    0,
+    1,
+    3
+   ],
+   "explain": "Peano's system rests on three undefined terms: **natural (number), zero, successor**. Addition and multiplication are defined later from successor."
+  },
+  {
+   "type": "mc",
+   "category": "Peano and the natural numbers",
+   "topic": "Textbook definition of ℕ",
+   "q": "Which is the recursive definition of ℕ used in the lesson?",
+   "choices": [
+    "Basis: 0 ∈ ℕ. Step: if n ∈ ℕ then s(n) ∈ ℕ. Closure: n ∈ ℕ only if obtained from 0 by finitely many applications of s.",
+    "Basis: 0 ∈ ℕ. Step: if n ∈ ℕ then s(n) ∈ ℕ.",
+    "Basis: 0 ∈ ℕ. Step: if m, n ∈ ℕ then m + n ∈ ℕ. Closure: no one else.",
+    "ℕ is the set of all n such that n ∈ ℕ."
+   ],
+   "answer": 0,
+   "explain": "Basis 0; recursive step via the successor s; closure saying nothing else is natural. Option B omits closure; C uses addition, which is not yet defined; D is circular."
+  },
+  {
+   "type": "mc",
+   "category": "Peano and the natural numbers",
+   "topic": "What \"2\" is",
+   "q": "In the Peano-style world, what is \"2\"?",
+   "choices": [
+    "A primitive term",
+    "0 + 2",
+    "An abbreviation for s(s(0))",
+    "s(2)"
+   ],
+   "answer": 2,
+   "explain": "There are no numerals yet — only 0 and successor. \"2\" is our abbreviation for s(s(0)), which is in ℕ by applying the recursive step twice starting from the basis."
+  },
+  {
+   "type": "mc",
+   "category": "Peano and the natural numbers",
+   "topic": "Peano history",
+   "q": "Which statement about Peano's 1889 work is accurate?",
+   "choices": [
+    "It was written in English and started at 0",
+    "It was written in Latin and started at 1",
+    "It defined naturals using addition as a primitive",
+    "It had no induction axiom"
+   ],
+   "answer": 1,
+   "explain": "Peano published *Arithmetices principia* in Latin in 1889, and his original list started at **1**. Modern presentations (and this course) start at 0."
+  },
+  {
+   "type": "num",
+   "category": "Peano and the natural numbers",
+   "topic": "Recursive addition",
+   "q": "Using m + 0 = m and m + s(n) = s(m + n), s(0) + s(s(0)) = s(s(…s(0)…)) with how many s's?",
+   "answer": 3,
+   "explain": "s(0) + s(s(0)) = s(s(0) + s(0)) = s(s(s(0) + 0)) = s(s(s(0))): three s's, i.e. 1 + 2 = 3. Each recursive step peels one s off the second argument until the basis m + 0 = m applies."
+  },
+  {
+   "type": "mc",
+   "category": "Structure of recursive definitions",
+   "topic": "Three parts",
+   "q": "What are the three parts of a recursive definition of a set, in order?",
+   "choices": [
+    "Hypothesis, step, conclusion",
+    "Base case, loop, return",
+    "Alphabet, rules, start symbol",
+    "Basis, recursive step, closure"
+   ],
+   "answer": 3,
+   "explain": "Basis (finitely many explicit elements), recursive step (operations building new elements from ones already in the set), closure (\"no one else\")."
+  },
+  {
+   "type": "mc",
+   "category": "Structure of recursive definitions",
+   "topic": "Role of closure",
+   "q": "What goes wrong if you leave out the closure clause?",
+   "choices": [
+    "The set becomes finite",
+    "The recursive step can no longer be applied",
+    "The definition no longer excludes unwanted extra elements",
+    "Nothing — closure is optional"
+   ],
+   "answer": 2,
+   "explain": "Basis and step only say what **must** be in the set. Without closure, nothing rules out extra, unwanted elements, so the set is not pinned down. Always write it, even as \"no one else\"."
+  },
+  {
+   "type": "mc",
+   "category": "Structure of recursive definitions",
+   "topic": "What recursive definitions are for",
+   "q": "Why are recursive definitions needed mainly for infinite sets?",
+   "choices": [
+    "A finite set can just be listed; an infinite set needs a finite recipe",
+    "Finite sets cannot be defined recursively at all",
+    "Infinite sets have no elements to list",
+    "Closure only works for infinite sets"
+   ],
+   "answer": 0,
+   "explain": "A finite set can simply be listed. An infinite set cannot, so it needs a **finite** piece of text that mechanically generates exactly its elements — the idea behind grammars and automata later in the course."
+  },
+  {
+   "type": "mc",
+   "category": "Structure of recursive definitions",
+   "topic": "The placeholder t",
+   "q": "In \"If t ∈ K, then t · a ∈ K\", what is t?",
+   "choices": [
+    "A fixed string equal to λ",
+    "A variable standing for any element already known to be in K",
+    "The last symbol of a string",
+    "A terminal symbol of the alphabet"
+   ],
+   "answer": 1,
+   "explain": "t is a placeholder: any element already known to be in K. The rule says whichever t you pick from K, t · a is also in K."
+  },
+  {
+   "type": "mc",
+   "category": "Structure of recursive definitions",
+   "topic": "Proof technique",
+   "q": "Which technique formally proves that a recursively defined set equals a target set (though it is not required in this course)?",
+   "choices": [
+    "Proof by contradiction on the alphabet",
+    "Diagonalization",
+    "Structural induction",
+    "Pigeonhole principle"
+   ],
+   "answer": 2,
+   "explain": "**Structural induction** — induction over how elements are built from the basis by rule applications — shows soundness; completeness usually uses induction on string length. In class you instead generate elements (about 15) and eyeball them."
+  },
+  {
+   "type": "tf",
+   "category": "Structure of recursive definitions",
+   "topic": "Eyeballing is a heuristic",
+   "q": "If the first 15 elements generated by a recursive definition all belong to the target set, the definition is proved correct.",
+   "answer": false,
+   "explain": "Generating elements is evidence, not proof. A wrong rule such as \"if |t| ≥ 20 then t · a ∈ W\" would look perfect on all short strings and only fail later. Only a proof rules that out."
+  },
+  {
+   "type": "num",
+   "category": "Strings and concatenation",
+   "topic": "Empty string length",
+   "q": "What is |λ|?",
+   "answer": 0,
+   "explain": "λ is the empty string: it contains no symbols, so its length is 0. (Many other books write ε.)"
+  },
+  {
+   "type": "mc",
+   "category": "Strings and concatenation",
+   "topic": "Concatenation not commutative",
+   "q": "What is ab · ba?",
+   "choices": [
+    "abba",
+    "baab",
+    "abab",
+    "ab"
+   ],
+   "answer": 0,
+   "explain": "Concatenation writes the first string then the second: ab · ba = abba. Reversed, ba · ab = baab, so concatenation is not commutative."
+  },
+  {
+   "type": "multi",
+   "category": "Strings and concatenation",
+   "topic": "Identity and lengths",
+   "q": "Which facts about concatenation hold for all strings u, v, w?",
+   "choices": [
+    "λ · w = w · λ = w",
+    "|u · v| = |u| + |v|",
+    "(u · v) · w = u · (v · w)",
+    "u · v = v · u"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "λ is an identity, lengths add, and concatenation is associative (so parentheses are omitted). It is not commutative: ab · ba ≠ ba · ab."
+  },
+  {
+   "type": "text",
+   "category": "Strings and concatenation",
+   "topic": "Powers",
+   "q": "Write a⁰ as a string (use the course's symbol for the empty string).",
+   "answer": [
+    "λ",
+    "lambda",
+    "ε"
+   ],
+   "explain": "aⁿ is a concatenated with itself n times; zero copies is the empty string λ. E.g. a⁶ = aaaaaa."
+  },
+  {
+   "type": "mc",
+   "category": "Strings and concatenation",
+   "topic": "Concatenation only lengthens",
+   "q": "Why must the shortest strings of a target set (e.g. λ for even lengths, or a and b for odd lengths) appear in the basis?",
+   "choices": [
+    "Because closure requires it",
+    "Because concatenation only makes strings longer, so they could never be generated",
+    "Because they are alphabetically first",
+    "Because the basis must have exactly two elements"
+   ],
+   "answer": 1,
+   "explain": "New elements come from concatenation, which never makes a string shorter. With nothing shorter to build from, the shortest elements can only enter through the basis."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definitions of string sets",
+   "topic": "All strings over {a, b}",
+   "q": "Which recursive definition generates exactly Σ* for Σ = {a, b} (all strings, including λ)?",
+   "choices": [
+    "Basis λ ∈ K; step t · a, t · b ∈ K; closure",
+    "Basis a, b ∈ K; step t · a, t · b ∈ K; closure",
+    "Basis λ ∈ K; step t · a ∈ K; closure",
+    "Basis λ ∈ K; step t · aa, t · bb, t · ab, t · ba ∈ K; closure"
+   ],
+   "answer": 0,
+   "explain": "Starting from λ and appending a or b in any order reaches every string. Option B misses λ; C only builds strings of a's; D only even lengths."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definitions of string sets",
+   "topic": "Even-length basis",
+   "q": "For the set of even-length strings over {a, b}, what is the basis of the minimal definition?",
+   "choices": [
+    "λ",
+    "a, b",
+    "aa, bb",
+    "aa, ab, ba, bb"
+   ],
+   "answer": 0,
+   "explain": "|λ| = 0 is even, and λ can never be produced by concatenation, so it must be put in by the basis. Every other even string is built by appending two symbols."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definitions of string sets",
+   "topic": "Even-length step",
+   "q": "With basis λ, which recursive step generates exactly the even-length strings over {a, b}?",
+   "choices": [
+    "t · a, t · b",
+    "t · aa, t · bb",
+    "t · aa, t · ab, t · ba, t · bb",
+    "t · ab, t · ba"
+   ],
+   "answer": 2,
+   "explain": "Appending two symbols keeps an even length even, and the four pairs aa, ab, ba, bb cover every possible last two symbols. t · aa and t · bb alone miss e.g. ab; t · a, t · b would create odd strings."
+  },
+  {
+   "type": "tf",
+   "category": "Recursive definitions of string sets",
+   "topic": "Redundant rules",
+   "q": "Adding the rule \"if t ∈ W then t · aaaa ∈ W\" to the minimal even-length definition makes the definition incorrect.",
+   "answer": false,
+   "explain": "The rule adds 4 symbols, so it preserves evenness (it is sound); it just produces nothing new, since t · aaaa = (t · aa) · aa. Redundant rules are allowed: \"better to have more than not enough\"."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definitions of string sets",
+   "topic": "Wrong vs redundant",
+   "q": "Definition X: Basis λ; step t · ab, t · ba, t · a; closure. Is X the set of even-length strings?",
+   "choices": [
+    "Yes, exactly",
+    "Yes, with a redundant rule",
+    "No: it misses λ",
+    "No: t · a produces odd-length strings such as a"
+   ],
+   "answer": 3,
+   "explain": "The rule t · a is **wrong**: from t = λ it gives a, which has odd length. (Also, t · ab and t · ba alone could never produce aa or bb.) A rule that produces even one string outside the target makes the definition incorrect."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definitions of string sets",
+   "topic": "Odd-length definition",
+   "q": "Which recursive definition gives exactly the odd-length strings over {a, b}?",
+   "choices": [
+    "Basis a, b; step t · a, t · b; closure",
+    "Basis a, b; step t · aa, t · ab, t · ba, t · bb; closure",
+    "Basis λ; step t · aa, t · ab, t · ba, t · bb; closure",
+    "Basis a, b; no recursive step needed"
+   ],
+   "answer": 1,
+   "explain": "Same recipe as even lengths (append two symbols) but a different basis: the two shortest odd strings, a and b. Appending one symbol (option A) would create aa; basis λ (C) is even."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definitions of string sets",
+   "topic": "Extra prepend rule",
+   "q": "Odd-length definition with basis a, b, steps t · aa, t · ab, t · ba, t · bb, **plus** aa · t. The extra rule is:",
+   "choices": [
+    "Wrong: it produces even-length strings",
+    "Redundant, and allowed",
+    "Necessary: without it aaa cannot be generated",
+    "Wrong: rules may only append"
+   ],
+   "answer": 1,
+   "explain": "If |t| is odd, |aa · t| = |t| + 2 is odd, so it never produces a wrong string; and the append rules already generate every odd string (aa · a = aaa = a · aa). So it is redundant — allowed."
+  },
+  {
+   "type": "num",
+   "category": "Recursive definitions of string sets",
+   "topic": "Counting generated strings",
+   "q": "Applying the rules t · aa, t · ab, t · ba, t · bb to the four length-2 strings aa, ab, ba, bb gives how many distinct strings of length 4?",
+   "answer": 16,
+   "explain": "4 choices of t × 4 rules = 16, all distinct — and that is every string of length 4, since 4 positions with 2 choices each gives 2⁴ = 16."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definitions of string sets",
+   "topic": "Listing order",
+   "q": "When listing the elements of a set of strings to check a definition, how should you order them?",
+   "choices": [
+    "Alphabetically",
+    "From shortest to longest",
+    "In the order the rules were written",
+    "Longest first"
+   ],
+   "answer": 1,
+   "explain": "List shortest to longest (e.g. λ; aa, ab, ba, bb; then length 4) and stop once the pattern is visible. Alphabetical listing would run forever through aaaa… without ever reaching b."
+  },
+  {
+   "type": "tf",
+   "category": "Recursive definitions of string sets",
+   "topic": "Duplicates during generation",
+   "q": "If a recursive definition generates the same string twice (e.g. aaaa from two different rules), the definition is flawed.",
+   "answer": false,
+   "explain": "Repetition does not matter in a set, so generating a string again simply adds nothing new. It is not an error."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definitions of string sets",
+   "topic": "Strings starting with a",
+   "q": "Which definition gives exactly the strings over {a, b} that start with a?",
+   "choices": [
+    "Basis λ; step a · t, t · b; closure",
+    "Basis a; step t · a; closure",
+    "Basis a; step t · a, t · b; closure",
+    "Basis a; step t · a, b · t; closure"
+   ],
+   "answer": 2,
+   "explain": "The basis must be a (λ does not start with a), and appending at the **end** keeps the first symbol a. Prepending b (option D) would break that. First elements: a, aa, ab, aaa, aab, aba, abb."
+  },
+  {
+   "type": "mc",
+   "category": "Recursive definitions of string sets",
+   "topic": "Designing {aⁿ : n ≥ 1}",
+   "q": "Which definition gives L = {a, aa, aaa, …}?",
+   "choices": [
+    "Basis a ∈ L; step if t ∈ L then t · a ∈ L; closure",
+    "Basis λ ∈ L; step t · a ∈ L; closure",
+    "Basis a ∈ L; step t · aa ∈ L; closure",
+    "Basis a ∈ L; closure (no step needed)"
+   ],
+   "answer": 0,
+   "explain": "The shortest element a goes in the basis, and appending a once more gives the next one. Basis λ would include the empty string, which is a⁰ with n = 0 < 1."
+  }
+ ]
+}

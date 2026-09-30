@@ -1,0 +1,1156 @@
+{
+ "title": "CSC2770 Module 1 — Binary & Hexadecimal Notation",
+ "course": "CSC2770",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "The compilation pipeline",
+   "topic": "Pipeline order",
+   "q": "In what order does `g++ hello.cpp -o hello` run the four stages of the build pipeline?",
+   "choices": [
+    "Preprocessor → compiler → assembler → linker",
+    "Compiler → preprocessor → linker → assembler",
+    "Preprocessor → assembler → compiler → linker",
+    "Compiler → assembler → preprocessor → linker"
+   ],
+   "answer": 0,
+   "explain": "g++ is a *driver*: it runs the **preprocessor** (expands `#include`/macros → `.ii`), the **compiler** (C++ → assembly `.s`), the **assembler** (assembly → machine code `.o`) and the **linker** (object files + libraries → executable). Each stage translates to a lower level."
+  },
+  {
+   "type": "multi",
+   "category": "The compilation pipeline",
+   "topic": "Text vs binary outputs",
+   "q": "Which pipeline outputs are **text** files you can read in an ordinary editor?",
+   "choices": [
+    "`hello.ii` (preprocessor output)",
+    "`hello.s` (compiler output)",
+    "`hello.o` (assembler output)",
+    "`hello` / `hello.exe` (linker output)"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "The first two stages produce text: preprocessed source and assembly language. The assembler and linker produce **binary** machine code and data, which in a text editor looks like NUL/SOH/ETX boxes with a few readable strings mixed in."
+  },
+  {
+   "type": "mc",
+   "category": "The compilation pipeline",
+   "topic": "Preprocessor output size",
+   "q": "A 7-line \"Hello, world!\" program becomes a preprocessed file of roughly 25,000 lines. Why?",
+   "choices": [
+    "`#include <iostream>` is replaced by the full text of that header and every header it includes",
+    "The preprocessor translates each C++ line into many assembly instructions",
+    "The preprocessor adds the machine code of the standard library",
+    "Comments are expanded into documentation"
+   ],
+   "answer": 0,
+   "explain": "The preprocessor is a **text-substitution** pass: it removes comments, expands macros and replaces each `#include` with the included file's contents, recursively. `<iostream>` pulls in thousands of lines of declarations. No translation to assembly or machine code happens at this stage."
+  },
+  {
+   "type": "mc",
+   "category": "The compilation pipeline",
+   "topic": "Why recompile per architecture",
+   "q": "Why must the same C++ source be recompiled to run on both an x86 PC and an ARM phone?",
+   "choices": [
+    "Each CPU family has its own Instruction Set Architecture, so the compiler's assembly and the resulting machine code differ",
+    "The preprocessor output differs between operating systems",
+    "ARM processors cannot run programs written in C++",
+    "The linker only works on x86"
+   ],
+   "answer": 0,
+   "explain": "The **ISA** fixes the instructions, registers and bit encodings a CPU understands. The compiler stage emits assembly for one ISA, so x86 and ARM builds contain completely different machine code."
+  },
+  {
+   "type": "mc",
+   "category": "The compilation pipeline",
+   "topic": "Object file placeholders",
+   "q": "In `objdump -d hello.o`, every `call` to `std::operator<<` shows as `e8 00 00 00 00`. What explains the zeros?",
+   "choices": [
+    "The called functions live in other files, so the assembler leaves a placeholder and a relocation entry for the linker to patch",
+    "The calls were optimized away by the compiler",
+    "`00 00 00 00` is the address of the standard library in every program",
+    "objdump cannot display addresses in hex"
+   ],
+   "answer": 0,
+   "explain": "`e8` is the x86 \"call, relative 32-bit displacement\" opcode. The assembler doesn't know where external functions will end up, so it writes zeros and records a **relocation**. The **linker** resolves the symbol and fills in the real displacement. That is why a `.o` file is *relocatable* and not yet executable."
+  },
+  {
+   "type": "multi",
+   "category": "The compilation pipeline",
+   "topic": "What the linker does",
+   "q": "Which of these are jobs of the **linker**?",
+   "choices": [
+    "Combining object files with needed library code (e.g. libstdc++)",
+    "Resolving each used-but-undefined symbol to its definition",
+    "Assigning final addresses and patching placeholders",
+    "Expanding `#define` macros",
+    "Checking C++ syntax and types"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "The linker combines `.o` files and libraries, **resolves symbols** (reporting \"undefined reference\" if one is missing) and **relocates** code to final addresses. Macro expansion is the preprocessor's job; syntax/type checking is the compiler's."
+  },
+  {
+   "type": "tf",
+   "category": "The compilation pipeline",
+   "topic": "Object file completeness",
+   "q": "An object file (`.o`) is a complete, runnable program as long as it contains `main`.",
+   "answer": false,
+   "explain": "An object file generally holds machine code for **one source file only**, with unresolved references to things defined elsewhere (like `std::cout`). Only after linking with its dependencies does it become an executable."
+  },
+  {
+   "type": "mc",
+   "category": "The compilation pipeline",
+   "topic": "Bits have no meaning",
+   "q": "Disassembling the linked `hello.exe` shows `(bad)` and odd instructions like `cwtl` at `__CTOR_LIST__`. What is really going on?",
+   "choices": [
+    "Those bytes are a data table of addresses, and the disassembler decoded them as if they were instructions",
+    "The linker produced corrupted code",
+    "The CPU executes those bad instructions at startup",
+    "The compiler inserts invalid instructions as padding"
+   ],
+   "answer": 0,
+   "explain": "`__CTOR_LIST__` is **data**: a list of 4-byte constructor addresses. Bits carry no type; the disassembler was told to treat everything as code, so it produced nonsense. Meaning comes from how the bits are interpreted."
+  },
+  {
+   "type": "mc",
+   "category": "The compilation pipeline",
+   "topic": "Assembly vs machine code",
+   "q": "What is the relationship between assembly language and machine code?",
+   "choices": [
+    "Assembly is a human-readable spelling of machine instructions, translated almost one-to-one by the assembler",
+    "Assembly is a high-level language like C++ that compiles to many instructions per line",
+    "Machine code is text; assembly is binary",
+    "They are unrelated; assembly is only used for debugging"
+   ],
+   "answer": 0,
+   "explain": "Machine code is the actual bit patterns the CPU decodes (e.g. `55` = `push %ebp`). Assembly writes the same instructions as mnemonics, roughly one line per instruction, still ISA-specific."
+  },
+  {
+   "type": "mc",
+   "category": "Positional notation & conversion",
+   "topic": "Place value",
+   "q": "In a positional number system with base *b*, what is the weight of the digit in position *i* (counting from 0 at the right)?",
+   "choices": [
+    "*bⁱ*",
+    "*b* × *i*",
+    "*i*ᵇ",
+    "*b* + *i*"
+   ],
+   "answer": 0,
+   "explain": "Each position is worth one more factor of the base: weights are b⁰ = 1, b¹, b², … The value is Σ digitᵢ × bⁱ. In binary that's 1, 2, 4, 8…; in hex 1, 16, 256, 4096…"
+  },
+  {
+   "type": "text",
+   "category": "Positional notation & conversion",
+   "topic": "Decimal → binary",
+   "q": "Convert **37** (decimal) to binary.",
+   "answer": [
+    "100101",
+    "0b100101"
+   ],
+   "explain": "Repeated division by 2: 37→18 r**1**, 18→9 r**0**, 9→4 r**1**, 4→2 r**0**, 2→1 r**0**, 1→0 r**1**. Read the remainders **bottom to top**: 100101. Check: 32 + 4 + 1 = 37."
+  },
+  {
+   "type": "text",
+   "category": "Positional notation & conversion",
+   "topic": "Decimal → binary",
+   "q": "Convert **181** (decimal) to 8-bit binary.",
+   "answer": [
+    "10110101",
+    "0b10110101",
+    "1011 0101"
+   ],
+   "explain": "Subtracting powers of 2: 181 − 128 = 53 (1), 64 doesn't fit (0), 53 − 32 = 21 (1), 21 − 16 = 5 (1), 8 no (0), 5 − 4 = 1 (1), 2 no (0), 1 (1) → **10110101**."
+  },
+  {
+   "type": "num",
+   "category": "Positional notation & conversion",
+   "topic": "Binary → decimal",
+   "q": "What is **11011010₂** in decimal?",
+   "answer": 218,
+   "explain": "Add the weights of the 1-bits: 128 + 64 + 16 + 8 + 2 = **218**."
+  },
+  {
+   "type": "mc",
+   "category": "Positional notation & conversion",
+   "topic": "Why reverse remainders",
+   "q": "In the repeated-division-by-2 method, why must the remainders be read in **reverse** order?",
+   "choices": [
+    "The first remainder is N's 2⁰ bit (whether N is odd); each later division exposes the next higher bit, so they appear LSB first",
+    "Because computers store numbers backwards",
+    "Because the last division always has remainder 0",
+    "It is only a convention; either order gives the same number"
+   ],
+   "answer": 0,
+   "explain": "N = 2q + r: the remainder r is the lowest bit, and q is N shifted right by one. Dividing q again reveals the 2¹ bit, and so on. Remainders come out **least-significant first**, so the last one is the MSB."
+  },
+  {
+   "type": "mc",
+   "category": "Positional notation & conversion",
+   "topic": "Appending a zero",
+   "q": "Appending a `0` to the right of a binary number (e.g. 1100 → 11000) does what to its value?",
+   "choices": [
+    "Doubles it",
+    "Multiplies it by 10",
+    "Adds 1",
+    "Halves it"
+   ],
+   "answer": 0,
+   "explain": "Every bit moves one position left into a place worth twice as much. 12 → 24. This is a **left shift** (`x << 1`). In decimal, appending 0 multiplies by 10 for the same reason."
+  },
+  {
+   "type": "tf",
+   "category": "Positional notation & conversion",
+   "topic": "No digit-wise link",
+   "q": "You can convert decimal to binary digit by digit, because each decimal digit always corresponds to a fixed group of bits.",
+   "answer": false,
+   "explain": "There is **no direct link** between decimal digits and bits, because 10 is not a power of 2. Conversion needs real arithmetic in both directions. That is exactly why hexadecimal (16 = 2⁴) is used instead for human-readable binary."
+  },
+  {
+   "type": "num",
+   "category": "Positional notation & conversion",
+   "topic": "Largest n-bit value",
+   "q": "What is the largest unsigned value that fits in **10 bits**?",
+   "answer": 1023,
+   "explain": "The largest n-digit number in base b is bⁿ − 1 (like 999 = 10³ − 1). For 10 bits: 2¹⁰ − 1 = **1023**, i.e. 11 1111 1111."
+  },
+  {
+   "type": "multi",
+   "category": "Binary arithmetic & overflow",
+   "topic": "Why binary",
+   "q": "Which are reasons computers use binary rather than ternary or decimal?",
+   "choices": [
+    "Only two physical states must be distinguished, so hardware is simpler",
+    "Two widely separated voltage levels tolerate noise, so signals are less likely to be corrupted",
+    "Binary maps directly onto Boolean logic (AND, OR, NOT, XOR)",
+    "Binary numbers are shorter than decimal numbers",
+    "No computer has ever been built in another base"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Two states (high/low voltage) are easy to build with transistor switches and leave wide **noise margins**; binary also works cleanly with Boolean logic. Binary is actually ~3.3× *longer* than decimal, and other bases have been built (ENIAC was decimal, Setun ternary)."
+  },
+  {
+   "type": "mc",
+   "category": "Binary arithmetic & overflow",
+   "topic": "Noise margins",
+   "q": "Why would a decimal computer with ten voltage levels on each wire be less reliable than a binary one?",
+   "choices": [
+    "Each level gets a tiny slice of the voltage range, so small noise could turn one digit into another",
+    "Ten levels require ten times as many wires",
+    "Decimal cannot represent negative numbers",
+    "Decimal arithmetic has no carries"
+   ],
+   "answer": 0,
+   "explain": "A digital circuit decides which *range* a voltage falls in. With two levels the ranges are wide and a few tenths of a volt of noise don't matter. With ten levels in the same range, a small disturbance could turn a 6 into a 7."
+  },
+  {
+   "type": "text",
+   "category": "Binary arithmetic & overflow",
+   "topic": "Binary addition",
+   "q": "Add the 8-bit numbers **0110 1101 + 0011 1011** (109 + 59). Give the 8-bit result in binary.",
+   "answer": [
+    "10101000",
+    "0b10101000",
+    "1010 1000"
+   ],
+   "explain": "Right to left: 1+1=10 (0, carry), 0+1+1=10 (0, carry), 1+0+1=10 (0, carry), 1+1+1=11 (1, carry), 0+1+1=10 (0, carry), 1+1+1=11 (1, carry), 1+0+1=10 (0, carry), 0+0+1=1 → **1010 1000** = 168."
+  },
+  {
+   "type": "mc",
+   "category": "Binary arithmetic & overflow",
+   "topic": "Column addition rules",
+   "q": "In binary column addition, a column has 1 + 1 plus an incoming carry of 1. What do you write and what do you carry?",
+   "choices": [
+    "Write 1, carry 1",
+    "Write 0, carry 1",
+    "Write 1, carry 0",
+    "Write 3, carry 0"
+   ],
+   "answer": 0,
+   "explain": "1 + 1 + 1 = 3 = **11₂**: the low bit (1) is written, the high bit (1) is carried into the next column."
+  },
+  {
+   "type": "mc",
+   "category": "Binary arithmetic & overflow",
+   "topic": "Unsigned overflow",
+   "q": "A 4-bit register holds 1111 (15). You add 0001. What does the register contain afterward?",
+   "choices": [
+    "0000 (the carry out falls off the left end)",
+    "1 0000",
+    "1111 (saturates at the max)",
+    "An error; the CPU refuses the addition"
+   ],
+   "answer": 0,
+   "explain": "The true result 1 0000 needs 5 bits, but the register holds 4. The extra bit is lost: the result is 16 mod 16 = **0**. This is **overflow**, and hardware, the language or the software must account for it."
+  },
+  {
+   "type": "num",
+   "category": "Binary arithmetic & overflow",
+   "topic": "Wraparound",
+   "q": "An 8-bit unsigned counter holds 250. You add 10. What value is stored?",
+   "answer": 4,
+   "explain": "n-bit unsigned arithmetic is **mod 2ⁿ**: (250 + 10) mod 256 = 260 − 256 = **4**, like an odometer rolling over."
+  },
+  {
+   "type": "text",
+   "category": "Binary arithmetic & overflow",
+   "topic": "Binary subtraction",
+   "q": "Compute **1000₂ − 0011₂** using pencil-and-paper borrowing. Give the 4-bit result.",
+   "answer": [
+    "0101",
+    "0b0101",
+    "101"
+   ],
+   "explain": "Column 0 needs a borrow, but columns 1 and 2 are 0, so the borrow ripples from column 3: columns 2 and 1 each become 1 after lending, column 0 becomes 10₂. Then 10−1=1, 1−1=0, 1−0=1, 0−0=0 → **0101** = 5 (like 1000 − 3 = 997 in decimal)."
+  },
+  {
+   "type": "mc",
+   "category": "Binary arithmetic & overflow",
+   "topic": "Why not borrow method",
+   "q": "Why don't CPUs subtract with the pencil-and-paper borrow method?",
+   "choices": [
+    "A circuit can't write a minus sign, and using a negative representation lets A − B be computed as A + (−B) on the same adder",
+    "Borrowing is impossible in binary",
+    "The borrow method gives wrong answers for even numbers",
+    "Subtraction is never needed by programs"
+   ],
+   "answer": 0,
+   "explain": "The borrow method works on paper but needs a separate subtractor and a way to show \"−\". Hardware instead represents negatives (two's complement) so that **A − B = A + (−B)**, reusing the adder."
+  },
+  {
+   "type": "mc",
+   "category": "Binary arithmetic & overflow",
+   "topic": "Multiply by shifting",
+   "q": "How can multiplication by 8 be done using only a shift?",
+   "choices": [
+    "Shift left by 3 bits",
+    "Shift right by 3 bits",
+    "Shift left by 8 bits",
+    "XOR with 8"
+   ],
+   "answer": 0,
+   "explain": "Shifting left by k multiplies by 2ᵏ, and 8 = 2³. Similarly an unsigned `x / 8` is `x >> 3`, which compilers use because division is slow. General multiplication = shifts + adds."
+  },
+  {
+   "type": "mc",
+   "category": "Signed number representations",
+   "topic": "Sign-magnitude range",
+   "q": "What range does **4-bit sign-magnitude** represent?",
+   "choices": [
+    "−7 to +7",
+    "−8 to +7",
+    "0 to 15",
+    "−8 to +8"
+   ],
+   "answer": 0,
+   "explain": "One bit is the sign, three bits hold the magnitude (0–7), so −7…+7: only **15 distinct values** from 16 patterns, because 0000 and 1000 are both zero."
+  },
+  {
+   "type": "multi",
+   "category": "Signed number representations",
+   "topic": "Sign-magnitude problems",
+   "q": "What problems does sign-magnitude representation have?",
+   "choices": [
+    "Two representations of zero (+0 and −0)",
+    "An ordinary binary adder gives wrong results when the signs differ",
+    "It cannot represent any negative numbers",
+    "It needs 2 sign bits"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "+0 = 0000 and −0 = 1000 waste a pattern and complicate equality tests. Adding with a plain adder fails: 0011 + 1011 = 1110 = −6 instead of 0. Fixing it needs comparators, a subtractor and sign rules."
+  },
+  {
+   "type": "text",
+   "category": "Signed number representations",
+   "topic": "One's complement",
+   "q": "In 4-bit **one's complement**, how is −5 written?",
+   "answer": [
+    "1010",
+    "0b1010"
+   ],
+   "explain": "One's complement negates by **flipping every bit**: +5 = 0101 → 1010. The MSB still acts as the sign."
+  },
+  {
+   "type": "mc",
+   "category": "Signed number representations",
+   "topic": "End-around carry",
+   "q": "In one's complement, 0101 (+5) + 1100 (−3) = 1 0001. What extra step gives the correct answer?",
+   "choices": [
+    "Add the carry out back into the rightmost bit (end-around carry) → 0010",
+    "Discard the carry → 0001",
+    "Flip all bits of the result",
+    "Nothing; 0001 is correct"
+   ],
+   "answer": 0,
+   "explain": "One's complement needs an **end-around carry**: a carry out of the MSB is added back at the LSB, giving 0010 = +2. This extra pass, plus its two zeros (0000 and 1111), is why one's complement lost to two's complement."
+  },
+  {
+   "type": "text",
+   "category": "Signed number representations",
+   "topic": "Two's complement negation",
+   "q": "Write **−37** in 8-bit two's complement.",
+   "answer": [
+    "11011011",
+    "0b11011011",
+    "1101 1011"
+   ],
+   "explain": "+37 = 0010 0101. Flip → 1101 1010, add 1 → **1101 1011**. Shortcut: copy bits from the right up to and including the first 1, then flip the rest. Check: −128 + 64 + 16 + 8 + 2 + 1 = −37."
+  },
+  {
+   "type": "num",
+   "category": "Signed number representations",
+   "topic": "Two's complement → decimal",
+   "q": "What decimal value is the 8-bit two's-complement pattern **1111 0100**?",
+   "answer": -12,
+   "explain": "The MSB has weight **−128**: −128 + 64 + 32 + 16 + 4 = **−12**. Or negate: flip → 0000 1011, +1 → 0000 1100 = 12, so the value is −12."
+  },
+  {
+   "type": "mc",
+   "category": "Signed number representations",
+   "topic": "Two's complement range",
+   "q": "What is the range of **n-bit two's complement**?",
+   "choices": [
+    "−2ⁿ⁻¹ to 2ⁿ⁻¹ − 1",
+    "−(2ⁿ⁻¹ − 1) to 2ⁿ⁻¹ − 1",
+    "0 to 2ⁿ − 1",
+    "−2ⁿ to 2ⁿ − 1"
+   ],
+   "answer": 0,
+   "explain": "There is one zero, so all 2ⁿ patterns are distinct values, split with one extra negative: 4-bit is −8…+7, 8-bit is −128…127. The symmetric range −(2ⁿ⁻¹−1)…2ⁿ⁻¹−1 belongs to sign-magnitude and one's complement."
+  },
+  {
+   "type": "mc",
+   "category": "Signed number representations",
+   "topic": "One zero",
+   "q": "Why does two's complement have only one zero?",
+   "choices": [
+    "Negating 0000 gives 1111 + 1 = 1 0000; the carry is dropped, leaving 0000 again",
+    "The pattern 1000 is declared illegal",
+    "Zero is stored in a separate flag",
+    "Because the sign bit is ignored for zero"
+   ],
+   "answer": 0,
+   "explain": "The \"+1\" step makes −0 wrap back to 0000. The pattern 1000 that sign-magnitude wasted on −0 becomes −8 instead."
+  },
+  {
+   "type": "mc",
+   "category": "Signed number representations",
+   "topic": "Most negative value",
+   "q": "In 4-bit two's complement, what happens when you negate 1000 (−8)?",
+   "choices": [
+    "You get 1000 again, because +8 does not fit in 4 signed bits",
+    "You get 0111 (+7)",
+    "You get 0000",
+    "You get 1 1000, a 5-bit number"
+   ],
+   "answer": 0,
+   "explain": "Flip → 0111, +1 → 1000. The most negative value has **no positive partner**, which is why the range is asymmetric (−8…+7)."
+  },
+  {
+   "type": "text",
+   "category": "Signed number representations",
+   "topic": "Two's complement addition",
+   "q": "In 4-bit two's complement, compute **1110 (−2) + 1101 (−3)**. Give the 4-bit result.",
+   "answer": [
+    "1011",
+    "0b1011"
+   ],
+   "explain": "1110 + 1101 = 1 1011. **Discard** the carry out: 1011 = −8 + 2 + 1 = −5. Correct, and no extra step is needed (unlike one's complement)."
+  },
+  {
+   "type": "mc",
+   "category": "Signed number representations",
+   "topic": "Signed overflow detection",
+   "q": "In 4-bit two's complement, 0110 (+6) + 0011 (+3) = 1001. What happened?",
+   "choices": [
+    "Signed overflow: two positives gave a negative result (−7), since +9 is out of range",
+    "No overflow: there was no carry out of the MSB",
+    "Unsigned overflow only",
+    "The result is correct: 1001 = +9"
+   ],
+   "answer": 0,
+   "explain": "Signed overflow happens exactly when **both operands have the same sign and the result has the other sign**. The carry out tells you nothing about signed overflow (here it's 0). As unsigned, 6 + 3 = 9 = 1001 is fine."
+  },
+  {
+   "type": "tf",
+   "category": "Signed number representations",
+   "topic": "Opposite-sign overflow",
+   "q": "Adding a positive and a negative two's-complement number can overflow.",
+   "answer": false,
+   "explain": "The result of adding opposite signs always lies between the two operands, so it is always in range. Overflow requires two operands of the **same** sign."
+  },
+  {
+   "type": "mc",
+   "category": "Signed number representations",
+   "topic": "Subtraction via addition",
+   "q": "How does an ALU compute A − B in two's complement?",
+   "choices": [
+    "A + (~B) + 1: invert B's bits and feed the +1 as the adder's carry-in",
+    "It uses a separate borrow-based subtractor",
+    "A + ~B, then flips the result",
+    "It converts both to sign-magnitude first"
+   ],
+   "answer": 0,
+   "explain": "Since −B = ~B + 1, subtraction is **A + ~B + 1**. One adder with inverters on B does both operations. E.g. 7 − 5: 0111 + 1010 + 1 = 1 0010 → 0010 = 2."
+  },
+  {
+   "type": "text",
+   "category": "Signed number representations",
+   "topic": "Sign extension",
+   "q": "Sign-extend the 4-bit two's-complement value **1101** (−3) to 8 bits.",
+   "answer": [
+    "11111101",
+    "0b11111101",
+    "1111 1101"
+   ],
+   "explain": "Copy the sign bit into the new high positions: **1111 1101**, still −3. Padding with zeros (0000 1101) would give +13."
+  },
+  {
+   "type": "num",
+   "category": "Signed number representations",
+   "topic": "Same bits, many meanings",
+   "q": "The 8-bit pattern **1001 1100** is read as **one's complement**. What decimal value is it?",
+   "answer": -99,
+   "explain": "MSB = 1 → negative. Flip all bits to get the magnitude: 0110 0011 = 99, so **−99**. The same bits are 156 unsigned, −28 sign-magnitude and −100 two's complement: bits have no inherent meaning."
+  },
+  {
+   "type": "text",
+   "category": "Boolean operations",
+   "topic": "AND",
+   "q": "Compute **1100 AND 1010**.",
+   "answer": [
+    "1000",
+    "0b1000"
+   ],
+   "explain": "AND gives 1 only where **both** bits are 1: only the leftmost column (1,1) → **1000**."
+  },
+  {
+   "type": "text",
+   "category": "Boolean operations",
+   "topic": "XOR",
+   "q": "Compute **1100 XOR 1010**.",
+   "answer": [
+    "0110",
+    "0b0110",
+    "110"
+   ],
+   "explain": "XOR gives 1 where **exactly one** input is 1: columns (1,1)→0, (1,0)→1, (0,1)→1, (0,0)→0 → **0110**."
+  },
+  {
+   "type": "text",
+   "category": "Boolean operations",
+   "topic": "OR",
+   "q": "Compute **1100 OR 1010**.",
+   "answer": [
+    "1110",
+    "0b1110"
+   ],
+   "explain": "OR gives 1 where **either** input is 1; only the (0,0) column gives 0 → **1110**."
+  },
+  {
+   "type": "mc",
+   "category": "Boolean operations",
+   "topic": "Masking",
+   "q": "x = 1011 0110. Which operation keeps only the low 4 bits (giving 0000 0110)?",
+   "choices": [
+    "`x & 0x0F`",
+    "`x | 0x0F`",
+    "`x ^ 0x0F`",
+    "`~x`"
+   ],
+   "answer": 0,
+   "explain": "AND with a **mask** keeps bits where the mask is 1 and clears the rest. 0x0F = 0000 1111. OR would *set* the low bits; XOR would *toggle* them."
+  },
+  {
+   "type": "mc",
+   "category": "Boolean operations",
+   "topic": "Toggle case",
+   "q": "ASCII 'G' is 0x47. Which operation turns it into 'g' (0x67) and back again?",
+   "choices": [
+    "XOR with 0x20",
+    "AND with 0x20",
+    "OR with 0x80",
+    "NOT"
+   ],
+   "answer": 0,
+   "explain": "Upper and lower case differ only in bit 5 (value 32 = 0x20). **XOR toggles** that bit, so applying it twice restores 'G'. (OR 0x20 forces lower case; AND ~0x20 forces upper case.)"
+  },
+  {
+   "type": "mc",
+   "category": "Boolean operations",
+   "topic": "Half adder",
+   "q": "For single bits a and b, which gates produce the **sum bit** and **carry bit** of a + b?",
+   "choices": [
+    "sum = a XOR b, carry = a AND b",
+    "sum = a OR b, carry = a AND b",
+    "sum = a AND b, carry = a XOR b",
+    "sum = NOT a, carry = b"
+   ],
+   "answer": 0,
+   "explain": "1+1 = 10₂ gives sum 0 and carry 1; 0+1 gives sum 1, carry 0. That's XOR's and AND's truth tables exactly: a **half adder**. Chaining full adders builds a multi-bit adder, so arithmetic reduces to Boolean logic."
+  },
+  {
+   "type": "mc",
+   "category": "Boolean operations",
+   "topic": "Bitwise vs logical",
+   "q": "In C++, what are `6 & 1` and `6 && 1`?",
+   "choices": [
+    "`6 & 1` is 0; `6 && 1` is true",
+    "Both are 1",
+    "Both are 0",
+    "`6 & 1` is 1; `6 && 1` is false"
+   ],
+   "answer": 0,
+   "explain": "`&` is **bitwise**: 110 AND 001 = 000 = 0. `&&` is **logical**: both operands are nonzero, so it's true. Mixing them up is a classic bug."
+  },
+  {
+   "type": "mc",
+   "category": "Boolean operations",
+   "topic": "NOT and one's complement",
+   "q": "Which Boolean operation is the same as forming a one's-complement negative?",
+   "choices": [
+    "NOT",
+    "AND",
+    "OR",
+    "XOR with 0"
+   ],
+   "answer": 0,
+   "explain": "NOT flips every bit, exactly the one's-complement rule. Two's complement is NOT followed by adding 1 (`~x + 1`). XOR with all 1s also flips; XOR with 0 changes nothing."
+  },
+  {
+   "type": "mc",
+   "category": "Boolean operations",
+   "topic": "Stack alignment mask",
+   "q": "The compiled `main` contains `and $0xfffffff0, %esp`. What does it do to the stack pointer?",
+   "choices": [
+    "Clears the low 4 bits, rounding it down to a multiple of 16",
+    "Sets the low 4 bits to 1",
+    "Adds 16 to it",
+    "Flips all its bits"
+   ],
+   "answer": 0,
+   "explain": "0xFFFFFFF0 has 1s everywhere except the low nibble. AND keeps the high bits and zeros the bottom 4, which rounds down to a multiple of 16 (2⁴)."
+  },
+  {
+   "type": "num",
+   "category": "Representing colors & text",
+   "topic": "RGB color count",
+   "q": "With 8 bits per channel for red, green and blue, how many different colors can be represented?",
+   "answer": 16777216,
+   "explain": "Each channel has 2⁸ = 256 levels, so 256³ = 2²⁴ = **16,777,216** colors (\"24-bit color\")."
+  },
+  {
+   "type": "mc",
+   "category": "Representing colors & text",
+   "topic": "Additive color",
+   "q": "On a screen, red light at full intensity plus green light at full intensity (blue off) appears as:",
+   "choices": [
+    "Yellow",
+    "Brown",
+    "Cyan",
+    "White"
+   ],
+   "answer": 0,
+   "explain": "Screens mix **emitted** light (additive color): R+G = yellow, R+B = magenta, G+B = cyan, all three = white, none = black. Paint is subtractive, which is why the intuition from mixing paints is misleading."
+  },
+  {
+   "type": "mc",
+   "category": "Representing colors & text",
+   "topic": "RGB changes",
+   "q": "Orange is R = 228, G = 108, B = 10. What happens if blue is raised to 255?",
+   "choices": [
+    "The color shifts to a pinkish/magenta hue",
+    "It becomes a brighter orange",
+    "It becomes white",
+    "It becomes black"
+   ],
+   "answer": 0,
+   "explain": "Adding full blue light to strong red makes a magenta-like pink (#E46CFF). Every channel change produces a different color; raising red to 240 would instead give a brighter orange."
+  },
+  {
+   "type": "multi",
+   "category": "Representing colors & text",
+   "topic": "ASCII layout",
+   "q": "Which statements about the ASCII table are correct?",
+   "choices": [
+    "It has 128 codes, each fitting in 7 bits",
+    "Codes 0–31 are control characters",
+    "'A' is 65 and 'a' is 97",
+    "The digit characters '0'–'9' are codes 0–9",
+    "It includes accented letters such as é"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "ASCII has 128 = 2⁷ codes: controls 0–31 and DEL 127, letters A–Z 65–90 and a–z 97–122. The digit *characters* are 48–57 (0x30–0x39); code 7 is BEL. Accented letters are not in ASCII."
+  },
+  {
+   "type": "num",
+   "category": "Representing colors & text",
+   "topic": "Printable ASCII",
+   "q": "How many **printable** characters does ASCII have?",
+   "answer": 95,
+   "explain": "128 codes − 32 control codes (0–31) − DEL (127) = **95**, codes 32 (space) through 126 (~)."
+  },
+  {
+   "type": "text",
+   "category": "Representing colors & text",
+   "topic": "Decoding ASCII",
+   "q": "Decode the ASCII bytes `48 65 6C 6C 6F` (hex).",
+   "answer": [
+    "Hello"
+   ],
+   "explain": "0x48 = 72 = 'H', 0x65 = 101 = 'e', 0x6C = 108 = 'l', 0x6F = 111 = 'o' → **Hello**. Hex dumps show text files this way."
+  },
+  {
+   "type": "mc",
+   "category": "Representing colors & text",
+   "topic": "Character vs number",
+   "q": "Why is the character '7' not stored as the value 7?",
+   "choices": [
+    "The digit characters occupy codes 48–57, so '7' is 55 (0x37); the value 7 is the BEL control code",
+    "Because 7 is odd",
+    "Characters are stored in two's complement",
+    "It is stored as 7; there is no difference"
+   ],
+   "answer": 0,
+   "explain": "ASCII is a mapping: '0' is 0x30, so '7' is 0x37. To get the number from a digit character, compute `c - '0'`."
+  },
+  {
+   "type": "mc",
+   "category": "Representing colors & text",
+   "topic": "Bits have no meaning",
+   "q": "The bit pattern 1000001 is in memory. What is its meaning?",
+   "choices": [
+    "It depends on context: it could be the number 65, the character 'A', part of an address, etc.",
+    "Always the character 'A'",
+    "Always the integer 65",
+    "Always a machine instruction"
+   ],
+   "answer": 0,
+   "explain": "Bits carry no type. The instruction operating on them, or the declared data type, decides whether 1000001 is 65, 'A' or something else."
+  },
+  {
+   "type": "multi",
+   "category": "Representing colors & text",
+   "topic": "Unicode",
+   "q": "Which statements about Unicode are true?",
+   "choices": [
+    "Its first 128 code points are identical to ASCII",
+    "It covers many alphabets, emojis and symbols that ASCII lacks",
+    "UTF-8 stores ASCII characters in 1 byte and others in up to 4",
+    "Every Unicode character is always stored in exactly 1 byte"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Unicode assigns a **code point** to each character (U+0000–U+10FFFF), keeping ASCII's first 128 for backward compatibility. Encodings store code points as bytes: UTF-8 is 1–4 bytes, so pure-ASCII files are already valid UTF-8."
+  },
+  {
+   "type": "mc",
+   "category": "Representing colors & text",
+   "topic": "ASCII limits",
+   "q": "Why can't plain ASCII store the word \"Спанчбоб\" or the emoji 😀?",
+   "choices": [
+    "ASCII has only 128 codes for English letters, digits, punctuation and controls; other scripts and emoji have no code",
+    "ASCII can only store uppercase letters",
+    "ASCII uses 16 bits per character but those need 32",
+    "Cyrillic letters are control characters in ASCII"
+   ],
+   "answer": 0,
+   "explain": "ASCII is the *American* standard: 95 printable characters with no accents, non-Latin alphabets or emoji. **Unicode** extends the mapping to over a million code points."
+  },
+  {
+   "type": "mc",
+   "category": "Bytes & units of measure",
+   "topic": "Smallest addressable unit",
+   "q": "Why does a single `bool` usually take a whole byte of memory?",
+   "choices": [
+    "The byte is the smallest addressable unit, and each variable needs its own address",
+    "Booleans are stored as ASCII 'T' or 'F'",
+    "A bool needs 8 bits to hold true or false",
+    "The compiler reserves 7 bits for error checking"
+   ],
+   "answer": 0,
+   "explain": "Memory addresses name **bytes**, not bits. The CPU can't address a single bit, so a separately addressable `bool` occupies a byte. Bits can be packed (bitsets, bit fields) using masks."
+  },
+  {
+   "type": "mc",
+   "category": "Bytes & units of measure",
+   "topic": "Nibble",
+   "q": "What is a **nibble**?",
+   "choices": [
+    "4 bits, half a byte",
+    "4 bytes",
+    "2 bits",
+    "16 bits"
+   ],
+   "answer": 0,
+   "explain": "A nibble is **4 bits**, and it holds exactly one hex digit (0–F). (One slide wrongly says \"4 bytes\".)"
+  },
+  {
+   "type": "mc",
+   "category": "Bytes & units of measure",
+   "topic": "KB vs KiB",
+   "q": "What is the difference between a kilobyte (KB) and a kibibyte (KiB)?",
+   "choices": [
+    "KB = 1,000 bytes (SI, base 10); KiB = 1,024 bytes (IEC, base 2)",
+    "KB = 1,024 bytes; KiB = 1,000 bytes",
+    "KB counts bits; KiB counts bytes",
+    "They are exactly the same"
+   ],
+   "answer": 0,
+   "explain": "SI prefixes step by 1,000; IEC binary prefixes (Ki, Mi, Gi, Ti) step by 1,024 = 2¹⁰. \"KB\" is also used loosely for 1,024, which is why sizes can be ambiguous."
+  },
+  {
+   "type": "num",
+   "category": "Bytes & units of measure",
+   "topic": "Drive size in GiB",
+   "q": "A drive is sold as **1 TB** (10¹² bytes). About how many **GiB** is that? (round to the nearest whole number)",
+   "answer": 931,
+   "tolerance": 1,
+   "explain": "10¹² ÷ 2³⁰ (1,073,741,824) ≈ **931 GiB**. Windows divides by 1,024 but labels it \"GB\", so the drive appears to be \"missing\" space; it's just different units."
+  },
+  {
+   "type": "num",
+   "category": "Bytes & units of measure",
+   "topic": "Bits vs bytes in networking",
+   "q": "A connection is **100 Mb/s**. What is its maximum download rate in **MB/s**?",
+   "answer": 12.5,
+   "explain": "Networks are measured in **bits** per second (lowercase b). Divide by 8 to get bytes: 100 ÷ 8 = **12.5 MB/s**."
+  },
+  {
+   "type": "num",
+   "category": "Bytes & units of measure",
+   "topic": "Download time",
+   "q": "Ideally, how many **seconds** does it take to download a **1 GB** (10⁹ bytes) file over a **250 Mb/s** link?",
+   "answer": 32,
+   "explain": "1 GB = 8 × 10⁹ bits. 8 × 10⁹ ÷ 250 × 10⁶ = **32 s**. (Or 250 ÷ 8 = 31.25 MB/s, and 1,000 ÷ 31.25 = 32.)"
+  },
+  {
+   "type": "mc",
+   "category": "Bytes & units of measure",
+   "topic": "Why networking uses bits",
+   "q": "Why are networking speeds usually quoted in bits rather than bytes?",
+   "choices": [
+    "Networks are concerned with the movement of bits, which travel one after another on the wire",
+    "Network data is never grouped into bytes",
+    "Bits are always base-2 units",
+    "It makes speeds look smaller"
+   ],
+   "answer": 0,
+   "explain": "Storage cares about how many bytes are held; networking cares about how many bits **move** per second. Watch the case: Mb (megabit) vs MB (megabyte) differ by a factor of 8."
+  },
+  {
+   "type": "num",
+   "category": "Bytes & units of measure",
+   "topic": "32-bit address space",
+   "q": "How many unique addresses does a **32-bit** address space provide?",
+   "answer": 4294967296,
+   "explain": "2³² = **4,294,967,296**. With byte-addressable memory that's 4 GiB, which is why 32-bit systems can't directly use more than 4 GiB of RAM."
+  },
+  {
+   "type": "multi",
+   "category": "Hexadecimal notation & conversion",
+   "topic": "Readable notation criteria",
+   "q": "A human-friendly notation for binary should be easy to read, shorter than binary, use a familiar vocabulary, and be directly related to binary. Which criteria does **decimal** fail?",
+   "choices": [
+    "Directly related to binary",
+    "Easy to read",
+    "Shorter than binary",
+    "Familiar vocabulary"
+   ],
+   "answer": [
+    0
+   ],
+   "explain": "Decimal is readable, short and familiar, but **not directly related** to binary: converting needs real arithmetic. Hex meets all four criteria."
+  },
+  {
+   "type": "mc",
+   "category": "Hexadecimal notation & conversion",
+   "topic": "Why hex maps to nibbles",
+   "q": "Why does each hex digit correspond to exactly one group of 4 bits?",
+   "choices": [
+    "16 = 2⁴: one hex digit and four bits both have exactly 16 possible values, and the place values line up",
+    "Hex was designed for 4-bit computers only",
+    "Because hex uses letters A–F",
+    "It doesn't; the grouping is approximate"
+   ],
+   "answer": 0,
+   "explain": "The hex digit in position k has weight 16ᵏ = 2⁴ᵏ, exactly where its 4-bit group sits in the binary number. Decimal has no such relationship because 10 is not a power of 2. (Octal works the same way with 3-bit groups, since 8 = 2³.)"
+  },
+  {
+   "type": "num",
+   "category": "Hexadecimal notation & conversion",
+   "topic": "Hex → decimal",
+   "q": "Convert **0xEB7** to decimal.",
+   "answer": 3767,
+   "explain": "E×16² + B×16¹ + 7×16⁰ = 14×256 + 11×16 + 7 = 3,584 + 176 + 7 = **3,767**. The **rightmost** digit gets 16⁰ (the slide's working had the positions reversed)."
+  },
+  {
+   "type": "num",
+   "category": "Hexadecimal notation & conversion",
+   "topic": "Hex → decimal",
+   "q": "Convert **0x2F3** to decimal.",
+   "answer": 755,
+   "explain": "2×256 + 15×16 + 3 = 512 + 240 + 3 = **755**."
+  },
+  {
+   "type": "text",
+   "category": "Hexadecimal notation & conversion",
+   "topic": "Decimal → hex",
+   "q": "Convert **3000** (decimal) to hexadecimal.",
+   "answer": [
+    "BB8",
+    "0xBB8"
+   ],
+   "explain": "Divide by 16: 3000 → 187 r **8**; 187 → 11 r **11 (B)**; 11 → 0 r **11 (B)**. Reverse the remainders: **0xBB8**."
+  },
+  {
+   "type": "text",
+   "category": "Hexadecimal notation & conversion",
+   "topic": "Binary → hex",
+   "q": "Convert **1011011101₂** to hexadecimal.",
+   "answer": [
+    "2DD",
+    "0x2DD"
+   ],
+   "explain": "Group from the **right** in 4s: 10 | 1101 | 1101, pad → 0010 1101 1101 → **0x2DD**. Grouping from the left gives a wrong answer."
+  },
+  {
+   "type": "text",
+   "category": "Hexadecimal notation & conversion",
+   "topic": "Hex → binary",
+   "q": "Convert **0xB4** to 8-bit binary.",
+   "answer": [
+    "10110100",
+    "0b10110100",
+    "1011 0100"
+   ],
+   "explain": "Replace each digit with its nibble: B = 1011, 4 = 0100 → **1011 0100**. Use the 8-4-2-1 weights: B = 11 = 8+2+1."
+  },
+  {
+   "type": "text",
+   "category": "Hexadecimal notation & conversion",
+   "topic": "Decimal → binary → hex",
+   "q": "Convert **156** (decimal) to hexadecimal.",
+   "answer": [
+    "9C",
+    "0x9C"
+   ],
+   "explain": "156 = 1001 1100₂ (128+16+8+4). Nibbles: 1001 = 9, 1100 = C → **0x9C**. Or 156 ÷ 16 = 9 r 12 (C)."
+  },
+  {
+   "type": "mc",
+   "category": "Hexadecimal notation & conversion",
+   "topic": "Hex digits per 32 bits",
+   "q": "How many hex digits does a 32-bit value always take?",
+   "choices": [
+    "8",
+    "4",
+    "10",
+    "32"
+   ],
+   "answer": 0,
+   "explain": "32 bits ÷ 4 bits per hex digit = **8 digits** = 4 bytes (two hex digits per byte). Compare with 32 binary digits."
+  },
+  {
+   "type": "mc",
+   "category": "Hexadecimal notation & conversion",
+   "topic": "0x prefix",
+   "q": "What is the value of **0x10**, and why is the prefix used?",
+   "choices": [
+    "Sixteen; `0x` marks base 16 so it isn't confused with decimal ten",
+    "Ten; `0x` means \"exactly\"",
+    "Two; `0x` marks binary",
+    "Eight; `0x` marks octal"
+   ],
+   "answer": 0,
+   "explain": "\"10\" means ten in decimal, two in binary, sixteen in hex. `0x` removes the ambiguity, and also distinguishes a hex value like 0xBEEF (48,879) from the word BEEF."
+  },
+  {
+   "type": "mc",
+   "category": "Hexadecimal notation & conversion",
+   "topic": "Leading-zero octal trap",
+   "q": "In C/C++, what is stored by `int x = 010;`?",
+   "choices": [
+    "8, because a leading 0 means octal",
+    "10",
+    "2, because it's binary",
+    "16, because it's hex"
+   ],
+   "answer": 0,
+   "explain": "A leading zero makes a C/C++ integer literal **octal**: 010₈ = 8. Binary literals use `0b`, hex uses `0x`."
+  },
+  {
+   "type": "num",
+   "category": "Hexadecimal notation & conversion",
+   "topic": "Largest n-digit hex",
+   "q": "What is **0xFFFFF** in decimal?",
+   "answer": 1048575,
+   "explain": "The largest 5-digit hex number is 16⁵ − 1 = 1,048,576 − 1 = **1,048,575** (just as 99999 = 10⁵ − 1). Adding 1 gives 0x100000."
+  },
+  {
+   "type": "text",
+   "category": "Hex arithmetic & uses",
+   "topic": "Hex addition",
+   "q": "Compute **0x9C + 0x7B**.",
+   "answer": [
+    "117",
+    "0x117"
+   ],
+   "explain": "C + B = 12 + 11 = 23 = 16 + 7 → write 7, carry 1. 9 + 7 + 1 = 17 = 16 + 1 → write 1, carry 1. Bring down the carry: **0x117** (156 + 123 = 279)."
+  },
+  {
+   "type": "text",
+   "category": "Hex arithmetic & uses",
+   "topic": "Hex addition",
+   "q": "Compute **0x4B2 + 0x3AE**.",
+   "answer": [
+    "860",
+    "0x860"
+   ],
+   "explain": "2 + E = 16 → write 0, carry 1. B + A + 1 = 22 = 16 + 6 → write 6, carry 1. 4 + 3 + 1 = 8 → **0x860**."
+  },
+  {
+   "type": "mc",
+   "category": "Hex arithmetic & uses",
+   "topic": "Hex carry rule",
+   "q": "In hex addition, when does a column produce a carry?",
+   "choices": [
+    "When the column's sum is 16 (0x10) or more",
+    "When the sum is 10 or more",
+    "When the sum is greater than 9",
+    "Whenever a letter digit appears"
+   ],
+   "answer": 0,
+   "explain": "The base is 16, so a column carries once it reaches 0x10: write sum − 16 and carry 1. A + 5 = 15 = F has no carry."
+  },
+  {
+   "type": "text",
+   "category": "Hex arithmetic & uses",
+   "topic": "Hex subtraction",
+   "q": "Compute **0xC675 − 0xA247**.",
+   "answer": [
+    "242E",
+    "0x242E"
+   ],
+   "explain": "5 − 7: borrow 16 from the 7 (it becomes 6): 21 − 7 = 14 = **E**. 6 − 4 = **2**. 6 − 2 = **4**. C − A = **2** → **0x242E** (50,805 − 41,543 = 9,262)."
+  },
+  {
+   "type": "text",
+   "category": "Hex arithmetic & uses",
+   "topic": "Borrow across zeros",
+   "q": "Compute **0x800 − 0x1F5**.",
+   "answer": [
+    "60B",
+    "0x60B"
+   ],
+   "explain": "Column 0 needs a borrow; column 1 is 0, so borrow from column 2 (8 → 7), column 1 becomes F. Column 0: 16 − 5 = **B**. Column 1: F − F = **0**. Column 2: 7 − 1 = **6** → **0x60B** (2,048 − 501 = 1,547)."
+  },
+  {
+   "type": "mc",
+   "category": "Hex arithmetic & uses",
+   "topic": "Hex borrow value",
+   "q": "When a hex subtraction column borrows from its neighbor, how much is added to the current digit?",
+   "choices": [
+    "16 (0x10)",
+    "10",
+    "2",
+    "1"
+   ],
+   "answer": 0,
+   "explain": "A borrow takes one unit of the next column, which is worth the **base**: 16 in hex (2 in binary, 10 in decimal)."
+  },
+  {
+   "type": "mc",
+   "category": "Hex arithmetic & uses",
+   "topic": "Reading RGB hex",
+   "q": "What are the red, green and blue values of the color **0x7030A0**?",
+   "choices": [
+    "R = 112, G = 48, B = 160",
+    "R = 70, G = 30, B = 160",
+    "R = 160, G = 48, B = 112",
+    "R = 7, G = 3, B = 10"
+   ],
+   "answer": 0,
+   "explain": "Each pair of hex digits is one byte = one channel: 0x70 = 112, 0x30 = 48, 0xA0 = 160 (a medium purple). Hex lets you read channels directly, which the 24-bit decimal value 7,352,480 would hide."
+  },
+  {
+   "type": "text",
+   "category": "Hex arithmetic & uses",
+   "topic": "RGB to hex",
+   "q": "Write the orange R = 228, G = 108, B = 10 as a 6-digit hex color code.",
+   "answer": [
+    "E46C0A",
+    "#E46C0A",
+    "0xE46C0A"
+   ],
+   "explain": "228 = 0xE4, 108 = 0x6C, 10 = 0x0A (keep the leading zero so each channel is two digits) → **#E46C0A**."
+  },
+  {
+   "type": "multi",
+   "category": "Hex arithmetic & uses",
+   "topic": "Where hex appears",
+   "q": "Where are you likely to see hexadecimal notation?",
+   "choices": [
+    "Memory addresses printed by programs and debuggers",
+    "MAC and IPv6 addresses",
+    "Hex dumps of binary files",
+    "RGB color codes",
+    "Everyday prices in a store"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "explain": "Hex is the standard human view of raw binary: pointers and crash addresses, network hardware and IPv6 addresses, hex dumps (`xxd`, `hexdump -C`) and `#RRGGBB` colors."
+  },
+  {
+   "type": "mc",
+   "category": "Hex arithmetic & uses",
+   "topic": "Hex dumps",
+   "q": "Why do programmers inspect binary files as hex dumps instead of opening them in a text editor?",
+   "choices": [
+    "A text editor treats every byte as a character, showing control codes as NUL/SOH boxes; a hex dump shows every byte unambiguously",
+    "Hex dumps compress the file",
+    "Text editors can't open binary files at all",
+    "Hex dumps convert machine code back into C++"
+   ],
+   "answer": 0,
+   "explain": "Each byte becomes two hex digits with an offset column and an ASCII column. Unlike the NUL-filled editor view of `hello.o`, nothing is hidden or garbled."
+  },
+  {
+   "type": "mc",
+   "category": "Hex arithmetic & uses",
+   "topic": "MAC address size",
+   "q": "A MAC address like `00:1A:2B:3C:4D:5E` is how many bits?",
+   "choices": [
+    "48 bits (6 bytes, 12 hex digits)",
+    "32 bits",
+    "128 bits",
+    "12 bits"
+   ],
+   "answer": 0,
+   "explain": "Each pair of hex digits is one byte: 6 pairs = 6 bytes = **48 bits**. IPv6 addresses are 128 bits, written as 8 groups of 4 hex digits."
+  }
+ ]
+}
