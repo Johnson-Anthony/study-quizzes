@@ -1,1295 +1,548 @@
 {
- "title": "CSC3710 2026-09-08 — Set Operations, Languages, and Regular Sets",
- "course": "CSC3710",
- "questions": [
-  {
-   "type": "mc",
-   "category": "Set concatenation vs. Cartesian product",
-   "topic": "Computing XY",
-   "q": "Let X = {a, λ} and Y = {b, λ}. What is XY (simplified)?",
-   "choices": [
-    "{ab, a, b, λ}",
-    "{ab}",
-    "{ab, ba, a, b, λ}",
-    "{a, b, λ}"
-   ],
-   "answer": 0,
-   "explain": "Pair every u ∈ X with every v ∈ Y: ab, aλ = a, λb = b, λλ = λ. No two coincide, so XY = {ab, a, b, λ}. Forgetting that λ pairs with things (or treating λ as 'nothing to pair') gives the wrong answers."
-  },
-  {
-   "type": "num",
-   "category": "Set concatenation vs. Cartesian product",
-   "topic": "Counting XY",
-   "q": "Let X = {a, ab, λ} and Y = {λ, b, a} (the lecture example). How many elements does XY have?",
-   "answer": 7,
-   "explain": "Nine pairs are formed, but aλ = λa = a and ab·λ = a·b = ab each merge two pairs into one string. 9 − 2 = 7: XY = {a, ab, aa, abb, aba, λ, b}."
-  },
-  {
-   "type": "num",
-   "category": "Set concatenation vs. Cartesian product",
-   "topic": "Counting X × Y",
-   "q": "Let X = {a, ab, λ} and Y = {λ, b, a}. How many elements does X × Y have?",
-   "answer": 9,
-   "explain": "For finite sets |X × Y| = |X| · |Y| = 3 · 3 = 9. Ordered pairs never merge: (a, λ) and (λ, a) are different pairs even though they glue to the same string."
-  },
-  {
-   "type": "mc",
-   "category": "Set concatenation vs. Cartesian product",
-   "topic": "Why |XY| ≤ |X × Y|",
-   "q": "Why is |XY| ≤ |X × Y| for finite sets of strings X and Y?",
-   "choices": [
-    "Because XY never contains λ",
-    "Because different pairs (u, v) can glue into the same string uv, while ordered pairs stay distinct",
-    "Because concatenation is not associative",
-    "Because X × Y also contains pairs like (v, u)"
-   ],
-   "answer": 1,
-   "explain": "The map f(u, v) = uv from X × Y to XY is onto (every string of XY comes from some pair), but different pairs can glue to the same string because the 'seam' disappears. An onto map can't have more outputs than inputs."
-  },
-  {
-   "type": "tf",
-   "category": "Set concatenation vs. Cartesian product",
-   "topic": "Strict inequality without λ",
-   "q": "It is possible to have |XY| < |X| · |Y| even when neither X nor Y contains λ.",
-   "answer": true,
-   "explain": "Example: X = {a, ab}, Y = {b, bb}. a·bb = abb = ab·b, so XY = {ab, abb, abbb} has 3 < 4 elements. λ is one cause of merging, but overlapping pieces are another."
-  },
-  {
-   "type": "mc",
-   "category": "Set concatenation vs. Cartesian product",
-   "topic": "Equality case",
-   "q": "For which pair of sets does |XY| = |X × Y| hold?",
-   "choices": [
-    "X = {a, λ}, Y = {λ, a}",
-    "X = {a, aa}, Y = {a, aa}",
-    "X = {a, b}, Y = {a, b}",
-    "X = {a, ab}, Y = {b, bb}"
-   ],
-   "answer": 2,
-   "explain": "{a, b}{a, b} = {aa, ab, ba, bb}: four distinct strings from four pairs. In the others, pairs merge: aλ = λa; a·aa = aa·a; ab·b = a·bb."
-  },
-  {
-   "type": "mc",
-   "category": "Set concatenation vs. Cartesian product",
-   "topic": "Pair vs. string",
-   "q": "Which statement correctly contrasts X × Y and XY?",
-   "choices": [
-    "X × Y contains ordered pairs (u, v); XY contains single strings uv",
-    "Both contain strings, but X × Y keeps duplicates",
-    "X × Y is always smaller than XY",
-    "They are the same set written with different symbols"
-   ],
-   "answer": 0,
-   "explain": "The Cartesian product builds ordered pairs whose parts can always be recovered; concatenation glues the parts into one string, losing the boundary."
-  },
-  {
-   "type": "multi",
-   "category": "Set concatenation vs. Cartesian product",
-   "topic": "Members of XY",
-   "q": "Let X = {a, ba} and Y = {λ, a}. Which strings are in XY?",
-   "choices": [
-    "a",
-    "aa",
-    "ba",
-    "baa",
-    "ab"
-   ],
-   "answer": [
-    0,
-    1,
-    2,
-    3
-   ],
-   "explain": "The pairs give aλ = a, aa, baλ = ba, baa. All four are distinct, so |XY| = 4 = |X × Y|. ab would need b to come first from Y, which is impossible."
-  },
-  {
-   "type": "tf",
-   "category": "Set concatenation vs. Cartesian product",
-   "topic": "Order inside strings",
-   "q": "When simplifying XY, the strings ab and ba can be merged into one element because they use the same symbols.",
-   "answer": false,
-   "explain": "Strings are sequences: order matters, so ab ≠ ba and both are kept. Only identical strings (like aλ and λa, both equal to a) collapse."
-  },
-  {
-   "type": "tf",
-   "category": "Algebra of set concatenation",
-   "topic": "Commutativity",
-   "q": "Set concatenation is commutative: XY = YX for all sets of strings X and Y.",
-   "answer": false,
-   "explain": "Counterexample: {a}{b} = {ab} but {b}{a} = {ba}. XY = YX holds for some special sets (e.g. Y = ∅ or Y = {λ}), but that doesn't make the operation commutative."
-  },
-  {
-   "type": "tf",
-   "category": "Algebra of set concatenation",
-   "topic": "Associativity",
-   "q": "For all sets of strings X, Y, Z: (XY)Z = X(YZ).",
-   "answer": true,
-   "explain": "Both sets consist of strings uvw with u ∈ X, v ∈ Y, w ∈ Z, because string concatenation is associative: (uv)w = u(vw). So we can write XYZ without parentheses."
-  },
-  {
-   "type": "mc",
-   "category": "Algebra of set concatenation",
-   "topic": "Concatenating with ∅",
-   "q": "What is X∅ for a nonempty set of strings X?",
-   "choices": [
-    "X",
-    "∅",
-    "{λ}",
-    "X ∪ {λ}"
-   ],
-   "answer": 1,
-   "explain": "A string of X∅ needs a second part from ∅, and ∅ offers none, so no string can be formed. ∅ absorbs concatenation like 0 absorbs multiplication. Answering X confuses ∅ with {λ}."
-  },
-  {
-   "type": "mc",
-   "category": "Algebra of set concatenation",
-   "topic": "Concatenating with {λ}",
-   "q": "What is {λ}X?",
-   "choices": [
-    "X",
-    "∅",
-    "{λ}",
-    "X ∪ {λ}"
-   ],
-   "answer": 0,
-   "explain": "The only possible first part is λ, and λw = w, so every string of X comes out unchanged. {λ} is the identity for concatenation, like 1 for multiplication."
-  },
-  {
-   "type": "mc",
-   "category": "Algebra of set concatenation",
-   "topic": "Arithmetic analogy",
-   "q": "In the analogy between set concatenation and multiplication of numbers, which sets play the roles of 0 and 1?",
-   "choices": [
-    "0 ↔ {λ}, 1 ↔ ∅",
-    "0 ↔ λ, 1 ↔ Σ",
-    "0 ↔ ∅, 1 ↔ {λ}",
-    "0 ↔ ∅, 1 ↔ Σ\\*"
-   ],
-   "answer": 2,
-   "explain": "∅ absorbs (X∅ = ∅, like x · 0 = 0) and {λ} is the identity (X{λ} = X, like x · 1 = x)."
-  },
-  {
-   "type": "multi",
-   "category": "Algebra of set concatenation",
-   "topic": "When XY = YX",
-   "q": "For which of these choices does XY = YX hold? (X, Y sets of strings over {a, b} unless stated.)",
-   "choices": [
-    "Y = ∅",
-    "Y = {λ}",
-    "Y = X²",
-    "X, Y ⊆ {a}\\* (one-symbol alphabet)",
-    "X = {a}, Y = {b}"
-   ],
-   "answer": [
-    0,
-    1,
-    2,
-    3
-   ],
-   "explain": "Y = ∅ gives ∅ both ways; Y = {λ} gives X both ways; powers of one set commute (XᵐXⁿ = X^(m+n)); over a one-symbol alphabet every string is aᵏ and aⁱaʲ = aʲaⁱ. X = {a}, Y = {b} fails: {ab} ≠ {ba}."
-  },
-  {
-   "type": "tf",
-   "category": "Algebra of set concatenation",
-   "topic": "Special case vs. property",
-   "q": "Because X{λ} = {λ}X for every X, we may conclude that set concatenation is commutative.",
-   "answer": false,
-   "explain": "A property like commutativity must hold for all X and Y. One special partner ({λ}, or ∅) commuting with everything is not enough; {a}{b} ≠ {b}{a} is a counterexample."
-  },
-  {
-   "type": "mc",
-   "category": "Algebra of set concatenation",
-   "topic": "Common wrong guess",
-   "q": "A student writes {ab, b}∅ = {ab, b}. What is the mistake?",
-   "choices": [
-    "Nothing — it is correct",
-    "They confused ∅ with {λ}; the answer is ∅",
-    "The answer should be {ab, b, λ}",
-    "The answer should be {λ}"
-   ],
-   "answer": 1,
-   "explain": "They treated ∅ like {λ}. {ab, b}{λ} = {ab, b}, but {ab, b}∅ = ∅ because ∅ provides no string to put second."
-  },
-  {
-   "type": "mc",
-   "category": "Powers of a set",
-   "topic": "Basis of powers",
-   "q": "In the recursive definition of Xⁿ, what is X⁰?",
-   "choices": [
-    "∅",
-    "X",
-    "{λ}",
-    "λ"
-   ],
-   "answer": 2,
-   "explain": "X⁰ = {λ}, the identity for concatenation, just as x⁰ = 1. With ∅ as the basis, every power would be ∅ (since ∅X = ∅)."
-  },
-  {
-   "type": "mc",
-   "category": "Powers of a set",
-   "topic": "Recursive step",
-   "q": "Which is the recursive step of the definition of powers?",
-   "choices": [
-    "Xᵏ = Xᵏ⁻¹X for k ≥ 1",
-    "Xᵏ = Xᵏ⁻¹ ∪ X for k ≥ 1",
-    "Xᵏ = X × Xᵏ⁻¹ for k ≥ 1",
-    "Xᵏ = (Xᵏ⁻¹)\\*"
-   ],
-   "answer": 0,
-   "explain": "Xᵏ = Xᵏ⁻¹X for k ≥ 1: each power is the previous power concatenated with X once more."
-  },
-  {
-   "type": "mc",
-   "category": "Powers of a set",
-   "topic": "Σ²",
-   "q": "For Σ = {a, b}, what is Σ²?",
-   "choices": [
-    "{aa, bb}",
-    "{aa, ab, ba, bb}",
-    "{ab, ba}",
-    "{(a,a), (a,b), (b,a), (b,b)}"
-   ],
-   "answer": 1,
-   "explain": "Σ² = Σ¹Σ = {a, b}{a, b} = {aa, ab, ba, bb}: all strings of length 2. ab and ba are both present because order matters."
-  },
-  {
-   "type": "text",
-   "category": "Powers of a set",
-   "topic": "Meaning of Σⁿ",
-   "q": "In words, Σⁿ is the set of all strings over Σ of length ___. (fill in)",
-   "answer": [
-    "n",
-    "exactly n",
-    "length n"
-   ],
-   "explain": "Each concatenation with Σ adds exactly one symbol, starting from λ (length 0), so Σⁿ contains exactly the strings of length n."
-  },
-  {
-   "type": "num",
-   "category": "Powers of a set",
-   "topic": "|Σ³|",
-   "q": "For Σ = {a, b, c}, how many elements does Σ³ have?",
-   "answer": 27,
-   "explain": "Each of the 3 positions can hold any of 3 symbols: |Σⁿ| = |Σ|ⁿ = 3³ = 27."
-  },
-  {
-   "type": "num",
-   "category": "Powers of a set",
-   "topic": "|Σ⁰|",
-   "q": "For Σ = {a, b}, how many elements does Σ⁰ have?",
-   "answer": 1,
-   "explain": "Σ⁰ = {λ}, which has one element (the empty string). It is not empty — consistent with 2⁰ = 1."
-  },
-  {
-   "type": "mc",
-   "category": "Powers of a set",
-   "topic": "X¹",
-   "q": "Using the recursive definition, what is X¹ and why?",
-   "choices": [
-    "{λ}, because the basis is {λ}",
-    "X ∪ {λ}",
-    "∅, because X⁰ is empty",
-    "X, because X¹ = X⁰X = {λ}X = X"
-   ],
-   "answer": 3,
-   "explain": "X¹ = X⁰X = {λ}X = X, since {λ} is the identity. This matches 5¹ = 5 for numbers."
-  },
-  {
-   "type": "mc",
-   "category": "Powers of a set",
-   "topic": "{a, bb}²",
-   "q": "What is {a, bb}²?",
-   "choices": [
-    "{aa, abb, bba, bbbb}",
-    "{aa, bb}",
-    "{aa, abb, bbbb}",
-    "{aa, ab, ba, bb}"
-   ],
-   "answer": 0,
-   "explain": "{a, bb}{a, bb} = {a·a, a·bb, bb·a, bb·bb} = {aa, abb, bba, bbbb}."
-  },
-  {
-   "type": "tf",
-   "category": "Powers of a set",
-   "topic": "Mixed lengths",
-   "q": "All strings in {a, bb}³ have the same length.",
-   "answer": false,
-   "explain": "The pieces have different lengths (1 and 2), so three pieces give lengths 3 (aaa) through 6 (bbbbbb). Only when every piece has the same length (like Σ) do all strings of Xⁿ share a length."
-  },
-  {
-   "type": "num",
-   "category": "Powers of a set",
-   "topic": "|{a, bb}³|",
-   "q": "How many elements does {a, bb}³ have?",
-   "answer": 8,
-   "explain": "Each of 3 positions picks a or bb: 2³ = 8 sequences, and here no two sequences give the same string (aaa, aabb, abba, abbbb, bbaa, bbabb, bbbba, bbbbbb)."
-  },
-  {
-   "type": "mc",
-   "category": "Kleene star and positive closure",
-   "topic": "Definition of X*",
-   "q": "Which expression defines the Kleene star X\\*?",
-   "choices": [
-    "X¹ ∪ X² ∪ X³ ∪ …",
-    "X⁰ ∪ X¹ ∪ X² ∪ …",
-    "X × X × X × …",
-    "X ∪ {λ}"
-   ],
-   "answer": 1,
-   "explain": "X\\* = X⁰ ∪ X¹ ∪ X² ∪ …: concatenations of zero or more strings of X, with repetition. The i = 0 term contributes λ."
-  },
-  {
-   "type": "tf",
-   "category": "Kleene star and positive closure",
-   "topic": "λ in every star",
-   "q": "λ ∈ X\\* for every set of strings X, including X = ∅.",
-   "answer": true,
-   "explain": "X\\* always includes X⁰ = {λ}, whatever X is. So even ∅\\* = {λ}."
-  },
-  {
-   "type": "mc",
-   "category": "Kleene star and positive closure",
-   "topic": "Definition of X⁺",
-   "q": "Which is a correct definition of the positive closure X⁺?",
-   "choices": [
-    "X\\* ∪ {λ}",
-    "X⁰ ∪ X¹",
-    "XX\\*",
-    "X\\* − X"
-   ],
-   "answer": 2,
-   "explain": "X⁺ = XX\\* (= X\\*X = X¹ ∪ X² ∪ …): one or more strings of X concatenated."
-  },
-  {
-   "type": "mc",
-   "category": "Kleene star and positive closure",
-   "topic": "Σ*Σ",
-   "q": "For Σ = {a, b}, what is Σ\\*Σ?",
-   "choices": [
-    "Σ⁺, all nonempty strings over {a, b}",
-    "Σ\\*, all strings over {a, b}",
-    "Σ, the strings of length 1",
-    "{λ, a, b}"
-   ],
-   "answer": 0,
-   "explain": "Every string of Σ\\*Σ ends with the symbol contributed by the final Σ, so λ is excluded; every nonempty string w splits as (w minus last symbol)(last symbol), so all nonempty strings are included: Σ\\*Σ = Σ⁺ = Σ\\* − {λ}."
-  },
-  {
-   "type": "multi",
-   "category": "Kleene star and positive closure",
-   "topic": "Identities",
-   "q": "Which identities hold for every set of strings X?",
-   "choices": [
-    "X\\* = X⁺ ∪ {λ}",
-    "XX\\* = X\\*X",
-    "X⁺ = XX\\*",
-    "X⁺ = X\\* − {λ}",
-    "X\\* = X ∪ {λ}"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "X\\* = X⁺ ∪ {λ} (the star is the plus with the i = 0 term added), and XX\\* = X\\*X = X⁺. X⁺ = X\\* − {λ} fails when λ ∈ X (then λ ∈ X⁺). X\\* = X ∪ {λ} fails whenever X has a nonempty string (ww is missing)."
-  },
-  {
-   "type": "mc",
-   "category": "Kleene star and positive closure",
-   "topic": "When λ ∈ X⁺",
-   "q": "Exactly when is λ ∈ X⁺?",
-   "choices": [
-    "Never",
-    "Always",
-    "Exactly when X is infinite",
-    "Exactly when λ ∈ X"
-   ],
-   "answer": 3,
-   "explain": "If λ ∈ X then λ ∈ X¹ ⊆ X⁺. If λ ∉ X, each string of X has length ≥ 1, so each string of Xⁱ (i ≥ 1) has length ≥ i ≥ 1, and λ ∉ X⁺. 'Plus means no λ' is only true when λ ∉ X."
-  },
-  {
-   "type": "mc",
-   "category": "Kleene star and positive closure",
-   "topic": "X = {λ, ab}",
-   "q": "Let X = {λ, ab}. Which is true?",
-   "choices": [
-    "λ ∉ X⁺, so X⁺ ≠ X\\*",
-    "λ ∈ X⁺ and X⁺ = X\\*",
-    "X⁺ = X",
-    "X\\* = {λ, ab}"
-   ],
-   "answer": 1,
-   "explain": "λ ∈ X, so λ ∈ X⁺, and X⁺ = X⁺ ∪ {λ} = X\\*. Both equal {λ, ab, abab, …}."
-  },
-  {
-   "type": "mc",
-   "category": "Kleene star and positive closure",
-   "topic": "Y = {ab}",
-   "q": "Let Y = {ab}. Which is true?",
-   "choices": [
-    "Y⁺ = Y\\* − {λ}",
-    "Y⁺ = Y\\*",
-    "Y⁺ = {ab}",
-    "Y\\* = {λ, ab}"
-   ],
-   "answer": 0,
-   "explain": "λ ∉ Y, so every string of Y⁺ has length ≥ 2: Y⁺ = {ab, abab, …} while Y\\* = {λ, ab, abab, …}. They differ only by λ."
-  },
-  {
-   "type": "text",
-   "category": "Kleene star and positive closure",
-   "topic": "Reading ⁺",
-   "q": "The superscript ⁺ is read as \"one or ___\". (fill in one word)",
-   "answer": [
-    "more"
-   ],
-   "explain": "X⁺ is concatenations of one or more strings of X, versus X\\*, zero or more."
-  },
-  {
-   "type": "tf",
-   "category": "Kleene star and positive closure",
-   "topic": "Infinite star",
-   "q": "If X contains at least one nonempty string, then X\\* is infinite.",
-   "answer": true,
-   "explain": "If w ≠ λ is in X, then w, ww, www, … are all in X\\* and have strictly increasing lengths, so they are all distinct."
-  },
-  {
-   "type": "mc",
-   "category": "Kleene star and positive closure",
-   "topic": "Shortest elements of Σ*",
-   "q": "Which list gives the shortest elements of {a, b}\\* in order?",
-   "choices": [
-    "a, b, aa, ab, ba, bb, …",
-    "a, b, ab, ba, aab, …",
-    "λ, a, b, aa, ab, ba, bb, …",
-    "λ, ab, abab, …"
-   ],
-   "answer": 2,
-   "explain": "{a,b}\\* = {λ} ∪ {a, b} ∪ {aa, ab, ba, bb} ∪ … — it starts with λ, which comes from Σ⁰."
-  },
-  {
-   "type": "mc",
-   "category": "Boundary cases: ∅, {λ} and λ",
-   "topic": "∅*",
-   "q": "What is ∅\\*?",
-   "choices": [
-    "∅",
-    "{λ}",
-    "λ",
-    "Σ\\*"
-   ],
-   "answer": 1,
-   "explain": "∅\\* = ∅⁰ ∪ ∅¹ ∪ … . ∅⁰ = {λ} (any set to the 0 is {λ}), and ∅ⁿ = ∅ⁿ⁻¹∅ = ∅ for n ≥ 1. So ∅\\* = {λ}."
-  },
-  {
-   "type": "mc",
-   "category": "Boundary cases: ∅, {λ} and λ",
-   "topic": "{λ}*",
-   "q": "What is {λ}\\*?",
-   "choices": [
-    "{λ}",
-    "∅",
-    "{λ, λλ, λλλ, …} (infinite)",
-    "Σ\\*"
-   ],
-   "answer": 0,
-   "explain": "Every power of {λ} is {λ}, since {λ}{λ} = {λλ} = {λ}. The union of copies of {λ} is {λ}."
-  },
-  {
-   "type": "mc",
-   "category": "Boundary cases: ∅, {λ} and λ",
-   "topic": "∅⁺",
-   "q": "What is ∅⁺?",
-   "choices": [
-    "{λ}",
-    "λ",
-    "∅",
-    "Undefined"
-   ],
-   "answer": 2,
-   "explain": "∅⁺ = ∅∅\\* = ∅{λ} = ∅. Consistent with 'λ ∈ X⁺ iff λ ∈ X': λ ∉ ∅."
-  },
-  {
-   "type": "mc",
-   "category": "Boundary cases: ∅, {λ} and λ",
-   "topic": "{λ}⁺",
-   "q": "What is {λ}⁺?",
-   "choices": [
-    "{λ}",
-    "∅",
-    "{λ, λλ}",
-    "Σ⁺"
-   ],
-   "answer": 0,
-   "explain": "{λ}⁺ = {λ}{λ}\\* = {λ}{λ} = {λ}. Here λ ∈ X, so λ ∈ X⁺."
-  },
-  {
-   "type": "multi",
-   "category": "Boundary cases: ∅, {λ} and λ",
-   "topic": "Finite stars",
-   "q": "For which sets X is X\\* finite?",
-   "choices": [
-    "∅",
-    "{λ}",
-    "{a}",
-    "{aa, bb}",
-    "{λ, a}"
-   ],
-   "answer": [
-    0,
-    1
-   ],
-   "explain": "Only ∅ and {λ} have finite stars (both give {λ}). Any set containing a nonempty string w yields w, ww, www, … — infinitely many strings."
-  },
-  {
-   "type": "mc",
-   "category": "Boundary cases: ∅, {λ} and λ",
-   "topic": "Three objects",
-   "q": "Which statement correctly distinguishes λ, {λ} and ∅?",
-   "choices": [
-    "They are three names for the same thing",
-    "λ and ∅ are the same; {λ} is different",
-    "{λ} and ∅ are both empty sets",
-    "λ is a string of length 0; {λ} is a set with one element; ∅ is a set with zero elements"
-   ],
-   "answer": 3,
-   "explain": "λ is a string (not a set); {λ} is a set with one element, λ; ∅ has no elements at all. As concatenation partners, {λ} is the identity and ∅ absorbs."
-  },
-  {
-   "type": "num",
-   "category": "Boundary cases: ∅, {λ} and λ",
-   "topic": "|{λ}|",
-   "q": "How many elements does the set {λ} have?",
-   "answer": 1,
-   "explain": "One: the empty string. The string has length 0, but the set has one element. Contrast |∅| = 0."
-  },
-  {
-   "type": "tf",
-   "category": "Boundary cases: ∅, {λ} and λ",
-   "topic": "∅⁰",
-   "q": "∅⁰ = ∅.",
-   "answer": false,
-   "explain": "By the basis of the definition of powers, X⁰ = {λ} for every X, including ∅. That's why ∅\\* contains λ."
-  },
-  {
-   "type": "mc",
-   "category": "Boundary cases: ∅, {λ} and λ",
-   "topic": "Why test boundaries",
-   "q": "The lecture compared checking a definition on ∅ and {λ} to unit-testing a function meant for natural numbers. Which inputs correspond to the 'boundary' test?",
-   "choices": [
-    "Typical values like 5",
-    "The edge value 0 (and, for definitions, ∅ and {λ})",
-    "Only invalid values like −5",
-    "Very large values"
-   ],
-   "answer": 1,
-   "explain": "Test a typical value (5), the boundary value (0) and an invalid one (−5). ∅ and {λ} are the 'special sets' — every other set we use contains a string with at least one symbol — so a definition should be checked on them."
-  },
-  {
-   "type": "mc",
-   "category": "Σ* and languages",
-   "topic": "Recursive definition of Σ*",
-   "q": "Which is the recursive step in the recursive definition of Σ\\*?",
-   "choices": [
-    "If w ∈ Σ\\* and a ∈ Σ, then wa ∈ Σ\\*",
-    "If w ∈ Σ\\*, then ww ∈ Σ\\*",
-    "If a ∈ Σ, then a ∈ Σ\\*",
-    "If w ∈ Σ\\*, then w\\* ∈ Σ\\*"
-   ],
-   "answer": 0,
-   "explain": "Basis: λ ∈ Σ\\*. Recursive step: if w ∈ Σ\\* and a ∈ Σ, then wa ∈ Σ\\*. Closure: only strings reachable from λ in finitely many steps. (w is a string, a is a symbol, following the naming convention.)"
-  },
-  {
-   "type": "mc",
-   "category": "Σ* and languages",
-   "topic": "Basis of Σ*",
-   "q": "What is the basis of the recursive definition of Σ\\*?",
-   "choices": [
-    "Every a ∈ Σ is in Σ\\*",
-    "∅ ∈ Σ\\*",
-    "λ ∈ Σ\\*",
-    "Σ ⊆ Σ\\*"
-   ],
-   "answer": 2,
-   "explain": "The only basis element is λ. Single symbols are then obtained in one step: λa = a."
-  },
-  {
-   "type": "num",
-   "category": "Σ* and languages",
-   "topic": "Derivation length",
-   "q": "Using the recursive definition of Σ\\* (Σ = {a, b}), how many applications of the recursive step are needed to show bab ∈ Σ\\*, starting from the basis?",
-   "answer": 3,
-   "explain": "λ → b (w = λ, symbol b) → ba (w = b, symbol a) → bab (w = ba, symbol b). One step per symbol, so 3."
-  },
-  {
-   "type": "mc",
-   "category": "Σ* and languages",
-   "topic": "Closure clause",
-   "q": "What does the closure clause of a recursive definition (like that of Σ\\*) accomplish?",
-   "choices": [
-    "It says the set is closed under union",
-    "It excludes everything not reachable from the basis in finitely many steps",
-    "It adds infinite strings as limits",
-    "It makes the set finite"
-   ],
-   "answer": 1,
-   "explain": "The basis and recursive step only say what is IN. The closure clause says nothing else is: the set is the smallest one satisfying the rules, containing only objects reached in finitely many steps. That's why every element of Σ\\* is finite and why structural induction works."
-  },
-  {
-   "type": "mc",
-   "category": "Σ* and languages",
-   "topic": "Definition of language",
-   "q": "A language over an alphabet Σ is…",
-   "choices": [
-    "any infinite set of strings over Σ",
-    "a set of symbols",
-    "a nonempty subset of Σ\\*",
-    "any subset of Σ\\*"
-   ],
-   "answer": 3,
-   "explain": "By definition, any subset of Σ\\* — no requirement of being infinite, nonempty, or interesting."
-  },
-  {
-   "type": "multi",
-   "category": "Σ* and languages",
-   "topic": "Which are languages over {a, b}?",
-   "q": "Let Σ = {a, b}. Which of these are languages over Σ?",
-   "choices": [
-    "Σ\\*",
-    "∅",
-    "{λ}",
-    "{aba, bbb}",
-    "{ab, c}"
-   ],
-   "answer": [
-    0,
-    1,
-    2,
-    3
-   ],
-   "explain": "Check L ⊆ Σ\\*. Σ\\* ⊆ Σ\\*; ∅ is a subset of every set; λ ∈ Σ\\* (the basis), so {λ} ⊆ Σ\\*; aba, bbb ∈ Σ\\*. But c ∉ Σ, so {ab, c} ⊄ Σ\\* (it is a language over {a, b, c})."
-  },
-  {
-   "type": "tf",
-   "category": "Σ* and languages",
-   "topic": "∅ as a language",
-   "q": "∅ is not a language because it contains no strings.",
-   "answer": false,
-   "explain": "∅ ⊆ Σ\\*, so it meets the definition. It is a set of strings that happens to contain none — a real, if uninteresting, language. This was a wrong answer corrected in class."
-  },
-  {
-   "type": "tf",
-   "category": "Σ* and languages",
-   "topic": "∅ vs {λ} as languages",
-   "q": "∅ and {λ} are the same language.",
-   "answer": false,
-   "explain": "∅ has no strings; {λ} has exactly one, the empty string. They're different languages."
-  },
-  {
-   "type": "mc",
-   "category": "Σ* and languages",
-   "topic": "Symbols in natural/programming languages",
-   "q": "When English is modeled as a formal language whose alphabet is the set of English words, what is a sentence?",
-   "choices": [
-    "A string over the alphabet of words",
-    "A symbol of the alphabet",
-    "The alphabet itself",
-    "A subset of the alphabet"
-   ],
-   "answer": 0,
-   "explain": "Each word is one indivisible symbol, so a sentence is a finite sequence of symbols — a string over that alphabet — and English is a particular set of such strings."
-  },
-  {
-   "type": "tf",
-   "category": "Σ* and languages",
-   "topic": "Alphabet of a programming language",
-   "q": "The alphabet of words for a language like Java can be treated as finite, even though there are very many possible identifiers.",
-   "answer": true,
-   "explain": "An alphabet must be finite. Identifiers follow rules and are bounded in length in practice, so the set of possible 'words' is huge but finite."
-  },
-  {
-   "type": "mc",
-   "category": "Σ* and languages",
-   "topic": "Naming convention",
-   "q": "In the course's naming convention, what do letters like a, b, c and u, v, w denote?",
-   "choices": [
-    "a, b, c are strings; u, v, w are symbols",
-    "All are symbols",
-    "a, b, c are symbols; u, v, w are strings",
-    "a, b, c are sets; u, v, w are languages"
-   ],
-   "answer": 2,
-   "explain": "Letters from the start of the alphabet are symbols; letters from the end are strings. So in 'w ∈ Σ\\*, a ∈ Σ ⇒ wa ∈ Σ\\*', w is a string and a a symbol."
-  },
-  {
-   "type": "mc",
-   "category": "Σ* and languages",
-   "topic": "Set of all languages",
-   "q": "Over Σ = {a, b}, the set of all languages is P(Σ\\*). How big is it?",
-   "choices": [
-    "Countably infinite, like Σ\\*",
-    "Uncountable",
-    "Finite, since Σ is finite",
-    "2² = 4"
-   ],
-   "answer": 1,
-   "explain": "Σ\\* is countably infinite (list in shortlex order). By Cantor's theorem the power set of a countably infinite set is uncountable. Since regular expressions, DFAs and Turing machines are finite strings, there are only countably many of each — so most languages aren't regular, or even recognizable."
-  },
-  {
-   "type": "mc",
-   "category": "Σ* and languages",
-   "topic": "Countability of Σ*",
-   "q": "Why is Σ\\* (for finite Σ) countable?",
-   "choices": [
-    "Its strings can be listed by length, then alphabetically, and each appears at a finite position",
-    "It is finite",
-    "Its strings can be listed in plain dictionary order",
-    "Because Σ\\* = P(Σ)"
-   ],
-   "answer": 0,
-   "explain": "In shortlex order — by length, then alphabetically — λ, a, b, aa, ab, ba, bb, aaa, … every string appears at some finite position, giving a correspondence with ℕ. Pure alphabetical order fails: a, aa, aaa, … never reaches b."
-  },
-  {
-   "type": "multi",
-   "category": "Regular sets",
-   "topic": "Basis of regular sets",
-   "q": "Over Σ = {a, b}, which sets are basis elements of the regular sets?",
-   "choices": [
-    "∅",
-    "{λ}",
-    "{a}",
-    "{b}",
-    "{a, b}"
-   ],
-   "answer": [
-    0,
-    1,
-    2,
-    3
-   ],
-   "explain": "The basis is ∅, {λ}, and {x} for each symbol x ∈ Σ — here exactly four sets. {a, b} is regular but not basic: it is built as {a} ∪ {b}."
-  },
-  {
-   "type": "multi",
-   "category": "Regular sets",
-   "topic": "Allowed operations",
-   "q": "Which operations appear in the recursive step of the definition of regular sets?",
-   "choices": [
-    "Union",
-    "Concatenation",
-    "Kleene star",
-    "Intersection",
-    "Complement"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "Only union, concatenation and Kleene star. Theory says these three suffice for every regular set; practical-regex conveniences like ⁺ or {n} are shorthand for them."
-  },
-  {
-   "type": "mc",
-   "category": "Regular sets",
-   "topic": "Building {ab, bb}*",
-   "q": "Which sequence correctly proves {ab, bb}\\* is regular?",
-   "choices": [
-    "{a}, {b} (basis) → {a} ∪ {b} = {a, b} → {a, b}{b} = {ab, bb} → {ab, bb}\\*",
-    "{ab} (basis), {bb} (basis) → union → star",
-    "{a, b}\\* (basis) → concatenate with {b}",
-    "{ab, bb} (basis) → star"
-   ],
-   "answer": 0,
-   "explain": "{a}, {b} are basis; their union is {a, b}; concatenating with {b} gives {ab, bb}; the star gives {ab, bb}\\*. Each step applies one rule to sets already known regular."
-  },
-  {
-   "type": "mc",
-   "category": "Regular sets",
-   "topic": "Shortest elements of {ab, bb}*",
-   "q": "Which strings are the elements of {ab, bb}\\* of length at most 4?",
-   "choices": [
-    "ab, bb, abab, abbb, bbab, bbbb",
-    "λ, ab, bb, aabb",
-    "λ, ab, bb, abab, abbb, bbab, bbbb",
-    "λ, a, b, ab, bb"
-   ],
-   "answer": 2,
-   "explain": "Length 0: λ (zero blocks). Length 2: ab, bb. Length 4: all four two-block products abab, abbb, bbab, bbbb. No odd lengths are possible."
-  },
-  {
-   "type": "multi",
-   "category": "Regular sets",
-   "topic": "Members of {ab, bb}*",
-   "q": "Which strings are in {ab, bb}\\*?",
-   "choices": [
-    "λ",
-    "bbab",
-    "aab",
-    "abbbab",
-    "ba"
-   ],
-   "answer": [
-    0,
-    1,
-    3
-   ],
-   "explain": "Split into consecutive length-2 blocks and check each is ab or bb: λ (0 blocks), bbab = bb·ab, abbbab = ab·bb·ab. aab has odd length; ba is not a block."
-  },
-  {
-   "type": "tf",
-   "category": "Regular sets",
-   "topic": "New sets",
-   "q": "Each application of the recursive step in the definition of regular sets produces a new set not obtained before.",
-   "answer": false,
-   "explain": "It can return an existing set: ∅\\* = {λ}, {λ}{λ} = {λ}. That's why the definition says 'are regular sets', not 'new regular sets'."
-  },
-  {
-   "type": "mc",
-   "category": "Regular sets",
-   "topic": "Equivalent description",
-   "q": "Which description is equivalent to {ab, bb}\\*?",
-   "choices": [
-    "Strings that contain ab or bb",
-    "Strings of even length in which every symbol in an even position (2nd, 4th, …) is b",
-    "Strings of even length",
-    "Strings that end with b"
-   ],
-   "answer": 1,
-   "explain": "Every block has length 2 and ends in b, so strings have even length with b in every even position; conversely such a string splits into pairs of the form ?b, i.e. ab or bb. 'Contains ab' would admit aab, which isn't in the set."
-  },
-  {
-   "type": "mc",
-   "category": "Regular sets",
-   "topic": "Proof of regularity",
-   "q": "What counts as a proof that a set is regular, according to the recursive definition?",
-   "choices": [
-    "Listing its first ten elements",
-    "Showing it is infinite",
-    "Showing it is a subset of Σ\\*",
-    "A finite sequence of steps from basis sets, each applying ∪, concatenation or \\*"
-   ],
-   "answer": 3,
-   "explain": "The closure clause says a set is regular only if it's obtained from the basis by finitely many recursive steps — so exhibiting such a finite construction proves regularity."
-  },
-  {
-   "type": "mc",
-   "category": "Regular sets",
-   "topic": "Building {ba, bb}*",
-   "q": "In a construction of {ba, bb}\\* from the basis, which step directly produces {ba, bb}?",
-   "choices": [
-    "{b}{a, b}",
-    "{a, b}{b}",
-    "{b} ∪ {a, b}",
-    "{a, b}\\*"
-   ],
-   "answer": 0,
-   "explain": "After forming {a, b} = {a} ∪ {b}, concatenate {b} in front: {b}{a, b} = {ba, bb}. Order matters: {a, b}{b} = {ab, bb} is a different set."
-  },
-  {
-   "type": "tf",
-   "category": "Regular sets",
-   "topic": "Regex backreferences",
-   "q": "Every pattern accepted by a modern programming-language regex engine describes a regular set.",
-   "answer": false,
-   "explain": "Backreferences such as `(a|b)+\\1` describe { ww | w ∈ Σ⁺ }, which is provably not regular. Conveniences like `a{10}`, `a+`, `a?`, `[ab]` are just shorthand for the three core operations, but backreferences go beyond them."
-  },
-  {
-   "type": "mc",
-   "category": "Regular sets",
-   "topic": "Practical syntax as core operations",
-   "q": "Over Σ = {a, b}, which core-operation expression matches the practical regex `a{2,4}`?",
-   "choices": [
-    "aa\\*",
-    "aa ∪ aaa ∪ aaaa",
-    "a²a\\*",
-    "(aa)\\* ∪ a⁴"
-   ],
-   "answer": 1,
-   "explain": "`a{2,4}` means 2, 3 or 4 a's: the union aa ∪ aaa ∪ aaaa. It only needs union and concatenation."
-  },
-  {
-   "type": "multi",
-   "category": "Regular sets",
-   "topic": "Regular or not (by definition)",
-   "q": "Which of these sets over {a, b} are regular (i.e. can be built from the basis with ∪, concatenation, \\*)?",
-   "choices": [
-    "{aba, bb}",
-    "{a, b}\\*{a}",
-    "{a}\\*{b}\\*",
-    "Σ\\*",
-    "{ ww | w ∈ Σ⁺ }"
-   ],
-   "answer": [
-    0,
-    1,
-    2,
-    3
-   ],
-   "explain": "Every finite set is regular (union of concatenations of symbols); {a, b}\\*{a} and {a}\\*{b}\\* are direct constructions; Σ\\* = ({a} ∪ {b})\\*. { ww | w ∈ Σ⁺ } is the language of backreference-style 'square' strings, which is provably not regular."
-  },
-  {
-   "type": "mc",
-   "category": "Describing sets precisely in English",
-   "topic": "{aa, ab, ba, bb}*",
-   "q": "Describe {aa, ab, ba, bb}\\* over {a, b}.",
-   "choices": [
-    "Strings of length 2",
-    "Even strings",
-    "Strings of even length, including λ",
-    "Strings of even length, excluding λ"
-   ],
-   "answer": 2,
-   "explain": "The blocks are all of Σ², so k blocks give length 2k; conversely every even-length string splits into pairs. λ is included (length 0 is even). Say 'even length', not 'even strings'."
-  },
-  {
-   "type": "mc",
-   "category": "Describing sets precisely in English",
-   "topic": "{a, b}*{a}",
-   "q": "Describe {a, b}\\*{a}.",
-   "choices": [
-    "Strings that end with a",
-    "Strings that contain an a",
-    "Strings that start with a",
-    "Strings with exactly one a"
-   ],
-   "answer": 0,
-   "explain": "Any string (possibly λ) followed by a: exactly the strings ending with a. The shortest is λa = a. 'Contains an a' is too broad (ab contains a but doesn't end with it)."
-  },
-  {
-   "type": "mc",
-   "category": "Describing sets precisely in English",
-   "topic": "{b}{a, b}*",
-   "q": "Describe {b}{a, b}\\*.",
-   "choices": [
-    "Strings that start with b, or λ",
-    "Strings that start with b",
-    "Strings that end with b",
-    "Strings containing b"
-   ],
-   "answer": 1,
-   "explain": "A leading b followed by any string. λ is not included: every element has the leading b."
-  },
-  {
-   "type": "mc",
-   "category": "Describing sets precisely in English",
-   "topic": "{a, b}*{aa}{a, b}*",
-   "q": "Describe {a, b}\\*{aa}{a, b}\\*.",
-   "choices": [
-    "a or b, followed by aa, followed by a or b",
-    "Strings that start with aa",
-    "Strings that end with aa",
-    "Strings that contain aa as a substring"
-   ],
-   "answer": 3,
-   "explain": "w = x·aa·y for some strings x, y exactly when aa occurs somewhere in w. The stars allow any prefix and suffix, including λ, so the shortest element is aa."
-  },
-  {
-   "type": "mc",
-   "category": "Describing sets precisely in English",
-   "topic": "The star-free trap",
-   "q": "A classmate describes {a, b}\\*{aa}{a, b}\\* as \"a or b, followed by aa, followed by a or b\". Which set does their description actually match?",
-   "choices": [
-    "{aaaa, aaab, baaa, baab}",
-    "{aa}",
-    "All strings containing aa",
-    "{a, b}\\*"
-   ],
-   "answer": 0,
-   "explain": "They dropped the stars, reading {a, b}\\* as {a, b}. That gives {a, b}{aa}{a, b} = {aaaa, aaab, baaa, baab}, a finite set — whereas the starred set is infinite."
-  },
-  {
-   "type": "text",
-   "category": "Describing sets precisely in English",
-   "topic": "Shortest element",
-   "q": "What is the shortest string in {a, b}\\*{aa}{a, b}\\*?",
-   "answer": [
-    "aa"
-   ],
-   "explain": "Each {a, b}\\* factor may contribute λ: λ·aa·λ = aa."
-  },
-  {
-   "type": "multi",
-   "category": "Describing sets precisely in English",
-   "topic": "Length-3 members",
-   "q": "Which length-3 strings are in {a, b}\\*{aa}{a, b}\\*?",
-   "choices": [
-    "aaa",
-    "aab",
-    "baa",
-    "aba",
-    "bab"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "The length-3 strings containing aa are aaa, aab, baa. aba and bab do not contain aa."
-  },
-  {
-   "type": "tf",
-   "category": "Describing sets precisely in English",
-   "topic": "{a}*{b}*",
-   "q": "ba ∈ {a}\\*{b}\\*.",
-   "answer": false,
-   "explain": "{a}\\*{b}\\* is any number of a's followed by any number of b's; order matters, so no a can follow a b. 'Strings of a's and b's' is an imprecise description of it."
-  },
-  {
-   "type": "mc",
-   "category": "Describing sets precisely in English",
-   "topic": "{a, b}{a, b}*",
-   "q": "Describe {a, b}{a, b}\\* over {a, b}.",
-   "choices": [
-    "All strings over {a, b}, including λ",
-    "All nonempty strings over {a, b}",
-    "Strings of length 1",
-    "Strings of even length"
-   ],
-   "answer": 1,
-   "explain": "One symbol followed by any string: every nonempty string, i.e. Σ⁺. λ is excluded because at least one symbol is forced."
-  },
-  {
-   "type": "mc",
-   "category": "Describing sets precisely in English",
-   "topic": "Method",
-   "q": "What is the recommended method for understanding a set expression?",
-   "choices": [
-    "Simplify the expression first",
-    "Convert it to a Cartesian product",
-    "List the shortest elements, find the pattern, and state it precisely (including whether λ is in the set)",
-    "Count its elements"
-   ],
-   "answer": 2,
-   "explain": "List the shortest elements, look for the pattern, then state it precisely — including whether λ is in the set."
-  },
-  {
-   "type": "mc",
-   "category": "Describing sets precisely in English",
-   "topic": "{a, b}*{bb}{a, b}*",
-   "q": "Describe {a, b}\\*{bb}{a, b}\\*.",
-   "choices": [
-    "Strings that contain the substring bb",
-    "Strings that start and end with b",
-    "Strings with at least two b's",
-    "Strings that end with bb"
-   ],
-   "answer": 0,
-   "explain": "Same shape as Example D with bb in place of aa: any prefix, then bb, then any suffix."
-  },
-  {
-   "type": "tf",
-   "category": "Describing sets precisely in English",
-   "topic": "At least two b's",
-   "q": "\"Strings with at least two b's\" is a precise description of {a, b}\\*{bb}{a, b}\\*.",
-   "answer": false,
-   "explain": "bab has two b's but no substring bb, so it's not in the set. The b's must be adjacent: 'contains the substring bb'."
-  },
-  {
-   "type": "mc",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "Regex for Example D",
-   "q": "Which regular expression (course notation) denotes {a, b}\\*{aa}{a, b}\\*?",
-   "choices": [
-    "a ∪ b\\* aa a ∪ b\\*",
-    "(a ∪ b)\\* aa (a ∪ b)\\*",
-    "(a ∪ b) aa (a ∪ b)",
-    "(a\\*b\\*) aa"
-   ],
-   "answer": 1,
-   "explain": "{a, b} = {a} ∪ {b} becomes (a ∪ b); concatenation is juxtaposition; the star carries over."
-  },
-  {
-   "type": "mc",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "Strings starting with a",
-   "q": "Which regular expression denotes the strings over {a, b} that start with a?",
-   "choices": [
-    "a(a ∪ b)\\*",
-    "(a ∪ b)\\*a",
-    "a\\*",
-    "a(a ∪ b)"
-   ],
-   "answer": 0,
-   "explain": "Force a first, then any string: a(a ∪ b)\\*. (a ∪ b)\\*a is 'ends with a'; a\\* includes λ and misses ab; a(a ∪ b) has length exactly 2."
-  },
-  {
-   "type": "multi",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "Even length",
-   "q": "Which regular expressions denote the strings over {a, b} of even length?",
-   "choices": [
-    "((a ∪ b)(a ∪ b))\\*",
-    "(aa ∪ ab ∪ ba ∪ bb)\\*",
-    "(a ∪ b)(a ∪ b)\\*",
-    "(ab ∪ bb)\\*"
-   ],
-   "answer": [
-    0,
-    1
-   ],
-   "explain": "Repeat a length-2 block zero or more times: ((a ∪ b)(a ∪ b))\\* or (aa ∪ ab ∪ ba ∪ bb)\\*. (a ∪ b)(a ∪ b)\\* is all nonempty strings; (ab ∪ bb)\\* misses aa."
-  },
-  {
-   "type": "mc",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "Contains bab",
-   "q": "Which regular expression denotes the strings over {a, b} that contain the substring bab?",
-   "choices": [
-    "bab\\*",
-    "(a ∪ b) bab (a ∪ b)",
-    "(ba ∪ b)\\*",
-    "(a ∪ b)\\* bab (a ∪ b)\\*"
-   ],
-   "answer": 3,
-   "explain": "Any prefix, then bab, then any suffix. (ba ∪ b)\\* doesn't force bab; bab\\* means ba followed by b's."
-  },
-  {
-   "type": "mc",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "Precedence",
-   "q": "With standard precedence, how is ab\\* ∪ c read?",
-   "choices": [
-    "(ab)\\* ∪ c",
-    "a(b\\* ∪ c)",
-    "(a(b\\*)) ∪ c",
-    "((ab)\\* ∪ c)\\*"
-   ],
-   "answer": 2,
-   "explain": "Star binds tightest, then concatenation, then union: (a(b\\*)) ∪ c."
-  },
-  {
-   "type": "multi",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "Union notation",
-   "q": "Which of these denote the same set as (a ∪ b)\\*aa(a ∪ b)\\*, depending on the source's notation?",
-   "choices": [
-    "(a + b)\\*aa(a + b)\\*",
-    "`(a|b)*aa(a|b)*`",
-    "(a ∪ b)\\*aa(a ∪ b)\\*",
-    "(a ∩ b)\\*aa(a ∩ b)\\*"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "Union is written ∪ (Sudkamp/this course), + (many textbooks) or | (programming regex and most online tools). Beware: in programming regex, + means 'one or more'."
-  },
-  {
-   "type": "mc",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "Regular expressions vs. regular sets",
-   "q": "What is the relationship between regular expressions and regular sets?",
-   "choices": [
-    "A regular expression is a compact notation denoting a regular set",
-    "They are unrelated",
-    "Regular sets are a notation for regular expressions",
-    "Every set of strings has a regular expression"
-   ],
-   "answer": 0,
-   "explain": "Regular expressions are abbreviations for regular sets, mirroring the definition clause by clause: ∅, λ, a, union, concatenation, star."
-  },
-  {
-   "type": "mc",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "Equivalent expressions",
-   "q": "Two regular expressions are called equivalent when…",
-   "choices": [
-    "they have the same length",
-    "they describe the same set",
-    "they use the same symbols",
-    "one can be obtained by removing parentheses from the other"
-   ],
-   "answer": 1,
-   "explain": "Equivalence means they denote the same set of strings, even if written differently."
-  },
-  {
-   "type": "mc",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "Empty field in the checker",
-   "q": "In the online equivalence checker, what does leaving an input field empty mean?",
-   "choices": [
-    "∅",
-    "Σ\\*",
-    "λ, i.e. the set {λ}",
-    "An error"
-   ],
-   "answer": 2,
-   "explain": "An empty field is λ, the regular expression for {λ}. (Union is typed as |.)"
-  },
-  {
-   "type": "mc",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "(a|b)* vs empty",
-   "q": "You compare `(a|b)*` with an empty field in the checker. What does it report?",
-   "choices": [
-    "Accepted by first but not second: a",
-    "Equivalent",
-    "Accepted by second but not first: λ",
-    "Accepted by first but not second: λ"
-   ],
-   "answer": 0,
-   "explain": "Both sets contain λ, so λ isn't a difference. The shortest string in the first but not {λ} is a (first alphabetically among length 1)."
-  },
-  {
-   "type": "mc",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "Example D vs empty",
-   "q": "You compare `(a|b)*aa(a|b)*` with an empty field. What does the checker report?",
-   "choices": [
-    "Equivalent",
-    "Only: accepted by first but not second: aa",
-    "Only: accepted by second but not first: λ",
-    "First-not-second: aa, and second-not-first: λ"
-   ],
-   "answer": 3,
-   "explain": "λ is in {λ} but not in Example D (every element contains aa), and aa is the shortest string of Example D, which isn't in {λ}."
-  },
-  {
-   "type": "mc",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "(a|b)*b vs (a|b)*",
-   "q": "You compare `(a|b)*b` with `(a|b)*`. What does the checker report?",
-   "choices": [
-    "Equivalent",
-    "Accepted by second but not first: λ",
-    "Accepted by first but not second: b",
-    "Accepted by second but not first: a"
-   ],
-   "answer": 1,
-   "explain": "Every string ending in b is in (a|b)\\*, so nothing is in the first but not the second. The shortest string of (a|b)\\* that doesn't end in b is λ."
-  },
-  {
-   "type": "mc",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "Discovering members",
-   "q": "How can the checker be used to discover the members of a set, shortest first?",
-   "choices": [
-    "Enter the expression twice",
-    "Enter Σ\\* as the second expression",
-    "Put the strings found so far in the second expression and read off the next reported difference",
-    "Leave both fields empty"
-   ],
-   "answer": 2,
-   "explain": "Each report is the shortest difference. Add each string found to the second expression (aa, then aa|aaa, …) and the tool reveals the next shortest member each time."
-  },
-  {
-   "type": "multi",
-   "category": "Regular expressions and the equivalence checker",
-   "topic": "Checking equivalence",
-   "q": "Which pairs of regular expressions over {a, b} are equivalent?",
-   "choices": [
-    "(a ∪ b)\\* and (a\\*b\\*)\\*",
-    "(a ∪ b)(a ∪ b)\\* and (a ∪ b)\\*(a ∪ b)",
-    "a\\*b\\* and (ab)\\*",
-    "(ab ∪ λ)\\* and (ab)\\*"
-   ],
-   "answer": [
-    0,
-    1,
-    3
-   ],
-   "explain": "(a ∪ b)\\* and (a\\*b\\*)\\* both give every string (a\\*b\\* includes a and b, so its star contains everything). (a ∪ b)(a ∪ b)\\* and (a ∪ b)\\*(a ∪ b) are both Σ⁺. a\\*b\\* ≠ (ab)\\*: a is in the first, not the second. (ab ∪ λ)\\* = (ab)\\*, since adding λ to a set doesn't change its star."
-  }
- ]
+  "title": "CSC3710 2026-09-08: Set concatenation, powers, Kleene star, languages, regular sets",
+  "course": "CSC3710",
+  "questions": [
+    {
+      "type": "num",
+      "category": "Concatenation vs. Cartesian product",
+      "q": "Let X = {a, ab, λ} and Y = {λ, b, a}. How many distinct strings are in the concatenation XY?",
+      "answer": 7,
+      "explain": "XY = {λ, a, b, aa, ab, aba, abb}. The string a comes from both a·λ and λ·a, and ab comes from both a·b and ab·λ, so the 9 pairs produce only 7 distinct strings."
+    },
+    {
+      "type": "num",
+      "category": "Concatenation vs. Cartesian product",
+      "q": "Let X = {a, ab, λ} and Y = {λ, b, a}. How many elements are in the Cartesian product X × Y?",
+      "answer": 9,
+      "explain": "X × Y is a set of ordered pairs, and distinct pairs never collide, so |X × Y| = |X| · |Y| = 3 · 3 = 9."
+    },
+    {
+      "type": "mc",
+      "category": "Concatenation vs. Cartesian product",
+      "q": "Let X = {a, ab} and Y = {λ, b}. What is XY?",
+      "choices": ["{a, ab, ba, bab}", "{aλ, ab, abλ, abb}", "{a, ab, abb}", "{(a, λ), (a, b), (ab, λ), (ab, b)}"],
+      "answer": 2,
+      "explain": "a·λ = a, a·b = ab, ab·λ = ab, ab·b = abb. Drop λ and the repeated ab to get {a, ab, abb}. {a, ab, ba, bab} is YX, and the set of pairs is X × Y."
+    },
+    {
+      "type": "tf",
+      "category": "Concatenation vs. Cartesian product",
+      "q": "For all finite sets of strings X and Y, |XY| ≤ |X| · |Y|.",
+      "answer": true,
+      "explain": "Each pair (x, y) gives exactly one string xy, but different pairs can give the same string, so XY can have fewer elements than X × Y, never more. Equality is possible, e.g. X = {a}, Y = {b}."
+    },
+    {
+      "type": "mc",
+      "category": "Concatenation vs. Cartesian product",
+      "q": "Why can XY have fewer elements than X × Y?",
+      "choices": ["Different pairs (x, y) can produce the same string xy", "Concatenation removes every string that contains λ", "XY only includes strings where x ≠ y", "The Cartesian product counts each pair twice"],
+      "answer": 0,
+      "explain": "Pairs such as (a, λ) and (λ, a) are different elements of X × Y, but both produce the single string a in XY."
+    },
+    {
+      "type": "mc",
+      "category": "Concatenation vs. Cartesian product",
+      "q": "Which pair of strings are equal?",
+      "choices": ["aa and a", "ab and ba", "aλb and ab", "abb and ab"],
+      "answer": 2,
+      "explain": "λ is the empty string, so concatenating it changes nothing: aλb = ab. Strings are ordered sequences, so aa ≠ a and ab ≠ ba."
+    },
+    {
+      "type": "mc",
+      "category": "Concatenation vs. Cartesian product",
+      "q": "Which statement correctly distinguishes XY from X × Y?",
+      "choices": ["They are the same set written two different ways", "XY is a set of strings; X × Y is a set of ordered pairs", "XY is a set of ordered pairs; X × Y is a set of strings", "XY is defined only for alphabets; X × Y is defined for any sets"],
+      "answer": 1,
+      "explain": "XY = {xy | x ∈ X, y ∈ Y} contains strings. X × Y = {(x, y) | x ∈ X, y ∈ Y} contains ordered pairs."
+    },
+    {
+      "type": "tf",
+      "category": "Properties of concatenation",
+      "q": "Set concatenation is commutative: XY = YX for all sets of strings X and Y.",
+      "answer": false,
+      "explain": "Counterexample: {a}{b} = {ab} but {b}{a} = {ba}. The order of the parts matters."
+    },
+    {
+      "type": "mc",
+      "category": "Properties of concatenation",
+      "q": "For any set of strings X, what is X∅?",
+      "choices": ["X", "{λ}", "∅", "X ∪ {λ}"],
+      "answer": 2,
+      "explain": "Every string in X∅ needs a second part taken from ∅, and ∅ has nothing in it, so no strings can be formed. X∅ = ∅X = ∅."
+    },
+    {
+      "type": "mc",
+      "category": "Properties of concatenation",
+      "q": "Which set E is the identity for set concatenation, meaning XE = EX = X for every X?",
+      "choices": ["∅", "{λ}", "Σ", "Σ*"],
+      "answer": 1,
+      "explain": "Concatenating with {λ} attaches the empty string, so each x stays x. ∅ behaves like 0 (it annihilates), {λ} behaves like 1."
+    },
+    {
+      "type": "multi",
+      "category": "Properties of concatenation",
+      "q": "Which statements hold for all sets of strings X, Y, Z?",
+      "choices": ["X(YZ) = (XY)Z", "XY = YX", "X{λ} = X", "∅X = ∅", "X∅ = X"],
+      "answer": [0, 2, 3],
+      "explain": "Concatenation is associative, {λ} is the identity, and ∅ annihilates. It is not commutative in general, and X∅ is ∅, not X."
+    },
+    {
+      "type": "mc",
+      "category": "Properties of concatenation",
+      "q": "Which pair of sets is a counterexample showing that concatenation is not commutative?",
+      "choices": ["X = {a}, Y = {λ}", "X = {a}, Y = ∅", "X = {a}, Y = {b}", "X = {a, b}, Y = {a, b}"],
+      "answer": 2,
+      "explain": "XY = {ab} but YX = {ba}. In the other choices XY = YX (Y = {λ} or ∅ are special cases, and X = Y trivially commutes)."
+    },
+    {
+      "type": "tf",
+      "category": "Properties of concatenation",
+      "q": "Since X∅ = ∅X and X{λ} = {λ}X for every X, the general statement 'set concatenation is commutative' is true.",
+      "answer": false,
+      "explain": "Those are special cases. A general claim must hold for all X and Y, and it fails for X = {a}, Y = {b}."
+    },
+    {
+      "type": "mc",
+      "category": "Properties of concatenation",
+      "q": "Why is X∅ = ∅ for every set of strings X?",
+      "choices": ["λ is removed from every string during concatenation", "Every string in X∅ needs a second part taken from ∅, and ∅ has no elements", "∅ is the identity element for concatenation", "X∅ is defined to be ∅ only when X is infinite"],
+      "answer": 1,
+      "explain": "Just as X × ∅ = ∅ because no pairs can be formed, no strings xy can be formed when there is no y to choose."
+    },
+    {
+      "type": "mc",
+      "category": "Powers of a set",
+      "q": "By the basis of the recursive definition of powers of a set, X⁰ equals:",
+      "choices": ["∅", "X", "{λ}", "λ"],
+      "answer": 2,
+      "explain": "X⁰ = {λ} for every set X, including X = ∅. Note that λ by itself is a string, not a set."
+    },
+    {
+      "type": "mc",
+      "category": "Powers of a set",
+      "q": "Which is the recursive step in the definition of Xⁿ?",
+      "choices": ["Xᵏ = Xᵏ⁻¹X for k ≥ 1", "Xᵏ = Xᵏ⁻¹ ∪ X for k ≥ 1", "Xᵏ = Xᵏ⁻¹ × X for k ≥ 1", "Xᵏ = X* − Xᵏ⁻¹ for k ≥ 1"],
+      "answer": 0,
+      "explain": "Each power is the previous power concatenated with X. Union would not lengthen strings, and × would produce pairs, not strings."
+    },
+    {
+      "type": "mc",
+      "category": "Powers of a set",
+      "q": "Let Σ = {a, b}. What is Σ²?",
+      "choices": ["{aa, bb}", "{aa, ab, bb}", "{aa, ab, ba, bb}", "{λ, a, b, aa, ab, ba, bb}"],
+      "answer": 2,
+      "explain": "Σ² = Σ¹Σ = {a, b}{a, b} = {aa, ab, ba, bb}, all strings of length exactly 2. ab and ba are different strings."
+    },
+    {
+      "type": "num",
+      "category": "Powers of a set",
+      "q": "Let Σ = {a, b}. How many strings are in Σ³?",
+      "answer": 8,
+      "explain": "Σ³ = Σ²Σ = {aaa, aab, aba, abb, baa, bab, bba, bbb}. In general {a, b}ⁿ has 2ⁿ strings."
+    },
+    {
+      "type": "mc",
+      "category": "Powers of a set",
+      "q": "What is {ab, b}²?",
+      "choices": ["{abab, abb, bab, bb}", "{abab, bb}", "{ab, b, abab, abb, bab, bb}", "{abab, abb, bb}"],
+      "answer": 0,
+      "explain": "{ab, b}² = {ab, b}{ab, b}: ab·ab = abab, ab·b = abb, b·ab = bab, b·b = bb. All four are distinct."
+    },
+    {
+      "type": "mc",
+      "category": "Powers of a set",
+      "q": "What is ∅⁰?",
+      "choices": ["∅", "{λ}", "{∅}", "It is undefined"],
+      "answer": 1,
+      "explain": "The basis X⁰ = {λ} applies to every set, including the empty set."
+    },
+    {
+      "type": "mc",
+      "category": "Powers of a set",
+      "q": "What is ∅¹?",
+      "choices": ["{λ}", "∅", "{∅}", "{λ, ∅}"],
+      "answer": 1,
+      "explain": "∅¹ = ∅⁰∅ = {λ}∅ = ∅, because concatenating with ∅ always gives ∅."
+    },
+    {
+      "type": "mc",
+      "category": "Powers of a set",
+      "q": "In words, {a, b}ⁿ is:",
+      "choices": ["all strings over {a, b} of length exactly n", "all strings over {a, b} of length at most n", "all strings over {a, b} with exactly n a's", "the n-th string of Σ* listed in order of length"],
+      "answer": 0,
+      "explain": "Each application of the recursive step appends one symbol, so {a, b}ⁿ is exactly the strings of length n."
+    },
+    {
+      "type": "mc",
+      "category": "Kleene star and plus",
+      "q": "Which is the definition of X* (Kleene star)?",
+      "choices": ["X⁰ ∪ X¹ ∪ X² ∪ X³ ∪ …", "X¹ ∪ X² ∪ X³ ∪ …", "X × X × X × …", "X⁰ ∩ X¹ ∩ X² ∩ …"],
+      "answer": 0,
+      "explain": "X* is the union of all powers Xⁱ for i ≥ 0. Starting at X¹ instead gives X⁺."
+    },
+    {
+      "type": "mc",
+      "category": "Kleene star and plus",
+      "q": "What is ∅*?",
+      "choices": ["∅", "{λ}", "Σ*", "It is undefined"],
+      "answer": 1,
+      "explain": "∅⁰ = {λ} and every higher power is ∅, so ∅* = {λ} ∪ ∅ ∪ ∅ ∪ … = {λ}."
+    },
+    {
+      "type": "mc",
+      "category": "Kleene star and plus",
+      "q": "What is {λ}*?",
+      "choices": ["∅", "{λ}", "An infinite set", "Σ*"],
+      "answer": 1,
+      "explain": "{λ}⁰ = {λ}, and {λ}ᵏ = {λ}{λ} = {λ} for every k, so the union is just {λ}."
+    },
+    {
+      "type": "tf",
+      "category": "Kleene star and plus",
+      "q": "λ ∈ X* for every set X, including X = ∅.",
+      "answer": true,
+      "explain": "X* includes X⁰ = {λ}, and that holds for every set."
+    },
+    {
+      "type": "tf",
+      "category": "Kleene star and plus",
+      "q": "Let Σ = {a, b}. Then λ ∈ Σ⁺.",
+      "answer": false,
+      "explain": "Σ⁺ = Σ*Σ consists of one or more symbols, so every string has length at least 1. Σ⁺ = Σ* − {λ}."
+    },
+    {
+      "type": "multi",
+      "category": "Kleene star and plus",
+      "q": "Which of the following equal X⁺ for every set X?",
+      "choices": ["XX*", "X*X", "X*", "X* − {λ}"],
+      "answer": [0, 1],
+      "explain": "X⁺ = XX* = X*X. X⁺ equals X* only when λ ∈ X, and equals X* − {λ} only when λ ∉ X."
+    },
+    {
+      "type": "tf",
+      "category": "Kleene star and plus",
+      "q": "λ ∈ {λ, a}⁺.",
+      "answer": true,
+      "explain": "λ ∈ {λ, a} = X¹ ⊆ X⁺. 'X⁺ has no λ' holds only when λ ∉ X."
+    },
+    {
+      "type": "mc",
+      "category": "Kleene star and plus",
+      "q": "Let Σ = {a, b}. Listed in order of length, what are the shortest elements of Σ*Σ?",
+      "choices": ["λ, a, b, aa, ab, …", "a, b, aa, ab, ba, bb, …", "aa, ab, ba, bb, …", "λ, aa, bb, aaaa, …"],
+      "answer": 1,
+      "explain": "Σ*Σ = Σ⁺: every string over {a, b} except λ. The shortest are λa = a and λb = b."
+    },
+    {
+      "type": "mc",
+      "category": "Kleene star and plus",
+      "q": "For which sets X is X* a finite set?",
+      "choices": ["Only X = ∅ and X = {λ}", "Only X = ∅", "Every finite set X", "None; X* is always infinite"],
+      "answer": 0,
+      "explain": "∅* = {λ}* = {λ}. Any other X contains a nonempty string w, so w, ww, www, … are all in X*."
+    },
+    {
+      "type": "mc",
+      "category": "Recursive definition of Σ*",
+      "q": "In the recursive definition of Σ*, what is the basis?",
+      "choices": ["λ ∈ Σ*", "Σ ⊆ Σ*", "∅ ∈ Σ*", "a ∈ Σ* for some a ∈ Σ"],
+      "answer": 0,
+      "explain": "The basis puts the empty string in Σ*. Everything else is built from λ by the recursive step."
+    },
+    {
+      "type": "mc",
+      "category": "Recursive definition of Σ*",
+      "q": "Which is the recursive step in the definition of Σ*?",
+      "choices": ["If w ∈ Σ and a ∈ Σ*, then wa ∈ Σ", "If w ∈ Σ* and a ∈ Σ, then wa ∈ Σ*", "If w ∈ Σ*, then ww ∈ Σ*", "If w ∈ Σ*, then w ∪ Σ ∈ Σ*"],
+      "answer": 1,
+      "explain": "w is a string already in Σ*, a is a single symbol of the alphabet, and appending a to w gives a new string in Σ*."
+    },
+    {
+      "type": "mc",
+      "category": "Recursive definition of Σ*",
+      "q": "By the usual naming convention, which letters stand for strings rather than symbols?",
+      "choices": ["Letters from the start of the English alphabet (a, b, c, d)", "Letters from the end of the English alphabet (u, v, w, x, y, z)", "Greek letters", "Capital letters"],
+      "answer": 1,
+      "explain": "Lowercase letters from the start (a, b, c, d) denote symbols; lowercase letters from the end (u through z) denote strings. That is why the recursive step uses w for a string and a for a symbol."
+    },
+    {
+      "type": "mc",
+      "category": "Recursive definition of Σ*",
+      "q": "Let Σ = {a, b}. Which sequence of strings uses the recursive definition of Σ* correctly to show bba ∈ Σ*?",
+      "choices": ["λ, b, bb, bba", "λ, a, ba, bba", "bba, bb, b, λ", "b, ba, bba"],
+      "answer": 0,
+      "explain": "Start with λ (basis), then append one symbol at the right end each time: λb = b, b·b = bb, bb·a = bba. Going from a to ba or from ba to bba would require adding a symbol on the left, which the rule wa does not do."
+    },
+    {
+      "type": "mc",
+      "category": "Languages",
+      "q": "A language over an alphabet Σ is defined as:",
+      "choices": ["any subset of Σ*", "any subset of Σ", "any infinite subset of Σ*", "any nonempty set of strings over Σ"],
+      "answer": 0,
+      "explain": "Any subset of Σ* is a language, including finite ones, ∅, {λ}, and Σ* itself."
+    },
+    {
+      "type": "multi",
+      "category": "Languages",
+      "q": "Let Σ = {a, b}. Which of these are languages over Σ?",
+      "choices": ["∅", "{λ}", "{a}", "Σ*", "{c}", "{λ, a, bb}"],
+      "answer": [0, 1, 2, 3, 5],
+      "explain": "Each is a subset of Σ*, except {c}: c ∉ Σ, so the string c is not in Σ*. Σ* is a subset of itself, and ∅ is a subset of every set."
+    },
+    {
+      "type": "tf",
+      "category": "Languages",
+      "q": "∅ and {λ} are the same language.",
+      "answer": false,
+      "explain": "∅ contains no strings. {λ} contains exactly one string, the empty string of length 0."
+    },
+    {
+      "type": "tf",
+      "category": "Languages",
+      "q": "The empty set is not a language, because it contains no strings.",
+      "answer": false,
+      "explain": "Go by the definition: ∅ ⊆ Σ*, so ∅ is a language. It is just not an interesting one."
+    },
+    {
+      "type": "mc",
+      "category": "Languages",
+      "q": "The set of all languages over Σ is:",
+      "choices": ["Σ*", "the power set 𝒫(Σ*)", "Σ⁺", "Σ × Σ*"],
+      "answer": 1,
+      "explain": "Each language is a subset of Σ*, so the collection of all languages is the set of all subsets of Σ*, which is 𝒫(Σ*). Since Σ* is countably infinite, 𝒫(Σ*) is uncountable."
+    },
+    {
+      "type": "mc",
+      "category": "Languages",
+      "q": "When English is modeled as a formal language (with sentences as strings), what is the alphabet?",
+      "choices": ["The 26 letters of the English alphabet", "The set of English words, each treated as an indivisible symbol", "The set of grammatical English sentences", "The set of punctuation marks"],
+      "answer": 1,
+      "explain": "Each English word is one symbol. Words such as 'eat' and 'ate' are separate, unrelated symbols even though grammar connects them."
+    },
+    {
+      "type": "tf",
+      "category": "Languages",
+      "q": "For a programming language such as Java or Python, an alphabet containing the keywords and all possible identifiers is very large but finite.",
+      "answer": true,
+      "explain": "Naming rules (for example, no '=' in a name) and a limit on identifier length keep the set of possible identifiers finite."
+    },
+    {
+      "type": "mc",
+      "category": "Languages",
+      "q": "A string over an alphabet Σ is:",
+      "choices": ["any subset of Σ", "a finite sequence of symbols from Σ", "an infinite sequence of symbols from Σ", "an unordered collection of symbols from Σ"],
+      "answer": 1,
+      "explain": "Strings are finite and ordered. For example, a digital photograph is stored as a finite bit string over {0, 1}."
+    },
+    {
+      "type": "multi",
+      "category": "Regular sets",
+      "q": "Let Σ = {a, b}. Which sets are in the basis of the recursive definition of regular sets over Σ?",
+      "choices": ["∅", "{λ}", "{a}", "{b}", "{a, b}", "Σ*"],
+      "answer": [0, 1, 2, 3],
+      "explain": "The basis is ∅, {λ}, and {x} for each symbol x ∈ Σ. {a, b} and Σ* are regular, but they come from the recursive step ({a} ∪ {b}, then star)."
+    },
+    {
+      "type": "multi",
+      "category": "Regular sets",
+      "q": "Which operations appear in the recursive step of the definition of regular sets?",
+      "choices": ["Union", "Concatenation", "Kleene star", "Intersection", "Complement"],
+      "answer": [0, 1, 2],
+      "explain": "If X and Y are regular, then X ∪ Y, XY, and X* are regular. These three operations are all the definition uses."
+    },
+    {
+      "type": "mc",
+      "category": "Regular sets",
+      "q": "Starting from the basis sets over Σ = {a, b}, which derivation correctly produces the regular set {ab, bb}?",
+      "choices": ["{a} ∪ {b} = {a, b}; then concatenate {a, b}{b}", "{a}{b} = {ab}; then take {ab}*", "{a, b} is a basis set; concatenate {a, b}{b}", "{b}{a} ∪ {b}{b}"],
+      "answer": 0,
+      "explain": "{a, b}{b} = {ab, bb}. {a, b} is not a basis set; it has to be built by union. {ab}* is a different set, and {b}{a} ∪ {b}{b} = {ba, bb}."
+    },
+    {
+      "type": "mc",
+      "category": "Regular sets",
+      "q": "Listed in order of length, what are the shortest elements of {ab, bb}*?",
+      "choices": ["λ, ab, bb, abab, abbb, bbab, bbbb, …", "ab, bb, abab, abbb, bbab, bbbb, …", "λ, a, b, ab, bb, …", "λ, ab, bb, abb, bbb, …"],
+      "answer": 0,
+      "explain": "{ab, bb}⁰ = {λ}, {ab, bb}¹ = {ab, bb}, {ab, bb}² = {abab, abbb, bbab, bbbb}. These are strings built from ab and bb as blocks, including zero blocks."
+    },
+    {
+      "type": "num",
+      "category": "Regular sets",
+      "q": "How many strings of length 4 are in {ab, bb}*?",
+      "answer": 4,
+      "explain": "Length-4 strings come from two blocks: {ab, bb}² = {abab, abbb, bbab, bbbb}."
+    },
+    {
+      "type": "multi",
+      "category": "Regular sets",
+      "q": "Which strings are in {ab, bb}*?",
+      "choices": ["λ", "abbb", "bbab", "ba", "abb", "aabb"],
+      "answer": [0, 1, 2],
+      "explain": "Every string must split into blocks ab and bb. ba and aabb cannot be split this way, and abb has odd length. λ uses zero blocks."
+    },
+    {
+      "type": "mc",
+      "category": "Regular sets",
+      "q": "Which derivation shows that {a, ba}* is a regular set?",
+      "choices": ["{a} ∪ {b} = {a, b}; then take the star", "{b}{a} = {ba}; {a} ∪ {ba} = {a, ba}; then take the star", "{a, ba} is a basis set; then take the star", "{a}{b} = {ba}; then take the star of {a} ∪ {ba}"],
+      "answer": 1,
+      "explain": "Concatenate basis sets {b} and {a} to get {ba}, union with {a}, then apply star. {a}{b} is {ab}, not {ba}, and {a, b}* is a different set."
+    },
+    {
+      "type": "tf",
+      "category": "Regular sets",
+      "q": "Regex shortcuts such as a{10} (a repeated 10 times) let you describe sets that union, concatenation, and Kleene star cannot.",
+      "answer": false,
+      "explain": "Such shortcuts are conveniences. a{10} is just a concatenated with itself 10 times. Union, concatenation, and star already capture every regular set."
+    },
+    {
+      "type": "tf",
+      "category": "Regular sets",
+      "q": "Each application of the recursive step in the definition of regular sets produces a set that has not been generated before.",
+      "answer": false,
+      "explain": "The result is not necessarily new. For example, {a} ∪ {a} = {a}, and ∅* = {λ} is already a basis set."
+    },
+    {
+      "type": "tf",
+      "category": "Regular sets",
+      "q": "Every language over Σ = {a, b} is regular.",
+      "answer": false,
+      "explain": "Each regular set has a finite derivation, so there are only countably many regular sets, but there are uncountably many languages (𝒫(Σ*) is uncountable)."
+    },
+    {
+      "type": "mc",
+      "category": "Describing sets in English",
+      "q": "Let Σ = {a, b}. Which English description matches {a, b}*{a}?",
+      "choices": ["All strings that end with a", "All strings that start with a", "All strings that contain a", "All strings with exactly one a"],
+      "answer": 0,
+      "explain": "Any string (possibly λ) followed by a. Shortest elements: a, aa, ba, aaa, aba, baa, bba, …"
+    },
+    {
+      "type": "mc",
+      "category": "Describing sets in English",
+      "q": "Let Σ = {a, b}. Which English description matches {aa, ab, ba, bb}*?",
+      "choices": ["All strings of even length except λ", "All strings with an even number of a's", "All strings of even length, including λ", "All strings of length 2"],
+      "answer": 2,
+      "explain": "The blocks are all four strings of length 2, so any even-length string can be built. λ has length 0, which is even, and is in the set from the star."
+    },
+    {
+      "type": "mc",
+      "category": "Describing sets in English",
+      "q": "Let Σ = {a, b}. Which English description matches {b}{a, b}*?",
+      "choices": ["All strings that end with b", "All strings that start with b", "All strings containing exactly one b", "Only the string b"],
+      "answer": 1,
+      "explain": "A b comes first, followed by λ or any string of a's and b's: b, ba, bb, baa, bab, …"
+    },
+    {
+      "type": "mc",
+      "category": "Describing sets in English",
+      "q": "Let Σ = {a, b}. Which English description matches {a, b}*{aa}{a, b}*?",
+      "choices": ["Strings that start with a or b, followed by aa, followed by a or b", "All strings that contain aa as a substring", "All strings that start and end with a", "All strings with exactly two a's"],
+      "answer": 1,
+      "explain": "Each side can be any string, including λ, so aa alone is in the set and the set is infinite. The first choice describes {a, b}{aa}{a, b}, the version without stars, which has only 4 strings."
+    },
+    {
+      "type": "num",
+      "category": "Describing sets in English",
+      "q": "How many strings are in {a, b}{aa}{a, b}?",
+      "answer": 4,
+      "explain": "{a, b}{aa}{a, b} = {aaaa, aaab, baaa, baab}. Without stars, each side contributes exactly one symbol."
+    },
+    {
+      "type": "multi",
+      "category": "Describing sets in English",
+      "q": "Which strings belong to {a, b}*{aa}{a, b}*?",
+      "choices": ["aa", "baab", "bbaa", "abab", "aba", "λ"],
+      "answer": [0, 1, 2],
+      "explain": "The set is all strings containing the substring aa. abab and aba have no two a's in a row, and λ has no aa."
+    },
+    {
+      "type": "mc",
+      "category": "Describing sets in English",
+      "q": "What is the shortest string in {a, b}*{a}?",
+      "choices": ["λ", "a", "aa", "ba"],
+      "answer": 1,
+      "explain": "Take λ from {a, b}* and concatenate with a: λa = a. λ itself is not in the set, because every string ends with a."
+    },
+    {
+      "type": "mc",
+      "category": "Describing sets in English",
+      "q": "Let Σ = {a, b}. Which English description matches {a, b}{aa, ab, ba, bb}*?",
+      "choices": ["All strings of odd length", "All strings of even length", "All strings of length at least 2", "All strings that start with a"],
+      "answer": 0,
+      "explain": "One symbol followed by an even-length string gives odd length: a, b, aaa, aab, aba, …"
+    },
+    {
+      "type": "mc",
+      "category": "Describing sets in English",
+      "q": "Let Σ = {a, b}. Which English description matches {a}{a, b}*{b}?",
+      "choices": ["All strings that start with a and end with b", "All strings that contain ab", "Only the string ab", "All strings that start with b and end with a"],
+      "answer": 0,
+      "explain": "An a, then any string (possibly λ), then a b: ab, aab, abb, aaab, aabb, … The string bab contains ab but does not start with a, so 'contains ab' is not precise."
+    },
+    {
+      "type": "tf",
+      "category": "Describing sets in English",
+      "q": "λ ∈ {aa, ab, ba, bb}*.",
+      "answer": true,
+      "explain": "Every starred set contains λ, from X⁰ = {λ}."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expressions",
+      "q": "Regular expressions are best described as:",
+      "choices": ["abbreviations (notation) for regular sets", "programs that run on Turing machines", "a more powerful kind of set than regular sets", "complete lists of the strings in a language"],
+      "answer": 0,
+      "explain": "A regular expression drops the braces, writes ∪ for union, places parts side by side for concatenation, and uses * for star. It is shorthand for a regular set."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expressions",
+      "q": "Which regular expression denotes all strings over {a, b} that contain aa as a substring?",
+      "choices": ["(a ∪ b)aa(a ∪ b)", "(a ∪ b)* aa (a ∪ b)*", "aa(a ∪ b)*", "(aa)*"],
+      "answer": 1,
+      "explain": "This abbreviates {a, b}*{aa}{a, b}*. Without the stars you get only 4 strings of length 4; aa(a ∪ b)* only covers strings that start with aa."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expressions",
+      "q": "Which regular expression denotes all strings over {a, b} that start with b?",
+      "choices": ["(a ∪ b)* b", "b(a ∪ b)*", "b*", "(a ∪ b)b*"],
+      "answer": 1,
+      "explain": "b(a ∪ b)* abbreviates {b}{a, b}*. (a ∪ b)* b gives strings ending with b."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expressions",
+      "q": "Which regular expression denotes all strings over {a, b} that end with a?",
+      "choices": ["a(a ∪ b)*", "(a ∪ b)* a", "(a ∪ b)a*", "a*"],
+      "answer": 1,
+      "explain": "(a ∪ b)* a abbreviates {a, b}*{a}: any string followed by a."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expressions",
+      "q": "Which regular set does (ab ∪ bb)* denote?",
+      "choices": ["{ab, bb}*", "{a, b}*{bb}", "{ab}*{bb}*", "{ab, bb}"],
+      "answer": 0,
+      "explain": "ab ∪ bb is {ab, bb}, and the star applies to the whole union. {ab}*{bb}* is different: it does not contain bbab."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expressions",
+      "q": "Which regular expression denotes all strings of even length over {a, b}?",
+      "choices": ["(aa ∪ ab ∪ ba ∪ bb)*", "(a ∪ b)(a ∪ b)", "(aa ∪ bb)*", "(a ∪ b)*(a ∪ b)*"],
+      "answer": 0,
+      "explain": "Any number of length-2 blocks gives every even length, including 0. (aa ∪ bb)* misses strings like ab, (a ∪ b)(a ∪ b) only has length 2, and (a ∪ b)*(a ∪ b)* is all strings."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expressions",
+      "q": "Many regex tools write union with a vertical bar, because ∪ is hard to type. How is (a ∪ b)* aa (a ∪ b)* written in that notation?",
+      "choices": ["(a&b)*aa(a&b)*", "(a,b)*aa(a,b)*", "(a|b)*aa(a|b)*", "(a|b)+aa(a|b)+"],
+      "answer": 2,
+      "explain": "| stands for ∪. Using + instead of * would require at least one symbol on each side, so aa itself would be excluded."
+    }
+  ]
 }

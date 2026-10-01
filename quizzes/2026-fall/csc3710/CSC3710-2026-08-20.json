@@ -1,605 +1,550 @@
 {
- "title": "CSC3710 2026-08-20 — Course Map and the Vending-Machine DFA",
- "course": "CSC3710",
- "questions": [
-  {
-   "type": "mc",
-   "category": "Course map & Chomsky hierarchy",
-   "topic": "Grammar vs machine roles",
-   "q": "In this course, what is the difference between what a **grammar** does and what an **automaton** does with respect to a language?",
-   "choices": [
-    "A grammar *generates* the strings of a language; an automaton *recognizes* (accepts or rejects) strings",
-    "A grammar recognizes strings; an automaton generates them",
-    "Both only translate programs into machine code",
-    "A grammar describes finite languages only; automata describe infinite ones"
-   ],
-   "answer": 0,
-   "explain": "Grammars are rule systems that *generate* exactly the strings of a language (via derivations). Machines read an input string and decide membership, i.e. *recognize* the language. The course pairs each class of grammar with a matching class of machine."
-  },
-  {
-   "type": "mc",
-   "category": "Course map & Chomsky hierarchy",
-   "topic": "Hierarchy matching",
-   "q": "In the Chomsky hierarchy, which kind of machine recognizes the **context-free** languages (the class that describes a programming language's syntax)?",
-   "choices": [
-    "Finite automata",
-    "Pushdown automata",
-    "Linear-bounded automata",
-    "Turing machines"
-   ],
-   "fixed": true,
-   "answer": 1,
-   "explain": "Regular ↔ finite automata, context-free ↔ pushdown automata, context-sensitive ↔ linear-bounded automata, recursively enumerable ↔ Turing machines. A parser for Java's syntactic grammar is essentially a pushdown-automaton-style recognizer."
-  },
-  {
-   "type": "mc",
-   "category": "Course map & Chomsky hierarchy",
-   "topic": "Where the vending machine sits",
-   "q": "Which language class does the vending-machine example belong to, and why?",
-   "choices": [
-    "Regular, because a finite automaton recognizes it",
-    "Context-free, because it counts money",
-    "Recursively enumerable, because any computer program is",
-    "Context-sensitive, because the output depends on context"
-   ],
-   "answer": 0,
-   "explain": "The vending machine is a DFA with 5 states. Any language recognized by a finite automaton is **regular**, the bottom rung of the hierarchy. Its fixed, finite memory (the running total, capped at $1+) is exactly what a finite automaton can hold."
-  },
-  {
-   "type": "tf",
-   "category": "Course map & Chomsky hierarchy",
-   "topic": "Strict inclusion",
-   "q": "Each row of the Chomsky hierarchy (regular → context-free → context-sensitive → recursively enumerable) is strictly more powerful than the one below it: every regular language is context-free, but not every context-free language is regular.",
-   "answer": true,
-   "explain": "The classes form a strict ladder. Each machine type can do everything the weaker one can, plus some languages it cannot. The course climbs from finite automata up to Turing machines in that order."
-  },
-  {
-   "type": "mc",
-   "category": "Course map & Chomsky hierarchy",
-   "topic": "Course notation",
-   "q": "You find a website whose notation for automata disagrees with the course textbook's. What does the course say to do?",
-   "choices": [
-    "Follow the course's (textbook's) notation and vocabulary",
-    "Use whichever notation is more common online",
-    "Mix both, as long as you define symbols",
-    "Ask the TA to switch the course's notation"
-   ],
-   "answer": 0,
-   "explain": "The instructor stressed that the course sticks to one notation and vocabulary, the textbook's. Online resources often use different symbols (e.g. ε vs λ) and some are simply wrong, so when they disagree, the course wins."
-  },
-  {
-   "type": "mc",
-   "category": "Alphabets, strings & languages",
-   "topic": "Language as subset",
-   "q": "Over an alphabet Σ, what is a **language**?",
-   "choices": [
-    "Any subset of Σ\\*, the set of all strings over Σ",
-    "Σ itself",
-    "Only an infinite set of strings",
-    "A set of rules that generates strings"
-   ],
-   "answer": 0,
-   "explain": "A language is just a set of strings over Σ, i.e. any subset of Σ\\*. It can be finite, infinite, or even empty. The *rules* that generate a language are a grammar, not the language itself."
-  },
-  {
-   "type": "multi",
-   "category": "Alphabets, strings & languages",
-   "topic": "Empty string",
-   "q": "Which statements about the empty string are true in this course?",
-   "choices": [
-    "It is written λ in Sudkamp and JFLAP",
-    "Many other books write it ε",
-    "It belongs to Σ\\* for every alphabet Σ",
-    "It is a symbol of every alphabet",
-    "It has length 1"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "λ is the string with **no** symbols (length 0), not an alphabet symbol. Σ\\* includes it by definition. Sudkamp and JFLAP write λ; many other texts use ε — another reason to stick to the course's notation."
-  },
-  {
-   "type": "tf",
-   "category": "Alphabets, strings & languages",
-   "topic": "Alphabet definition",
-   "q": "An alphabet may be an infinite set of symbols, as long as each string is finite.",
-   "answer": false,
-   "explain": "An alphabet Σ is a **finite, nonempty** set of symbols, such as {0, 1} or the vending machine's {Q, H}. Strings are finite sequences over it; Σ\\* (all strings) is infinite, but Σ itself is finite."
-  },
-  {
-   "type": "mc",
-   "category": "Alphabets, strings & languages",
-   "topic": "Vending alphabet",
-   "q": "A customer inserts a dime into the vending machine. How does the model treat it?",
-   "choices": [
-    "It is outside the model: the alphabet is exactly {Q, H}",
-    "It moves the machine to a new $0.10 state",
-    "It is treated as λ",
-    "It sends the machine back to the initial state"
-   ],
-   "answer": 0,
-   "explain": "The machine only 'understands' its alphabet symbols, Q and H. Dimes, pennies, bills and kicking the machine are simply not part of the model — the DFA describes how the machine is *supposed* to work on its defined inputs."
-  },
-  {
-   "type": "mc",
-   "category": "Grammars, parsers & compilers",
-   "topic": "Why grammars matter",
-   "q": "Why is a grammar described as a **concise** description of a language?",
-   "choices": [
-    "A finite set of rules pins down exactly which strings (possibly infinitely many) are in the language",
-    "It lists every string of the language explicitly",
-    "It explains what each program means",
-    "It is shorter than the compiler that uses it"
-   ],
-   "answer": 0,
-   "explain": "The point is precision in few rules: the toy grammar's four lines generate exactly its six sentences, and about five pages of Java grammar decide, for *every* possible file, whether it is a Java program — an infinite set captured by a short formal object."
-  },
-  {
-   "type": "mc",
-   "category": "Grammars, parsers & compilers",
-   "topic": "Derivation",
-   "q": "Using the toy grammar\n\n```\n<Sentence> → <Subject> <Verb> <Object>\n<Subject>  → I | dogs\n<Verb>     → like\n<Object>   → me | dogs\n```\n\nwhich sentence **cannot** be derived?",
-   "choices": [
-    "dogs like I",
-    "I like me",
-    "dogs like dogs",
-    "I like dogs"
-   ],
-   "answer": 0,
-   "explain": "`I` is produced only by ⟨Subject⟩ → I, and the third position must come from ⟨Object⟩, which gives only `me` or `dogs`. So \"dogs like I\" is not in the language, even though it uses legal words — the *arrangement* violates the rules."
-  },
-  {
-   "type": "num",
-   "category": "Grammars, parsers & compilers",
-   "topic": "Counting a grammar's language",
-   "q": "How many distinct sentences does the toy grammar (⟨Sentence⟩ → ⟨Subject⟩ ⟨Verb⟩ ⟨Object⟩, ⟨Subject⟩ → I | dogs, ⟨Verb⟩ → like, ⟨Object⟩ → me | dogs) generate?",
-   "answer": 4,
-   "explain": "Each sentence is Subject Verb Object with 2 × 1 × 2 choices = **4**: I like me, I like dogs, dogs like me, dogs like dogs. (The lesson text says six, but the rules as written give four.) The point stands: a few rules describe the whole language exactly."
-  },
-  {
-   "type": "mc",
-   "category": "Grammars, parsers & compilers",
-   "topic": "Parser's job",
-   "q": "What does a **parser** do in a compiler?",
-   "choices": [
-    "Checks the token stream against the language's grammar and builds a parse tree; invalid input gives a syntax error",
-    "Translates bytecode into machine code",
-    "Checks that variable types match",
-    "Runs the program to see if it crashes"
-   ],
-   "answer": 0,
-   "explain": "The parser is the compiler's front-end gatekeeper: it is built from the grammar and decides whether the source is syntactically valid. Valid programs go on to later phases (type checking, code generation); invalid ones produce syntax errors."
-  },
-  {
-   "type": "mc",
-   "category": "Grammars, parsers & compilers",
-   "topic": "Syntax vs types",
-   "q": "What happens to the Java statement `int x = \"hello\";`?",
-   "choices": [
-    "It parses successfully and is rejected later by the type checker",
-    "It is rejected by the parser as a syntax error",
-    "It is rejected by the lexer",
-    "It compiles and runs, printing hello"
-   ],
-   "answer": 0,
-   "explain": "It has the syntactic shape of a declaration (type, identifier, `=`, expression, `;`), so it matches the grammar. Parsing checks **syntax only**; assigning a String to an int is caught by type checking, a later compiler phase."
-  },
-  {
-   "type": "mc",
-   "category": "Grammars, parsers & compilers",
-   "topic": "Lexer vs parser grammars",
-   "q": "In the Java Language Specification, the **lexical** grammar groups characters into tokens and the **syntactic** grammar arranges tokens into programs. Which language classes / machines fit each?",
-   "choices": [
-    "Lexical: regular (finite automata); syntactic: context-free (pushdown automata)",
-    "Lexical: context-free; syntactic: regular",
-    "Both are regular",
-    "Both require Turing machines"
-   ],
-   "answer": 0,
-   "explain": "Token patterns (identifiers, literals, keywords) are regular expressions, recognizable by finite automata. Nested structures like `if ( Expression ) Statement` need context-free grammars, recognized by pushdown automata."
-  },
-  {
-   "type": "tf",
-   "category": "Grammars, parsers & compilers",
-   "topic": "Learning from a grammar",
-   "q": "Because the Java grammar is a complete definition of the language, reading it is a good way to learn how to program in Java.",
-   "answer": false,
-   "explain": "The grammar says exactly *what is legal*, not *what it means* or *how to use it well*. The instructor stressed you would not learn Java from those five pages, even though they completely define its syntax."
-  },
-  {
-   "type": "mc",
-   "category": "Turing machines & computability",
-   "topic": "Laptop as a TM",
-   "q": "Is your laptop a Turing machine?",
-   "choices": [
-    "Only under the idealization that memory is unlimited (more storage can always be added); strictly, it is a huge finite machine",
-    "Yes, unconditionally, because it runs any program",
-    "No, it is only a pushdown automaton",
-    "No, because it is digital and Turing machines are analog"
-   ],
-   "answer": 0,
-   "explain": "With fixed memory a laptop has finitely many configurations (e.g. 16 GB → at most 2^(2^37)), so strictly it is a finite automaton. We model it as a Turing machine by assuming memory is unbounded — 'you can always add another disk'."
-  },
-  {
-   "type": "mc",
-   "category": "Turing machines & computability",
-   "topic": "Unbounded vs infinite",
-   "q": "Why is it reasonable to model a computer as a Turing machine even though no computer has infinite memory?",
-   "choices": [
-    "A TM only needs *unbounded* memory: at any moment it has used finitely many cells but can always get another",
-    "Real computers secretly have infinite memory via virtual memory",
-    "Turing machines have a fixed-size tape too",
-    "Because RAM is random access, like a tape"
-   ],
-   "answer": 0,
-   "explain": "A Turing machine's tape has no fixed limit, but any run uses only finitely many cells at each step. 'Just add another disk' plays exactly that role, and the finite-automaton view of a real computer is useless in practice."
-  },
-  {
-   "type": "multi",
-   "category": "Turing machines & computability",
-   "topic": "TM components",
-   "q": "Which are parts of a Turing machine?",
-   "choices": [
-    "A finite set of states (finite control)",
-    "An unbounded tape of cells",
-    "A read/write head that moves one cell left or right per step",
-    "A finite table of rules",
-    "An infinite set of states"
-   ],
-   "answer": [
-    0,
-    1,
-    2,
-    3
-   ],
-   "explain": "A TM has a *finite* control like a DFA, plus an unbounded tape as memory, and a head that reads, writes, moves and changes state according to a finite rule table. The states are finite; only the tape is unbounded."
-  },
-  {
-   "type": "mc",
-   "category": "Turing machines & computability",
-   "topic": "Church–Turing status",
-   "q": "Why is the Church–Turing thesis called a *thesis* rather than a theorem?",
-   "choices": [
-    "It equates an informal idea (effectively computable) with a formal one (Turing-computable), so it cannot be proved",
-    "It has been disproved by quantum computers",
-    "It is an open problem with a $1M prize",
-    "It is only true for finite automata"
-   ],
-   "answer": 0,
-   "explain": "You cannot formally prove that an informal notion equals a formal definition. The evidence is empirical: every model proposed (lambda calculus, recursive functions, register machines, programming languages) computes exactly the same functions."
-  },
-  {
-   "type": "mc",
-   "category": "Turing machines & computability",
-   "topic": "Millennium prize",
-   "q": "Which of the following is actually one of the Clay Millennium Prize Problems ($1M)?",
-   "choices": [
-    "P vs NP",
-    "The Church–Turing thesis",
-    "Whether quantum computers beat Turing machines",
-    "The Traveling Salesman Problem's decidability"
-   ],
-   "answer": 0,
-   "explain": "The lecture attributed the prize to proving the Church–Turing thesis, but the lesson corrects this: the $1M problem is **P vs NP**, a question of *efficiency*, not computability. For exams, file the prize under P vs NP."
-  },
-  {
-   "type": "tf",
-   "category": "Turing machines & computability",
-   "topic": "More powerful models",
-   "q": "It has been proven that no model of computation more powerful than the Turing machine can exist.",
-   "answer": false,
-   "explain": "No one has found a more powerful model, and every reasonable proposed model is equivalent, but nobody has *proved* nothing stronger exists. That belief is the (unprovable) Church–Turing thesis."
-  },
-  {
-   "type": "tf",
-   "category": "Complexity, TSP & quantum",
-   "topic": "Quantum power",
-   "q": "A quantum computer can solve some problems that no Turing machine can solve.",
-   "answer": false,
-   "explain": "Any quantum computation can be simulated classically (possibly exponentially slower), so quantum computers compute exactly the Turing-computable functions. 'More powerful' can only mean *faster* on some problems (BQP), never a larger set of solvable problems."
-  },
-  {
-   "type": "mc",
-   "category": "Complexity, TSP & quantum",
-   "topic": "Computable vs tractable",
-   "q": "The Traveling Salesman Problem is described as **computable but intractable**. What does that mean?",
-   "choices": [
-    "An algorithm always finds the answer, but its running time explodes for large inputs (no polynomial algorithm known)",
-    "No algorithm can ever solve it",
-    "It can be solved quickly but not checked",
-    "It is only solvable on quantum computers"
-   ],
-   "answer": 0,
-   "explain": "Brute force ('try every tour') always terminates with the correct answer, so TSP is computable (decidable). But the number of tours grows factorially, so large instances could take thousands to millions of years — intractable."
-  },
-  {
-   "type": "num",
-   "category": "Complexity, TSP & quantum",
-   "topic": "TSP brute-force count",
-   "q": "For a TSP with **7** cities, how many distinct round trips must brute force check, using (n − 1)!/2?",
-   "answer": 360,
-   "explain": "(7 − 1)!/2 = 720/2 = **360**. Fix the start city, order the remaining 6 (6! = 720), then divide by 2 because each loop can be traveled in either direction."
-  },
-  {
-   "type": "mc",
-   "category": "Complexity, TSP & quantum",
-   "topic": "Why divide by 2",
-   "q": "In the TSP tour count (n − 1)!/2, why is (n − 1)! divided by 2?",
-   "choices": [
-    "Each round trip can be traveled in two directions and counts as the same tour",
-    "Half the tours are invalid",
-    "Only half the cities are visited",
-    "Because the start city is fixed"
-   ],
-   "answer": 0,
-   "explain": "Fixing the start city gives (n − 1)! orderings of the rest; each tour and its reverse have the same length, so they are one tour, halving the count."
-  },
-  {
-   "type": "multi",
-   "category": "Complexity, TSP & quantum",
-   "topic": "Two kinds of question",
-   "q": "Which pairings of question and area are correct?",
-   "choices": [
-    "Church–Turing thesis — computability (what can be computed at all)",
-    "P vs NP — complexity (what can be computed efficiently)",
-    "Quantum computers' possible advantage — complexity (speed)",
-    "TSP being hard — computability (it cannot be solved)"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "Computability asks whether a problem can be solved at all; complexity asks how fast. Quantum computers and TSP both live on the complexity side: TSP *is* solvable, just slowly; quantum computers may be faster but solve nothing new."
-  },
-  {
-   "type": "mc",
-   "category": "Complexity, TSP & quantum",
-   "topic": "TSP and P vs NP",
-   "q": "How is the TSP tied to the P vs NP question?",
-   "choices": [
-    "Its decision version ('is there a tour shorter than x?') is NP-complete, so a polynomial-time algorithm for it would resolve P vs NP",
-    "It was proven to be undecidable",
-    "It is in P, so P = NP",
-    "Quantum computers solve it in polynomial time, proving P ≠ NP"
-   ],
-   "answer": 0,
-   "explain": "NP-complete problems are the hardest in NP; a polynomial algorithm for any one would give one for all, showing P = NP. Even quantum algorithms (Grover-style) give only a quadratic speedup on TSP-like search."
-  },
-  {
-   "type": "mc",
-   "category": "DFA modeling & determinism",
-   "topic": "Determinism rule",
-   "q": "What makes a finite automaton **deterministic**?",
-   "choices": [
-    "Every state has exactly one outgoing transition for every input symbol",
-    "It has exactly one final state",
-    "It has no self-loops",
-    "Every state has at least one outgoing transition"
-   ],
-   "answer": 0,
-   "explain": "Deterministic means from any state, for any symbol, the next state is fully determined: exactly one arrow per symbol from every state. Formally, δ : Q × Σ → Q is a *total* function. Self-loops and multiple final states are allowed."
-  },
-  {
-   "type": "num",
-   "category": "DFA modeling & determinism",
-   "topic": "Transition count",
-   "q": "A DFA has 7 states and alphabet {a, b, c}. How many transitions must it have?",
-   "answer": 21,
-   "explain": "A DFA needs exactly one transition for each (state, symbol) pair: |Q| × |Σ| = 7 × 3 = **21**. The vending machine has 5 × 2 = 10."
-  },
-  {
-   "type": "num",
-   "category": "DFA modeling & determinism",
-   "topic": "Missing arrows",
-   "q": "A partly drawn vending machine has these outgoing arrows: $0.00 (Q, H), $0.25 (Q, H), $0.50 (Q, H), $0.75 (Q only), $1.00+ (none). How many arrows are missing before it is a DFA?",
-   "answer": 3,
-   "explain": "Each of the 5 states needs 2 arrows (10 total); 7 are present. Missing: $0.75 —H→ $1.00+, $1.00+ —Q→ $0.25, $1.00+ —H→ $0.50. That was exactly the class's half-built state."
-  },
-  {
-   "type": "mc",
-   "category": "DFA modeling & determinism",
-   "topic": "Initial state not final",
-   "q": "Why is $0.00 (the initial state) **not** made the final state of the vending machine?",
-   "choices": [
-    "Plugging the machine in would already put it in the 'bottle dispensed' state — free water; formally λ would be accepted",
-    "A DFA may not have its initial state final",
-    "The machine would become nondeterministic",
-    "JFLAP cannot mark an initial state as final"
-   ],
-   "answer": 0,
-   "explain": "The initial state is where the machine sits on plug-in. If it were final, no coins at all would count as a purchase (unplug/replug for endless water). Formally, the empty string λ would be accepted. DFAs *may* make q₀ final in general — it's just wrong for this design."
-  },
-  {
-   "type": "mc",
-   "category": "DFA modeling & determinism",
-   "topic": "Modeling the reset",
-   "q": "How does the vending-machine DFA model 'the next coin starts a new count from zero' without returning to $0.00?",
-   "choices": [
-    "$1.00+ is given the same outgoing transitions as $0.00: Q → $0.25 and H → $0.50",
-    "$1.00+ has a λ-transition back to $0.00",
-    "$1.00+ has self-loops on Q and H",
-    "The machine automatically resets after reaching a final state"
-   ],
-   "answer": 0,
-   "explain": "Copying $0.00's outgoing arrows makes $1.00+ behave as if the count were zero, while never re-entering the initial state. DFAs have no λ-moves and no automatic resets — they move only when reading a symbol."
-  },
-  {
-   "type": "mc",
-   "category": "DFA modeling & determinism",
-   "topic": "$1.25 overshoot",
-   "q": "In the vending machine, where does $0.75 go on input **H** (total $1.25)?",
-   "choices": [
-    "$1.00+ (no change given, and '$1 or more' is enough)",
-    "A new $1.25 state",
-    "Back to $0.25 to give change",
-    "$0.75 (self-loop)"
-   ],
-   "answer": 0,
-   "explain": "The machine gives no change and only needs the total to reach or exceed $1, so both Q and H from $0.75 go to $1.00+. JFLAP draws these two transitions as one arrow labeled Q, H."
-  },
-  {
-   "type": "tf",
-   "category": "DFA modeling & determinism",
-   "topic": "Transitions consume input",
-   "q": "After entering the final state $1.00+, the DFA automatically moves back to the initial state without reading any input.",
-   "answer": false,
-   "explain": "A DFA moves only when it reads an input symbol, and each move consumes the symbol (the coin is 'eaten'). There are no free moves; λ-transitions appear only later, in NFAs. The machine stays in $1.00+ until the next coin."
-  },
-  {
-   "type": "multi",
-   "category": "DFA modeling & determinism",
-   "topic": "DFA 5-tuple",
-   "q": "For the vending machine as M = (Q, Σ, δ, q₀, F), which are correct?",
-   "choices": [
-    "|Q| = 5",
-    "Σ = {Q, H}",
-    "q₀ = $0.00",
-    "F = {$1.00+}",
-    "F = {$0.00, $1.00+}",
-    "δ($0.25, H) = $0.50"
-   ],
-   "answer": [
-    0,
-    1,
-    2,
-    3
-   ],
-   "explain": "Q = {$0.00, $0.25, $0.50, $0.75, $1.00+}, Σ = {Q, H}, q₀ = $0.00, F = {$1.00+}. δ($0.25, H) = $0.75 (25¢ + 50¢), not $0.50; that would be δ($0.25, Q)."
-  },
-  {
-   "type": "num",
-   "category": "DFA modeling & determinism",
-   "topic": "$1.25 bottle redesign",
-   "q": "You redesign the machine for a **$1.25** bottle (same coins, no change, reset after each bottle), with states $0.00, $0.25, $0.50, $0.75, $1.00, $1.25+. How many transitions does the DFA have?",
-   "answer": 12,
-   "explain": "6 states × 2 symbols = **12**. The new $1.00 state goes to $1.25+ on both Q and H ($1.50 with no change), $0.75 —H→ $1.25+, and $1.25+ copies $0.00's arrows (Q → $0.25, H → $0.50)."
-  },
-  {
-   "type": "tf",
-   "category": "DFA modeling & determinism",
-   "topic": "More states than needed",
-   "q": "A DFA with more states than necessary for its language is incorrect.",
-   "answer": false,
-   "explain": "For the same requirements, many correct machines exist, and you can always use more states than needed. Such a design is correct, just not the smallest. (There is a unique minimal DFA up to renaming; the 5-state vending machine already is minimal.)"
-  },
-  {
-   "type": "mc",
-   "category": "DFA modeling & determinism",
-   "topic": "JFLAP arrow counting",
-   "q": "In JFLAP, $0.75 has transitions on both Q and H to $1.00+. How is this drawn, and how should you count it when checking determinism?",
-   "choices": [
-    "One arrow with stacked labels Q and H; count the labels (2 transitions)",
-    "Two separate arrows; count arrows",
-    "One arrow; it counts as 1 transition",
-    "JFLAP refuses to draw two transitions between the same states"
-   ],
-   "answer": 0,
-   "explain": "JFLAP merges transitions between the same pair of states into one arrow with stacked labels. When verifying 'one per symbol per state', count labels, not arrows."
-  },
-  {
-   "type": "mc",
-   "category": "Running a DFA & its language",
-   "topic": "Trace QHQH",
-   "q": "Trace the vending machine on `QHQH`. Where does it end, and is the string accepted?",
-   "choices": [
-    "Ends at $0.50; rejected (1 bottle dispensed along the way)",
-    "Ends at $1.00+; accepted",
-    "Ends at $0.75; rejected",
-    "Ends at $0.50; accepted because a bottle was dispensed"
-   ],
-   "answer": 0,
-   "explain": "$0.00 →Q $0.25 →H $0.75 →Q $1.00+ (bottle) →H $0.50. Acceptance depends only on where the machine is after the **last** symbol, so it is rejected even though a bottle came out."
-  },
-  {
-   "type": "mc",
-   "category": "Running a DFA & its language",
-   "topic": "Acceptance rule",
-   "q": "When does a DFA accept a string?",
-   "choices": [
-    "When it is in a final state after reading the last symbol",
-    "Whenever it passes through a final state",
-    "When it reads every symbol without getting stuck",
-    "When it returns to the initial state"
-   ],
-   "answer": 0,
-   "explain": "Start in q₀, follow δ for each symbol, and accept iff the state after the *last* symbol is in F. Passing through a final state mid-string (e.g. `HHQ`) does not make the string accepted."
-  },
-  {
-   "type": "multi",
-   "category": "Running a DFA & its language",
-   "topic": "Accepted strings",
-   "q": "Which strings does the vending-machine DFA accept?",
-   "choices": [
-    "`HQH`",
-    "`QQQQ`",
-    "`HHHH`",
-    "`QQQ`",
-    "`HHQ`",
-    "λ"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "`HQH`: $0.50 → $0.75 → $1.00+ (paid $1.25). `QQQQ`: ends at $1.00+. `HHHH`: two purchases in a row, ends at $1.00+. `QQQ` ends at $0.75, `HHQ` at $0.25 (a new purchase started), and λ stays at $0.00 (not final)."
-  },
-  {
-   "type": "num",
-   "category": "Running a DFA & its language",
-   "topic": "Length-3 count",
-   "q": "How many strings of length 3 over {Q, H} does the vending-machine DFA accept?",
-   "answer": 5,
-   "explain": "`QQH`, `QHQ`, `HQQ` (exactly $1.00) and `QHH`, `HQH` ($1.25) end in $1.00+. `QQQ` ends at $0.75, `HHQ` at $0.25, `HHH` at $0.50 — a bottle came out after `HH` but the run ends mid-purchase."
-  },
-  {
-   "type": "mc",
-   "category": "Running a DFA & its language",
-   "topic": "Bottles vs acceptance",
-   "q": "On input `QQQQQ`, how many bottles are dispensed, and is the string accepted?",
-   "choices": [
-    "1 bottle; rejected (ends at $0.25)",
-    "1 bottle; accepted",
-    "0 bottles; rejected",
-    "2 bottles; accepted"
-   ],
-   "answer": 0,
-   "explain": "$0.00 → $0.25 → $0.50 → $0.75 → $1.00+ (bottle 1) → $0.25. Bottles = number of times the run *enters* $1.00+; acceptance only checks the final state."
-  },
-  {
-   "type": "mc",
-   "category": "Running a DFA & its language",
-   "topic": "Language description",
-   "q": "Which best describes L(M), the language of the vending-machine DFA?",
-   "choices": [
-    "Coin sequences made of one or more complete purchases in a row — i.e. whose last coin completes a purchase",
-    "All coin sequences totaling at least $1",
-    "All coin sequences totaling exactly $1",
-    "Coin sequences containing at least one purchase anywhere"
-   ],
-   "answer": 0,
-   "explain": "Because $1.00+ behaves like $0.00 for the next coin, L(M) = P P\\* where P is the set of 8 purchases (QQQQ, QQH, QHQ, HQQ, HH, QQQH, QHH, HQH). `HHQ` totals $1.25 but is rejected, ruling out the 'at least $1' options."
-  },
-  {
-   "type": "num",
-   "category": "Running a DFA & its language",
-   "topic": "Number of purchases",
-   "q": "A **purchase** is a coin sequence whose running total first reaches $1 or more on its last coin. How many distinct purchases are there with quarters and half dollars?",
-   "answer": 8,
-   "explain": "Exactly $1.00: QQQQ, QQH, QHQ, HQQ, HH (5). Overshoot to $1.25 on a final half dollar: QQQH, QHH, HQH (3). Total **8**."
-  },
-  {
-   "type": "text",
-   "category": "Running a DFA & its language",
-   "topic": "Length-2 acceptance",
-   "q": "Which single string of length 2 does the vending-machine DFA accept? (Use Q and H.)",
-   "answer": [
-    "HH"
-   ],
-   "explain": "Only two half dollars reach $1.00 in two coins: $0.00 →H $0.50 →H $1.00+. Any string with a Q in it totals at most $0.75."
-  }
- ]
+  "title": "CSC3710 2026-08-20: Languages, Machines, and a Vending-Machine DFA",
+  "course": "CSC3710",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Languages, grammars, and parsers",
+      "topic": "Grammar",
+      "q": "In this course's sense, what is a grammar?",
+      "choices": [
+        "A list of every valid sentence in the language, written out one by one",
+        "A concise, exact description of what is in a language",
+        "A program that translates source code into machine code",
+        "A beginner's tutorial for learning a language"
+      ],
+      "answer": 1,
+      "explain": "A grammar is a concise, exact description of what is in a language. Think of English grammar, but precise."
+    },
+    {
+      "type": "tf",
+      "category": "Languages, grammars, and parsers",
+      "topic": "Language",
+      "q": "Using the lecture's example, 'dogs like I' is a sentence in the English language.",
+      "answer": false,
+      "explain": "'I like dogs' is in the English language. 'Dogs like I' is not. A language is the set of things that are in it, and this string isn't."
+    },
+    {
+      "type": "mc",
+      "category": "Languages, grammars, and parsers",
+      "topic": "Parser",
+      "q": "What job does a parser do?",
+      "choices": [
+        "It runs the program and reports its output",
+        "It translates a valid program into machine code",
+        "It takes a file and decides whether it belongs to the language, e.g. whether it is a valid Java program",
+        "It writes a grammar by studying example programs"
+      ],
+      "answer": 2,
+      "explain": "The parser checks membership in the language ('yes, this is Java'). Translating to machine code is the compiler's job, and that comes after the parser."
+    },
+    {
+      "type": "mc",
+      "category": "Languages, grammars, and parsers",
+      "topic": "Parser",
+      "q": "A parser for a programming language is built on the basis of what?",
+      "choices": [
+        "The compiler's output",
+        "The computer's hardware",
+        "A collection of sample programs",
+        "The language's grammar"
+      ],
+      "answer": 3,
+      "explain": "Parsers are created from the grammar. That is the main real-world reason grammars matter."
+    },
+    {
+      "type": "mc",
+      "category": "Languages, grammars, and parsers",
+      "topic": "Parser",
+      "q": "In the pipeline described in lecture, what happens to a source file once the parser confirms it is a valid Java program?",
+      "choices": [
+        "It is rewritten as a grammar",
+        "It is discarded, because checking was the only goal",
+        "It is passed on to the compiler",
+        "It is handed to a Turing machine to be proven correct"
+      ],
+      "answer": 2,
+      "explain": "source file -> parser (is this valid Java?) -> if yes -> compiler."
+    },
+    {
+      "type": "tf",
+      "category": "Languages, grammars, and parsers",
+      "topic": "Grammar",
+      "q": "The grammar of a programming language defines it exactly, so you could learn to program in that language just by reading its grammar rules.",
+      "answer": false,
+      "explain": "The grammar rules define the language concisely and exactly, but you wouldn't learn the language from them."
+    },
+    {
+      "type": "tf",
+      "category": "Languages, grammars, and parsers",
+      "topic": "Grammar",
+      "q": "A full programming language like Java is complex, so its grammar must be enormous, hundreds of pages long.",
+      "answer": false,
+      "explain": "The Java grammar fits in about 5 pages. Grammars are very short and exact even for complex languages, and that concise kind of description is what this course cares about."
+    },
+    {
+      "type": "multi",
+      "category": "Languages, grammars, and parsers",
+      "topic": "Languages and grammars",
+      "q": "Which statements about languages, grammars, and parsers match the lecture?",
+      "choices": [
+        "A language can be thought of as the set of things that are 'in' it",
+        "A given file either is or is not a valid program in a given language",
+        "Parsers are built from grammars",
+        "A grammar's main purpose is to make programs run faster",
+        "The compiler decides whether a file is in the language before the parser ever sees it"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A language is a set, and a file is either in it or not. Parsers are built from grammars. The parser does the membership check before the compiler, not after."
+    },
+    {
+      "type": "mc",
+      "category": "Machines and computability",
+      "topic": "Turing machines",
+      "q": "Under what assumption is an ordinary digital computer considered a Turing machine?",
+      "choices": [
+        "That it has a quantum processor",
+        "That it runs only one program at a time",
+        "That its memory is unlimited",
+        "That it never makes arithmetic errors"
+      ],
+      "answer": 2,
+      "explain": "Real memory is finite, but we assume we can always add more. With unlimited memory, a digital computer is a Turing machine."
+    },
+    {
+      "type": "tf",
+      "category": "Machines and computability",
+      "topic": "Turing machines",
+      "q": "When a computer is treated as a Turing machine, the extra memory we assume it can always get has to be random-access memory (RAM).",
+      "answer": false,
+      "explain": "It doesn't have to be random access. You can just keep adding more disks."
+    },
+    {
+      "type": "tf",
+      "category": "Machines and computability",
+      "topic": "Turing machines",
+      "q": "It has been proven that no kind of machine more powerful than a Turing machine can exist.",
+      "answer": false,
+      "explain": "Nobody has come up with a more powerful kind of machine, but that doesn't prove one can't exist."
+    },
+    {
+      "type": "mc",
+      "category": "Machines and computability",
+      "topic": "Quantum computers",
+      "q": "According to the lecture, how do quantum computers compare with Turing machines?",
+      "choices": [
+        "They can solve problems that no Turing machine can solve",
+        "They may do some things faster, but they cannot solve any problem a Turing machine can't",
+        "They are strictly weaker than Turing machines",
+        "They are not models of computation at all"
+      ],
+      "answer": 1,
+      "explain": "Quantum computers are also Turing machines in this sense. They may be faster at some things, but they solve no problem an ordinary machine couldn't."
+    },
+    {
+      "type": "tf",
+      "category": "Machines and computability",
+      "topic": "Solvable vs. fast",
+      "q": "A traveling salesman problem with a huge number of points, which would take a normal computer thousands of years, still counts as solvable by that computer.",
+      "answer": true,
+      "explain": "We know the computer will eventually produce the answer. Being slow in practice doesn't make it unsolvable."
+    },
+    {
+      "type": "mc",
+      "category": "Machines and computability",
+      "topic": "Solvable vs. fast",
+      "q": "What distinction does the traveling salesman example illustrate?",
+      "choices": [
+        "Deterministic vs. nondeterministic machines",
+        "Grammars vs. parsers",
+        "Finite memory vs. unlimited memory",
+        "A problem being solvable vs. being solvable quickly"
+      ],
+      "answer": 3,
+      "explain": "It may take thousands of years, but it will finish. 'Can solve' is a different question from 'can solve quickly.'"
+    },
+    {
+      "type": "multi",
+      "category": "Machines and computability",
+      "topic": "Turing machines",
+      "q": "Which statements are consistent with the lecture?",
+      "choices": [
+        "Nobody has come up with a kind of machine more powerful than the Turing machine",
+        "Quantum computers are a more powerful kind of machine than Turing machines, because they can solve more problems",
+        "A problem that would take thousands of years to solve is unsolvable",
+        "The fact that no more powerful machine has been found does not prove that none exists",
+        "Real computers literally have unlimited memory"
+      ],
+      "answer": [0, 3],
+      "explain": "No more powerful machine is known, but that is not a proof one can't exist. Quantum computers solve no extra problems. Slow is not the same as unsolvable. Unlimited memory is an assumption, not a fact about real computers."
+    },
+    {
+      "type": "mc",
+      "category": "DFA building blocks",
+      "topic": "State",
+      "q": "In the vending-machine model, what does a state represent?",
+      "choices": [
+        "A single coin",
+        "The price of a bottle",
+        "How much money has been deposited so far, which is the machine's only memory",
+        "A message the machine displays to the customer"
+      ],
+      "answer": 2,
+      "explain": "A state is what the machine remembers. Here that is the amount deposited so far, e.g. '$0.25 deposited.'"
+    },
+    {
+      "type": "mc",
+      "category": "DFA building blocks",
+      "topic": "Initial state",
+      "q": "What is the initial state of the vending machine?",
+      "choices": [
+        "The state in which a bottle is released",
+        "The state the machine is in when it is plugged in, remembering nothing ($0.00 deposited)",
+        "Any state that has a self-loop",
+        "The state with the most incoming arrows"
+      ],
+      "answer": 1,
+      "explain": "When you plug the machine in, it starts fresh in the initial state, $0.00 deposited."
+    },
+    {
+      "type": "mc",
+      "category": "DFA building blocks",
+      "topic": "Deterministic",
+      "q": "As the instructor described it, what does it mean for the machine to be deterministic?",
+      "choices": [
+        "There is exactly one final state",
+        "Every state has at least one incoming arrow",
+        "The machine always ends in the final state",
+        "Every state has exactly one outgoing arrow for each input"
+      ],
+      "answer": 3,
+      "explain": "Deterministic means every state has one arrow for every input. With inputs Q and H, every state needs exactly two outgoing arrows."
+    },
+    {
+      "type": "num",
+      "category": "DFA building blocks",
+      "topic": "Deterministic",
+      "q": "A DFA has 5 states and 2 input symbols. How many transitions (arrows) must it have in total?",
+      "answer": 10,
+      "explain": "Every state needs one transition per input: 5 x 2 = 10."
+    },
+    {
+      "type": "num",
+      "category": "DFA building blocks",
+      "topic": "Deterministic",
+      "q": "A DFA has 7 states and an input alphabet of 3 symbols. How many transitions must it have in total?",
+      "answer": 21,
+      "explain": "(number of states) x (number of inputs) = 7 x 3 = 21."
+    },
+    {
+      "type": "tf",
+      "category": "DFA building blocks",
+      "topic": "Self-loop",
+      "q": "A transition is allowed to go from a state back to that same state.",
+      "answer": true,
+      "explain": "An input can leave the machine in the same state. You draw that as an arrow from the state back to itself, called a self-loop. The vending machine doesn't need any, but they are allowed."
+    },
+    {
+      "type": "tf",
+      "category": "DFA building blocks",
+      "topic": "State",
+      "q": "The machine reads its state labels, like '$0.25 deposited', to decide where to go next.",
+      "answer": false,
+      "explain": "State names are only there for us humans. The machine follows the arrows."
+    },
+    {
+      "type": "tf",
+      "category": "DFA building blocks",
+      "topic": "Transition",
+      "q": "A finite automaton can move from one state to another on its own, without reading any input.",
+      "answer": false,
+      "explain": "To move from one state to another, the machine needs an input, here a quarter or a half dollar. There are no free moves."
+    },
+    {
+      "type": "num",
+      "category": "DFA building blocks",
+      "topic": "Transition",
+      "q": "A state diagram has one arrow from state $0.75 to state $1.00+ with both Q and H stacked as labels. How many transitions does that single arrow represent?",
+      "answer": 2,
+      "explain": "When two transitions join the same pair of states, they get drawn as one arrow with both labels. It is still two transitions, one for Q and one for H."
+    },
+    {
+      "type": "tf",
+      "category": "DFA building blocks",
+      "topic": "Deterministic",
+      "q": "In a deterministic machine, a state may have two outgoing arrows with the same input label that go to different states.",
+      "answer": false,
+      "explain": "Deterministic means exactly one arrow per input from each state, so the next state is never ambiguous."
+    },
+    {
+      "type": "mc",
+      "category": "DFA building blocks",
+      "topic": "Final state",
+      "q": "In the vending-machine model, what does the final state (double circle) mean?",
+      "choices": [
+        "The machine shuts off",
+        "The bottle of water is released",
+        "The machine gives change",
+        "The machine rejects the last coin"
+      ],
+      "answer": 1,
+      "explain": "The final state, '$1.00 or more', marks where the bottle is released. It does not mean the machine stops."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine design",
+      "topic": "Inputs",
+      "q": "Which inputs does the vending machine understand?",
+      "choices": [
+        "Quarters, half dollars, and dollar coins",
+        "Any coin worth at least 25 cents",
+        "Dimes, quarters, and half dollars",
+        "Quarters and half dollars only"
+      ],
+      "answer": 3,
+      "explain": "The spec says the machine accepts only quarters and half dollars. Anything else, like a dollar coin, is outside the model."
+    },
+    {
+      "type": "num",
+      "category": "Vending machine design",
+      "topic": "States",
+      "q": "How many states does the vending-machine DFA built in class have?",
+      "answer": 5,
+      "explain": "$0.00, $0.25, $0.50, $0.75, and '$1.00 or more'."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine design",
+      "topic": "Final state",
+      "q": "Why does the design use a separate '$1.00 or more' state instead of making $0.00 the final state and sending the $1 arrows back to it?",
+      "choices": [
+        "A state can never be both initial and final",
+        "If the initial state were also final, plugging the machine in would release a bottle",
+        "A DFA may have only one state with incoming arrows",
+        "$0.00 already has too many outgoing arrows"
+      ],
+      "answer": 1,
+      "explain": "The machine starts in the initial state, and the final state means 'bottle released.' If $0.00 were both, you'd get a bottle just by plugging the machine in. So the release state has to be one you can reach only by inserting money."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine design",
+      "topic": "Final state",
+      "q": "From the '$1.00 or more' state, where does a quarter take the machine?",
+      "choices": [
+        "$0.00",
+        "$0.25",
+        "'$1.00 or more' (a self-loop)",
+        "$0.50"
+      ],
+      "answer": 1,
+      "explain": "The next coin starts a new count from zero, so a quarter means $0.25 has been deposited toward the next bottle."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine design",
+      "topic": "Final state",
+      "q": "Suppose the final state's quarter arrow went to $0.00 instead. What would go wrong?",
+      "choices": [
+        "The machine would no longer be deterministic",
+        "The customer's next quarter would be eaten, taken without giving any credit",
+        "The machine would release two bottles at once",
+        "The machine would start giving change"
+      ],
+      "answer": 1,
+      "explain": "Following an arrow uses up the coin. Going to $0.00 means the quarter was taken and nothing was credited. (The machine would still be deterministic, since each state would still have one arrow per input.)"
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine design",
+      "topic": "Transitions",
+      "q": "The machine is in state $0.75 and a customer inserts a half dollar. Where does it go?",
+      "choices": [
+        "A new $1.25 state",
+        "$0.25, after giving back a quarter in change",
+        "'$1.00 or more'",
+        "It stays in $0.75 because the coin is too much"
+      ],
+      "answer": 2,
+      "explain": "$1.25 reaches or exceeds $1, and the machine gives no change, so it lands in '$1.00 or more' and releases the bottle."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine design",
+      "topic": "Transitions",
+      "q": "The machine is in state $0.25 and a customer inserts a half dollar. Where does it go?",
+      "choices": [
+        "$0.50",
+        "$0.75",
+        "'$1.00 or more'",
+        "$0.25 (a self-loop)"
+      ],
+      "answer": 1,
+      "explain": "$0.25 + $0.50 = $0.75."
+    },
+    {
+      "type": "tf",
+      "category": "Vending machine design",
+      "topic": "States",
+      "q": "The design needs a separate '$1.25' state for when a customer overpays.",
+      "answer": false,
+      "explain": "The spec says 'reaches or exceeds $1.' With no change given, $1.00 and $1.25 behave exactly the same, so they share one state."
+    },
+    {
+      "type": "tf",
+      "category": "Vending machine design",
+      "topic": "Final state",
+      "q": "If a customer puts in exactly two half dollars, the machine gets stuck in the final state and can't be used again.",
+      "answer": false,
+      "explain": "The bottle is released and the machine sits in '$1.00 or more.' The next coin moves it to $0.25 or $0.50 and starts a new purchase. Being in the final state doesn't mean the machine has stopped."
+    },
+    {
+      "type": "tf",
+      "category": "Vending machine design",
+      "topic": "Design choices",
+      "q": "The 5-state diagram built in class is the only correct DFA for this vending machine.",
+      "answer": false,
+      "explain": "Many designs are valid. You can always model the same behavior with more states than you need. A correct machine just has to behave right and be deterministic."
+    },
+    {
+      "type": "multi",
+      "category": "Vending machine design",
+      "topic": "Common mistakes",
+      "q": "Which of these changes would make the vending-machine design wrong?",
+      "choices": [
+        "Making $0.00 both the initial and the final state",
+        "Sending the final state's quarter arrow back to $0.00",
+        "Giving $0.75 an arrow for Q but none for H",
+        "Using short state labels so they fit inside the circles",
+        "Adding transitions for dimes"
+      ],
+      "answer": [0, 1, 2, 4],
+      "explain": "Initial-and-final releases a bottle on plug-in. An arrow back to $0.00 eats the next coin. A missing arrow breaks determinism. Dimes aren't an input this machine accepts. Short labels are fine, since the labels are only for humans."
+    },
+    {
+      "type": "num",
+      "category": "Vending machine design",
+      "topic": "Redesign",
+      "q": "Redesign the machine for a bottle that costs $0.75, with the same coins (quarters and half dollars) and still no change. What is the fewest number of states you need?",
+      "answer": 4,
+      "explain": "$0.00 (initial), $0.25, $0.50, and '$0.75 or more' (final)."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine design",
+      "topic": "Redesign",
+      "q": "In that $0.75-bottle redesign, where does the $0.50 state go on a quarter?",
+      "choices": [
+        "$0.25",
+        "$0.00",
+        "'$0.75 or more' (final)",
+        "$0.50 (a self-loop)"
+      ],
+      "answer": 2,
+      "explain": "$0.50 + $0.25 = $0.75, which reaches the price, so the machine moves to the final state and releases a bottle."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing coin sequences",
+      "topic": "Traces",
+      "q": "Starting from $0.00, the coins Q H H Q are inserted. Which state does the machine end in, and how many bottles come out?",
+      "choices": [
+        "'$1.00 or more'; 1 bottle",
+        "$0.25; 1 bottle",
+        "$0.00; 1 bottle",
+        "$0.25; 2 bottles"
+      ],
+      "answer": 1,
+      "explain": "$0.00 -Q-> $0.25 -H-> $0.75 -H-> $1.00+ (bottle) -Q-> $0.25."
+    },
+    {
+      "type": "num",
+      "category": "Tracing coin sequences",
+      "topic": "Traces",
+      "q": "Starting from $0.00, the coins H H H H are inserted. How many bottles come out?",
+      "answer": 2,
+      "explain": "$0.00 -> $0.50 -> $1.00+ (bottle) -> $0.50 -> $1.00+ (bottle)."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing coin sequences",
+      "topic": "Traces",
+      "q": "Starting from $0.00, which coin sequence leaves the machine in the final state?",
+      "choices": [
+        "H H Q",
+        "Q H Q H",
+        "Q Q H",
+        "Q H"
+      ],
+      "answer": 2,
+      "explain": "Q Q H: $0.00 -> $0.25 -> $0.50 -> $1.00+. H H Q ends in $0.25, Q H Q H ends in $0.50, and Q H ends in $0.75."
+    },
+    {
+      "type": "num",
+      "category": "Tracing coin sequences",
+      "topic": "No change",
+      "q": "Starting from $0.00, a customer inserts Q H H and gets one bottle. How much did they pay in total, in dollars?",
+      "answer": 1.25,
+      "tolerance": 0.001,
+      "explain": "$0.25 + $0.50 + $0.50 = $1.25. The last half dollar takes $0.75 to '$1.00 or more,' and the machine gives no change."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing coin sequences",
+      "topic": "Traces",
+      "q": "Starting from $0.00, the coins H Q H Q H are inserted. Which state does the machine end in?",
+      "choices": [
+        "$0.75",
+        "'$1.00 or more'",
+        "$0.25",
+        "$0.50"
+      ],
+      "answer": 0,
+      "explain": "$0.00 -H-> $0.50 -Q-> $0.75 -H-> $1.00+ (bottle) -Q-> $0.25 -H-> $0.75."
+    },
+    {
+      "type": "num",
+      "category": "Tracing coin sequences",
+      "topic": "Traces",
+      "q": "Starting from $0.00, a customer inserts eight quarters in a row. How many bottles come out?",
+      "answer": 2,
+      "explain": "Q Q Q Q reaches $1.00+ (bottle 1). The fifth quarter goes to $0.25, and quarters 6-8 reach $1.00+ again (bottle 2)."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing coin sequences",
+      "topic": "Traces",
+      "q": "Starting from $0.00, the coins Q H Q H are inserted. Which state does the machine end in?",
+      "choices": [
+        "$0.75",
+        "'$1.00 or more'",
+        "$0.00",
+        "$0.50"
+      ],
+      "answer": 3,
+      "explain": "$0.00 -Q-> $0.25 -H-> $0.75 -Q-> $1.00+ (bottle) -H-> $0.50."
+    },
+    {
+      "type": "num",
+      "category": "Tracing coin sequences",
+      "topic": "Traces",
+      "q": "Starting from $0.00, a customer inserts six quarters in a row. How many bottles come out?",
+      "answer": 1,
+      "explain": "Four quarters reach $1.00+ (bottle). The fifth quarter goes to $0.25 and the sixth to $0.50, which isn't enough for a second bottle."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing coin sequences",
+      "topic": "Traces",
+      "q": "Starting from $0.00, the coins Q H H H H are inserted. Where does the machine end, and how many bottles come out?",
+      "choices": [
+        "$0.50; 1 bottle",
+        "'$1.00 or more'; 2 bottles",
+        "'$1.00 or more'; 1 bottle",
+        "$0.75; 2 bottles"
+      ],
+      "answer": 1,
+      "explain": "$0.00 -Q-> $0.25 -H-> $0.75 -H-> $1.00+ (bottle 1) -H-> $0.50 -H-> $1.00+ (bottle 2)."
+    }
+  ]
 }

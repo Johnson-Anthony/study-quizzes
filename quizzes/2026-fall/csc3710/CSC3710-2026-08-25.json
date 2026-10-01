@@ -1,1022 +1,689 @@
 {
- "title": "CSC3710 2026-08-25 — What a DFA Is and a Set-Theory Refresher",
- "course": "CSC3710",
- "questions": [
-  {
-   "type": "mc",
-   "category": "DFA definition",
-   "topic": "The 5-tuple",
-   "q": "In the formal definition M = (Q, Σ, δ, q₀, F), what is δ?",
-   "choices": [
-    "A function Q × Σ → Q giving exactly one next state for each (state, symbol) pair",
-    "A relation that may give zero or several next states for a (state, symbol) pair",
-    "The set of final states",
-    "A function Σ → Q mapping each symbol to a state"
-   ],
-   "answer": 0,
-   "explain": "δ is the **transition function** with domain Q × Σ. Because it is a *function* on all of Q × Σ, every (state, symbol) pair has exactly one next state — that is the formal meaning of *deterministic*. Zero-or-many next states describes an NFA."
-  },
-  {
-   "type": "mc",
-   "category": "DFA definition",
-   "topic": "What F is",
-   "q": "Which statement about F, the set of final states, is correct?",
-   "choices": [
-    "F ⊆ Q, and F may be empty, contain some states, or contain all of them",
-    "F must contain exactly one state",
-    "F must be nonempty, otherwise the machine is not a DFA",
-    "F must not contain the initial state q₀"
-   ],
-   "answer": 0,
-   "explain": "F is any subset of Q, including ∅ and Q itself. The monster FSM having no final states is therefore *not* a problem. q₀ may be final (it just means the empty string is accepted) — the vending machine avoids it for modelling reasons, not because the definition forbids it."
-  },
-  {
-   "type": "multi",
-   "category": "DFA definition",
-   "topic": "Required components",
-   "q": "Which of these must be specified for a machine to be a DFA in this course's sense?",
-   "choices": [
-    "A finite set of states",
-    "Exactly one initial state",
-    "An explicit alphabet",
-    "A set of final states (possibly empty)",
-    "A transition for every (state, symbol) pair",
-    "At least one final state"
-   ],
-   "answer": [
-    0,
-    1,
-    2,
-    3,
-    4
-   ],
-   "explain": "The five components are Q, Σ, δ (total), q₀ and F. F must be *specified* but may be ∅, so \"at least one final state\" is not required."
-  },
-  {
-   "type": "tf",
-   "category": "DFA definition",
-   "topic": "Initial states",
-   "q": "A DFA may have two initial states as long as they have the same outgoing transitions.",
-   "answer": false,
-   "explain": "The definition has a single q₀ ∈ Q. Processing must start at one well-defined state; two start states would make the computation ambiguous (that kind of freedom belongs to nondeterministic models)."
-  },
-  {
-   "type": "mc",
-   "category": "DFA definition",
-   "topic": "Meaning of deterministic",
-   "q": "What exactly makes a finite automaton *deterministic*?",
-   "choices": [
-    "From every state there is exactly one outgoing transition for each symbol of the alphabet",
-    "It has exactly one final state",
-    "Every state has at most one outgoing transition",
-    "It never contains self-loops"
-   ],
-   "answer": 0,
-   "explain": "Determinism = for every state q and symbol a there is exactly one arrow labelled a out of q. Self-loops are fine (δ(q, a) = q), and the number of final states is irrelevant. \"At most one\" allows missing transitions, which makes the machine partial."
-  },
-  {
-   "type": "tf",
-   "category": "DFA definition",
-   "topic": "Alphabet nonempty",
-   "q": "In the formal definition, the alphabet Σ must be a finite, nonempty set.",
-   "answer": true,
-   "explain": "Σ is a finite nonempty set of symbols, e.g. {Q, H} for the vending machine. Q is also finite — that finiteness is the \"finite\" in DFA."
-  },
-  {
-   "type": "mc",
-   "category": "DFA definition",
-   "topic": "Vending machine as a tuple",
-   "q": "For the vending machine, which is the correct value of δ(25¢, H)?",
-   "choices": [
-    "75¢",
-    "50¢",
-    "100¢+",
-    "25¢"
-   ],
-   "answer": 0,
-   "explain": "From 25¢, inserting a half dollar adds 50¢, giving 75¢. (δ(25¢, Q) = 50¢.)"
-  },
-  {
-   "type": "mc",
-   "category": "DFA definition",
-   "topic": "Why 0¢ is not final",
-   "q": "Why is the vending machine's initial state 0¢ **not** a final state?",
-   "choices": [
-    "If it were final, the empty input would be accepted — a free bottle at power-on",
-    "The definition forbids the initial state from being final",
-    "A DFA may only have one final state and 100¢+ is already final",
-    "Final states must have self-loops"
-   ],
-   "answer": 0,
-   "explain": "Acceptance checks the state after the last symbol. With no coins the machine stays at 0¢, so making 0¢ final would accept ε, i.e. release water before any money is inserted. The definition itself would allow it; the model's meaning does not."
-  },
-  {
-   "type": "tf",
-   "category": "DFA definition",
-   "topic": "State diagram as graph",
-   "q": "A DFA's state diagram is a directed, labelled graph in which each vertex has exactly one outgoing edge with each alphabet label.",
-   "answer": true,
-   "explain": "Vertices = states, edges = transitions (q, a, δ(q, a)), labels = symbols. \"Exactly one outgoing edge per label from every vertex\" is the graph form of determinism."
-  },
-  {
-   "type": "num",
-   "category": "Transition counting",
-   "topic": "Vending machine count",
-   "q": "The vending machine has 5 states and alphabet {Q, H}. How many transitions does it have as a complete DFA?",
-   "answer": 10,
-   "explain": "|Q| · |Σ| = 5 × 2 = 10 — one per cell of the transition table. JFLAP draws only 9 arrows because the two 75¢ → 100¢+ transitions share one arrow with stacked labels."
-  },
-  {
-   "type": "num",
-   "category": "Transition counting",
-   "topic": "7 states, 3 symbols",
-   "q": "A complete DFA has 7 states over the alphabet {a, b, c}. How many transitions does it have?",
-   "answer": 21,
-   "explain": "Each of the 7 states needs one transition per symbol: 7 × 3 = 21."
-  },
-  {
-   "type": "num",
-   "category": "Transition counting",
-   "topic": "Adding a trap state",
-   "q": "A partial automaton has 7 states over {a, b, c}. It is completed by adding one trap state. How many transitions does the completed DFA have?",
-   "answer": 24,
-   "explain": "The completed machine has 8 states, so 8 × 3 = 24 transitions. The trap state contributes 3 self-loops, and every previously missing pair now points to it."
-  },
-  {
-   "type": "mc",
-   "category": "Transition counting",
-   "topic": "States × inputs, not squared",
-   "q": "In class the transition count was first described as \"input squared\". Why is that wrong in general?",
-   "choices": [
-    "The count is |Q| × |Σ|; it equals |Σ|² only when the number of states happens to equal the alphabet size",
-    "The count is |Q|², since each state connects to each state",
-    "The count is |Q| + |Σ|",
-    "It is correct: a DFA always has |Σ|² transitions"
-   ],
-   "answer": 0,
-   "explain": "Each state needs one arrow per symbol, so transitions = states × symbols. 5 states with 5 inputs gives 25 (= 5²) only by coincidence; 6 states with 5 inputs gives 30."
-  },
-  {
-   "type": "mc",
-   "category": "Transition counting",
-   "topic": "Counting JFLAP arrows",
-   "q": "In JFLAP, one arrow from q1 to q2 carries the stacked labels `a` and `b`. How many transitions does it represent?",
-   "choices": [
-    "2",
-    "1",
-    "It depends on whether q2 is final",
-    "0 — stacked labels are invalid in a DFA"
-   ],
-   "answer": 0,
-   "explain": "JFLAP merges transitions with the same source and target into one drawn arrow, but logically each symbol is a separate transition. Count labels, not arrows."
-  },
-  {
-   "type": "num",
-   "category": "Transition counting",
-   "topic": "Monster missing transitions",
-   "q": "The monster FSM has 5 states, 5 inputs, and its table lists 11 transitions. How many transitions are missing for it to be complete?",
-   "answer": 14,
-   "explain": "A complete machine needs 5 × 5 = 25 transitions; 25 − 11 = 14 are missing."
-  },
-  {
-   "type": "num",
-   "category": "Transition counting",
-   "topic": "Monster with trap state",
-   "q": "The monster FSM (5 states, 5 inputs) is completed by adding a trap state. How many transitions does the completed machine have?",
-   "answer": 30,
-   "explain": "6 states × 5 inputs = 30. The 14 missing pairs go to the trap state and the trap state has 5 self-loops (11 + 14 + 5 = 30)."
-  },
-  {
-   "type": "num",
-   "category": "Transition counting",
-   "topic": "Binary alphabet",
-   "q": "A DFA over {0, 1} has 12 states. How many rows × columns (cells) does its transition table have, i.e. how many transitions?",
-   "answer": 24,
-   "explain": "12 states × 2 symbols = 24; every cell holds exactly one next state."
-  },
-  {
-   "type": "mc",
-   "category": "DFA traces and acceptance",
-   "topic": "Trace H Q Q",
-   "q": "The vending machine: states 0¢ (initial), 25¢, 50¢, 75¢, 100¢+ (final); Q adds 25¢, H adds 50¢, reaching ≥ 1 dollar goes to 100¢+, and 100¢+ behaves like 0¢ on the next coin. Is `H Q Q` accepted?",
-   "choices": [
-    "Accepted: 0¢ → 50¢ → 75¢ → 100¢+",
-    "Rejected: it ends in 75¢",
-    "Rejected: it ends in 25¢",
-    "Accepted: it passes through 50¢"
-   ],
-   "answer": 0,
-   "explain": "0¢ —H→ 50¢ —Q→ 75¢ —Q→ 100¢+. The input ends in the final state, so it is accepted."
-  },
-  {
-   "type": "mc",
-   "category": "DFA traces and acceptance",
-   "topic": "Trace Q Q Q Q H",
-   "q": "The vending machine: states 0¢ (initial), 25¢, 50¢, 75¢, 100¢+ (final); Q adds 25¢, H adds 50¢, reaching ≥ 1 dollar goes to 100¢+, and 100¢+ behaves like 0¢ on the next coin. Is `Q Q Q Q H` accepted?",
-   "choices": [
-    "Rejected: it ends in 50¢",
-    "Accepted: a bottle was released after the fourth coin",
-    "Accepted: it ends in 100¢+",
-    "Rejected: it ends in 0¢"
-   ],
-   "answer": 0,
-   "explain": "0¢ → 25¢ → 50¢ → 75¢ → 100¢+ (bottle) —H→ 50¢. Acceptance only looks at the state after the **last** symbol, which is 50¢, so it is rejected even though a bottle was released mid-input."
-  },
-  {
-   "type": "mc",
-   "category": "DFA traces and acceptance",
-   "topic": "Final state after trace",
-   "q": "The vending machine: states 0¢ (initial), 25¢, 50¢, 75¢, 100¢+ (final); Q adds 25¢, H adds 50¢, reaching ≥ 1 dollar goes to 100¢+, and 100¢+ behaves like 0¢ on the next coin. Which state is the machine in after reading `Q Q H Q`?",
-   "choices": [
-    "25¢",
-    "100¢+",
-    "75¢",
-    "0¢"
-   ],
-   "answer": 0,
-   "explain": "0¢ —Q→ 25¢ —Q→ 50¢ —H→ 100¢+ —Q→ 25¢. The coin after a purchase starts a new count, so one quarter puts it at 25¢."
-  },
-  {
-   "type": "tf",
-   "category": "DFA traces and acceptance",
-   "topic": "Overpaying",
-   "q": "The vending machine: states 0¢ (initial), 25¢, 50¢, 75¢, 100¢+ (final); Q adds 25¢, H adds 50¢, reaching ≥ 1 dollar goes to 100¢+, and 100¢+ behaves like 0¢ on the next coin. The input `Q Q Q H` is accepted.",
-   "answer": true,
-   "explain": "0¢ → 25¢ → 50¢ → 75¢ —H→ 100¢+. From 75¢ a half dollar gives 1.25 dollars; there is no change, but the total reaches ≥ 1 dollar so the machine is in the final state."
-  },
-  {
-   "type": "tf",
-   "category": "DFA traces and acceptance",
-   "topic": "Empty input",
-   "q": "The vending machine: states 0¢ (initial), 25¢, 50¢, 75¢, 100¢+ (final); Q adds 25¢, H adds 50¢, reaching ≥ 1 dollar goes to 100¢+, and 100¢+ behaves like 0¢ on the next coin. The empty string is accepted.",
-   "answer": false,
-   "explain": "With no input the machine stays in q₀ = 0¢, which is not final, so ε is rejected — precisely why 0¢ was not made final."
-  },
-  {
-   "type": "multi",
-   "category": "DFA traces and acceptance",
-   "topic": "Which inputs are accepted",
-   "q": "The vending machine: states 0¢ (initial), 25¢, 50¢, 75¢, 100¢+ (final); Q adds 25¢, H adds 50¢, reaching ≥ 1 dollar goes to 100¢+, and 100¢+ behaves like 0¢ on the next coin. Which inputs are accepted?",
-   "choices": [
-    "`H H`",
-    "`H H H`",
-    "`Q H Q H`",
-    "`H Q Q H H`",
-    "`Q H H`"
-   ],
-   "answer": [
-    0,
-    3,
-    4
-   ],
-   "explain": "`H H`: 0→50→100 ✓. `H H H`: …→100→50 ✗. `Q H Q H`: 0→25→75→100→50 ✗. `H Q Q H H`: 0→50→75→100→50→100 ✓. `Q H H`: 0→25→75→100 ✓. Accepted ⇔ the **last** coin completes a purchase."
-  },
-  {
-   "type": "mc",
-   "category": "DFA traces and acceptance",
-   "topic": "Language of the machine",
-   "q": "Which best describes L(vending machine)?",
-   "choices": [
-    "All coin sequences whose last coin completes a purchase",
-    "All coin sequences totalling at least 1 dollar",
-    "All coin sequences that release at least one bottle",
-    "All coin sequences of length at least 2"
-   ],
-   "answer": 0,
-   "explain": "A string is accepted iff the machine ends in 100¢+. `H H Q` totals 1.25 dollars and releases a bottle, but ends in 25¢ and is rejected — so only the last-coin description is right."
-  },
-  {
-   "type": "mc",
-   "category": "DFA traces and acceptance",
-   "topic": "Modelling a reset",
-   "q": "How does the vending machine model \"the next coin starts a new count\" without an ε-move back to 0¢?",
-   "choices": [
-    "100¢+ is given the same outgoing transitions as 0¢ (Q → 25¢, H → 50¢)",
-    "100¢+ has self-loops on Q and H",
-    "100¢+ has a transition to 0¢ that consumes no input",
-    "The machine halts in 100¢+"
-   ],
-   "answer": 0,
-   "explain": "A DFA never moves without consuming a symbol, so it can't \"reset\" for free. Copying 0¢'s transitions onto 100¢+ gives the same future behaviour, and the machine never needs to revisit 0¢."
-  },
-  {
-   "type": "tf",
-   "category": "DFA traces and acceptance",
-   "topic": "Consuming input",
-   "q": "In a DFA, every transition consumes exactly one input symbol.",
-   "answer": true,
-   "explain": "The machine reads left to right and follows δ once per symbol; it never moves without input. (ε/λ-moves appear only in nondeterministic models.)"
-  },
-  {
-   "type": "mc",
-   "category": "Alphabets, strings and languages",
-   "topic": "Alphabet vs language",
-   "q": "Which of the following is a **language** over Σ = {0, 1}?",
-   "choices": [
-    "{ε, 01, 0011}",
-    "{0, 1} viewed as the set of symbols",
-    "The string 0110",
-    "δ(q₀, 0)"
-   ],
-   "answer": 0,
-   "explain": "A language is any set of strings over Σ, i.e. a subset of Σ\\*. {0, 1} as a set of symbols is the alphabet; 0110 is a single string."
-  },
-  {
-   "type": "mc",
-   "category": "Alphabets, strings and languages",
-   "topic": "English analogy",
-   "q": "If the English **words** are taken as the alphabet, what plays the role of the language?",
-   "choices": [
-    "The set of valid English sentences",
-    "The set of letters a–z",
-    "The set of all English words",
-    "A single sentence such as \"I like dogs\""
-   ],
-   "answer": 0,
-   "explain": "Symbols = words, strings = sequences of words (sentences), language = the set of valid sentences. \"I like dogs\" is in it; \"dogs like I\" is not."
-  },
-  {
-   "type": "tf",
-   "category": "Alphabets, strings and languages",
-   "topic": "String order",
-   "q": "As strings, `ab` and `ba` are equal because they contain the same symbols.",
-   "answer": false,
-   "explain": "A string is a **sequence** of symbols, and sequences care about order, so `ab` ≠ `ba` — unlike the sets {a, b} = {b, a}."
-  },
-  {
-   "type": "mc",
-   "category": "Alphabets, strings and languages",
-   "topic": "Empty string identity",
-   "q": "For every string w, what are εw and wε?",
-   "choices": [
-    "Both equal w",
-    "Both equal ε",
-    "εw = w but wε is undefined",
-    "Both equal ∅"
-   ],
-   "answer": 0,
-   "explain": "ε is the identity for concatenation, just as 0 is for addition and 1 for multiplication. JFLAP writes it λ."
-  },
-  {
-   "type": "num",
-   "category": "Alphabets, strings and languages",
-   "topic": "Length",
-   "q": "What is the length |w| of the string w = `QHQH` over {Q, H}?",
-   "answer": 4,
-   "explain": "The length is the number of symbols in the sequence: 4."
-  },
-  {
-   "type": "tf",
-   "category": "Alphabets, strings and languages",
-   "topic": "ε in Σ*",
-   "q": "Σ\\* contains the empty string.",
-   "answer": true,
-   "explain": "Σ\\* is the set of all finite strings over Σ, including the one of length 0."
-  },
-  {
-   "type": "mc",
-   "category": "Alphabets, strings and languages",
-   "topic": "ε vs λ",
-   "q": "JFLAP writes λ where Sipser writes ε. What do they denote?",
-   "choices": [
-    "The same thing: the empty string, of length 0",
-    "λ is the empty set, ε is the empty string",
-    "λ is a special alphabet symbol",
-    "ε is a transition, λ is a state"
-   ],
-   "answer": 0,
-   "explain": "Both are notations for the empty string; which one appears depends on the book (Linz, Sudkamp and JFLAP use λ)."
-  },
-  {
-   "type": "multi",
-   "category": "Partial machines and completion",
-   "topic": "Monster FSM defects",
-   "q": "Which are valid reasons the *Game Programming Gems* monster FSM is **not** a DFA under this course's definition?",
-   "choices": [
-    "It has no initial state",
-    "Only 11 of the required 25 transitions are given",
-    "Its diagram shows 10 transitions while its table lists 11",
-    "It has no final states",
-    "It contains a self-loop"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "No q₀, an incomplete δ, and an inconsistent diagram/table are all real problems. F = ∅ is allowed, and self-loops are ordinary transitions."
-  },
-  {
-   "type": "mc",
-   "category": "Partial machines and completion",
-   "topic": "Implicit self-loop",
-   "q": "Game code often treats a missing (state, event) entry as \"ignore the event\". How is that made explicit in a complete DFA?",
-   "choices": [
-    "Add δ(q, a) = q for each missing pair",
-    "Send each missing pair to a new trap state",
-    "Delete the event from the alphabet",
-    "Make q a final state"
-   ],
-   "answer": 0,
-   "explain": "\"Ignore and stay\" is an implicit self-loop; completing it means writing δ(q, a) = q explicitly. For the monster that is 14 self-loops plus choosing an initial state (Uncaring is natural)."
-  },
-  {
-   "type": "mc",
-   "category": "Partial machines and completion",
-   "topic": "Trap state",
-   "q": "When should you complete a partial automaton with a trap (dead) state rather than with self-loops?",
-   "choices": [
-    "When a missing transition means \"halt and reject\", so the language must be preserved",
-    "When a missing transition means \"ignore the input\"",
-    "When the machine has no final states",
-    "Never — trap states make a machine nondeterministic"
-   ],
-   "answer": 0,
-   "explain": "A trap state is non-final and loops to itself on every symbol, so once entered the string can never be accepted — exactly the partial-DFA semantics of rejecting on an undefined move. Self-loops instead change the language to \"ignore the symbol\"."
-  },
-  {
-   "type": "multi",
-   "category": "Partial machines and completion",
-   "topic": "Trap state properties",
-   "q": "Which properties does a trap (dead) state have?",
-   "choices": [
-    "It is not final",
-    "It has a self-loop on every alphabet symbol",
-    "It is the initial state",
-    "It has no outgoing transitions"
-   ],
-   "answer": [
-    0,
-    1
-   ],
-   "explain": "It must still have one transition per symbol (determinism), all pointing back to itself, and it must be non-final so nothing that enters it is accepted. \"No outgoing transitions\" would make the machine partial again."
-  },
-  {
-   "type": "tf",
-   "category": "Partial machines and completion",
-   "topic": "Completion preserves language",
-   "q": "Completing a partial automaton with a trap state accepts exactly the same strings as the partial machine (which rejects on an undefined move).",
-   "answer": true,
-   "explain": "Any string that hit an undefined move now falls into the trap and ends in a non-final state — rejected either way. All other strings follow the same path as before."
-  },
-  {
-   "type": "mc",
-   "category": "Partial machines and completion",
-   "topic": "Why diagrams",
-   "q": "According to the Gems chapter, why describe the monster's behaviour with a state diagram rather than prose?",
-   "choices": [
-    "It is a concise and unambiguous description",
-    "It is the only form a compiler can read",
-    "Diagrams automatically make the machine deterministic",
-    "Prose cannot describe self-loops"
-   ],
-   "answer": 0,
-   "explain": "A diagram (or table) gives a precise, compact specification of how the attitude changes — one reason these machines are worth studying. The chapter's own inconsistencies show that the precision only helps if you follow the definition."
-  },
-  {
-   "type": "tf",
-   "category": "Partial machines and completion",
-   "topic": "Books disagree",
-   "q": "Some authors allow a *partial* transition function, but this course requires every transition to be explicit.",
-   "answer": true,
-   "explain": "Definitions vary between books; this course requires δ to be total so the machine is well-defined."
-  },
-  {
-   "type": "mc",
-   "category": "Models of computation",
-   "topic": "Course roadmap",
-   "q": "What is the order of machine models in the course?",
-   "choices": [
-    "DFA → NFA → pushdown automaton → Turing machine",
-    "NFA → DFA → Turing machine → pushdown automaton",
-    "Turing machine → pushdown automaton → NFA → DFA",
-    "DFA → pushdown automaton → NFA → Turing machine"
-   ],
-   "answer": 0,
-   "explain": "The course builds up from the simplest model; you can't start with Turing machines."
-  },
-  {
-   "type": "tf",
-   "category": "Models of computation",
-   "topic": "NFA power",
-   "q": "NFAs recognize strictly more languages than DFAs.",
-   "answer": false,
-   "explain": "Every NFA converts to an equivalent DFA (subset construction). Both recognize exactly the regular languages; NFAs are studied because they are often much easier to design."
-  },
-  {
-   "type": "mc",
-   "category": "Models of computation",
-   "topic": "What a PDA adds",
-   "q": "What does a pushdown automaton add to a finite automaton, and what does that buy?",
-   "choices": [
-    "A stack; it can recognize context-free languages such as { aⁿbⁿ : n ≥ 0 }",
-    "A read-write tape; it can compute anything computable",
-    "Nondeterminism only; it recognizes the same languages",
-    "A second start state"
-   ],
-   "answer": 0,
-   "explain": "Finite control + stack gives the context-free languages, which include non-regular ones like aⁿbⁿ (a DFA can't count unboundedly)."
-  },
-  {
-   "type": "mc",
-   "category": "Models of computation",
-   "topic": "Turing machine",
-   "q": "Which describes a Turing machine?",
-   "choices": [
-    "A finite-state control plus an unbounded tape it can read and write, with a moving head",
-    "A finite automaton with a stack",
-    "A DFA with several initial states",
-    "A DFA whose alphabet is infinite"
-   ],
-   "answer": 0,
-   "explain": "The tape is readable **and writable** and unbounded. By the Church–Turing thesis, anything computable by an algorithm is computable by a Turing machine."
-  },
-  {
-   "type": "mc",
-   "category": "Models of computation",
-   "topic": "Subset construction size",
-   "q": "An NFA has n states. Up to how many states can the equivalent DFA from the subset construction have?",
-   "choices": [
-    "2ⁿ",
-    "n²",
-    "n",
-    "2n"
-   ],
-   "answer": 0,
-   "explain": "The DFA's states are *subsets* of the NFA's states, i.e. elements of the power set, and |P(S)| = 2^|S|."
-  },
-  {
-   "type": "mc",
-   "category": "Models of computation",
-   "topic": "Chomsky hierarchy",
-   "q": "Which chain of inclusions is correct?",
-   "choices": [
-    "regular ⊂ context-free ⊂ recursively enumerable",
-    "context-free ⊂ regular ⊂ recursively enumerable",
-    "recursively enumerable ⊂ context-free ⊂ regular",
-    "regular = context-free ⊂ recursively enumerable"
-   ],
-   "answer": 0,
-   "explain": "DFAs/NFAs: regular; PDAs: context-free; Turing machines: recursively enumerable. Each inclusion is proper (e.g. aⁿbⁿ is context-free but not regular)."
-  },
-  {
-   "type": "mc",
-   "category": "Models of computation",
-   "topic": "Java programs infinite",
-   "q": "A student says: \"The set of all Java programs is finite, because every program is finite.\" What's the correct response?",
-   "choices": [
-    "Each program is finite, but lengths are unbounded, so the set is countably infinite",
-    "Correct — a set of finite objects is finite",
-    "It is uncountably infinite, like ℝ",
-    "It is finite but too large to count"
-   ],
-   "answer": 0,
-   "explain": "You can always add one more statement, so there's no longest program. Listing strings by length then alphabetically (shortlex) gives each program a finite position, so the set is countably infinite."
-  },
-  {
-   "type": "mc",
-   "category": "Models of computation",
-   "topic": "Unrecognizable languages",
-   "q": "Why must some languages be unrecognizable by any machine, even a Turing machine?",
-   "choices": [
-    "There are countably many machines (finite descriptions) but uncountably many languages, P(Σ\\*)",
-    "Some languages contain infinitely long strings",
-    "Turing machines cannot read the empty string",
-    "Every language is recognizable by some Turing machine"
-   ],
-   "answer": 0,
-   "explain": "Machines are finite strings, so countably many; the set of all languages P(Σ\\*) is uncountable (Cantor's diagonal argument). Not every language can get a machine."
-  },
-  {
-   "type": "mc",
-   "category": "Models of computation",
-   "topic": "Ullman's Turing Award",
-   "q": "Jeffrey Ullman, co-author of a standard automata textbook, shared the 2020 Turing Award with whom?",
-   "choices": [
-    "Alfred Aho",
-    "Donald Knuth",
-    "Leslie Lamport",
-    "Ron Rivest"
-   ],
-   "answer": 0,
-   "explain": "Aho and Ullman won \"for fundamental algorithms and theory underlying programming language implementation\". Knuth won in 1974 (TeX is his; LaTeX is Lamport's), and RSA's inventors in 2002."
-  },
-  {
-   "type": "tf",
-   "category": "Membership and nested sets",
-   "topic": "∅ in nested set",
-   "q": "∅ ∈ { {∅}, {∅, {∅}} }.",
-   "answer": false,
-   "explain": "Open only the outer backpack: its two elements are {∅} and {∅, {∅}}. Neither *is* ∅; ∅ appears only inside them."
-  },
-  {
-   "type": "tf",
-   "category": "Membership and nested sets",
-   "topic": "{∅} in nested set",
-   "q": "{∅} ∈ { {∅}, {∅, {∅}} }.",
-   "answer": true,
-   "explain": "{∅} is literally one of the two top-level elements."
-  },
-  {
-   "type": "tf",
-   "category": "Membership and nested sets",
-   "topic": "∅ ∈ ∅",
-   "q": "∅ ∈ ∅.",
-   "answer": false,
-   "explain": "The empty set has no elements at all, so nothing — not even ∅ — belongs to it."
-  },
-  {
-   "type": "tf",
-   "category": "Membership and nested sets",
-   "topic": "∅ ∈ {∅}",
-   "q": "∅ ∈ {∅}.",
-   "answer": true,
-   "explain": "{∅} is a backpack holding one item, an empty backpack. That item is ∅."
-  },
-  {
-   "type": "tf",
-   "category": "Membership and nested sets",
-   "topic": "{a} ∈ {a}",
-   "q": "{a} ∈ {a}.",
-   "answer": false,
-   "explain": "The only element of {a} is a, not the set {a}. Compare {a} ∈ { {a} } (true) and a ∈ {a} (true): both have the shape x ∈ {x}."
-  },
-  {
-   "type": "tf",
-   "category": "Membership and nested sets",
-   "topic": "{1} ∈ {0,1,2}",
-   "q": "{1} ∈ {0, 1, 2}.",
-   "answer": false,
-   "explain": "The elements are the numbers 0, 1, 2. The *set* {1} is a different object from the number 1. (But {1} ⊆ {0, 1, 2} is true.)"
-  },
-  {
-   "type": "multi",
-   "category": "Membership and nested sets",
-   "topic": "∈ vs ⊆",
-   "q": "Which statements are true?",
-   "choices": [
-    "∅ ⊆ {1}",
-    "∅ ∈ {1}",
-    "{1} ∈ { {1} }",
-    "{1} ⊆ { {1} }"
-   ],
-   "answer": [
-    0,
-    2
-   ],
-   "explain": "∈ asks whether x is one of the items; ⊆ asks whether every item of A is in S. ∅ ⊆ anything is true, but ∅ is not an item of {1}. {1} is an item of { {1} }, but {1} ⊆ { {1} } would need 1 ∈ { {1} }, which fails."
-  },
-  {
-   "type": "num",
-   "category": "Membership and nested sets",
-   "topic": "Top-level count",
-   "q": "How many elements does X = { {∅}, {∅, {∅}} } have?",
-   "answer": 2,
-   "explain": "Count the top-level commas (one) and add one: two elements, {∅} and {∅, {∅}}. Inner backpacks count as single items."
-  },
-  {
-   "type": "mc",
-   "category": "Membership and nested sets",
-   "topic": "Reading aloud",
-   "q": "Which is the precise reading of { {∅}, {∅, {∅}} }?",
-   "choices": [
-    "A set of two elements: a set consisting of the empty set, and a set consisting of the empty set and the set consisting of the empty set",
-    "A set of three elements: the empty set, the empty set, and the set consisting of the empty set",
-    "A set of two empty sets",
-    "The empty set nested three times"
-   ],
-   "answer": 0,
-   "explain": "Reading structurally from the outside in keeps every level of braces straight."
-  },
-  {
-   "type": "mc",
-   "category": "Membership and nested sets",
-   "topic": "Mathematical statement",
-   "q": "Which of these is a mathematical **statement** (proposition)?",
-   "choices": [
-    "Nashville is the capital of Tennessee.",
-    "Is 5 prime?",
-    "x > 3",
-    "Insert a quarter."
-   ],
-   "answer": 0,
-   "explain": "A statement is a declarative sentence that is true or false but not both. A question and a command aren't declarative, and x > 3 has no truth value until x is known."
-  },
-  {
-   "type": "tf",
-   "category": "Subsets, equality and structure",
-   "topic": "∅ ⊆ S",
-   "q": "For every set S (including S = ∅), ∅ ⊆ S.",
-   "answer": true,
-   "explain": "A ⊆ S fails only if some element of A is missing from S. ∅ has no elements, so nothing can fail — vacuously true. Written ∀S, ∅ ⊆ S."
-  },
-  {
-   "type": "tf",
-   "category": "Subsets, equality and structure",
-   "topic": "Equal sets proper subset",
-   "q": "{a, b} ⊂ {b, a}.",
-   "answer": false,
-   "explain": "The sets are equal (order doesn't matter), and a proper subset requires A ≠ B. {a, b} ⊆ {b, a} is true."
-  },
-  {
-   "type": "tf",
-   "category": "Subsets, equality and structure",
-   "topic": "Repetition",
-   "q": "{a, a, b} = {a, b}.",
-   "answer": true,
-   "explain": "Sets ignore repetition, so both have exactly the elements a and b. As **multisets** they would differ."
-  },
-  {
-   "type": "tf",
-   "category": "Subsets, equality and structure",
-   "topic": "Nested subset",
-   "q": "{a, {b}} ⊆ { {a}, b }.",
-   "answer": false,
-   "explain": "One counterexample suffices: a ∈ {a, {b}} but a ∉ { {a}, b } (the right side contains {a}, not a)."
-  },
-  {
-   "type": "multi",
-   "category": "Subsets, equality and structure",
-   "topic": "Proper subset",
-   "q": "Let A = {a, {b}} and B = {a, b, {b}}. Which are true?",
-   "choices": [
-    "A ⊆ B",
-    "A ⊂ B",
-    "B ⊆ A",
-    "A = B"
-   ],
-   "answer": [
-    0,
-    1
-   ],
-   "explain": "Both a and {b} are in B, so A ⊆ B. B also has b, which A lacks, so A ≠ B and A ⊂ B. B ⊄ A because b ∉ A."
-  },
-  {
-   "type": "mc",
-   "category": "Subsets, equality and structure",
-   "topic": "Disproving ⊆",
-   "q": "What is enough to show A ⊄ B?",
-   "choices": [
-    "One element of A that is not in B",
-    "One element of B that is not in A",
-    "Showing |A| > |B| is the only way",
-    "Showing A and B are disjoint only"
-   ],
-   "answer": 0,
-   "explain": "⊆ requires *every* element of A to be in B, so a single failing element disproves it. An element of B missing from A only shows B ⊄ A."
-  },
-  {
-   "type": "mc",
-   "category": "Subsets, equality and structure",
-   "topic": "Set equality",
-   "q": "Which condition is equivalent to A = B?",
-   "choices": [
-    "A ⊆ B and B ⊆ A",
-    "A ⊂ B and B ⊂ A",
-    "|A| = |B|",
-    "A ∩ B ≠ ∅"
-   ],
-   "answer": 0,
-   "explain": "Equal sets have exactly the same elements, i.e. each is a subset of the other. Equal cardinality isn't enough ({1} vs {2}); mutual *proper* subsets is impossible."
-  },
-  {
-   "type": "multi",
-   "category": "Subsets, equality and structure",
-   "topic": "Order and repetition",
-   "q": "Which of these are equal to their \"reversed\" version (e.g. X with a and b swapped)?",
-   "choices": [
-    "The set {a, b}",
-    "The multiset {a, a, b}",
-    "The ordered pair (a, b) with a ≠ b",
-    "The string ab with a ≠ b"
-   ],
-   "answer": [
-    0,
-    1
-   ],
-   "explain": "Sets and multisets ignore order (multisets count repetition, but still ignore order). Sequences — pairs, tuples, strings — care about order, so (a, b) ≠ (b, a) and ab ≠ ba."
-  },
-  {
-   "type": "mc",
-   "category": "Subsets, equality and structure",
-   "topic": "Why a tuple",
-   "q": "Why is a DFA written with round parentheses, (Q, Σ, δ, q₀, F), rather than braces?",
-   "choices": [
-    "It is a 5-tuple: the position of each component carries meaning",
-    "Braces are reserved for the empty set",
-    "Parentheses mean the components are all sets",
-    "Either is fine; it's pure style"
-   ],
-   "answer": 0,
-   "explain": "Round parentheses denote a sequence, where order matters: the first entry is the state set, the second the alphabet, and so on. As a set, the components would be unordered and duplicates would collapse."
-  },
-  {
-   "type": "tf",
-   "category": "Subsets, equality and structure",
-   "topic": "ℕ ⊂ ℝ",
-   "q": "ℕ ⊂ ℝ (proper subset).",
-   "answer": true,
-   "explain": "Every natural number is real, and 0.5 ∈ ℝ but 0.5 ∉ ℕ, so the sets are unequal. (In this course ℕ includes 0; Sipser starts at 1.)"
-  },
-  {
-   "type": "tf",
-   "category": "Subsets, equality and structure",
-   "topic": "Self subset",
-   "q": "{a} ⊆ {a}.",
-   "answer": true,
-   "explain": "Every set is a subset of itself — ⊆ allows equality. It is not a *proper* subset."
-  },
-  {
-   "type": "tf",
-   "category": "Power sets",
-   "topic": "Missing ∅",
-   "q": "P({a, b, c}) = { {a}, {b}, {c}, {a, b}, {a, c}, {b, c}, {a, b, c} }.",
-   "answer": false,
-   "explain": "∅ is missing. ∅ ⊆ S for every S, so ∅ ∈ P(S) always. With ∅ added the list has all 8 subsets."
-  },
-  {
-   "type": "tf",
-   "category": "Power sets",
-   "topic": "P(∅)",
-   "q": "P(∅) = {∅}.",
-   "answer": true,
-   "explain": "The only subset of ∅ is ∅, so P(∅) has exactly one element. Note {∅} ≠ ∅: the power set is a backpack containing one empty backpack."
-  },
-  {
-   "type": "num",
-   "category": "Power sets",
-   "topic": "Size of P of 5-set",
-   "q": "How many elements does P(S) have if |S| = 5?",
-   "answer": 32,
-   "explain": "Each element is independently in or out of a subset: 2⁵ = 32."
-  },
-  {
-   "type": "num",
-   "category": "Power sets",
-   "topic": "P(P({x}))",
-   "q": "What is |P(P({x}))|?",
-   "answer": 4,
-   "explain": "P({x}) = {∅, {x}} has 2 elements, so its power set has 2² = 4: {∅, {∅}, {{x}}, {∅, {x}}}."
-  },
-  {
-   "type": "mc",
-   "category": "Power sets",
-   "topic": "P({∅})",
-   "q": "What is P({∅})?",
-   "choices": [
-    "{∅, {∅}}",
-    "{∅}",
-    "{{∅}}",
-    "∅"
-   ],
-   "answer": 0,
-   "explain": "{∅} has one element, so it has 2¹ = 2 subsets: the empty subset ∅ and the whole set {∅}."
-  },
-  {
-   "type": "multi",
-   "category": "Power sets",
-   "topic": "Always in P(S)",
-   "q": "For any set S, which are always elements of P(S)?",
-   "choices": [
-    "∅",
-    "S",
-    "Every element x of S",
-    "{x} for every x ∈ S"
-   ],
-   "answer": [
-    0,
-    1,
-    3
-   ],
-   "explain": "P(S) contains subsets, not elements: ∅, S and each singleton {x} are subsets. The element x itself is generally not a subset of S, so x ∉ P(S) in general."
-  },
-  {
-   "type": "mc",
-   "category": "Power sets",
-   "topic": "Size-2 subsets",
-   "q": "How many 2-element subsets does {a, b, c} have?",
-   "choices": [
-    "3",
-    "6",
-    "9",
-    "2"
-   ],
-   "answer": 0,
-   "explain": "{a, b}, {a, c}, {b, c}. {a, b} and {b, a} are the same subset, so ordered pairs (6) overcount. Listing by size: 1 + 3 + 3 + 1 = 8."
-  },
-  {
-   "type": "mc",
-   "category": "Power sets",
-   "topic": "Why 2ⁿ",
-   "q": "Why does an n-element set have 2ⁿ subsets?",
-   "choices": [
-    "Each of the n elements is independently in or out: 2 · 2 · … · 2",
-    "There are n choices for each of 2 positions",
-    "Subsets come in pairs of complements",
-    "Each subset is counted twice"
-   ],
-   "answer": 0,
-   "explain": "Building a subset is n independent yes/no decisions, giving 2ⁿ outcomes."
-  },
-  {
-   "type": "tf",
-   "category": "Power sets",
-   "topic": "P(S) of 2-set",
-   "q": "P({1, 2}) = {∅, {1}, {2}, {1, 2}}.",
-   "answer": true,
-   "explain": "All four subsets, sizes 0, 1, 1, 2 — matches 2² = 4."
-  },
-  {
-   "type": "num",
-   "category": "Cardinality",
-   "topic": "|{∅}|",
-   "q": "What is |{∅}|?",
-   "answer": 1,
-   "explain": "Open the backpack: one item, an empty backpack. Don't look inside it. (|∅| = 0.)"
-  },
-  {
-   "type": "num",
-   "category": "Cardinality",
-   "topic": "Three nested",
-   "q": "What is |{∅, {∅}, {∅, {∅}}}|?",
-   "answer": 3,
-   "explain": "Three top-level items, each a set; their contents don't count."
-  },
-  {
-   "type": "num",
-   "category": "Cardinality",
-   "topic": "Single inner set",
-   "q": "What is |{ {1, 2, 3} }|?",
-   "answer": 1,
-   "explain": "One backpack, which happens to hold three things. The outer set has a single element."
-  },
-  {
-   "type": "num",
-   "category": "Cardinality",
-   "topic": "Repeats and nesting",
-   "q": "What is |{1, 1, 2, {1, 2}}|?",
-   "answer": 3,
-   "explain": "Elements: 1, 2 and {1, 2}. The repeated 1 counts once, and {1, 2} is one object distinct from 1 and 2."
-  },
-  {
-   "type": "num",
-   "category": "Cardinality",
-   "topic": "Intersection of nested",
-   "q": "What is |{ {1}, {2}, {3} } ∩ { {2}, {3, 4} }|?",
-   "answer": 1,
-   "explain": "The only common element is {2}; {3} ≠ {3, 4}. The intersection is { {2} }, of cardinality 1 — count the *result*, not an input set."
-  },
-  {
-   "type": "num",
-   "category": "Cardinality",
-   "topic": "Disjoint nested",
-   "q": "What is |{ {1}, {2} } ∩ { {1, 2} }|?",
-   "answer": 0,
-   "explain": "{1, 2} is a different object from {1} and from {2}, so the sets are disjoint and the intersection is ∅."
-  },
-  {
-   "type": "num",
-   "category": "Cardinality",
-   "topic": "Union inclusion–exclusion",
-   "q": "What is |{ {1}, {2} } ∪ { {1}, {3} }|?",
-   "answer": 3,
-   "explain": "|A ∪ B| = |A| + |B| − |A ∩ B| = 2 + 2 − 1 = 3: the elements are {1}, {2}, {3}."
-  },
-  {
-   "type": "num",
-   "category": "Cardinality",
-   "topic": "a, {a}, {{a}}",
-   "q": "What is |{ a, {a}, { {a} } }|?",
-   "answer": 3,
-   "explain": "a, {a} and { {a} } are three different objects."
-  },
-  {
-   "type": "mc",
-   "category": "Cardinality",
-   "topic": "Intersection mistake",
-   "q": "For |{ {1}, {2} } ∩ { {1}, {3} }|, a student answers 2, reasoning \"there is a set containing 1 and a set containing 2\". What went wrong?",
-   "choices": [
-    "They counted the elements of an input set instead of the intersection, which is { {1} } with cardinality 1",
-    "Nothing; the answer is 2",
-    "They should have counted the numbers inside: 1, 2, 3",
-    "The intersection is ∅, so the answer is 0"
-   ],
-   "answer": 0,
-   "explain": "First compute the intersection (elements in both sets: only {1}), then count its elements: 1."
-  },
-  {
-   "type": "mc",
-   "category": "Cardinality",
-   "topic": "Disjoint",
-   "q": "What does it mean for A and B to be disjoint?",
-   "choices": [
-    "A ∩ B = ∅",
-    "A ∪ B = ∅",
-    "|A| = |B|",
-    "A ⊆ B"
-   ],
-   "answer": 0,
-   "explain": "Disjoint sets share no elements. Then |A ∪ B| = |A| + |B|."
-  }
- ]
+  "title": "CSC3710 2026-08-25: DFAs, game FSMs, and set theory review",
+  "course": "CSC3710",
+  "questions": [
+    {
+      "type": "multi",
+      "category": "DFA definition",
+      "q": "Which of the following are parts of a deterministic finite automaton (DFA) under the course's definition?",
+      "choices": [
+        "A finite set of states",
+        "An alphabet of input symbols",
+        "Exactly one initial (start) state",
+        "A set of final (accepting) states, possibly empty",
+        "Transitions: one outgoing arrow per alphabet symbol from every state",
+        "A tape the machine can write on",
+        "A stack for storing symbols"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "A DFA is the 5-tuple (Q, Σ, δ, q₀, F): states, alphabet, transitions, initial state, and final states. A writable tape belongs to Turing machines. A stack is not part of a DFA."
+    },
+    {
+      "type": "tf",
+      "category": "DFA definition",
+      "q": "A DFA is allowed to have no final states at all.",
+      "answer": true,
+      "explain": "The set of final states can be empty (F = ∅). You only have to specify which states, if any, are final."
+    },
+    {
+      "type": "tf",
+      "category": "DFA definition",
+      "q": "In a DFA, every state can be a final state.",
+      "answer": true,
+      "explain": "The set of final states can be none, some, or all of the states."
+    },
+    {
+      "type": "tf",
+      "category": "DFA definition",
+      "q": "A DFA may have two initial states, as long as both are marked.",
+      "answer": false,
+      "explain": "A DFA has exactly one initial state. That is the special state where processing always begins."
+    },
+    {
+      "type": "mc",
+      "category": "DFA definition",
+      "q": "What makes a finite automaton deterministic?",
+      "choices": [
+        "From every state there is exactly one outgoing transition for each symbol of the alphabet",
+        "It has exactly one final state",
+        "Every state has at least one outgoing transition",
+        "No state has a transition back to itself"
+      ],
+      "answer": 0,
+      "explain": "For each state and each input symbol, the next state is fixed: exactly one arrow per symbol out of every state. How many final states there are and whether there are self-loops have nothing to do with it."
+    },
+    {
+      "type": "mc",
+      "category": "DFA definition",
+      "q": "What is the alphabet of a DFA?",
+      "choices": [
+        "The finite set of input symbols the machine understands",
+        "The set of states the machine can be in",
+        "The set of strings the machine accepts",
+        "The labels of the final states"
+      ],
+      "answer": 0,
+      "explain": "The alphabet is what the machine understands as input. For the vending machine it is {quarter, half-dollar}."
+    },
+    {
+      "type": "mc",
+      "category": "DFA definition",
+      "q": "The vending-machine DFA from class accepts quarters and half-dollars. What is its alphabet?",
+      "choices": [
+        "{quarter, half-dollar}",
+        "{0¢, 25¢, 50¢, 75¢, $1}",
+        "{accept, reject}",
+        "{insert, dispense}"
+      ],
+      "answer": 0,
+      "explain": "The alphabet is the set of possible inputs, which here are the two coins. Its size is 2."
+    },
+    {
+      "type": "text",
+      "category": "DFA definition",
+      "q": "'Automaton' is another word for what? (one word)",
+      "answer": ["machine", "a machine", "machines"],
+      "explain": "Automaton means machine. The course uses the two words interchangeably."
+    },
+    {
+      "type": "text",
+      "category": "DFA definition",
+      "q": "What is the plural of 'automaton'?",
+      "answer": ["automata"],
+      "explain": "One automaton, two automata."
+    },
+    {
+      "type": "mc",
+      "category": "Counting DFA transitions",
+      "q": "How many transitions must a DFA have?",
+      "choices": [
+        "(number of states) × (size of the alphabet)",
+        "(size of the alphabet)²",
+        "(number of states)²",
+        "(number of states) + (size of the alphabet)"
+      ],
+      "answer": 0,
+      "explain": "Every state needs one arrow per symbol, so it's states × |Σ|. 'Inputs squared' only gives the right number when the number of states equals the alphabet size, as with 5 states and 5 inputs."
+    },
+    {
+      "type": "num",
+      "category": "Counting DFA transitions",
+      "q": "A DFA has 6 states over an alphabet of 5 symbols. How many transitions must it have?",
+      "answer": 30,
+      "explain": "6 × 5 = 30."
+    },
+    {
+      "type": "num",
+      "category": "Counting DFA transitions",
+      "q": "The vending-machine DFA has 5 states over the alphabet {quarter, half-dollar}. How many transitions does it have?",
+      "answer": 10,
+      "explain": "5 states × 2 symbols = 10, so there are two arrows out of every state."
+    },
+    {
+      "type": "num",
+      "category": "Counting DFA transitions",
+      "q": "A DFA has 4 states over the alphabet {0, 1, 2}. How many transitions must it have?",
+      "answer": 12,
+      "explain": "4 × 3 = 12."
+    },
+    {
+      "type": "num",
+      "category": "Counting DFA transitions",
+      "q": "A DFA over the alphabet {a, b} has exactly 30 transitions. How many states does it have?",
+      "answer": 15,
+      "explain": "transitions = states × |Σ|, so states = 30 / 2 = 15."
+    },
+    {
+      "type": "tf",
+      "category": "Counting DFA transitions",
+      "q": "In JFLAP, if symbols a and b both take a state to the same target, JFLAP draws one arrow labeled with both symbols. That counts as one transition.",
+      "answer": false,
+      "explain": "It is still two transitions, one for a and one for b. JFLAP just draws them on a single arrow."
+    },
+    {
+      "type": "tf",
+      "category": "Counting DFA transitions",
+      "q": "A machine has 3 states over {a, b} and 6 arrows in total, but one state has two arrows labeled a and none labeled b. This machine is a DFA.",
+      "answer": false,
+      "explain": "The total of 6 = 3 × 2 is right, but the total alone doesn't prove anything. Every state needs exactly one arrow for each symbol, and this state has two for a and none for b."
+    },
+    {
+      "type": "multi",
+      "category": "Game-AI FSM vs. DFA",
+      "q": "The game-programming book's monster-attitude diagram has 5 states and 5 inputs, about 11 transitions, no marked start state, and no final states. Which are valid reasons it is NOT a DFA under our course's definition?",
+      "choices": [
+        "No initial state is marked",
+        "It has too few transitions: 5 states and 5 inputs need 25",
+        "It has no final states",
+        "It models a game character instead of a math problem"
+      ],
+      "answer": [0, 1],
+      "explain": "A DFA needs a marked initial state and an arrow for every input from every state (5 × 5 = 25). Having no final states is allowed (F = ∅), and what the machine models doesn't matter."
+    },
+    {
+      "type": "num",
+      "category": "Game-AI FSM vs. DFA",
+      "q": "The monster FSM has 5 attitude states and 5 possible inputs (player seen, player attacks, player gone, monster hurt, monster healed). How many transitions would it need to be a complete DFA?",
+      "answer": 25,
+      "explain": "5 states × 5 inputs = 25. That means five arrows out of every state."
+    },
+    {
+      "type": "tf",
+      "category": "Game-AI FSM vs. DFA",
+      "q": "Under our course's definition, a missing transition in a diagram can be read as 'stay in the same state'.",
+      "answer": false,
+      "explain": "Some books and programmers assume this, but our definition requires an explicit arrow for every input from every state. If an arrow is missing, the machine is not a DFA."
+    },
+    {
+      "type": "mc",
+      "category": "Game-AI FSM vs. DFA",
+      "q": "In the monster-attitude FSM, what plays the role of the DFA's alphabet?",
+      "choices": [
+        "The inputs: player seen, player attacks, player gone, monster hurt, monster healed",
+        "The monster's attitudes, such as Annoyed and Mad",
+        "The AI code that runs in each state",
+        "The arrows in the diagram"
+      ],
+      "answer": 0,
+      "explain": "The inputs are the alphabet. The attitudes are the states, and the arrows are the transitions."
+    },
+    {
+      "type": "mc",
+      "category": "Game-AI FSM vs. DFA",
+      "q": "The monster is Uncaring and the player attacks. According to the FSM, what state does the monster move to?",
+      "choices": ["Mad", "Annoyed", "Uncaring", "Rage"],
+      "answer": 0,
+      "explain": "Uncaring + player attacks → Mad. (Uncaring + player seen → Annoyed.)"
+    },
+    {
+      "type": "mc",
+      "category": "Game-AI FSM vs. DFA",
+      "q": "When the monster is already in a top-anger state and gets hurt, it stays in the same state. How is that drawn in a state diagram?",
+      "choices": [
+        "A self-loop: an arrow from the state back to itself",
+        "No arrow at all",
+        "An arrow back to the initial state",
+        "A double circle around the state"
+      ],
+      "answer": 0,
+      "explain": "Staying in the same state is still a transition, so it needs an arrow. The book's diagram left this self-loop out, so it didn't match its own table."
+    },
+    {
+      "type": "mc",
+      "category": "Game-AI FSM vs. DFA",
+      "q": "What is the main practical advantage of describing an NPC's behavior with a finite state machine diagram?",
+      "choices": [
+        "It is a short description that can only be read one way",
+        "It runs faster than any other code",
+        "It removes the need to write any code",
+        "It lets the NPC behave randomly"
+      ],
+      "answer": 0,
+      "explain": "Instead of pages of prose, a state diagram describes the behavior compactly and unambiguously."
+    },
+    {
+      "type": "multi",
+      "category": "Game-AI FSM vs. DFA",
+      "q": "According to the game-programming chapter shown in class, which of these are uses of finite state machines in games?",
+      "choices": [
+        "Managing the game world",
+        "Simulating an NPC's emotions",
+        "Maintaining the status of the game",
+        "Parsing input from the human player",
+        "Rendering 3D graphics",
+        "Compressing texture images"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The chapter lists managing the game world, simulating NPC emotion, maintaining game status, and parsing player input."
+    },
+    {
+      "type": "mc",
+      "category": "Roadmap & background",
+      "q": "In what order does the course study machines, from least to most powerful?",
+      "choices": [
+        "DFAs → nondeterministic finite automata → pushdown automata → Turing machines",
+        "Turing machines → pushdown automata → nondeterministic finite automata → DFAs",
+        "Nondeterministic finite automata → DFAs → Turing machines → pushdown automata",
+        "DFAs → Turing machines → nondeterministic finite automata → pushdown automata"
+      ],
+      "answer": 0,
+      "explain": "The course starts with DFAs and builds up through more powerful machines to Turing machines. You can't start with Turing machines."
+    },
+    {
+      "type": "mc",
+      "category": "Roadmap & background",
+      "q": "What does a Turing machine add on top of simpler automata?",
+      "choices": [
+        "A tape it can write on and move along",
+        "A second initial state",
+        "An infinite alphabet",
+        "The ability to have no final states"
+      ],
+      "answer": 0,
+      "explain": "The Turing machine adds a tape that the machine can write on and move along. The idea is simple, but it is the basis for what algorithms can do."
+    },
+    {
+      "type": "mc",
+      "category": "Roadmap & background",
+      "q": "The ACM A.M. Turing Award, often called the 'Nobel Prize of computing', is mainly given for:",
+      "choices": [
+        "Lifetime contributions to computer science",
+        "The single best paper of the year",
+        "Winning a programming contest",
+        "The most-downloaded software of the year"
+      ],
+      "answer": 0,
+      "explain": "It honors contributions to the field over a career, not a single result. The prize is now $1 million, split among co-winners."
+    },
+    {
+      "type": "mc",
+      "category": "Roadmap & background",
+      "q": "Where does the name of the RSA cryptosystem come from?",
+      "choices": [
+        "The first letters of the last names of Rivest, Shamir, and Adleman",
+        "The phrase 'Random Secure Algorithm'",
+        "The phrase 'Rapid Symmetric Assembly'",
+        "The initials of the university where it was invented"
+      ],
+      "answer": 0,
+      "explain": "R, S, A are the first letters of Rivest, Shamir, and Adleman. They won the Turing Award together."
+    },
+    {
+      "type": "mc",
+      "category": "Roadmap & background",
+      "q": "Turing Award winner Donald Knuth created which typesetting system, the one LaTeX is built on?",
+      "choices": ["TeX", "Markdown", "PostScript", "HTML"],
+      "answer": 0,
+      "explain": "Knuth created TeX. LaTeX is built on top of it and is widely used for mathematical writing."
+    },
+    {
+      "type": "mc",
+      "category": "Statements & membership (∈)",
+      "q": "Which of the following is a mathematical statement?",
+      "choices": [
+        "Nashville is the capital of Tennessee.",
+        "Is 1 an element of {0, 1, 2}?",
+        "Write down the set {0, 1, 2}.",
+        "x + 1"
+      ],
+      "answer": 0,
+      "explain": "A statement is a declarative sentence that is either true or false, but not both. Questions, commands, and bare expressions are not statements."
+    },
+    {
+      "type": "tf",
+      "category": "Statements & membership (∈)",
+      "q": "1 ∈ {0, 1, 2}",
+      "answer": true,
+      "explain": "1 is one of the three elements, which are 0, 1, and 2."
+    },
+    {
+      "type": "tf",
+      "category": "Statements & membership (∈)",
+      "q": "{1} ∈ {0, 1, 2}",
+      "answer": false,
+      "explain": "The elements are the numbers 0, 1, and 2. The set {1} is not one of them."
+    },
+    {
+      "type": "tf",
+      "category": "Statements & membership (∈)",
+      "q": "∅ ∈ { {∅}, {∅, {∅}} }",
+      "answer": false,
+      "explain": "The top-level elements are {∅} and {∅, {∅}}. ∅ appears inside them but is not itself a top-level element. Open only the outer backpack."
+    },
+    {
+      "type": "tf",
+      "category": "Statements & membership (∈)",
+      "q": "{∅} ∈ { {∅}, {∅, {∅}} }",
+      "answer": true,
+      "explain": "{∅} is one of the two top-level elements."
+    },
+    {
+      "type": "tf",
+      "category": "Statements & membership (∈)",
+      "q": "∅ ∈ ∅",
+      "answer": false,
+      "explain": "Nothing belongs to the empty set, so x ∈ ∅ is false for every x, including x = ∅."
+    },
+    {
+      "type": "tf",
+      "category": "Statements & membership (∈)",
+      "q": "∅ ∈ {∅}",
+      "answer": true,
+      "explain": "{∅} is a backpack holding one empty backpack. Its only element is ∅."
+    },
+    {
+      "type": "tf",
+      "category": "Statements & membership (∈)",
+      "q": "{a} ∈ {a}",
+      "answer": false,
+      "explain": "The only element of {a} is a, not the set {a}. For this to be true, the right side would need {a} directly inside it, as in {{a}}."
+    },
+    {
+      "type": "tf",
+      "category": "Statements & membership (∈)",
+      "q": "{a} ∈ { {a} }",
+      "answer": true,
+      "explain": "The outer set's only element is the set {a}."
+    },
+    {
+      "type": "tf",
+      "category": "Statements & membership (∈)",
+      "q": "∅ and { } denote the same set.",
+      "answer": true,
+      "explain": "Both mean the empty set, the set with nothing in it."
+    },
+    {
+      "type": "tf",
+      "category": "Statements & membership (∈)",
+      "q": "∅ = {∅}",
+      "answer": false,
+      "explain": "∅ has no elements. {∅} has one element, the empty set, like a backpack with an empty backpack inside."
+    },
+    {
+      "type": "mc",
+      "category": "Statements & membership (∈)",
+      "q": "To decide whether x ∈ S, what should you check?",
+      "choices": [
+        "Whether x is directly one of the top-level elements of S",
+        "Whether x appears anywhere inside S, at any depth of braces",
+        "Whether every element of x is in S",
+        "Whether S is inside x"
+      ],
+      "answer": 0,
+      "explain": "Open only the outer backpack and look at what's directly inside. Checking whether every element of x is in S is the test for ⊆, not ∈."
+    },
+    {
+      "type": "mc",
+      "category": "Statements & membership (∈)",
+      "q": "Which statement is true?",
+      "choices": [
+        "a ∈ {a, {b}}",
+        "∅ ∈ {a}",
+        "{a} ∈ {a}",
+        "b ∈ {a, {b}}"
+      ],
+      "answer": 0,
+      "explain": "a is a top-level element. ∅ isn't listed in {a}. The only element of {a} is a. In {a, {b}}, b sits inside the inner set {b}, not at the top level."
+    },
+    {
+      "type": "mc",
+      "category": "Subsets & set equality",
+      "q": "What is the difference between A ⊆ B and A ⊂ B, as used in this course?",
+      "choices": [
+        "A ⊆ B allows A = B; A ⊂ B (proper subset) also requires A ≠ B",
+        "A ⊂ B allows A = B; A ⊆ B requires A ≠ B",
+        "They mean the same thing",
+        "A ⊆ B means A ∈ B"
+      ],
+      "answer": 0,
+      "explain": "Both require every element of A to be in B. A proper subset (⊂) also cannot be equal to B."
+    },
+    {
+      "type": "tf",
+      "category": "Subsets & set equality",
+      "q": "ℕ ⊂ ℝ (the natural numbers are a proper subset of the real numbers).",
+      "answer": true,
+      "explain": "Every natural number is a real number, and the two sets are not equal."
+    },
+    {
+      "type": "tf",
+      "category": "Subsets & set equality",
+      "q": "∅ ⊆ ∅",
+      "answer": true,
+      "explain": "The empty set is a subset of every set, including itself."
+    },
+    {
+      "type": "tf",
+      "category": "Subsets & set equality",
+      "q": "∅ ⊂ ∅",
+      "answer": false,
+      "explain": "A set is never a proper subset of itself, because the two sides are equal."
+    },
+    {
+      "type": "tf",
+      "category": "Subsets & set equality",
+      "q": "For every set S, ∅ ⊆ S.",
+      "answer": true,
+      "explain": "∀S, ∅ ⊆ S. The empty set has no element that could fail to be in S."
+    },
+    {
+      "type": "mc",
+      "category": "Subsets & set equality",
+      "q": "Which of these is true?",
+      "choices": ["∅ ⊆ {a}", "∅ ∈ {a}", "{a} ∈ {a}", "{a} ⊂ {a}"],
+      "answer": 0,
+      "explain": "∅ is a subset of every set. It is not an element of {a}, because no empty backpack is listed. {a} is not an element of itself, and it is not a proper subset of itself."
+    },
+    {
+      "type": "tf",
+      "category": "Subsets & set equality",
+      "q": "{1, 2, 2} = {1, 2}",
+      "answer": true,
+      "explain": "Repetitions don't count in sets, so both sets have exactly the elements 1 and 2."
+    },
+    {
+      "type": "tf",
+      "category": "Subsets & set equality",
+      "q": "{1, 2, 2} ⊂ {1, 2}",
+      "answer": false,
+      "explain": "The two sets are equal, so neither is a proper subset of the other."
+    },
+    {
+      "type": "tf",
+      "category": "Subsets & set equality",
+      "q": "{a, {b}} ⊆ { {a}, b }",
+      "answer": false,
+      "explain": "a is in the left set, but the right set contains {a}, not a. One counterexample is enough. ({b} is another.)"
+    },
+    {
+      "type": "tf",
+      "category": "Subsets & set equality",
+      "q": "{∅} ⊆ { {∅}, {∅, {∅}} }",
+      "answer": false,
+      "explain": "The only element of {∅} is ∅, and ∅ is not a top-level element of the right-hand set. (Note that {∅} ∈ that set is true. ∈ and ⊆ ask different questions.)"
+    },
+    {
+      "type": "tf",
+      "category": "Subsets & set equality",
+      "q": "{a, b} = {b, a}",
+      "answer": true,
+      "explain": "Order doesn't matter in sets."
+    },
+    {
+      "type": "tf",
+      "category": "Subsets & set equality",
+      "q": "(a, b) = (b, a), where a ≠ b",
+      "answer": false,
+      "explain": "Round parentheses make a sequence (here an ordered pair), and order matters in sequences."
+    },
+    {
+      "type": "mc",
+      "category": "Subsets & set equality",
+      "q": "What is enough to show that A ⊆ B is false?",
+      "choices": [
+        "One element of A that is not in B",
+        "One element of B that is not in A",
+        "Showing that A and B have different cardinalities",
+        "Showing that A ≠ B"
+      ],
+      "answer": 0,
+      "explain": "A ⊆ B means every element of A is in B, so one counterexample disproves it. An element of B missing from A, or A ≠ B, only rules out A = B. A smaller A can still be a subset."
+    },
+    {
+      "type": "mc",
+      "category": "Subsets & set equality",
+      "q": "In which kind of collection is {1, 2, 2} different from {1, 2}?",
+      "choices": ["A multiset", "A set", "Both a set and a multiset", "Neither"],
+      "answer": 0,
+      "explain": "Multisets count repetitions. You used them for combinations with repetition in discrete math. Sets ignore repetitions."
+    },
+    {
+      "type": "text",
+      "category": "Subsets & set equality",
+      "q": "A sequence of two elements, written with round parentheses so that order matters, is called a(n) ____.",
+      "answer": ["pair", "ordered pair", "a pair", "an ordered pair"],
+      "explain": "(a, b) is an ordered pair. When a ≠ b, (a, b) ≠ (b, a)."
+    },
+    {
+      "type": "mc",
+      "category": "Power sets",
+      "q": "What is the power set 𝒫(S) of a set S?",
+      "choices": [
+        "The set of all subsets of S",
+        "The set of all elements of S",
+        "The set of all proper subsets of S",
+        "The number of subsets of S"
+      ],
+      "answer": 0,
+      "explain": "𝒫(S) is the set of all subsets of S. It includes ∅ and S itself."
+    },
+    {
+      "type": "tf",
+      "category": "Power sets",
+      "q": "𝒫({a, b, c}) = { {a}, {b}, {c}, {a,b}, {a,c}, {b,c}, {a,b,c} }",
+      "answer": false,
+      "explain": "∅ is missing. ∅ is a subset of every set, so every power set contains it. The correct power set has 2³ = 8 elements."
+    },
+    {
+      "type": "tf",
+      "category": "Power sets",
+      "q": "𝒫({a, b}) = { ∅, {b, a}, {a}, {b} }",
+      "answer": true,
+      "explain": "All four subsets are there. Order doesn't matter: {b, a} = {a, b}, and the order in which the subsets are listed doesn't matter either."
+    },
+    {
+      "type": "tf",
+      "category": "Power sets",
+      "q": "𝒫(∅) = {∅}",
+      "answer": true,
+      "explain": "The only subset of ∅ is ∅ itself, so the power set has exactly one element: ∅."
+    },
+    {
+      "type": "tf",
+      "category": "Power sets",
+      "q": "𝒫(∅) = ∅",
+      "answer": false,
+      "explain": "𝒫(∅) = {∅}, which has one element. ∅ has zero elements."
+    },
+    {
+      "type": "mc",
+      "category": "Power sets",
+      "q": "What is 𝒫({∅})?",
+      "choices": ["{ ∅, {∅} }", "{∅}", "{ {∅} }", "∅"],
+      "answer": 0,
+      "explain": "{∅} has one element, so it has 2¹ = 2 subsets: ∅ and {∅} itself."
+    },
+    {
+      "type": "num",
+      "category": "Power sets",
+      "q": "What is |𝒫({1, 2, 3, 4})|?",
+      "answer": 16,
+      "explain": "A set with n elements has 2ⁿ subsets, and 2⁴ = 16."
+    },
+    {
+      "type": "num",
+      "category": "Power sets",
+      "q": "How many elements does 𝒫({a, b, c}) have?",
+      "answer": 8,
+      "explain": "2³ = 8: ∅, three singletons, three pairs, and {a, b, c}."
+    },
+    {
+      "type": "multi",
+      "category": "Power sets",
+      "q": "For an arbitrary set S, which of these are always elements of 𝒫(S)?",
+      "choices": ["∅", "S", "{∅}", "{S}"],
+      "answer": [0, 1],
+      "explain": "∅ ⊆ S and S ⊆ S always hold, so both are in 𝒫(S). {∅} is in 𝒫(S) only if ∅ is an element of S. {S} is in 𝒫(S) only if S is an element of itself, which is not true in general."
+    },
+    {
+      "type": "tf",
+      "category": "Power sets",
+      "q": "{a} ∈ 𝒫({a, b})",
+      "answer": true,
+      "explain": "The elements of a power set are subsets. Since {a} ⊆ {a, b}, {a} is an element of 𝒫({a, b})."
+    },
+    {
+      "type": "num",
+      "category": "Cardinality & intersection",
+      "q": "What is |∅|?",
+      "answer": 0,
+      "explain": "The empty set has no elements."
+    },
+    {
+      "type": "num",
+      "category": "Cardinality & intersection",
+      "q": "What is |{∅}|?",
+      "answer": 1,
+      "explain": "There is one item in the backpack: an empty backpack."
+    },
+    {
+      "type": "num",
+      "category": "Cardinality & intersection",
+      "q": "What is |{ {a, b, c} }|?",
+      "answer": 1,
+      "explain": "Count only top-level elements. There is one backpack, no matter what's inside it."
+    },
+    {
+      "type": "num",
+      "category": "Cardinality & intersection",
+      "q": "What is |{ {1}, {2} }|?",
+      "answer": 2,
+      "explain": "There are two top-level elements: the set {1} and the set {2}."
+    },
+    {
+      "type": "num",
+      "category": "Cardinality & intersection",
+      "q": "What is |{a, a, b}|?",
+      "answer": 2,
+      "explain": "Repetitions don't count: {a, a, b} = {a, b}."
+    },
+    {
+      "type": "num",
+      "category": "Cardinality & intersection",
+      "q": "What is |{ ∅, {∅}, {∅, {∅}} }|?",
+      "answer": 3,
+      "explain": "There are three different top-level elements. Don't look inside the inner backpacks."
+    },
+    {
+      "type": "num",
+      "category": "Cardinality & intersection",
+      "q": "What is |{1, 2, 3} ∩ {2, 3, 4}|?",
+      "answer": 2,
+      "explain": "The intersection is {2, 3}."
+    },
+    {
+      "type": "num",
+      "category": "Cardinality & intersection",
+      "q": "What is |{x, y} ∩ {z}|?",
+      "answer": 0,
+      "explain": "The sets have no common elements, so the intersection is ∅."
+    },
+    {
+      "type": "num",
+      "category": "Cardinality & intersection",
+      "q": "What is |{1, 2} ∩ { {1}, {2} }|?",
+      "answer": 0,
+      "explain": "The first set contains the numbers 1 and 2. The second contains the sets {1} and {2}. They share no elements."
+    },
+    {
+      "type": "text",
+      "category": "Cardinality & intersection",
+      "q": "Two sets that have no elements in common (their intersection is ∅) are called ____.",
+      "answer": ["disjoint"],
+      "explain": "A ∩ B = ∅ means A and B are disjoint."
+    },
+    {
+      "type": "mc",
+      "category": "Cardinality & intersection",
+      "q": "What is A ∩ B?",
+      "choices": [
+        "The set of elements that are in both A and B",
+        "The set of elements that are in A or B",
+        "The set of elements that are in A but not in B",
+        "The set of all pairs (a, b) with a ∈ A and b ∈ B"
+      ],
+      "answer": 0,
+      "explain": "The intersection holds the common elements, the ones where the two sets overlap."
+    }
+  ]
 }

@@ -1,1657 +1,1037 @@
 {
- "title": "CSC2770 Module 2 — Tour of Computer Systems",
- "course": "CSC2770",
- "questions": [
-  {
-   "type": "mc",
-   "category": "Architecture & instructions",
-   "topic": "Stored-program concept",
-   "q": "The module's diagram shows main memory holding both \"Instructions (Programs)\" and \"Data\". What design idea does this reflect?",
-   "choices": [
-    "The stored-program (von Neumann) concept: programs are data kept in the same memory as the values they operate on",
-    "The Harvard architecture: instructions and data have separate memories",
-    "The memory hierarchy: instructions are faster than data",
-    "Virtual memory: each program sees its own private memory"
-   ],
-   "answer": 0,
-   "explain": "In a **von Neumann** machine, instructions and data share one memory (and one path to it), so loading a new program is just loading more data. The **Harvard** alternative uses separate instruction and data memories/buses."
-  },
-  {
-   "type": "mc",
-   "category": "Architecture & instructions",
-   "topic": "von Neumann bottleneck",
-   "q": "What is the **von Neumann bottleneck**?",
-   "choices": [
-    "Because instructions and data share one path to memory, the CPU often has to wait on memory",
-    "The CPU can only run one process at a time",
-    "The ALU can only perform one operation per clock cycle",
-    "Registers are too few to hold a whole program"
-   ],
-   "answer": 0,
-   "explain": "A single shared path for both instruction fetches and data accesses means the fast CPU spends time waiting for the slower memory. Caches (and split L1i/L1d caches) exist largely to soften this."
-  },
-  {
-   "type": "mc",
-   "category": "Architecture & instructions",
-   "topic": "Modified Harvard",
-   "q": "Modern PCs are often described as \"modified Harvard\". What does that mean?",
-   "choices": [
-    "Main memory is unified (von Neumann), but the fastest cache level is split into separate instruction and data caches",
-    "Instructions are stored on disk and data in RAM",
-    "There are two separate CPUs, one for instructions and one for data",
-    "Main memory is split into an instruction RAM and a data RAM on separate buses"
-   ],
-   "answer": 0,
-   "explain": "The big DRAM is shared by code and data (von Neumann), while **L1 is split into L1i and L1d**, which lets the fetch stage and the LSU access cache at the same time (Harvard-like)."
-  },
-  {
-   "type": "mc",
-   "category": "Architecture & instructions",
-   "topic": "ISA",
-   "q": "Which best describes an **instruction set architecture (ISA)**?",
-   "choices": [
-    "The complete set of instructions a CPU understands, plus its registers and the rules for encoding instructions as bits",
-    "The physical layout of transistors on the CPU die",
-    "The operating system's list of system calls",
-    "The programming language a compiler accepts"
-   ],
-   "answer": 0,
-   "explain": "The ISA is the hardware/software contract: instructions, registers and encodings. x86-64, ARM64 and RISC-V are different ISAs, which is why machine code for one won't run on another."
-  },
-  {
-   "type": "mc",
-   "category": "Architecture & instructions",
-   "topic": "Opcode vs operands",
-   "q": "An instruction is a binary number divided into fields. What does the **opcode** field specify?",
-   "choices": [
-    "*What* operation to perform",
-    "Which registers or memory address the operation uses",
-    "The address of the next instruction",
-    "How many clock cycles the instruction takes"
-   ],
-   "answer": 0,
-   "explain": "The **opcode** says *what* to do (add, load, branch...). The other fields name the **operands**: registers, a memory address or a constant."
-  },
-  {
-   "type": "num",
-   "category": "Architecture & instructions",
-   "topic": "Register field width",
-   "q": "RISC-V has 32 registers. How many bits does each register field in an instruction need to name any one of them?",
-   "answer": 5,
-   "explain": "*n* bits can name 2^n things. 2^5 = 32, so each of rd, rs1 and rs2 is a 5-bit field."
-  },
-  {
-   "type": "num",
-   "category": "Architecture & instructions",
-   "topic": "Register field width",
-   "q": "A hypothetical ISA has **1,024** registers. How many bits would each register-name field in an instruction require?",
-   "answer": 10,
-   "explain": "2^10 = 1,024, so 10 bits per register field. This is one reason large register files are impractical: every instruction naming three registers would spend 30 bits just on register names."
-  },
-  {
-   "type": "mc",
-   "category": "Architecture & instructions",
-   "topic": "Instruction encoding",
-   "q": "In the RISC-V R-type encoding of `add x5, x6, x7` (x5 ← x6 + x7), which field holds `00101`?",
-   "choices": [
-    "rd (destination register)",
-    "rs1 (source register 1)",
-    "rs2 (source register 2)",
-    "opcode"
-   ],
-   "answer": 0,
-   "explain": "`00101` = 5, i.e. **x5**, the destination. rs1 = `00110` (x6), rs2 = `00111` (x7), and the opcode `0110011` means register-to-register arithmetic, with funct3/funct7 narrowing it to ADD."
-  },
-  {
-   "type": "tf",
-   "category": "Architecture & instructions",
-   "topic": "Instruction encoding",
-   "q": "In RISC-V, `add` and `sub` share the same opcode field value; they are distinguished by the funct7 field (`0000000` for ADD, `0100000` for SUB).",
-   "answer": true,
-   "explain": "The 7-bit opcode `0110011` just says \"register-register arithmetic\". The funct3 and funct7 fields pick the specific operation, so ADD and SUB differ only in funct7."
-  },
-  {
-   "type": "mc",
-   "category": "Instruction cycle & Control Unit",
-   "topic": "Instruction cycle",
-   "q": "What are the three phases of the instruction cycle, in order?",
-   "choices": [
-    "Fetch, decode, execute",
-    "Decode, fetch, execute",
-    "Load, compute, store",
-    "Fetch, execute, write back"
-   ],
-   "answer": 0,
-   "explain": "The CPU repeats **fetch → decode → execute** from power-on to power-off. Finer textbook models (IF, ID, EX, MEM, WB) are refinements of this.",
-   "fixed": false
-  },
-  {
-   "type": "mc",
-   "category": "Instruction cycle & Control Unit",
-   "topic": "Phase ownership",
-   "q": "Which component performs the **fetch** of an instruction?",
-   "choices": [
-    "The Control Unit",
-    "The Load-Store Unit",
-    "The ALU",
-    "The cache controller"
-   ],
-   "answer": 0,
-   "explain": "Fetch is **CU work**: the CU puts the PC's address on the address bus and READ on the control bus. The LSU only handles memory accesses that are part of *executing* an instruction."
-  },
-  {
-   "type": "mc",
-   "category": "Instruction cycle & Control Unit",
-   "topic": "Decode",
-   "q": "What happens during the **decode** phase?",
-   "choices": [
-    "The Control Unit interprets the bits in the IR and generates control signals for the other components",
-    "The instruction is read from memory over the data bus",
-    "The ALU computes the result",
-    "The PC is loaded with the reset vector"
-   ],
-   "answer": 0,
-   "explain": "Decode is internal to the CPU: the CU splits the IR into opcode and operand fields and turns them into control signals (register selects, ALU opcode, write enables). No system-bus traffic."
-  },
-  {
-   "type": "multi",
-   "category": "Instruction cycle & Control Unit",
-   "topic": "Bus use by phase",
-   "q": "Which of the following **use the system bus**? Select all that apply.",
-   "choices": [
-    "Fetching an instruction",
-    "Decoding an instruction",
-    "Executing `LOAD R1, [0x200]`",
-    "Executing `ADD R3, R1, R2`",
-    "Executing `STORE R3, [0x208]`"
-   ],
-   "answer": [
-    0,
-    2,
-    4
-   ],
-   "explain": "Fetch uses the bus (CU). Decode is internal. Execute uses the bus **only** if the instruction reads or writes memory (LSU): loads and stores do, a register-only ADD doesn't (ignoring cache hits, which avoid the bus)."
-  },
-  {
-   "type": "mc",
-   "category": "Instruction cycle & Control Unit",
-   "topic": "CU role",
-   "q": "Which statement about the Control Unit is correct?",
-   "choices": [
-    "It doesn't compute results itself; it tells the other components what to do and when",
-    "It performs all arithmetic that the ALU cannot",
-    "It stores the operands for the current instruction",
-    "It holds the address of the next instruction"
-   ],
-   "answer": 0,
-   "explain": "The CU is the \"conductor\": it manages the fetch-decode-execute cycle and generates control signals. Computing is the ALU's job; operands live in registers; the address of the next instruction is in the PC."
-  },
-  {
-   "type": "mc",
-   "category": "Instruction cycle & Control Unit",
-   "topic": "CU signals for ADD",
-   "q": "For `ADD R3, R1, R2`, which set of signals would the CU generate during decode?",
-   "choices": [
-    "Register file: output R1 and R2 to the ALU; ALU: use opcode ADD; register file: write the ALU output into R3 at the next clock edge",
-    "Address bus ← R1; control bus ← READ; data bus → R3",
-    "LSU: load R1 and R2 from memory, then store R3",
-    "PC ← R3; IR ← R1 + R2"
-   ],
-   "answer": 0,
-   "explain": "An ADD is register-only, so the CU steers the register file (which to read, which to write) and the ALU (which operation). No bus or LSU involvement."
-  },
-  {
-   "type": "mc",
-   "category": "Instruction cycle & Control Unit",
-   "topic": "Hardwired vs microprogrammed",
-   "q": "How does **microprogrammed** control differ from **hardwired** control?",
-   "choices": [
-    "Each machine instruction triggers a sequence of micro-instructions stored in an on-chip control store; it is flexible but slower",
-    "It uses software in RAM to decode instructions",
-    "It maps opcode bits straight to control signals with fixed logic; it is fast but hard to change",
-    "It is only used in GPUs"
-   ],
-   "answer": 0,
-   "explain": "**Hardwired** = fixed combinational logic from opcode to signals (fast, typical of RISC). **Microprogrammed** = a small ROM of micro-instructions per machine instruction (flexible, historically CISC/x86). Modern x86 mostly uses hardwired decoders into micro-ops and falls back to microcode for complex instructions."
-  },
-  {
-   "type": "mc",
-   "category": "Instruction cycle & Control Unit",
-   "topic": "Pipelining",
-   "q": "How can a pipelined CPU finish close to one instruction per clock cycle even though each instruction takes several cycles?",
-   "choices": [
-    "Different instructions occupy different stages at once: while one executes, the next is decoded and the one after that fetched",
-    "It skips the decode phase for simple instructions",
-    "It runs the clock several times faster during execute",
-    "It executes every instruction in the ALU in a single gate delay"
-   ],
-   "answer": 0,
-   "explain": "Pipelining is like an assembly line: each stage works on a different instruction simultaneously, so throughput approaches one instruction per cycle even though **latency** per instruction is several cycles."
-  },
-  {
-   "type": "mc",
-   "category": "Instruction cycle & Control Unit",
-   "topic": "Process switching",
-   "q": "The slides list \"switching between processes\" as ordinary CPU work. What does a **context switch** mainly consist of?",
-   "choices": [
-    "Saving one process's registers and PC to memory and loading another process's saved registers and PC",
-    "Copying the whole program from disk into cache",
-    "Rebooting the CPU with a new reset vector",
-    "Clearing main memory so the next process starts clean"
-   ],
-   "answer": 0,
-   "explain": "A process's CPU state is its register contents including the PC. The OS (usually on a timer interrupt) stores those to memory and loads another's, which is just loads and stores of register contents."
-  },
-  {
-   "type": "mc",
-   "category": "PC, IR & registers",
-   "topic": "PC vs IR",
-   "q": "Which pairing is correct?",
-   "choices": [
-    "PC holds an **address** (where the next instruction is); IR holds an **instruction** (the bits being decoded/executed)",
-    "PC holds the current instruction; IR holds the address of the next instruction",
-    "PC holds the result of the last ALU operation; IR holds the instruction count",
-    "Both hold addresses: PC for instructions, IR for data"
-   ],
-   "answer": 0,
-   "explain": "Classic confusion. **PC = address**, e.g. `0x00400108`; **IR = instruction bits**, e.g. `0x007302B3` (`add x5, x6, x7`). Fetch reads memory at PC into IR, then advances PC."
-  },
-  {
-   "type": "mc",
-   "category": "PC, IR & registers",
-   "topic": "PC contents",
-   "q": "A register contains `0x007302B3`, which is the encoding of `add x5, x6, x7`. Which register is it most likely to be, during decode?",
-   "choices": [
-    "The Instruction Register",
-    "The Program Counter",
-    "The Stack Pointer",
-    "The flags register"
-   ],
-   "answer": 0,
-   "explain": "It's an instruction's bit pattern, so it's in the **IR**. The PC would hold the *address* where the next instruction is stored."
-  },
-  {
-   "type": "num",
-   "category": "PC, IR & registers",
-   "topic": "PC increment",
-   "q": "On a machine with fixed 4-byte instructions, the instruction at address `0x10C` is fetched. What is the PC afterwards, in decimal? (0x10C = 268)",
-   "answer": 272,
-   "explain": "Sequential execution: PC ← PC + 4. `0x10C` + 4 = `0x110` = 272. The PC advances right after fetch, before the instruction executes."
-  },
-  {
-   "type": "tf",
-   "category": "PC, IR & registers",
-   "topic": "PC timing",
-   "q": "By the time an instruction executes, the PC already points at the *next* instruction.",
-   "answer": true,
-   "explain": "The PC is incremented immediately after fetch. That's why many machines compute branch targets relative to \"PC + instruction size\"."
-  },
-  {
-   "type": "mc",
-   "category": "PC, IR & registers",
-   "topic": "x86 PC increment",
-   "q": "Why can't an x86-64 CPU simply do `PC ← PC + 4` after every fetch?",
-   "choices": [
-    "x86-64 instructions vary from 1 to 15 bytes, so the increment depends on the instruction just fetched",
-    "x86-64 has no program counter",
-    "x86-64 always branches after every instruction",
-    "x86-64 instructions are 8 bytes each"
-   ],
-   "answer": 0,
-   "explain": "RISC-V and ARM64 use (almost) fixed 4-byte instructions. x86-64 is variable-length (1-15 bytes), so the PC (called RIP on x86) advances by the fetched instruction's length."
-  },
-  {
-   "type": "mc",
-   "category": "PC, IR & registers",
-   "topic": "Conditional branch",
-   "q": "In this loop, what happens when R1 becomes 0?\n\n```\n0x100: SUB R1, R1, #1\n0x104: BNZ 0x100   ; branch if Zero flag == 0\n0x108: ...\n```",
-   "choices": [
-    "SUB sets the Zero flag, BNZ doesn't branch, and the PC's normal increment to `0x108` stands",
-    "BNZ sets PC ← 0x100 and the loop continues forever",
-    "The CPU halts because R1 is zero",
-    "The PC is reset to the reset vector"
-   ],
-   "answer": 0,
-   "explain": "A conditional branch sets PC ← target **only if** its condition holds; otherwise the incremented PC stands. When R1 hits 0, Z = 1, so \"branch if not zero\" falls through to `0x108`."
-  },
-  {
-   "type": "mc",
-   "category": "PC, IR & registers",
-   "topic": "Call/return",
-   "q": "What does a function **call** instruction do to the PC?",
-   "choices": [
-    "It saves the return address (the incremented PC), e.g. by pushing it on the stack, then sets the PC to the function's address",
-    "It increments the PC by the function's size",
-    "It copies the function's code into the IR",
-    "It sets the PC to the reset vector"
-   ],
-   "answer": 0,
-   "explain": "A call is a jump that remembers where to come back to. A **return** pops the saved address back into the PC."
-  },
-  {
-   "type": "mc",
-   "category": "PC, IR & registers",
-   "topic": "Reset vector",
-   "q": "What is the PC's **reset vector**?",
-   "choices": [
-    "The fixed, usually hardwired address the PC holds at power-on, pointing into firmware",
-    "The address of the most recently executed instruction",
-    "An interrupt that resets the ALU flags",
-    "The first address of the operating system kernel in RAM"
-   ],
-   "answer": 0,
-   "explain": "At power-on the CPU must start somewhere fixed, so the reset vector is built into it. On x86 it is `0xFFFFFFF0`, where the motherboard maps the firmware flash chip."
-  },
-  {
-   "type": "mc",
-   "category": "PC, IR & registers",
-   "topic": "Why firmware",
-   "q": "Why must the reset vector point into firmware in non-volatile memory rather than into RAM?",
-   "choices": [
-    "RAM is volatile, so at power-on it holds no program to run",
-    "RAM is too slow to fetch the first instruction",
-    "The PC cannot hold RAM addresses",
-    "The OS forbids the CPU from reading RAM before boot"
-   ],
-   "answer": 0,
-   "explain": "Main memory loses everything without power. The only code available at power-on is the firmware (BIOS/UEFI) stored in flash/ROM, which initializes hardware and loads the bootloader and OS into RAM."
-  },
-  {
-   "type": "mc",
-   "category": "PC, IR & registers",
-   "topic": "Boot chain",
-   "q": "Put the boot chain in order: (1) bootloader loads the kernel, (2) PC = reset vector, (3) firmware runs POST and finds a boot device, (4) kernel starts user programs.",
-   "choices": [
-    "2, 3, 1, 4",
-    "3, 2, 1, 4",
-    "2, 1, 3, 4",
-    "1, 2, 3, 4"
-   ],
-   "answer": 0,
-   "explain": "Reset → PC = reset vector → firmware (BIOS/UEFI) runs **POST**, initializes hardware, loads a **bootloader** → bootloader loads the **kernel** into RAM and jumps to it → kernel starts user programs.",
-   "fixed": true
-  },
-  {
-   "type": "mc",
-   "category": "PC, IR & registers",
-   "topic": "SPR vs GPR",
-   "q": "Which of these is a **general-purpose** register's job?",
-   "choices": [
-    "Holding operands and intermediate results chosen by the program/compiler",
-    "Holding the address of the next instruction",
-    "Holding the instruction currently being decoded",
-    "Holding the ALU's Zero/Negative/Overflow flags"
-   ],
-   "answer": 0,
-   "explain": "**GPRs** hold data values for computation. The PC, IR and status/flags register are **special-purpose registers** with dedicated jobs."
-  },
-  {
-   "type": "multi",
-   "category": "PC, IR & registers",
-   "topic": "SPRs",
-   "q": "Which of these are **special-purpose registers**? Select all that apply.",
-   "choices": [
-    "Program Counter",
-    "Instruction Register",
-    "Status/flags register",
-    "A register the compiler uses for a loop counter"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "PC, IR, the flags register (and the stack pointer, MAR/MDR in textbook models) have dedicated roles. A register chosen by the compiler to hold a loop counter is a GPR."
-  },
-  {
-   "type": "tf",
-   "category": "PC, IR & registers",
-   "topic": "Register speed",
-   "q": "Registers are faster to access than cache or main memory because they are located directly in the CPU.",
-   "answer": true,
-   "explain": "Registers sit in the CPU core next to the ALU and are read/written within a single clock cycle (well under a nanosecond)."
-  },
-  {
-   "type": "mc",
-   "category": "PC, IR & registers",
-   "topic": "Sequential vs combinational",
-   "q": "Registers are built from flip-flops. What kind of circuit does that make them?",
-   "choices": [
-    "Sequential: their output depends on stored state, captured at clock edges",
-    "Combinational: their output depends only on current inputs",
-    "Analog: they store a continuous voltage",
-    "Volatile ROM"
-   ],
-   "answer": 0,
-   "explain": "Flip-flops hold a bit via feedback and capture input on a clock edge, so registers are **sequential**. The ALU, by contrast, is **combinational**."
-  },
-  {
-   "type": "mc",
-   "category": "PC, IR & registers",
-   "topic": "64-bit CPU",
-   "q": "What does calling a CPU \"64-bit\" mean?",
-   "choices": [
-    "Its GPRs (and addresses) are 64 bits wide, so it can operate on 64-bit integers in one instruction and in principle address 2^64 bytes",
-    "It has 64 general-purpose registers",
-    "It runs at 64 GHz",
-    "Its cache lines are 64 bytes"
-   ],
-   "answer": 0,
-   "explain": "Word size is the width of the GPRs. A 32-bit CPU has 32-bit registers and a 2^32-byte (4 GiB) address space. (Cache lines being 64 bytes is a coincidence of numbers.)"
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "ALU inputs",
-   "q": "Where do the ALU's inputs come from?",
-   "choices": [
-    "The operands come from registers; the operation comes as a control signal from the most recently decoded instruction",
-    "Both operands and the operation are read directly from main memory",
-    "The operands come from the PC and IR",
-    "The operation is chosen by the ALU based on its last result"
-   ],
-   "answer": 0,
-   "explain": "Per the slides: operands from **registers**, operation (opcode) from the **CU's decode** of the current instruction."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "Combinational ALU",
-   "q": "Why is the ALU called a **combinational** circuit?",
-   "choices": [
-    "It has no internal memory; its output depends only on its current inputs, not on previous inputs",
-    "It combines several instructions into one",
-    "It combines the CPU and memory into one chip",
-    "It can only do operations that combine two operands"
-   ],
-   "answer": 0,
-   "explain": "The ALU is a pure function f(A, B, op). It doesn't remember the last result, so the result must be captured in a register at a clock edge."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "Why a clock",
-   "q": "Why does the combinational ALU make a clock necessary?",
-   "choices": [
-    "Its output flickers through intermediate values while signals propagate; the clock edge marks when registers capture the settled result",
-    "Without a clock the ALU would forget its opcode table",
-    "The clock supplies the power the ALU runs on",
-    "The clock tells the ALU which operation to perform"
-   ],
-   "answer": 0,
-   "explain": "When inputs change, the output settles after gate delays (e.g. rippling carries). Edge-triggered registers capture only at the edge, and the period is chosen longer than the slowest path, so only correct, stable values are stored."
-  },
-  {
-   "type": "num",
-   "category": "ALU, flags & logic gates",
-   "topic": "Opcode bits",
-   "q": "The example ALU uses a 2-bit opcode. How many distinct operations can a **5-bit** opcode select?",
-   "answer": 32,
-   "explain": "*n* opcode bits select 2^n operations: 2^5 = 32. The example's 2 bits select exactly 4 (ADD 00, SUB 01, NOT 10, NEG 11); real ALUs use 4-8 bits (16-256 operations)."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "Opcode table",
-   "q": "In the module's example ALU, what operation does opcode `10` select?",
-   "choices": [
-    "NOT",
-    "NEG",
-    "SUB",
-    "ADD"
-   ],
-   "answer": 0,
-   "explain": "The table: ADD `00`, SUB `01`, **NOT `10`**, NEG `11`.",
-   "fixed": false
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "NOT vs NEG",
-   "q": "For Input A = `00000101` (5), what are the outputs of **NOT** and **NEG**?",
-   "choices": [
-    "NOT = `11111010` (−6); NEG = `11111011` (−5)",
-    "NOT = `11111011` (−5); NEG = `11111010` (−6)",
-    "Both give `11111011`",
-    "NOT = `00000101`; NEG = `10000101`"
-   ],
-   "answer": 0,
-   "explain": "**NOT** flips every bit (one's complement). **NEG** is two's-complement negation: flip every bit *and add 1*. So NEG x = NOT x + 1."
-  },
-  {
-   "type": "text",
-   "category": "ALU, flags & logic gates",
-   "topic": "NOT result",
-   "q": "Give the 8-bit output of the example ALU for opcode `10` (NOT) with Input A = `01010000`. Answer as 8 binary digits.",
-   "answer": [
-    "10101111"
-   ],
-   "explain": "NOT is bitwise complement: `01010000` → `10101111` (−81 as signed). Input B is ignored because NOT is unary."
-  },
-  {
-   "type": "text",
-   "category": "ALU, flags & logic gates",
-   "topic": "NEG result",
-   "q": "Give the 8-bit output of the example ALU for opcode `11` (NEG) with Input A = `01010000` (80). Answer as 8 binary digits.",
-   "answer": [
-    "10110000"
-   ],
-   "explain": "NEG = NOT A + 1 = `10101111` + 1 = `10110000`, which is −80 in two's complement."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "ADD overflow",
-   "q": "The 8-bit ALU computes ADD with A = `01010000` (80) and B = `00110000` (48). What are the result and flags?",
-   "choices": [
-    "`10000000`; Overflow = 1, Negative = 1, Zero = 0",
-    "`10000000`; Overflow = 0, Negative = 0, Zero = 0",
-    "`00000000`; Overflow = 1, Zero = 1",
-    "`10000000`; Carry = 1, Overflow = 0"
-   ],
-   "answer": 0,
-   "explain": "80 + 48 = 128, which exceeds the signed 8-bit max of 127. The bit pattern `10000000` reads as −128: two positives gave a negative, so **V = 1**. The top bit is 1, so **N = 1**. No carry out of bit 7, so C = 0 (unsigned 128 is correct)."
-  },
-  {
-   "type": "num",
-   "category": "ALU, flags & logic gates",
-   "topic": "SUB result",
-   "q": "The example ALU computes SUB (opcode `01`) with A = 80 and B = 48. What is the output as a signed decimal number?",
-   "answer": 32,
-   "explain": "A − B = A + NEG B. NEG 48 = `11010000`. `01010000 + 11010000 = 1 00100000`; drop the 9th bit → `00100000` = 32. Z = 0, N = 0, V = 0 (operands of opposite sign can't overflow)."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "SUB 5−7",
-   "q": "The ALU computes SUB with A = 5, B = 7. Which flags are set?",
-   "choices": [
-    "N = 1, Z = 0, V = 0",
-    "N = 0, Z = 0, V = 1",
-    "N = 1, Z = 0, V = 1",
-    "N = 0, Z = 1, V = 0"
-   ],
-   "answer": 0,
-   "explain": "5 − 7 = 5 + (−7) = `00000101 + 11111001 = 11111110` = −2. The top bit is 1 so **N = 1**. Adding operands of opposite sign can never overflow, so V = 0."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "Carry vs overflow",
-   "q": "ADD −1 + 1 in 8 bits: `11111111 + 00000001 = 1 00000000`. Which flags result?",
-   "choices": [
-    "Z = 1, C = 1, V = 0, N = 0",
-    "Z = 1, C = 0, V = 1, N = 0",
-    "Z = 0, C = 1, V = 1, N = 1",
-    "Z = 1, C = 1, V = 1, N = 0"
-   ],
-   "answer": 0,
-   "explain": "The 8-bit result is all zeros (**Z = 1**) and a bit carried out of the top (**C = 1**, unsigned overflow: 255 + 1). But as signed, −1 + 1 = 0 is correct, so **V = 0**. Carry tracks unsigned overflow; Overflow tracks signed overflow."
-  },
-  {
-   "type": "tf",
-   "category": "ALU, flags & logic gates",
-   "topic": "Overflow rule",
-   "q": "Adding a positive and a negative two's-complement number can never cause signed overflow.",
-   "answer": true,
-   "explain": "The result's magnitude is at most the larger operand's, so it always fits. Overflow in addition happens only when both operands have the **same** sign and the result has the opposite sign."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "NEG −128",
-   "q": "What happens when the 8-bit ALU performs NEG on `10000000` (−128)?",
-   "choices": [
-    "The result is `10000000` (−128 again) and Overflow = 1, because +128 can't be represented",
-    "The result is `01111111` (+127) with no flags",
-    "The result is `00000000` with Zero = 1",
-    "The result is `10000001` (−127)"
-   ],
-   "answer": 0,
-   "explain": "NOT `10000000` = `01111111`, + 1 = `10000000`. The 8-bit signed range is −128 to +127, so +128 doesn't exist; this is the one negation that overflows."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "Comparison via flags",
-   "q": "How does an ALU typically evaluate `a == b`?",
-   "choices": [
-    "It computes a − b, discards the result and checks whether the Zero flag is set",
-    "It computes a AND b and checks whether the result is all ones",
-    "It sends both values to memory and compares their addresses",
-    "It uses the NOT operation on both and checks the Carry flag"
-   ],
-   "answer": 0,
-   "explain": "Comparisons are subtractions whose result is thrown away; only the flags are kept. `a == b` ⇔ a − b = 0 ⇔ Z = 1. Conditional branches like BEQ/JZ then test Z."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "Opcode selection",
-   "q": "A simple way to build the 4-operation example ALU is to compute all four results in parallel and choose one. What circuit does the choosing?",
-   "choices": [
-    "A 4-to-1 multiplexer whose 2 select lines are driven by the opcode",
-    "A flip-flop that remembers the last opcode",
-    "The Control Unit's microcode ROM",
-    "The Load-Store Unit"
-   ],
-   "answer": 0,
-   "explain": "A MUX passes exactly one of its inputs to its output based on its select bits. The opcode drives those select lines, so selection is itself combinational logic."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "Gates",
-   "q": "Which gate outputs 1 **only when its two inputs differ**?",
-   "choices": [
-    "XOR",
-    "AND",
-    "OR",
-    "NAND"
-   ],
-   "answer": 0,
-   "explain": "XOR (exclusive or): 0⊕0 = 0, 0⊕1 = 1, 1⊕0 = 1, 1⊕1 = 0."
-  },
-  {
-   "type": "text",
-   "category": "ALU, flags & logic gates",
-   "topic": "Bitwise AND",
-   "q": "Compute `01100100 AND 00001111`. Answer as 8 binary digits.",
-   "answer": [
-    "00000100"
-   ],
-   "explain": "Bitwise AND applies the gate to each bit position: a bit is 1 only if both inputs are 1. Masking with `00001111` keeps only the low 4 bits of `01100100`, giving `00000100`."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "Gate symbols",
-   "q": "In the standard schematic symbols, which gate is drawn as a triangle with a small circle (\"bubble\") at its output?",
-   "choices": [
-    "NOT",
-    "AND",
-    "OR",
-    "XOR"
-   ],
-   "answer": 0,
-   "explain": "NOT = triangle + bubble. AND = flat back, round front. OR = curved back, pointed front. XOR = OR shape with an extra curved line at the input side. A bubble on any output means \"inverted\" (e.g. NAND, NOR)."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "Half adder",
-   "q": "A half adder adds two bits A and B. What are its outputs?",
-   "choices": [
-    "Sum = A XOR B, Carry = A AND B",
-    "Sum = A AND B, Carry = A XOR B",
-    "Sum = A OR B, Carry = A AND B",
-    "Sum = NOT A, Carry = NOT B"
-   ],
-   "answer": 0,
-   "explain": "1 + 1 = binary `10`: sum 0, carry 1. Sum is 1 when exactly one input is 1 (XOR); carry is 1 only when both are (AND). Full adders chain these to form an n-bit ripple-carry adder."
-  },
-  {
-   "type": "mc",
-   "category": "ALU, flags & logic gates",
-   "topic": "Adder reuse",
-   "q": "Why was two's complement a good choice for representing signed numbers in hardware?",
-   "choices": [
-    "One adder circuit handles addition, subtraction (A + NOT B + 1) and negation",
-    "It makes multiplication a single gate",
-    "It doubles the range of representable numbers",
-    "It removes the need for a Carry flag"
-   ],
-   "answer": 0,
-   "explain": "Subtraction becomes A + (NOT B) + 1: invert B with XOR gates and set the first carry-in to 1. No separate subtractor is needed."
-  },
-  {
-   "type": "tf",
-   "category": "ALU, flags & logic gates",
-   "topic": "Gates and transistors",
-   "q": "Logic gates are built from transistors, which act as electrically controlled switches.",
-   "answer": true,
-   "explain": "In CMOS, a NOT gate uses 2 transistors and a NAND uses 4. NAND is universal: any digital circuit can be built from NANDs alone."
-  },
-  {
-   "type": "mc",
-   "category": "LSU & system bus",
-   "topic": "LSU role",
-   "q": "What does the **Load-Store Unit** handle?",
-   "choices": [
-    "Memory operations during execution: LOAD, STORE, PUSH, POP",
-    "All memory accesses, including instruction fetch",
-    "Arithmetic and logic operations",
-    "Decoding instructions into control signals"
-   ],
-   "answer": 0,
-   "explain": "The LSU moves data between memory (via cache) and registers. These aren't arithmetic, so they don't use the ALU. **Instruction fetch is the exception**: it isn't part of executing an instruction, so the CU handles it."
-  },
-  {
-   "type": "mc",
-   "category": "LSU & system bus",
-   "topic": "Who handles it",
-   "q": "Match each operation to its unit: (i) fetch of the next instruction, (ii) `POP R1`, (iii) `ADD R3, R1, R2`.",
-   "choices": [
-    "(i) CU, (ii) LSU, (iii) ALU",
-    "(i) LSU, (ii) LSU, (iii) ALU",
-    "(i) CU, (ii) ALU, (iii) ALU",
-    "(i) LSU, (ii) CU, (iii) LSU"
-   ],
-   "answer": 0,
-   "explain": "Fetch → **Control Unit**. PUSH/POP are stores/loads with an automatic stack-pointer update → **LSU**. Register-to-register arithmetic → **ALU**, no memory access."
-  },
-  {
-   "type": "mc",
-   "category": "LSU & system bus",
-   "topic": "PUSH semantics",
-   "q": "On x86 the stack grows toward lower addresses. What does `PUSH R1` do?",
-   "choices": [
-    "SP ← SP − size, then memory[SP] ← R1",
-    "memory[SP] ← R1, then SP ← SP + size",
-    "R1 ← memory[SP], then SP ← SP + size",
-    "SP ← R1"
-   ],
-   "answer": 0,
-   "explain": "PUSH decrements the stack pointer and then writes at the new top. POP reads the top and then increments SP. Both are just memory accesses with an address calculation, so the LSU handles them."
-  },
-  {
-   "type": "mc",
-   "category": "LSU & system bus",
-   "topic": "Load/store architecture",
-   "q": "On a strict **load/store architecture** such as RISC-V, how do you add two numbers stored in memory and save the sum?",
-   "choices": [
-    "LOAD both into registers, ADD the registers, STORE the result",
-    "A single ADD instruction with two memory operands",
-    "ADD directly in cache, then flush to memory",
-    "Ask the Control Unit to add them during fetch"
-   ],
-   "answer": 0,
-   "explain": "Only loads and stores touch memory; arithmetic is register-only. (x86's `add rax, [rbx]` looks different, but internally it's split into a load micro-op for the LSU and an add micro-op for the ALU.)"
-  },
-  {
-   "type": "mc",
-   "category": "LSU & system bus",
-   "topic": "Three buses",
-   "q": "Which bus carries the READ or WRITE command?",
-   "choices": [
-    "Control bus",
-    "Address bus",
-    "Data bus",
-    "Memory bus"
-   ],
-   "answer": 0,
-   "explain": "**Address bus** = which location; **data bus** = the value; **control bus** = the command (READ/WRITE) plus clock, interrupt and ready lines."
-  },
-  {
-   "type": "mc",
-   "category": "LSU & system bus",
-   "topic": "Bus directions",
-   "q": "Which statement about bus directions is correct?",
-   "choices": [
-    "The address bus goes out from the CPU; the data bus is bidirectional; control lines go both ways",
-    "All three buses are one-way from memory to CPU",
-    "The data bus only goes out from the CPU",
-    "The address bus is bidirectional so memory can tell the CPU where data is"
-   ],
-   "answer": 0,
-   "explain": "The CPU (or the unit driving the bus) names the address. Data flows in on a load/fetch and out on a store. Control carries commands out and interrupt/ready signals in."
-  },
-  {
-   "type": "multi",
-   "category": "LSU & system bus",
-   "topic": "Store on the bus",
-   "q": "During the execute phase of `STORE R3, [0x208]` (R3 = 12), what appears on the buses? Select all that apply.",
-   "choices": [
-    "`0x208` on the address bus",
-    "WRITE on the control bus",
-    "`12` on the data bus, going from the CPU to memory",
-    "READ on the control bus",
-    "The PC's value on the address bus"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "A store puts the destination address on the address bus, WRITE on the control bus and the value on the data bus (CPU → memory). The PC's value only goes on the address bus during *fetch*."
-  },
-  {
-   "type": "mc",
-   "category": "LSU & system bus",
-   "topic": "Load on the bus",
-   "q": "A `LOAD R4, [0x3000]` instruction sits at address `0x0200`. What is on the **address bus** during its fetch and during its execute phase?",
-   "choices": [
-    "Fetch: `0x0200`; execute: `0x3000`",
-    "Fetch: `0x3000`; execute: `0x0200`",
-    "`0x0200` in both",
-    "Fetch: `0x0200`; execute: nothing (loads don't use the bus)"
-   ],
-   "answer": 0,
-   "explain": "Fetch (CU) sends the PC's value, `0x0200`, with READ; the instruction comes back into the IR. Execute (LSU) sends the data's address, `0x3000`, with READ; the value comes back into R4."
-  },
-  {
-   "type": "num",
-   "category": "LSU & system bus",
-   "topic": "Address bus width",
-   "q": "The Intel 8086 had 20 address lines. How many bytes could it address, in KiB? (1 KiB = 1,024 bytes)",
-   "answer": 1024,
-   "explain": "n address lines → 2^n byte addresses. 2^20 = 1,048,576 bytes = 1,024 KiB = 1 MiB."
-  },
-  {
-   "type": "num",
-   "category": "LSU & system bus",
-   "topic": "Data bus width",
-   "q": "How many bytes does a 64-bit data bus move per transfer?",
-   "answer": 8,
-   "explain": "Data-bus width is bits per transfer: 64 / 8 = 8 bytes."
-  },
-  {
-   "type": "num",
-   "category": "LSU & system bus",
-   "topic": "Memory transactions",
-   "q": "In the worked program (LOAD R1; LOAD R2; ADD R3, R1, R2; STORE R3), how many memory transactions occur in total?",
-   "answer": 7,
-   "explain": "Every instruction is fetched (4 fetches), plus 2 loads and 1 store in execute = **7**. The ADD's execute uses no memory. All those slow memory trips are what motivates cache."
-  },
-  {
-   "type": "mc",
-   "category": "LSU & system bus",
-   "topic": "Program trace",
-   "q": "After the worked program finishes `LOAD R1,[0x200]` (value 5), `LOAD R2,[0x204]` (value 7), `ADD R3,R1,R2` and `STORE R3,[0x208]` starting at PC = `0x100`, what are the PC and M[0x208]?",
-   "choices": [
-    "PC = `0x110`, M[0x208] = 12",
-    "PC = `0x10C`, M[0x208] = 12",
-    "PC = `0x110`, M[0x208] = 0",
-    "PC = `0x100`, M[0x208] = 35"
-   ],
-   "answer": 0,
-   "explain": "Four 4-byte instructions advance the PC from `0x100` to `0x110`. The store writes R3 = 5 + 7 = 12 to `0x208`."
-  },
-  {
-   "type": "mc",
-   "category": "LSU & system bus",
-   "topic": "Memory bus",
-   "q": "The diagram has a thick arrow directly between the CPU and main memory, separate from the system bus. What does it represent in modern systems?",
-   "choices": [
-    "A dedicated high-speed memory bus: the memory controller is built into the CPU and drives DDR channels directly",
-    "A wireless link between the CPU and RAM",
-    "The PCIe link to the graphics card",
-    "The path disks use to reach the CPU"
-   ],
-   "answer": 0,
-   "explain": "Historically the CPU reached memory through a front-side bus and a northbridge chipset. Today the memory controller is on the CPU die itself."
-  },
-  {
-   "type": "tf",
-   "category": "LSU & system bus",
-   "topic": "Modern buses",
-   "q": "Modern machines mostly replace a single shared set of parallel wires with point-to-point serial links like PCIe, yet the address/data/control model is still the right mental picture.",
-   "answer": true,
-   "explain": "PCIe lanes connect GPUs, NVMe SSDs and NICs point-to-point. Every transfer still needs an address, data and a command, so the three-bus model still applies conceptually."
-  },
-  {
-   "type": "mc",
-   "category": "Clock & performance",
-   "topic": "Clock edges",
-   "q": "When can registers update?",
-   "choices": [
-    "Only on a clock edge (tick)",
-    "At any time the ALU output changes",
-    "Only when the CPU is idle",
-    "Only during the decode phase"
-   ],
-   "answer": 0,
-   "explain": "The clock is a square wave. Logic may change at any time, but edge-triggered registers capture only on the **edge** (e.g. rising, low → high)."
-  },
-  {
-   "type": "num",
-   "category": "Clock & performance",
-   "topic": "Clock period",
-   "q": "What is the clock period of a **4 GHz** CPU, in nanoseconds?",
-   "answer": 0.25,
-   "explain": "T = 1/f = 1 / (4 × 10^9) s = 2.5 × 10^−10 s = **0.25 ns**.",
-   "tolerance": 0.001
-  },
-  {
-   "type": "num",
-   "category": "Clock & performance",
-   "topic": "Clock period",
-   "q": "What is the clock period of a **3 GHz** CPU, in nanoseconds (to 3 decimal places)?",
-   "answer": 0.333,
-   "explain": "T = 1 / (3 × 10^9) s ≈ 3.33 × 10^−10 s ≈ **0.333 ns**. In that time light travels only about 10 cm.",
-   "tolerance": 0.002
-  },
-  {
-   "type": "num",
-   "category": "Clock & performance",
-   "topic": "Cycles per second",
-   "q": "A 3.5 GHz clock produces how many **billion** potential register updates per second?",
-   "answer": 3.5,
-   "explain": "GHz = billions of cycles per second, and each cycle is one opportunity for registers to update.",
-   "tolerance": 0.01
-  },
-  {
-   "type": "mc",
-   "category": "Clock & performance",
-   "topic": "Overclocking limit",
-   "q": "What goes wrong if a CPU is overclocked so far that the clock period is shorter than the slowest logic path?",
-   "choices": [
-    "Registers capture values before the logic has settled, causing crashes or silent errors",
-    "The CPU automatically executes fewer instructions per cycle but stays correct",
-    "The cache is disabled",
-    "Nothing; the CPU just gets hotter"
-   ],
-   "answer": 0,
-   "explain": "The period must exceed the slowest combinational path. Overclockers raise voltage to speed switching, but dynamic power ~ f × V², so heat rises steeply. Overclocking is limited by **stability, heat and power**."
-  },
-  {
-   "type": "num",
-   "category": "Clock & performance",
-   "topic": "CPU performance equation",
-   "q": "A program executes 6 × 10^9 instructions on a 2.5 GHz CPU with CPI = 1. How many seconds does it take?",
-   "answer": 2.4,
-   "explain": "CPU time = instruction count × CPI / clock rate = 6×10^9 × 1 / 2.5×10^9 = **2.4 s**.",
-   "tolerance": 0.01
-  },
-  {
-   "type": "mc",
-   "category": "Clock & performance",
-   "topic": "GHz isn't everything",
-   "q": "CPU X: 3 GHz, CPI = 2. CPU Y: 2.5 GHz, CPI = 1. Both run the same 6 × 10^9-instruction program. Which is faster?",
-   "choices": [
-    "Y (2.4 s vs 4 s)",
-    "X (2 s vs 2.4 s)",
-    "X, because its clock is faster",
-    "They take the same time"
-   ],
-   "answer": 0,
-   "explain": "X: 6×10^9 × 2 / 3×10^9 = 4 s. Y: 6×10^9 × 1 / 2.5×10^9 = 2.4 s. The lower-GHz chip wins because its CPI is lower: clock speed alone doesn't determine performance."
-  },
-  {
-   "type": "num",
-   "category": "Clock & performance",
-   "topic": "Instructions per second",
-   "q": "A 4 GHz processor averages 2 cycles per instruction. How many **billion** instructions per second does it execute?",
-   "answer": 2,
-   "explain": "Instructions/s = clock rate / CPI = 4 × 10^9 / 2 = 2 × 10^9."
-  },
-  {
-   "type": "num",
-   "category": "Clock & performance",
-   "topic": "Miss cost in cycles",
-   "q": "A cache miss that goes all the way to DRAM costs about 100 ns. How many clock cycles is that on a 3 GHz CPU?",
-   "answer": 300,
-   "explain": "100 ns × 3 cycles/ns = **300 cycles**. This is why cache behaviour dominates CPI in practice.",
-   "tolerance": 5
-  },
-  {
-   "type": "multi",
-   "category": "Main memory & units",
-   "topic": "Main memory properties",
-   "q": "Which properties describe main memory as presented in the module? Select all that apply.",
-   "choices": [
-    "Volatile",
-    "Random-access",
-    "Organized as a linear array of bytes, each with its own address",
-    "Permanent: keeps data after power-off",
-    "Located in the I/O subsystem behind a controller"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "Main memory (RAM) is **temporary/volatile**, **random-access** and a **linear array of bytes**. Permanence and sitting behind a controller in the I/O subsystem describe disk."
-  },
-  {
-   "type": "mc",
-   "category": "Main memory & units",
-   "topic": "Volatility",
-   "q": "Why do you lose unsaved work when a program crashes or the power fails?",
-   "choices": [
-    "Unsaved changes live only in volatile main memory; \"save\" copies them to non-volatile disk",
-    "The disk erases recently written files after a crash",
-    "The cache writes garbage over the file on disk",
-    "The CPU deletes the program's registers from disk"
-   ],
-   "answer": 0,
-   "explain": "Main memory holds running programs' instructions and data but doesn't retain contents when the program ends, the system crashes or power is removed."
-  },
-  {
-   "type": "mc",
-   "category": "Main memory & units",
-   "topic": "Why DRAM forgets",
-   "q": "Why does DRAM lose its contents without power?",
-   "choices": [
-    "Each bit is charge on a tiny capacitor that leaks, so rows must be refreshed regularly; without power, refresh stops and charge drains",
-    "DRAM stores bits magnetically and power keeps the magnets aligned",
-    "DRAM is erased by the firmware at every boot",
-    "DRAM bits are stored on the CPU die, which resets at power-off"
-   ],
-   "answer": 0,
-   "explain": "DRAM = one transistor + one capacitor per bit, refreshed at least every 64 ms (JEDEC). SRAM (cache/registers) needs no refresh but still needs power, so it's volatile too."
-  },
-  {
-   "type": "mc",
-   "category": "Main memory & units",
-   "topic": "Random access",
-   "q": "What does \"random access\" mean?",
-   "choices": [
-    "Any address can be accessed directly without traversing other locations first",
-    "Data is stored at random addresses",
-    "Reads return a random value if the data isn't cached",
-    "The access time varies randomly"
-   ],
-   "answer": 0,
-   "explain": "The contrast is **sequential access**, like tape, where you must wind past everything before the data you want."
-  },
-  {
-   "type": "tf",
-   "category": "Main memory & units",
-   "topic": "RAM timing caveat",
-   "q": "Because RAM is random-access, every memory access in a real program takes the same amount of time regardless of access pattern.",
-   "answer": false,
-   "explain": "RAM has no traversal cost, but real accesses differ: cache hits are ~100× faster than DRAM, open DRAM rows are faster than new ones, and NUMA remote memory is slower. Access patterns can change speed several-fold."
-  },
-  {
-   "type": "num",
-   "category": "Main memory & units",
-   "topic": "Registers in bytes",
-   "q": "A CPU has **16** GPRs of **32 bits** each. How many bytes do they hold in total?",
-   "answer": 64,
-   "explain": "16 × 32 = 512 bits; 512 / 8 = **64 bytes**."
-  },
-  {
-   "type": "num",
-   "category": "Main memory & units",
-   "topic": "Registers in bytes",
-   "q": "A CPU has **32** GPRs of **64 bits** each. How many bytes do they hold in total?",
-   "answer": 256,
-   "explain": "32 × 64 = 2,048 bits; 2,048 / 8 = **256 bytes** (= 2^8)."
-  },
-  {
-   "type": "num",
-   "category": "Main memory & units",
-   "topic": "8 GB in bytes",
-   "q": "How many bytes are in 8 GB, using the course's binary definition (1 GB = 2^30 bytes)?",
-   "answer": 8589934592,
-   "explain": "8 × 2^30 = 2^3 × 2^30 = 2^33 = **8,589,934,592** bytes."
-  },
-  {
-   "type": "num",
-   "category": "Main memory & units",
-   "topic": "Register/RAM ratio",
-   "q": "8 GB of RAM (2^33 bytes) is how many times larger than a 64-byte register file? Give the exact number.",
-   "answer": 134217728,
-   "explain": "2^33 / 2^6 = 2^27 = **134,217,728**: about 134 million times."
-  },
-  {
-   "type": "mc",
-   "category": "Main memory & units",
-   "topic": "Register/RAM ratio",
-   "q": "16 GB of RAM (binary) versus 32 × 64-bit registers (256 bytes): what is the ratio?",
-   "choices": [
-    "2^26 = 67,108,864",
-    "2^34 = 17,179,869,184",
-    "2^27 = 134,217,728",
-    "2^24 = 16,777,216"
-   ],
-   "answer": 0,
-   "explain": "16 GB = 2^4 × 2^30 = 2^34 bytes. 256 bytes = 2^8. 2^34 / 2^8 = **2^26 = 67,108,864**."
-  },
-  {
-   "type": "multi",
-   "category": "Main memory & units",
-   "topic": "Why not all registers",
-   "q": "Why don't computers just use registers instead of main memory? Select all that apply.",
-   "choices": [
-    "Registers are much more expensive to produce and take up space directly on the CPU",
-    "Registers need more power and generate more heat",
-    "A bigger register file would be slower and need more instruction bits to name each register",
-    "Registers are non-volatile, so they can't be cleared between programs",
-    "Registers can only store instructions, not data"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "The slides give cost/die space and power/heat. Beyond the slides: bigger register files mean longer wires (slower) and wider register fields in every instruction. Registers are volatile, and GPRs hold data."
-  },
-  {
-   "type": "num",
-   "category": "Main memory & units",
-   "topic": "Address width",
-   "q": "How many bytes can be addressed with **32-bit** addresses? Answer in GiB.",
-   "answer": 4,
-   "explain": "2^32 = 4,294,967,296 bytes = 4 × 2^30 = 4 GiB: the old \"4 GB limit\" of 32-bit systems."
-  },
-  {
-   "type": "mc",
-   "category": "Main memory & units",
-   "topic": "Little-endian",
-   "q": "On a little-endian machine, the 4-byte integer `0x12345678` is stored at address `0x1000`. Which byte is at `0x1000`?",
-   "choices": [
-    "`0x78`",
-    "`0x12`",
-    "`0x34`",
-    "`0x56`"
-   ],
-   "answer": 0,
-   "explain": "Little-endian (x86, most ARM) stores the **least significant byte at the lowest address**: `78 56 34 12` at `0x1000…0x1003`. Big-endian (network byte order) would put `0x12` first."
-  },
-  {
-   "type": "num",
-   "category": "Main memory & units",
-   "topic": "TB to bytes",
-   "q": "How many bytes are in 1 TB using the course's binary definition? (2^40)",
-   "answer": 1099511627776,
-   "explain": "1 TB = 2^40 = 1,099,511,627,776 bytes (in this course). Unambiguously this is 1 TiB."
-  },
-  {
-   "type": "num",
-   "category": "Main memory & units",
-   "topic": "GB vs GiB",
-   "q": "A drive is sold as **512 GB** (decimal: 512 × 10^9 bytes). About how many GiB (2^30 bytes) does the OS report? Round to 1 decimal place.",
-   "answer": 476.8,
-   "explain": "512 × 10^9 / 1,073,741,824 ≈ **476.8 GiB**. Nothing is missing; drive makers use decimal units while OSes (and RAM) use binary.",
-   "tolerance": 0.1
-  },
-  {
-   "type": "num",
-   "category": "Main memory & units",
-   "topic": "GB vs GiB",
-   "q": "A \"256 GB\" SSD holds 256 × 10^9 bytes. About how many GiB is that? Round to 1 decimal place.",
-   "answer": 238.4,
-   "explain": "256 × 10^9 / 2^30 ≈ **238.4 GiB**.",
-   "tolerance": 0.1
-  },
-  {
-   "type": "mc",
-   "category": "Main memory & units",
-   "topic": "Bits vs bytes",
-   "q": "A network link is rated at **1 Gb/s** (lowercase b). Roughly how many megabytes per second is that?",
-   "choices": [
-    "About 125 MB/s",
-    "About 1,000 MB/s",
-    "About 8,000 MB/s",
-    "About 1 MB/s"
-   ],
-   "answer": 0,
-   "explain": "Lowercase **b** = bits. 10^9 bits/s ÷ 8 = 1.25 × 10^8 bytes/s ≈ 125 MB/s."
-  },
-  {
-   "type": "mc",
-   "category": "Main memory & units",
-   "topic": "RAM sizing",
-   "q": "\"8 GB of RAM\" really means how many bytes?",
-   "choices": [
-    "8 × 2^30 (8 GiB), because memory is always sized in powers of two",
-    "8 × 10^9",
-    "8 × 2^20",
-    "8 × 10^6"
-   ],
-   "answer": 0,
-   "explain": "RAM comes in power-of-two sizes, so \"8 GB of RAM\" is 8 GiB = 8,589,934,592 bytes. The decimal convention is what drive makers use."
-  },
-  {
-   "type": "mc",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Why cache",
-   "q": "Why does cache improve performance?",
-   "choices": [
-    "It keeps recent/frequently used data close to the CPU so fewer requests go to slower main memory",
-    "It makes the clock run faster",
-    "It stores data permanently so it survives power-off",
-    "It lets the ALU skip the decode phase"
-   ],
-   "answer": 0,
-   "explain": "Every trip to main memory is a delay. Cache (small, fast, in or near the CPU) satisfies most requests without that trip. It is volatile, like RAM."
-  },
-  {
-   "type": "mc",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Cache levels",
-   "q": "Which statement about L1, L2 and L3 is correct?",
-   "choices": [
-    "L1 is the smallest and fastest; L3 is the largest and slowest (and typically shared by all cores)",
-    "L3 is the smallest and fastest",
-    "All three levels are the same size but differ in speed",
-    "L1 is shared by all cores; L3 is private to each core"
-   ],
-   "answer": 0,
-   "explain": "Each tier is progressively larger and slower: L1 (tens of KB per core, ~1 ns), L2 (MB per core), L3 (8-100+ MB per chip, shared)."
-  },
-  {
-   "type": "tf",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Cache volatility",
-   "q": "Cache memory is non-volatile, unlike main memory.",
-   "answer": false,
-   "explain": "Like main memory, cache is **temporary and volatile**. It is built from SRAM, which needs power to hold state."
-  },
-  {
-   "type": "mc",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Cache size",
-   "q": "Roughly how does total cache in consumer devices (20-60 MB) compare to main memory (~9 billion to ~2 trillion bytes)?",
-   "choices": [
-    "Main memory is roughly 140 to 100,000 times larger",
-    "They are about the same size",
-    "Cache is larger",
-    "Main memory is about 2-3 times larger"
-   ],
-   "answer": 0,
-   "explain": "8,589,934,592 / 62,914,560 ≈ 137 at the low end, and 2^41 / 20,971,520 ≈ 104,858 at the high end. Because cache is so small it must be managed effectively."
-  },
-  {
-   "type": "mc",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Hit vs miss",
-   "q": "What happens on a **cache miss**?",
-   "choices": [
-    "The request goes to the next level down (eventually main memory), and the fetched data is brought into cache so the next access hits",
-    "The CPU raises an error and the program stops",
-    "The ALU recomputes the value",
-    "The data is read from disk directly into the register"
-   ],
-   "answer": 0,
-   "explain": "A hit returns quickly (L1 ~1 ns). A miss goes down the hierarchy (DRAM ~100 ns) and fills the cache on the way back."
-  },
-  {
-   "type": "mc",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Cache lines",
-   "q": "A program reads **1 byte** that isn't in cache on a current x86-64 CPU. How much data is brought into cache?",
-   "choices": [
-    "A whole 64-byte cache line containing that byte",
-    "Exactly 1 byte",
-    "One 4 KB page",
-    "The entire array the byte belongs to"
-   ],
-   "answer": 0,
-   "explain": "Caches transfer fixed-size **cache lines** (64 bytes on x86-64). Loading neighbours along with the requested byte is what exploits spatial locality."
-  },
-  {
-   "type": "mc",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Locality type",
-   "q": "A loop's running total `sum` is read and written on every iteration. Which kind of locality does this show?",
-   "choices": [
-    "Temporal locality",
-    "Spatial locality",
-    "Sequential access",
-    "No locality"
-   ],
-   "answer": 0,
-   "explain": "**Temporal**: data used recently is likely to be used again soon. Stepping to the next array element would be **spatial** locality (nearby data)."
-  },
-  {
-   "type": "mc",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Locality type",
-   "q": "A loop walks through consecutive elements `a[0], a[1], a[2], …`. Which kind of locality does this mainly exploit?",
-   "choices": [
-    "Spatial locality",
-    "Temporal locality",
-    "Random access",
-    "Reset locality"
-   ],
-   "answer": 0,
-   "explain": "**Spatial**: data near recently used data is likely to be used soon. Each 64-byte line brought in supplies 16 consecutive ints."
-  },
-  {
-   "type": "mc",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Access patterns",
-   "q": "In C, a 2-D array is stored row by row. Which loop is cache-friendly for large N?\n\n(A) `for i … for j … sum += a[i][j];`\n(B) `for j … for i … sum += a[i][j];`",
-   "choices": [
-    "(A), because it walks memory sequentially, using every byte of each cache line",
-    "(B), because it visits each column once",
-    "Both are equally fast because RAM is random-access",
-    "(B), because it has fewer iterations"
-   ],
-   "answer": 0,
-   "explain": "(A) steps through consecutive addresses (spatial locality). (B) jumps a whole row (N × 4 bytes) between accesses, so for large N nearly every access misses and waits ~100 ns. Same arithmetic, several times slower. This is what \"poor cache management can tank performance\" means for programmers."
-  },
-  {
-   "type": "mc",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Replacement",
-   "q": "When the cache is full and a new line must be loaded, what typically decides which line is evicted?",
-   "choices": [
-    "A replacement policy, usually an approximation of least recently used (LRU)",
-    "The line with the lowest address",
-    "A random line chosen by the OS",
-    "The line holding the PC's value"
-   ],
-   "answer": 0,
-   "explain": "LRU exploits temporal locality: the line not used for the longest time is the least likely to be needed soon."
-  },
-  {
-   "type": "mc",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Split L1",
-   "q": "Why is L1 cache commonly split into L1i and L1d?",
-   "choices": [
-    "So instruction fetch (L1i) and the LSU's data accesses (L1d) can proceed at the same time",
-    "Because instructions are larger than data",
-    "Because L1d is non-volatile",
-    "So the OS can encrypt instructions separately"
-   ],
-   "answer": 0,
-   "explain": "This is the Harvard-like part of a \"modified Harvard\" design: separate fast paths for instructions and data avoid contention at the top of the hierarchy."
-  },
-  {
-   "type": "mc",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Hierarchy order",
-   "q": "Order these from fastest/smallest to slowest/largest: main memory, L1 cache, SSD, registers, L3 cache.",
-   "choices": [
-    "Registers, L1, L3, main memory, SSD",
-    "L1, registers, L3, SSD, main memory",
-    "Registers, L3, L1, main memory, SSD",
-    "Main memory, registers, L1, L3, SSD"
-   ],
-   "answer": 0,
-   "explain": "Registers (<1 ns) → L1 (~1 ns) → L2/L3 (~4-40 ns) → DRAM (~100 ns) → SSD (~0.1 ms) / HDD (~10 ms). Going down: larger, slower, cheaper per byte; only disk is non-volatile.",
-   "fixed": true
-  },
-  {
-   "type": "mc",
-   "category": "Cache & the storage hierarchy",
-   "topic": "Core trade-off",
-   "q": "What single trade-off explains why computers stack registers, cache, RAM and disk?",
-   "choices": [
-    "No storage is fast, large and cheap all at once, so small fast layers hold the most-used data and large cheap layers hold the rest",
-    "Faster storage is always larger, so fewer layers are needed",
-    "Every program requires exactly four kinds of storage",
-    "Disks can only talk to RAM, and RAM can only talk to cache"
-   ],
-   "answer": 0,
-   "explain": "The fast ↔ large ↔ cheap trade-off. Locality lets the hierarchy give close to top-level speed at close to bottom-level cost. Module 3 develops this."
-  },
-  {
-   "type": "mc",
-   "category": "I/O devices & controllers",
-   "topic": "I/O definition",
-   "q": "Why is a laptop's **integrated** graphics adapter considered an I/O device even though it's on the CPU package?",
-   "choices": [
-    "\"I/O\" is about function, not location: it produces output for a display and is accessed through a device interface, not as part of the CU/ALU/registers",
-    "It isn't; integrated graphics are part of the CPU",
-    "Because it is connected by USB",
-    "Because it stores data permanently"
-   ],
-   "answer": 0,
-   "explain": "The slides stress that I/O does not mean \"external\". Integrated graphics and the built-in NIC are treated by the machine as I/O devices."
-  },
-  {
-   "type": "multi",
-   "category": "I/O devices & controllers",
-   "topic": "I/O classification",
-   "q": "Which of these devices do **both** input and output? Select all that apply.",
-   "choices": [
-    "Touchscreen",
-    "Network card",
-    "Headset (mic + speakers)",
-    "Keyboard",
-    "Monitor"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "A touchscreen displays and senses touch; a NIC sends and receives; a headset has mic (in) and speakers (out). A keyboard is input only and a monitor is output only."
-  },
-  {
-   "type": "mc",
-   "category": "I/O devices & controllers",
-   "topic": "Controllers",
-   "q": "Why does the CPU communicate with devices through **controllers**?",
-   "choices": [
-    "Controllers provide an abstraction: the CPU only needs to know *what* to tell a device, not *how* the device works",
-    "Controllers make devices run faster than the CPU",
-    "The CPU has no address bus",
-    "Controllers store the device's data permanently"
-   ],
-   "answer": 0,
-   "explain": "Like calling a function without knowing its implementation. The disk controller exposes \"read block 1,000\" and hides whether that means moving a head over a platter (HDD) or reading flash (SSD)."
-  },
-  {
-   "type": "mc",
-   "category": "I/O devices & controllers",
-   "topic": "Device = controller",
-   "q": "How do the graphics adapter and NIC differ from the USB controller in the module's diagram?",
-   "choices": [
-    "They are both the I/O device and its own controller; the USB controller is a separate controller managing many different devices",
-    "They connect directly to the CPU without the system bus",
-    "They are not I/O devices",
-    "They use the LSU instead of a controller"
-   ],
-   "answer": 0,
-   "explain": "Graphics adapter → display and NIC → network each appear as one box on the bus. The USB controller manages keyboards, mice, flash drives, webcams and so on plugged into it."
-  },
-  {
-   "type": "mc",
-   "category": "I/O devices & controllers",
-   "topic": "Device drivers",
-   "q": "What is a **device driver**?",
-   "choices": [
-    "OS software that knows a specific controller's registers and protocol and presents a generic interface to the rest of the OS",
-    "The firmware that runs at the reset vector",
-    "A hardware chip that replaces the controller",
-    "The cable connecting a device to the bus"
-   ],
-   "answer": 0,
-   "explain": "Layers: application → OS generic interface → driver → controller → device. Each layer only needs to know the one directly below, the same layered idea as network protocol stacks."
-  },
-  {
-   "type": "mc",
-   "category": "I/O devices & controllers",
-   "topic": "Memory-mapped I/O",
-   "q": "With **memory-mapped I/O**, how does the CPU write a command to a device register?",
-   "choices": [
-    "An ordinary STORE to an address assigned to the device register, through the LSU and the usual buses",
-    "A special x86 `out` instruction to a separate I/O address space",
-    "By writing the command to disk and rebooting",
-    "By changing the reset vector"
-   ],
-   "answer": 0,
-   "explain": "Device registers get ordinary memory addresses, so normal loads and stores reach the device instead of RAM. The special-instruction approach is **port-mapped** I/O. Memory-mapped is dominant today."
-  },
-  {
-   "type": "mc",
-   "category": "I/O devices & controllers",
-   "topic": "Polling vs interrupts",
-   "q": "What is the advantage of **interrupts** over **polling**?",
-   "choices": [
-    "The CPU can do other work instead of repeatedly checking a status register; the device signals when it's done",
-    "Interrupts never require the OS to run any code",
-    "Polling can't read device registers",
-    "Interrupts make the device itself faster"
-   ],
-   "answer": 0,
-   "explain": "Polling wastes CPU time spinning on the status register. With interrupts the device raises a signal on a control line; the CPU saves state, runs the OS interrupt handler, then resumes."
-  },
-  {
-   "type": "mc",
-   "category": "I/O devices & controllers",
-   "topic": "DMA",
-   "q": "What does **DMA** do?",
-   "choices": [
-    "Lets a device copy bulk data directly to or from main memory without the CPU moving each word; the CPU is interrupted when the transfer finishes",
-    "Doubles the memory bandwidth by using two buses",
-    "Moves data directly between registers and disk, skipping RAM",
-    "Makes the CPU fetch instructions from the device"
-   ],
-   "answer": 0,
-   "explain": "Direct Memory Access frees the CPU during disk-block or network-packet transfers."
-  },
-  {
-   "type": "mc",
-   "category": "I/O devices & controllers",
-   "topic": "Keyboard input path",
-   "q": "You press a key. Which path best describes what happens?",
-   "choices": [
-    "The USB controller receives it and interrupts the CPU; the OS driver reads the key code",
-    "The keyboard writes the key directly into a CPU register",
-    "The graphics adapter reads the keyboard and sends the key to RAM",
-    "The disk controller stores the key and the CPU polls the disk"
-   ],
-   "answer": 0,
-   "explain": "Keyboard → USB controller → interrupt on a control line → OS interrupt handler / driver reads the code over the bus."
-  },
-  {
-   "type": "mc",
-   "category": "I/O devices & controllers",
-   "topic": "NIC",
-   "q": "What does a NIC do with an **incoming** frame?",
-   "choices": [
-    "Receives the signals, reassembles and error-checks the frame and places it in main memory for the OS",
-    "Executes it as an instruction",
-    "Sends it directly to the display",
-    "Stores it permanently on the NIC"
-   ],
-   "answer": 0,
-   "explain": "Outgoing, it converts OS-prepared frames to electrical/radio signals; incoming, it does the reverse and hands frames to memory (often by DMA). Each NIC has a 48-bit **MAC address**."
-  },
-  {
-   "type": "mc",
-   "category": "I/O devices & controllers",
-   "topic": "USB enumeration",
-   "q": "When you plug a device into USB, the controller and OS perform **enumeration**. What does that achieve?",
-   "choices": [
-    "The device is reset, given an address, and its descriptors are read so the right driver can be loaded",
-    "The device's firmware is erased and rewritten",
-    "The CPU's reset vector is changed to the device",
-    "The device is mounted as main memory"
-   ],
-   "answer": 0,
-   "explain": "Descriptors say \"I am a keyboard\" or \"I am mass storage\", so the OS knows which driver to use."
-  },
-  {
-   "type": "mc",
-   "category": "Secondary storage",
-   "topic": "Secondary storage",
-   "q": "What distinguishes secondary storage (disk memory) from main memory?",
-   "choices": [
-    "It is permanent and non-volatile, surviving program termination, crashes and power-off",
-    "It is faster than main memory",
-    "The CPU executes instructions directly from it",
-    "It is located inside the CPU"
-   ],
-   "answer": 0,
-   "explain": "Disk is permanent and non-volatile but slower (and cheaper per byte) than RAM. It sits in the I/O subsystem behind a disk controller."
-  },
-  {
-   "type": "tf",
-   "category": "Secondary storage",
-   "topic": "Execution from disk",
-   "q": "The CPU can fetch and execute instructions directly from disk without copying them to main memory.",
-   "answer": false,
-   "explain": "Programs must be loaded from disk into main memory first; the fetch step reads from main memory (via cache). Disk is an I/O device behind a controller."
-  },
-  {
-   "type": "mc",
-   "category": "Secondary storage",
-   "topic": "SSD vs HDD",
-   "q": "How does an SSD store data, compared with an HDD?",
-   "choices": [
-    "SSD: trapped electrical charge in NAND flash cells, no moving parts; HDD: magnetic regions on spinning platters",
-    "SSD: magnetic platters; HDD: flash cells",
-    "Both store charge on capacitors that need refresh",
-    "SSD stores data in RAM backed by a battery"
-   ],
-   "answer": 0,
-   "explain": "Flash cells trap electrons in an insulated floating gate or charge trap, so data stays without power. HDDs move a head over spinning magnetic platters."
-  },
-  {
-   "type": "num",
-   "category": "Secondary storage",
-   "topic": "HDD rotational latency",
-   "q": "A 7,200 RPM disk: what is the **average** rotational latency, in milliseconds (half a rotation)? Round to 2 decimals.",
-   "answer": 4.17,
-   "explain": "One rotation = 60 s / 7,200 = 8.33 ms. On average you wait half a rotation: ≈ **4.17 ms**. Add ~5 ms seek and a random read costs ~10 ms, about 100,000× DRAM's ~100 ns.",
-   "tolerance": 0.02
-  },
-  {
-   "type": "mc",
-   "category": "Secondary storage",
-   "topic": "SSD wear",
-   "q": "Why do SSDs use **wear leveling**?",
-   "choices": [
-    "Each program/erase cycle damages the cell's insulation, so the controller spreads writes evenly to keep any cell from wearing out early",
-    "To keep the platters balanced while spinning",
-    "To refresh cells before their charge leaks away every 64 ms",
-    "To make reads faster than writes"
-   ],
-   "answer": 0,
-   "explain": "Cells endure roughly 100,000 cycles (SLC) down to about 1,000 (TLC/QLC). Wear leveling runs in the SSD controller's own firmware."
-  },
-  {
-   "type": "mc",
-   "category": "Secondary storage",
-   "topic": "VHD",
-   "q": "What is a **virtual hard disk**?",
-   "choices": [
-    "Software-defined storage, such as a file on the host (.vhdx, .vmdk, .qcow2) or a network volume, presented to a VM as a disk",
-    "An SSD with no controller",
-    "A RAM disk that loses data at shutdown",
-    "The portion of an HDD reserved for the OS"
-   ],
-   "answer": 0,
-   "explain": "The guest OS sees an ordinary disk; the hypervisor turns its reads/writes into operations on the file or network block volume (e.g. AWS EBS)."
-  },
-  {
-   "type": "num",
-   "category": "Secondary storage",
-   "topic": "Disk size",
-   "q": "How many bytes is 4 TB in the course's binary units? (4 × 2^40)",
-   "answer": 4398046511104,
-   "explain": "4 × 2^40 = 2^42 = **4,398,046,511,104** bytes. A drive *sold* as 4 TB holds 4 × 10^12 bytes ≈ 3.64 TiB."
-  },
-  {
-   "type": "mc",
-   "category": "Secondary storage",
-   "topic": "Storage speed",
-   "q": "About how much faster is a random read from an SSD (~0.1 ms) than from an HDD (~10 ms)?",
-   "choices": [
-    "About 100×",
-    "About 2×",
-    "About 10,000×",
-    "They're the same"
-   ],
-   "answer": 0,
-   "explain": "10 ms / 0.1 ms = 100. Both are still vastly slower than DRAM (~100 ns)."
-  },
-  {
-   "type": "mc",
-   "category": "Secondary storage",
-   "topic": "NVMe vs AHCI",
-   "q": "Why are NVMe SSDs lower-latency than SATA drives using AHCI?",
-   "choices": [
-    "NVMe runs over PCIe with up to 64K queues of 64K commands, while AHCI was designed for HDDs with one 32-command queue",
-    "NVMe drives use magnetic platters that spin faster",
-    "AHCI drives are connected by USB",
-    "NVMe drives are part of main memory"
-   ],
-   "answer": 0,
-   "explain": "AHCI's single shallow queue suited slow HDDs. NVMe's many deep queues over PCIe match flash's parallelism."
-  },
-  {
-   "type": "mc",
-   "category": "Secondary storage",
-   "topic": "Saving a file",
-   "q": "In the \"putting it all together\" story, what does saving a document physically do?",
-   "choices": [
-    "Copies data from volatile main memory, through the disk controller over the bus, to non-volatile disk",
-    "Moves the document from cache into registers",
-    "Marks the RAM pages as permanent",
-    "Sends the document to the graphics adapter"
-   ],
-   "answer": 0,
-   "explain": "Save = copy from memory (volatile) to disk (non-volatile) so the data survives a crash or power-off."
-  }
- ]
+  "title": "Module 2: Tour of Computer Systems",
+  "course": "CSC2770",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "CPU & Instruction Cycle",
+      "q": "Which description matches the CPU?",
+      "choices": [
+        "The engine that interprets and executes instructions",
+        "Where program instructions and data are kept while the machine is running",
+        "The set of parallel wires that carries bits between components",
+        "The part of the computer that handles input and output devices"
+      ],
+      "answer": 0,
+      "explain": "The CPU (processor) interprets and executes instructions. The other choices describe main memory, the system bus and the I/O subsystem."
+    },
+    {
+      "type": "text",
+      "category": "CPU & Instruction Cycle",
+      "q": "The fetch-and-execute cycle is also called the ______ cycle.",
+      "answer": ["instruction", "instruction cycle", "the instruction cycle"],
+      "explain": "Fetch-and-execute cycle and instruction cycle are two names for the same thing."
+    },
+    {
+      "type": "mc",
+      "category": "CPU & Instruction Cycle",
+      "q": "What are the three steps of the instruction cycle, in order?",
+      "choices": [
+        "Fetch, decode, execute",
+        "Decode, fetch, execute",
+        "Fetch, execute, decode",
+        "Load, execute, store"
+      ],
+      "answer": 0,
+      "explain": "The CPU fetches an instruction from memory, decodes it, then executes it, and repeats."
+    },
+    {
+      "type": "multi",
+      "category": "CPU & Instruction Cycle",
+      "q": "Which of these are CPU responsibilities?",
+      "choices": [
+        "Running the applications on the computer",
+        "Reading from and writing to memory",
+        "Switching between processes",
+        "Keeping data after the machine is powered off"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The CPU runs applications and maintains system operations such as memory reads/writes and process switching. Keeping data with the power off is the job of disk (secondary storage)."
+    },
+    {
+      "type": "mc",
+      "category": "CPU & Instruction Cycle",
+      "q": "The system diagram has four major parts. Which of these is NOT one of the four?",
+      "choices": ["Cache", "CPU", "System bus", "I/O subsystem"],
+      "answer": 0,
+      "explain": "The four major parts are the CPU, main memory, the system bus and the I/O subsystem. Cache is a component inside the CPU box."
+    },
+    {
+      "type": "tf",
+      "category": "CPU & Instruction Cycle",
+      "q": "The CPU in a typical personal computer is likely executing billions of instructions per second.",
+      "answer": true,
+      "explain": "Modern PC CPUs execute billions of instructions per second."
+    },
+
+    {
+      "type": "mc",
+      "category": "Control Unit, PC & IR",
+      "q": "What does the Program Counter (PC) hold?",
+      "choices": [
+        "The memory address of the next instruction to fetch",
+        "The instruction currently being decoded or executed",
+        "The result of the most recent ALU operation",
+        "The OpCode being sent to the ALU"
+      ],
+      "answer": 0,
+      "explain": "The PC holds an address, namely where the next instruction is in memory. It does not hold the instruction itself."
+    },
+    {
+      "type": "mc",
+      "category": "Control Unit, PC & IR",
+      "q": "What does the Instruction Register (IR) hold?",
+      "choices": [
+        "The actual instruction the CPU is currently decoding or executing",
+        "The memory address of the next instruction",
+        "The default address used when the machine boots",
+        "Operands and intermediate results used during computation"
+      ],
+      "answer": 0,
+      "explain": "The IR holds the current instruction. The PC holds the next instruction's address, the reset vector is the boot address, and GPRs hold operands."
+    },
+    {
+      "type": "mc",
+      "category": "Control Unit, PC & IR",
+      "q": "Which sequence correctly describes fetching an instruction?",
+      "choices": [
+        "Use the address in the PC, take the instruction stored there, place it in the IR, then increment the PC",
+        "Use the instruction in the IR, place its address in the PC, then increment the IR",
+        "Increment the PC, copy the PC into the IR, then read memory at the IR's address",
+        "Copy the PC into a GPR, send it through the ALU, then place the result in the IR"
+      ],
+      "answer": 0,
+      "explain": "The CPU reaches out to the address stored in the PC, takes the instruction at that address, puts it in the IR, and then the PC increments."
+    },
+    {
+      "type": "tf",
+      "category": "Control Unit, PC & IR",
+      "q": "After an instruction is fetched, the PC is always updated by a simple increment.",
+      "answer": false,
+      "explain": "The update may be a simple increment or something more complex, such as a branch or jump to a different address."
+    },
+    {
+      "type": "text",
+      "category": "Control Unit, PC & IR",
+      "q": "What is the name of the default memory address the PC points to when the machine boots?",
+      "answer": ["reset vector", "the reset vector", "a reset vector"],
+      "explain": "The reset vector is the PC's default address at boot. On most CPUs it is hardwired and part of the firmware."
+    },
+    {
+      "type": "mc",
+      "category": "Control Unit, PC & IR",
+      "q": "On most CPUs, where is the reset vector defined?",
+      "choices": [
+        "It is hardwired into the machine as part of the firmware",
+        "The operating system writes it to main memory at shutdown",
+        "It is kept in L1 cache between power cycles",
+        "The user picks it the first time a program runs"
+      ],
+      "answer": 0,
+      "explain": "The reset vector is hardwired and part of the firmware, which is built-in software that initializes the hardware."
+    },
+    {
+      "type": "text",
+      "category": "Control Unit, PC & IR",
+      "q": "Firmware is built-in software that initializes the hardware. Give the common example of firmware (an acronym).",
+      "answer": ["BIOS", "the BIOS"],
+      "explain": "BIOS is the standard example of firmware. It holds things like the reset vector."
+    },
+    {
+      "type": "multi",
+      "category": "Control Unit, PC & IR",
+      "q": "Which of these are jobs of the Control Unit?",
+      "choices": [
+        "Managing the fetch-and-execute cycle",
+        "Sending the address and the READ signal to memory during fetch",
+        "Parsing an instruction and generating the signals needed to execute it",
+        "Performing additions and value comparisons",
+        "Carrying out STORE instructions during execute"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The CU manages the cycle, handles fetch, and decodes instructions into control signals. Arithmetic and comparisons belong to the ALU, and STORE belongs to the LSU."
+    },
+    {
+      "type": "mc",
+      "category": "Control Unit, PC & IR",
+      "q": "A program runs in sequence and the instruction at address 1000 has just been fetched. While that instruction is being decoded, what does the PC hold?",
+      "choices": [
+        "The address of the instruction that follows the one at 1000",
+        "Address 1000",
+        "The instruction from address 1000",
+        "Nothing; the PC is cleared until execute finishes"
+      ],
+      "answer": 0,
+      "explain": "The PC updates right after fetch. During decode and execute it already points to the next instruction, while the IR holds the current one."
+    },
+
+    {
+      "type": "mc",
+      "category": "Register File",
+      "q": "Why are registers faster to access than any other memory or storage?",
+      "choices": [
+        "They are located directly in the CPU",
+        "They are non-volatile",
+        "They are much larger than main memory",
+        "They are reached through the system bus"
+      ],
+      "answer": 0,
+      "explain": "Registers sit directly in the CPU, so the CPU can reach them without going out to memory."
+    },
+    {
+      "type": "mc",
+      "category": "Register File",
+      "q": "The Program Counter and the Instruction Register are both examples of:",
+      "choices": [
+        "Special-purpose registers (SPRs)",
+        "General-purpose registers (GPRs)",
+        "Cache tiers",
+        "Controllers"
+      ],
+      "answer": 0,
+      "explain": "SPRs have specific, dedicated purposes. The PC and IR are both SPRs."
+    },
+    {
+      "type": "mc",
+      "category": "Register File",
+      "q": "What do general-purpose registers (GPRs) hold?",
+      "choices": [
+        "Operands, such as data values and intermediate results, used during computation",
+        "Only the address of the next instruction",
+        "Only the instruction currently being executed",
+        "Program code loaded from disk"
+      ],
+      "answer": 0,
+      "explain": "GPRs hold operands for computation. The next-instruction address and the current instruction are held by the SPRs (PC and IR)."
+    },
+    {
+      "type": "multi",
+      "category": "Register File",
+      "q": "Registers are the fastest storage. Why don't computers just use registers instead of main memory?",
+      "choices": [
+        "Registers are significantly more expensive to produce",
+        "Registers take up space directly on the CPU",
+        "Registers require more power and generate more heat",
+        "Registers are slower than main memory",
+        "Registers are volatile and main memory is not"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Registers cost more, use CPU space, and need more power and produce more heat. They are faster than main memory, and both registers and main memory are volatile."
+    },
+    {
+      "type": "num",
+      "category": "Register File",
+      "q": "A CPU has 16 GPRs, each 32 bits wide. How many bytes of GPR storage is that in total?",
+      "answer": 64,
+      "explain": "16 x 32 = 512 bits, and 512 / 8 = 64 bytes."
+    },
+    {
+      "type": "num",
+      "category": "Register File",
+      "q": "A CPU has 32 GPRs, each 64 bits wide. How many bytes of GPR storage is that in total?",
+      "answer": 256,
+      "explain": "32 x 64 = 2048 bits, and 2048 / 8 = 256 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Register File",
+      "q": "How many general-purpose registers do modern processors tend to have?",
+      "choices": ["16 to 32", "2 to 4", "1,000 to 2,000", "About one per megabyte of RAM"],
+      "answer": 0,
+      "explain": "Modern processors tend to have 16 to 32 GPRs. Each GPR's size is determined by the architecture."
+    },
+    {
+      "type": "tf",
+      "category": "Register File",
+      "q": "Every GPR is 32 bits wide, no matter which CPU architecture it belongs to.",
+      "answer": false,
+      "explain": "Each GPR's size is determined by the architecture."
+    },
+
+    {
+      "type": "mc",
+      "category": "ALU & Logic Gates",
+      "q": "What does the ALU receive as input?",
+      "choices": [
+        "Two operands from CPU registers, and an operation sent as a control signal based on the most recently decoded instruction",
+        "Two operands read straight from main memory, and an operation sent by the Program Counter",
+        "One operand from cache and a memory address from the address bus",
+        "The current instruction from the IR, which the ALU decodes by itself"
+      ],
+      "answer": 0,
+      "explain": "Operands come from registers in the CPU. The operation is a control signal determined by the most recently decoded instruction, and decoding is the Control Unit's job."
+    },
+    {
+      "type": "mc",
+      "category": "ALU & Logic Gates",
+      "q": "The ALU is a combinational circuit. What does that mean?",
+      "choices": [
+        "It has no internal memory, and its output does not depend on any previous input",
+        "It stores its last result so it can use it in the next calculation",
+        "It combines the CPU and main memory into one unit",
+        "It can only update when the clock ticks"
+      ],
+      "answer": 0,
+      "explain": "A combinational circuit's output depends only on its current inputs, so the same inputs always give the same output. Registers are the parts that hold values and update on clock ticks."
+    },
+    {
+      "type": "multi",
+      "category": "ALU & Logic Gates",
+      "q": "Which of these operations are performed by the ALU?",
+      "choices": [
+        "Addition and subtraction",
+        "Logical AND / OR",
+        "Value comparisons such as == and <",
+        "Loading a value from memory into a register",
+        "Fetching the next instruction"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The ALU handles arithmetic, logical operations and comparisons. Loads go through the LSU, and fetch is handled by the Control Unit."
+    },
+    {
+      "type": "mc",
+      "category": "ALU & Logic Gates",
+      "q": "In the example ALU's OpCode table (ADD 00, SUB 01, NOT 10, NEG 11), which operation does OpCode 01 select?",
+      "choices": ["SUB", "ADD", "NOT", "NEG"],
+      "answer": 0,
+      "explain": "00 = ADD, 01 = SUB, 10 = NOT, 11 = NEG."
+    },
+    {
+      "type": "text",
+      "category": "ALU & Logic Gates",
+      "q": "In the example ALU (2-bit OpCode: ADD, SUB, NOT, NEG in order), what OpCode selects NEG?",
+      "answer": ["11"],
+      "explain": "The four codes go 00 ADD, 01 SUB, 10 NOT, 11 NEG."
+    },
+    {
+      "type": "num",
+      "category": "ALU & Logic Gates",
+      "q": "How many distinct operations can a 4-bit OpCode select?",
+      "answer": 16,
+      "explain": "An n-bit OpCode has 2^n values: 2^4 = 16. A 2-bit OpCode gives only 4, which is why modern CPUs use 4 to 8 bit OpCodes."
+    },
+    {
+      "type": "mc",
+      "category": "ALU & Logic Gates",
+      "q": "In the example 8-bit ALU, A = 00000110, B = 00000110 and OpCode = 01. Which flag would you expect to be set?",
+      "choices": ["Zero", "Negative", "Overflow", "None of the flags"],
+      "answer": 0,
+      "explain": "01 is SUB, so the result is 6 - 6 = 0 (00000000). A zero result sets the Zero flag."
+    },
+    {
+      "type": "text",
+      "category": "ALU & Logic Gates",
+      "q": "In the example 8-bit ALU, A = 00000101, B = 00000011 and OpCode = 00 (ADD). What is the 8-bit output, written in binary?",
+      "answer": ["00001000", "0000 1000"],
+      "explain": "5 + 3 = 8, which is 00001000 in 8 bits."
+    },
+    {
+      "type": "tf",
+      "category": "ALU & Logic Gates",
+      "q": "The slides' ALU with 8-bit inputs and a 2-bit OpCode is typical of a modern CPU.",
+      "answer": false,
+      "explain": "That ALU is only an example. A modern CPU would more likely use 64-bit inputs and outputs and a 4 to 8 bit OpCode."
+    },
+    {
+      "type": "mc",
+      "category": "ALU & Logic Gates",
+      "q": "What are logic gates made from?",
+      "choices": [
+        "Transistors, which are switches that control the flow of electrical current",
+        "Registers, which hold values between clock ticks",
+        "Small ALUs, each able to do one operation",
+        "Cache cells that store recently used bits"
+      ],
+      "answer": 0,
+      "explain": "Transistors build logic gates, gates build the ALU, and the ALU performs operations like ADD and SUB."
+    },
+    {
+      "type": "mc",
+      "category": "ALU & Logic Gates",
+      "q": "Which ordering goes from the smallest building block to the largest?",
+      "choices": [
+        "Transistors, logic gates, ALU",
+        "Logic gates, transistors, ALU",
+        "ALU, logic gates, transistors",
+        "Transistors, ALU, logic gates"
+      ],
+      "answer": 0,
+      "explain": "Transistors make up logic gates, and logic gates perform the ALU's operations."
+    },
+    {
+      "type": "multi",
+      "category": "ALU & Logic Gates",
+      "q": "Which of these are basic logic gates?",
+      "choices": ["AND", "OR", "NOT", "XOR", "LOAD", "PUSH"],
+      "answer": [0, 1, 2, 3],
+      "explain": "AND, OR, NOT and XOR are the gates behind binary manipulation. LOAD and PUSH are memory operations handled by the LSU."
+    },
+
+    {
+      "type": "mc",
+      "category": "Load-Store Unit",
+      "q": "Which CPU component carries out a STORE instruction?",
+      "choices": ["Load-Store Unit (LSU)", "Arithmetic/Logic Unit (ALU)", "Program Counter", "Clock"],
+      "answer": 0,
+      "explain": "The LSU handles memory operations: loading values from memory and storing values to memory."
+    },
+    {
+      "type": "tf",
+      "category": "Load-Store Unit",
+      "q": "LOAD and STORE are carried out by the ALU, since they move data between registers and memory.",
+      "answer": false,
+      "explain": "Memory operations are not arithmetic or logical, so they do not need the ALU. They go through the LSU."
+    },
+    {
+      "type": "mc",
+      "category": "Load-Store Unit",
+      "q": "Fetching an instruction reads from memory. Which unit handles it, and why?",
+      "choices": [
+        "The Control Unit, because fetch is not part of executing an instruction",
+        "The LSU, because every memory read goes through the LSU",
+        "The ALU, because the PC must be incremented",
+        "The disk controller, because instructions are stored on disk"
+      ],
+      "answer": 0,
+      "explain": "Fetch is the exception to 'memory accesses go through the LSU'. It is not part of an execution, so the Control Unit does it."
+    },
+    {
+      "type": "multi",
+      "category": "Load-Store Unit",
+      "q": "Which of these are usually handled through the LSU?",
+      "choices": ["LOAD", "STORE", "PUSH", "POP", "Instruction fetch", "ADD"],
+      "answer": [0, 1, 2, 3],
+      "explain": "Regular memory accesses (LOAD, STORE, PUSH, POP) go through the LSU. Fetch belongs to the CU, and ADD is done by the ALU."
+    },
+    {
+      "type": "mc",
+      "category": "Load-Store Unit",
+      "q": "In the system diagram, the LSU connects directly to which two components?",
+      "choices": [
+        "Cache and the register file",
+        "The PC and the IR",
+        "The ALU and the clock",
+        "The disk controller and the NIC"
+      ],
+      "answer": 0,
+      "explain": "The LSU links up to the cache and into the register file. Values it loads end up in registers."
+    },
+
+    {
+      "type": "mc",
+      "category": "Clock",
+      "q": "When are registers allowed to update?",
+      "choices": [
+        "Only when the clock ticks, on the edge of the clock signal",
+        "At any time the CPU's logic changes",
+        "Only when the system bus is idle",
+        "Only after the program finishes"
+      ],
+      "answer": 0,
+      "explain": "The logic inside the CPU may change at any time, but registers only update on a clock tick (edge)."
+    },
+    {
+      "type": "mc",
+      "category": "Clock",
+      "q": "What form does the CPU clock signal usually take?",
+      "choices": [
+        "A square wave that alternates between high and low voltage",
+        "A sine wave whose frequency follows the workload",
+        "A single pulse sent once at boot",
+        "A counter value stored in the PC"
+      ],
+      "answer": 0,
+      "explain": "The clock is a repeating time signal, usually a square wave alternating between high and low voltage."
+    },
+    {
+      "type": "text",
+      "category": "Clock",
+      "q": "In what unit is clock speed usually measured? (Give the unit name or its abbreviation.)",
+      "answer": ["GHz", "gigahertz", "giga hertz"],
+      "explain": "Clock speed is generally measured in gigahertz. 3 GHz means 3 billion clock cycles per second."
+    },
+    {
+      "type": "num",
+      "category": "Clock",
+      "q": "A CPU runs at 2 GHz. How long is one clock cycle, in nanoseconds?",
+      "answer": 0.5,
+      "tolerance": 0.01,
+      "explain": "2 GHz is 2 x 10^9 cycles per second, so one cycle lasts 1 / (2 x 10^9) s = 0.5 ns."
+    },
+    {
+      "type": "mc",
+      "category": "Clock",
+      "q": "Why does overclocking (raising the clock speed) increase performance?",
+      "choices": [
+        "More cycles per second means more register updates per second",
+        "It adds more general-purpose registers",
+        "It makes main memory non-volatile",
+        "It lets the ALU remember earlier results"
+      ],
+      "answer": 0,
+      "explain": "Each clock cycle is a chance for registers to update. More cycles per second means more updates, so more work gets done."
+    },
+    {
+      "type": "mc",
+      "category": "Clock",
+      "q": "In the system diagram, which components are connected to the clock?",
+      "choices": [
+        "The register file and the ALU",
+        "Main memory and the system bus",
+        "The USB controller and the disk controller",
+        "The cache and the LSU only"
+      ],
+      "answer": 0,
+      "explain": "The clock has dashed connections to the register file and the ALU, synchronizing activity inside the CPU."
+    },
+
+    {
+      "type": "mc",
+      "category": "Main Memory",
+      "q": "What is main memory?",
+      "choices": [
+        "Where the computer stores program instructions and data while the machine is running",
+        "Where the computer keeps files permanently after power-off",
+        "Small, fast storage inside the CPU for recently used data",
+        "The set of registers contained in the CPU"
+      ],
+      "answer": 0,
+      "explain": "Main memory holds instructions and data while the machine runs. The other choices describe disk, cache and the register file."
+    },
+    {
+      "type": "multi",
+      "category": "Main Memory",
+      "q": "Which events cause the data held in main memory to disappear?",
+      "choices": [
+        "The program that owns it terminates",
+        "The machine is shut down",
+        "The program or machine crashes",
+        "Power is removed",
+        "The file is saved to disk"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Main memory is temporary and volatile, so termination, shutdown, crashes and power loss all wipe it. Saving to disk is how you keep data."
+    },
+    {
+      "type": "mc",
+      "category": "Main Memory",
+      "q": "What does 'random-access' mean in random-access memory (RAM)?",
+      "choices": [
+        "Any address can be reached instantly without stepping past other locations, so access time is the same everywhere",
+        "Data is placed at random addresses to spread out wear",
+        "Access time depends on how far the address is from the start of memory",
+        "The CPU picks a random address on each read"
+      ],
+      "answer": 0,
+      "explain": "Random-access means any address can be accessed instantly, without traversal. As a result, access time is the same for all RAM data."
+    },
+    {
+      "type": "tf",
+      "category": "Main Memory",
+      "q": "A program runs faster if its data is placed at lower addresses in RAM.",
+      "answer": false,
+      "explain": "RAM access time is the same for every address, so program speed does not depend on where data sits in RAM."
+    },
+    {
+      "type": "mc",
+      "category": "Main Memory",
+      "q": "How is main memory organized?",
+      "choices": [
+        "As a linear array of bytes, each with its own address",
+        "As three tiers called L1, L2 and L3",
+        "As a set of 16 to 32 general-purpose registers",
+        "As spinning magnetic plates divided into tracks"
+      ],
+      "answer": 0,
+      "explain": "Main memory is a linear array of bytes, each with its own address. The CPU uses that address to reach the data."
+    },
+    {
+      "type": "mc",
+      "category": "Main Memory",
+      "q": "When data is read from main memory, where does the CPU put it?",
+      "choices": [
+        "In the appropriate register (IR, GPRs, etc.) or in cache",
+        "Inside the ALU's internal memory",
+        "In the disk controller",
+        "Back in main memory at a new address"
+      ],
+      "answer": 0,
+      "explain": "Data sent from main memory goes into the right register or into cache. The ALU has no internal memory."
+    },
+    {
+      "type": "num",
+      "category": "Main Memory",
+      "q": "Using 1 GB = 2^30 bytes, 8 GB of RAM equals 2^n bytes. What is n?",
+      "answer": 33,
+      "explain": "8 x 2^30 = 2^3 x 2^30 = 2^33 = 8,589,934,592 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Main Memory",
+      "q": "How much RAM do most modern personal computers have?",
+      "choices": ["8 to 64 GB", "20 to 60 MB", "64 bytes", "256 GB to 4 TB"],
+      "answer": 0,
+      "explain": "Most modern PCs have 8 to 64 GB of RAM, and some have 1 TB or more. 20-60 MB is typical total cache, and 256 GB to 4 TB is typical disk."
+    },
+    {
+      "type": "mc",
+      "category": "Main Memory",
+      "q": "You are partway through a game and have not saved. Where is your current progress stored?",
+      "choices": ["Main memory", "Disk memory", "The reset vector", "The disk controller"],
+      "answer": 0,
+      "explain": "Active data, such as unsaved document changes or game progress, lives in main memory until it is saved."
+    },
+
+    {
+      "type": "mc",
+      "category": "System Bus",
+      "q": "What is the system bus?",
+      "choices": [
+        "A collection of pathways (parallel wires) that carry bits between the processor and other parts of the computer",
+        "A special-purpose register that holds the next address",
+        "A type of cache shared by all CPU cores",
+        "The controller that connects USB devices to the CPU"
+      ],
+      "answer": 0,
+      "explain": "The bus lets the CPU, main memory and I/O devices communicate. Without it, each component would be an isolated box."
+    },
+    {
+      "type": "mc",
+      "category": "System Bus",
+      "q": "Which bus carries the command being performed, such as READ or WRITE?",
+      "choices": ["Control bus", "Address bus", "Data bus", "Instruction bus"],
+      "answer": 0,
+      "explain": "Address bus = where, data bus = what, control bus = which action."
+    },
+    {
+      "type": "mc",
+      "category": "System Bus",
+      "q": "Which bus carries the location the CPU will read from or write to?",
+      "choices": ["Address bus", "Data bus", "Control bus", "Clock bus"],
+      "answer": 0,
+      "explain": "The address bus carries the address of the data being read or written."
+    },
+    {
+      "type": "mc",
+      "category": "System Bus",
+      "q": "Which bus carries the actual value being transferred between components?",
+      "choices": ["Data bus", "Address bus", "Control bus", "Register bus"],
+      "answer": 0,
+      "explain": "The data bus carries the data value, for example an instruction coming back during fetch."
+    },
+    {
+      "type": "multi",
+      "category": "System Bus",
+      "q": "Which of these happen on the system bus during the fetch phase?",
+      "choices": [
+        "The address from the PC is placed on the address bus",
+        "READ is placed on the control bus",
+        "The instruction at that address comes back to the CPU on the data bus",
+        "WRITE is placed on the control bus",
+        "The ALU's result is placed on the data bus"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "During fetch the CU puts the PC's address on the address bus and READ on the control bus, and memory returns the instruction on the data bus."
+    },
+    {
+      "type": "tf",
+      "category": "System Bus",
+      "q": "The decode phase normally uses the system bus to send signals to the other CPU components.",
+      "answer": false,
+      "explain": "Decode happens inside the CPU. The CU decodes the instruction in the IR and signals the other CPU components without using the system bus."
+    },
+    {
+      "type": "mc",
+      "category": "System Bus",
+      "q": "An instruction writes a value to memory. What is on each bus?",
+      "choices": [
+        "Address bus: the destination address; Control bus: WRITE; Data bus: the value being written",
+        "Address bus: the value being written; Control bus: WRITE; Data bus: the destination address",
+        "Address bus: the destination address; Control bus: READ; Data bus: the value being written",
+        "Address bus: the address in the PC; Control bus: WRITE; Data bus: the instruction in the IR"
+      ],
+      "answer": 0,
+      "explain": "For a write, the data goes on the data bus, WRITE on the control bus, and the destination address on the address bus."
+    },
+    {
+      "type": "mc",
+      "category": "System Bus",
+      "q": "Bus activity during fetch is handled by the ____, and memory reads/writes during execute are handled by the ____.",
+      "choices": ["CU; LSU", "LSU; CU", "ALU; LSU", "LSU; LSU"],
+      "answer": 0,
+      "explain": "Fetch is not part of an execution, so the Control Unit handles it. Memory accesses during execution go through the Load-Store Unit."
+    },
+
+    {
+      "type": "mc",
+      "category": "Cache",
+      "q": "What is cache memory?",
+      "choices": [
+        "Small, fast memory in the CPU (or nearby) that stores recent and/or frequently used data",
+        "Large, slow, permanent storage reached through a controller",
+        "The register that holds the current instruction",
+        "The linear array of bytes that holds every running program"
+      ],
+      "answer": 0,
+      "explain": "Cache is small, fast memory close to the CPU that keeps recent or frequently used data."
+    },
+    {
+      "type": "mc",
+      "category": "Cache",
+      "q": "How does cache improve performance?",
+      "choices": [
+        "It reduces the number of requests to slower main memory, avoiding the delay each request causes",
+        "It raises the clock speed of the CPU",
+        "It makes main memory non-volatile",
+        "It lets the ALU skip the decode phase"
+      ],
+      "answer": 0,
+      "explain": "Every trip to main memory adds a delay. Keeping important data in cache cuts down those trips."
+    },
+    {
+      "type": "mc",
+      "category": "Cache",
+      "q": "Which cache level is the smallest and fastest?",
+      "choices": ["L1", "L2", "L3", "All three are the same size and speed"],
+      "answer": 0,
+      "explain": "L1 is the smallest and fastest, and L3 is the largest and slowest."
+    },
+    {
+      "type": "tf",
+      "category": "Cache",
+      "q": "L3 cache is the largest and slowest of the three cache levels.",
+      "answer": true,
+      "explain": "Going from L3 to L2 to L1, each tier is smaller and faster."
+    },
+    {
+      "type": "tf",
+      "category": "Cache",
+      "q": "Unlike main memory, cache keeps its contents when the power is removed.",
+      "answer": false,
+      "explain": "Like main memory, cache is temporary and volatile."
+    },
+    {
+      "type": "mc",
+      "category": "Cache",
+      "q": "About how much total cache do current consumer devices generally have?",
+      "choices": ["20 to 60 MB", "8 to 64 GB", "64 bytes", "256 GB to 4 TB"],
+      "answer": 0,
+      "explain": "Consumer devices generally have 20 to 60 MB of total cache, roughly 20 to 60 million bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Cache",
+      "q": "Which ordering goes from fastest to slowest?",
+      "choices": [
+        "Registers, L1 cache, L2 cache, L3 cache, main memory, disk",
+        "L1 cache, registers, L2 cache, L3 cache, disk, main memory",
+        "Registers, L3 cache, L2 cache, L1 cache, main memory, disk",
+        "Main memory, registers, L1 cache, L2 cache, L3 cache, disk"
+      ],
+      "answer": 0,
+      "explain": "Registers are fastest. L1 is faster than L2, which is faster than L3. Main memory is slower than cache, and disk is slowest."
+    },
+    {
+      "type": "mc",
+      "category": "Cache",
+      "q": "Why must cache be managed effectively?",
+      "choices": [
+        "It is significantly smaller than main memory, and poor cache management can tank performance",
+        "It is permanent, so mistakes are saved forever",
+        "It is slower than main memory, so it should be avoided",
+        "It is reached only through the disk controller"
+      ],
+      "answer": 0,
+      "explain": "Cache is fast but small, so hardware and software are designed to use it well. Poor management can tank performance."
+    },
+    {
+      "type": "mc",
+      "category": "Cache",
+      "q": "In the system diagram, which CPU unit connects directly to the cache?",
+      "choices": ["Load-Store Unit (LSU)", "Arithmetic/Logic Unit (ALU)", "Control Unit (CU)", "Clock"],
+      "answer": 0,
+      "explain": "Memory loads and stores pass through the LSU, so the LSU is the unit connected to the cache."
+    },
+
+    {
+      "type": "mc",
+      "category": "I/O Subsystem & Controllers",
+      "q": "What is the I/O subsystem responsible for?",
+      "choices": [
+        "Handling all input and output devices",
+        "Decoding instructions in the IR",
+        "Holding program instructions while they run",
+        "Synchronizing register updates"
+      ],
+      "answer": 0,
+      "explain": "The I/O subsystem handles input and output devices, including disk storage."
+    },
+    {
+      "type": "mc",
+      "category": "I/O Subsystem & Controllers",
+      "q": "The CPU, main memory and system bus are enough for computation to happen. Why is an I/O subsystem still needed?",
+      "choices": [
+        "Without it we could not give the computer commands or see its results",
+        "Without it the CPU could not perform arithmetic",
+        "Without it the PC could not find the reset vector",
+        "Without it main memory could not be addressed"
+      ],
+      "answer": 0,
+      "explain": "We need a way to interact with the system by giving inputs and receiving outputs."
+    },
+    {
+      "type": "tf",
+      "category": "I/O Subsystem & Controllers",
+      "q": "An integrated graphics adapter is not an I/O device, because it is built into the computer rather than external.",
+      "answer": false,
+      "explain": "I/O does not mean external. Integrated graphics adapters are I/O devices and the machine treats them that way."
+    },
+    {
+      "type": "multi",
+      "category": "I/O Subsystem & Controllers",
+      "q": "Which of these are I/O devices?",
+      "choices": [
+        "A graphics card",
+        "A network interface card built into the motherboard",
+        "Disk memory (secondary storage)",
+        "A keyboard",
+        "The ALU",
+        "L2 cache"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Graphics adapters, NICs (even built-in ones), disk and keyboards are all I/O devices. The ALU and cache are parts of the CPU."
+    },
+    {
+      "type": "mc",
+      "category": "I/O Subsystem & Controllers",
+      "q": "What is a controller?",
+      "choices": [
+        "A hardware interface that lets the system send signals to a device without needing to understand the device's exact behavior",
+        "The CPU component that manages the fetch-and-execute cycle",
+        "Software in the OS that stores files permanently",
+        "A bus line that carries READ and WRITE commands"
+      ],
+      "answer": 0,
+      "explain": "With a controller in between, the CPU only needs to know what to tell a device, not how the device works. (The CPU component in the second choice is the Control Unit, which is a different thing.)"
+    },
+    {
+      "type": "tf",
+      "category": "I/O Subsystem & Controllers",
+      "q": "The CPU communicates with I/O devices directly, without any intermediary.",
+      "answer": false,
+      "explain": "Communication with I/O devices goes through a controller."
+    },
+    {
+      "type": "multi",
+      "category": "I/O Subsystem & Controllers",
+      "q": "Which of these are both an I/O device and a controller?",
+      "choices": ["Graphics adapter", "Network interface card (NIC)", "USB controller", "Disk controller"],
+      "answer": [0, 1],
+      "explain": "Graphics adapters and NICs are both I/O devices and controllers. The USB and disk controllers are separate from the devices they serve."
+    },
+    {
+      "type": "mc",
+      "category": "I/O Subsystem & Controllers",
+      "q": "In the system diagram, the keyboard and mouse reach the system bus through which component?",
+      "choices": ["USB controller", "Graphics adapter", "NIC", "Disk controller"],
+      "answer": 0,
+      "explain": "The USB controller interfaces with the whole array of USB devices, including the keyboard and mouse in the diagram."
+    },
+    {
+      "type": "mc",
+      "category": "I/O Subsystem & Controllers",
+      "q": "What does a network interface card (NIC) do?",
+      "choices": [
+        "Lets the computer send and receive data through Ethernet, Wi-Fi, etc.",
+        "Produces graphic output for display devices",
+        "Stores data permanently on spinning plates",
+        "Synchronizes register updates inside the CPU"
+      ],
+      "answer": 0,
+      "explain": "The NIC handles network communication. Nearly all modern computers have one built into the motherboard, and it is still an I/O device."
+    },
+
+    {
+      "type": "mc",
+      "category": "Secondary Storage",
+      "q": "Secondary storage is also commonly called:",
+      "choices": ["Disk memory", "Main memory", "Cache memory", "Register memory"],
+      "answer": 0,
+      "explain": "Secondary storage and disk memory are interchangeable terms for storage that keeps data indefinitely."
+    },
+    {
+      "type": "mc",
+      "category": "Secondary Storage",
+      "q": "Which pair of words describes disk memory?",
+      "choices": [
+        "Permanent and non-volatile",
+        "Temporary and volatile",
+        "Permanent and volatile",
+        "Temporary and non-volatile"
+      ],
+      "answer": 0,
+      "explain": "Disk memory survives program termination, crashes and power-off. Main memory and cache are temporary and volatile."
+    },
+    {
+      "type": "mc",
+      "category": "Secondary Storage",
+      "q": "How does a Hard Disk Drive (HDD) store data?",
+      "choices": [
+        "On spinning magnetic plates",
+        "Via trapped electrical charges",
+        "As software-defined storage in a virtual machine",
+        "In the CPU's register file"
+      ],
+      "answer": 0,
+      "explain": "HDDs use spinning magnetic plates. SSDs use trapped electrical charges."
+    },
+    {
+      "type": "mc",
+      "category": "Secondary Storage",
+      "q": "How does a Solid State Drive (SSD) store data?",
+      "choices": [
+        "Via trapped electrical charges",
+        "On spinning magnetic plates",
+        "On rotating floppy disks",
+        "In L3 cache"
+      ],
+      "answer": 0,
+      "explain": "SSDs store data as trapped electrical charges, with no spinning parts."
+    },
+    {
+      "type": "mc",
+      "category": "Secondary Storage",
+      "q": "What is a Virtual Hard Disk (VHD)?",
+      "choices": [
+        "Software-defined storage used in virtual machines and cloud computing",
+        "A hard disk with extra magnetic plates",
+        "A USB drive used to move data between devices",
+        "A section of main memory that acts like a disk"
+      ],
+      "answer": 0,
+      "explain": "A VHD is software-defined storage used in VMs and the cloud. USB drives and SD cards are removable storage."
+    },
+    {
+      "type": "mc",
+      "category": "Secondary Storage",
+      "q": "In the system diagram, where is disk memory?",
+      "choices": [
+        "In the I/O subsystem, behind the disk controller",
+        "Inside main memory, next to the Data section",
+        "Inside the CPU, next to the cache",
+        "Directly on the system bus with no controller"
+      ],
+      "answer": 0,
+      "explain": "Disk is treated as an I/O device. It sits in the I/O subsystem and is reached through the disk controller."
+    },
+    {
+      "type": "mc",
+      "category": "Secondary Storage",
+      "q": "Compared with main memory, disk storage is:",
+      "choices": [
+        "Slower and cheaper, and built for large amounts of permanent storage",
+        "Faster and more expensive",
+        "Faster and cheaper, but volatile",
+        "Slower and more expensive, but smaller"
+      ],
+      "answer": 0,
+      "explain": "Just as main memory is slower and cheaper than registers, disk is slower and cheaper than main memory. It trades access time for large, cheap, permanent storage."
+    },
+    {
+      "type": "num",
+      "category": "Secondary Storage",
+      "q": "Using 1 GB = 2^30 bytes and 1 TB = 2^40 bytes, how many GB are in 1 TB?",
+      "answer": 1024,
+      "explain": "2^40 / 2^30 = 2^10 = 1024."
+    },
+    {
+      "type": "mc",
+      "category": "Secondary Storage",
+      "q": "You are editing a document you saved an hour ago, and the power goes out. What happens?",
+      "choices": [
+        "The changes since the last save are lost because they were in volatile main memory, but the saved version on disk survives",
+        "Everything survives, because main memory is non-volatile",
+        "Both the unsaved changes and the saved file are lost",
+        "The unsaved changes survive in cache, but the saved file is lost"
+      ],
+      "answer": 0,
+      "explain": "Active data lives in main memory, which is volatile. Saved data is on disk, which is non-volatile."
+    },
+    {
+      "type": "mc",
+      "category": "Secondary Storage",
+      "q": "Where does the term 'disk' in disk memory come from?",
+      "choices": [
+        "Early storage devices such as hard disks and floppy disks used magnetized rotating disks",
+        "Disk stands for an acronym for 'Data In Storage Kernel'",
+        "All modern storage devices still contain a spinning disk",
+        "RAM chips are shaped like disks"
+      ],
+      "answer": 0,
+      "explain": "The name comes from early magnetic rotating disks. Today 'disk' can mean an HDD, SSD, VHD or removable storage."
+    },
+    {
+      "type": "mc",
+      "category": "Secondary Storage",
+      "q": "How much disk storage might a modern computer have?",
+      "choices": ["256 GB to 4 TB", "8 to 64 GB", "20 to 60 MB", "64 bytes"],
+      "answer": 0,
+      "explain": "Modern computers might have 256 GB to 4 TB of disk storage, far more than RAM (8-64 GB) or cache (20-60 MB)."
+    },
+
+    {
+      "type": "mc",
+      "category": "Tracing an Instruction",
+      "q": "A user launches a program. Before the CPU can fetch its instructions, where must the program's code be?",
+      "choices": [
+        "Loaded from disk into main memory",
+        "Left on disk, because the CPU fetches instructions directly from the disk controller",
+        "Copied entirely into the general-purpose registers",
+        "Written into the reset vector"
+      ],
+      "answer": 0,
+      "explain": "Any time you run a program, its code is loaded into main memory so the CPU can access it."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing an Instruction",
+      "q": "For a LOAD instruction, which unit handles each phase?",
+      "choices": [
+        "Fetch: CU; Decode: CU; Execute: LSU",
+        "Fetch: LSU; Decode: CU; Execute: LSU",
+        "Fetch: CU; Decode: ALU; Execute: LSU",
+        "Fetch: LSU; Decode: ALU; Execute: ALU"
+      ],
+      "answer": 0,
+      "explain": "The CU fetches and decodes every instruction. Because LOAD is a memory access during execution, the LSU carries it out."
+    },
+    {
+      "type": "multi",
+      "category": "Tracing an Instruction",
+      "q": "The current instruction adds two values already held in registers. Which of these does its execute phase use?",
+      "choices": ["The ALU", "General-purpose registers", "The Load-Store Unit", "The system bus"],
+      "answer": [0, 1],
+      "explain": "The operands come from GPRs, the ALU adds them, and the result goes back to a register. No memory access is needed, so the LSU and system bus are not used."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing an Instruction",
+      "q": "How does the ALU know that the current instruction is an ADD?",
+      "choices": [
+        "The Control Unit decodes the instruction and sends the operation (OpCode) to the ALU as a control signal",
+        "The ALU remembers which operation it performed last",
+        "The LSU loads the operation from cache",
+        "The PC sends the operation along with the next address"
+      ],
+      "answer": 0,
+      "explain": "The ALU is combinational and has no memory. Its operation is a control signal determined by the most recently decoded instruction."
+    },
+    {
+      "type": "tf",
+      "category": "Tracing an Instruction",
+      "q": "While one instruction is processed, the PC update, the IR load and the write of the result register all take effect on clock ticks.",
+      "answer": true,
+      "explain": "Registers only update when the clock ticks, and the PC, IR and GPRs are all registers."
+    }
+  ]
 }
