@@ -1,1176 +1,592 @@
 {
- "title": "CSC3710 2026-09-22 — Regex Identities and Intro to DFAs",
- "course": "CSC3710",
- "questions": [
-  {
-   "type": "mc",
-   "category": "Writing regular expressions",
-   "topic": "Length exactly two",
-   "q": "Which regular expression describes the strings over {a, b} of length exactly 2?",
-   "choices": [
-    "(a ∪ b)(a ∪ b)",
-    "(a ∪ b)\\*(a ∪ b)\\*",
-    "ab ∪ ba",
-    "(ab)\\*"
-   ],
-   "answer": 0,
-   "explain": "Each of the two positions can hold any symbol, so concatenate two copies of (a ∪ b). (a ∪ b)\\*(a ∪ b)\\* is every string (it equals (a ∪ b)\\* by identity 13); ab ∪ ba misses aa and bb; (ab)\\* contains λ, abab, …."
-  },
-  {
-   "type": "multi",
-   "category": "Writing regular expressions",
-   "topic": "Length greater than three",
-   "q": "Let s = (a ∪ b ∪ c). Which expressions describe the strings over {a, b, c} of length greater than three (i.e. at least four)?",
-   "choices": [
-    "ssss s\\*",
-    "s\\* ssss",
-    "sss s⁺",
-    "sss s\\*",
-    "ssss s⁺"
-   ],
-   "answer": [
-    0,
-    1,
-    2
-   ],
-   "explain": "\"Greater than three\" means at least four symbols. Forcing four symbols and allowing anything after (ssss s\\*) or before (s\\* ssss) works, and sss s⁺ also forces 3 + at least 1 = 4. sss s\\* allows length 3, and ssss s⁺ forces at least 5, so it misses the length-4 strings."
-  },
-  {
-   "type": "multi",
-   "category": "Writing regular expressions",
-   "topic": "All a's before all b's",
-   "q": "Which expressions describe the strings over {a, b} of length two or more in which all a's precede all b's?",
-   "choices": [
-    "a⁺b⁺ ∪ aa⁺ ∪ bb⁺",
-    "a\\*(aa ∪ ab ∪ bb)b\\*",
-    "a\\*b\\*",
-    "a⁺b⁺",
-    "aa\\*bb\\*"
-   ],
-   "answer": [
-    0,
-    1
-   ],
-   "explain": "The set is aⁱbʲ with i + j ≥ 2. a⁺b⁺ covers the strings with at least one of each; aa⁺ and bb⁺ add the all-a and all-b strings (the condition is vacuously true for them). a\\*(aa ∪ ab ∪ bb)b\\* works too: every such string has aa, ab or bb at the seam. a\\*b\\* wrongly includes λ, a and b; a⁺b⁺ and aa\\*bb\\* (which is the same set) miss aa, bb, aaa, …."
-  },
-  {
-   "type": "mc",
-   "category": "Writing regular expressions",
-   "topic": "Missing pieces",
-   "q": "A student answers a⁺b⁺ for \"strings over {a, b} of length ≥ 2 in which all a's precede all b's\". What is wrong with it?",
-   "choices": [
-    "It misses strings made only of a's or only of b's, such as aa and bbb",
-    "It includes ba",
-    "It includes the single strings a and b",
-    "Nothing — it is correct"
-   ],
-   "answer": 0,
-   "explain": "a⁺b⁺ demands at least one a and at least one b. But aa, aaa, bb, bbb, … also satisfy \"all a's precede all b's\" (vacuously), so they belong. The fix is a⁺b⁺ ∪ aa⁺ ∪ bb⁺."
-  },
-  {
-   "type": "mc",
-   "category": "Writing regular expressions",
-   "topic": "Why not a*b*",
-   "q": "Why is a\\*b\\* not a correct answer for \"length ≥ 2, all a's precede all b's\" over {a, b}?",
-   "choices": [
-    "It contains strings shorter than 2, such as λ, a and b",
-    "It contains ba",
-    "It misses aabb",
-    "It misses bb"
-   ],
-   "answer": 0,
-   "explain": "a\\*b\\* gets the ordering right but ignores the length condition: taking zero or one copies gives λ, a and b. The equivalence checker reports λ as a counterexample."
-  },
-  {
-   "type": "multi",
-   "category": "Writing regular expressions",
-   "topic": "Contains ab, length ≥ 3",
-   "q": "Which expressions describe the strings over {a, b} that contain the substring ab and have length at least 3?",
-   "choices": [
-    "(a ∪ b)\\*(a ∪ b)ab(a ∪ b)\\* ∪ (a ∪ b)\\*ab(a ∪ b)(a ∪ b)\\*",
-    "(a ∪ b)\\*(aab ∪ bab ∪ aba ∪ abb)(a ∪ b)\\*",
-    "(a ∪ b)\\*ab(a ∪ b)\\*",
-    "(a ∪ b)⁺ab(a ∪ b)\\*"
-   ],
-   "answer": [
-    0,
-    1
-   ],
-   "explain": "A string of length ≥ 3 containing ab has at least one extra symbol just before or just after some ab. The first answer says exactly that; the second lists the four length-3 cores containing ab. They look different but are the same set (identities 9 and 10 convert one into the other). (a ∪ b)\\*ab(a ∪ b)\\* includes ab itself (length 2). (a ∪ b)⁺ab(a ∪ b)\\* misses aba and abb, where no symbol precedes the ab."
-  },
-  {
-   "type": "mc",
-   "category": "Writing regular expressions",
-   "topic": "Ends in ba",
-   "q": "Which expression describes the strings over {a, b} that end in ba and have length at least 3?",
-   "choices": [
-    "(a ∪ b)(a ∪ b)\\*ba",
-    "(a ∪ b)\\*ba",
-    "(a ∪ b)\\*ba(a ∪ b)",
-    "ba(a ∪ b)⁺"
-   ],
-   "answer": 0,
-   "explain": "The string must finish with ba and have at least one symbol before it: one forced symbol, then anything, then ba. Equivalently (a ∪ b)⁺ba. (a ∪ b)\\*ba includes ba (length 2); the other two don't end in ba."
-  },
-  {
-   "type": "multi",
-   "category": "Writing regular expressions",
-   "topic": "Length less than three",
-   "q": "Which expressions describe the strings over {a, b} of length less than three?",
-   "choices": [
-    "λ ∪ a ∪ b ∪ (a ∪ b)(a ∪ b)",
-    "(λ ∪ a ∪ b)(λ ∪ a ∪ b)",
-    "a ∪ b ∪ (a ∪ b)(a ∪ b)",
-    "(a ∪ b)(a ∪ b)"
-   ],
-   "answer": [
-    0,
-    1
-   ],
-   "explain": "List by length: λ (length 0), a, b (length 1), and (a ∪ b)(a ∪ b) (length 2). The product (λ ∪ a ∪ b)(λ ∪ a ∪ b) gives the same set because each factor may contribute nothing. Dropping λ misses the empty string; (a ∪ b)(a ∪ b) is length exactly 2."
-  },
-  {
-   "type": "num",
-   "category": "Writing regular expressions",
-   "topic": "Counting a short set",
-   "q": "How many strings over {a, b} of length at most 2 have every a before every b?",
-   "answer": 6,
-   "explain": "All strings of length ≤ 2: λ, a, b, aa, ab, ba, bb — seven of them. Only ba has an a after a b, so 6 remain: λ ∪ a ∪ b ∪ aa ∪ ab ∪ bb."
-  },
-  {
-   "type": "tf",
-   "category": "Writing regular expressions",
-   "topic": "Uniqueness",
-   "q": "Every regular set has exactly one regular expression that describes it.",
-   "answer": false,
-   "explain": "False. Many different regular expressions describe the same set — e.g. the two answers for \"contains ab, length ≥ 3\". That is exactly why identities and equivalence proofs are needed."
-  },
-  {
-   "type": "tf",
-   "category": "Writing regular expressions",
-   "topic": "Finite without star",
-   "q": "A regular expression that uses no Kleene star always describes a finite set.",
-   "answer": true,
-   "explain": "True. The basic sets are finite, and union and concatenation of finite sets are finite. Only the star can produce infinitely many strings."
-  },
-  {
-   "type": "tf",
-   "category": "Writing regular expressions",
-   "topic": "Star and infinity",
-   "q": "Any regular expression containing a Kleene star describes an infinite set.",
-   "answer": false,
-   "explain": "False. ∅\\* = λ and λ\\* = λ both describe the finite set {λ}. A star makes the set infinite only when it is applied to a set containing a non-empty string."
-  },
-  {
-   "type": "mc",
-   "category": "Writing regular expressions",
-   "topic": "What is a regex",
-   "q": "Which of these is NOT a valid regular expression over {a, b} in textbook notation?",
-   "choices": [
-    "a ∪",
-    "(((a ∪ bbb)\\*bb)\\* ∪ bab)\\*",
-    "∅\\*",
-    "λ ∪ ab\\*"
-   ],
-   "answer": 0,
-   "explain": "Regular expressions are built from symbols, λ and ∅ using ∪, concatenation, \\* and parentheses — in any combination and depth. A dangling operator like \"a ∪\" with nothing after it breaks the construction rules. ∅\\* is perfectly valid (it equals λ)."
-  },
-  {
-   "type": "multi",
-   "category": "Membership and multiple select",
-   "topic": "Where is abba?",
-   "q": "Choose the regular set(s) over {a, b} to which the string abba belongs.",
-   "choices": [
-    "(a ∪ ab)\\*",
-    "(a ∪ b)\\*ab",
-    "(aba ∪ bab)(ab ∪ ba)",
-    "(a ∪ ab)\\*ba"
-   ],
-   "answer": [
-    3
-   ],
-   "explain": "(a ∪ ab)\\*ba: abba = ab · ba, with ab ∈ (a ∪ ab)\\*. The others fail by an invariant: in (a ∪ ab)\\* every b directly follows an a, so bb never appears; every string in (a ∪ b)\\*ab ends in b, but abba ends in a; every string in (aba ∪ bab)(ab ∪ ba) has length 5, but abba has length 4."
-  },
-  {
-   "type": "mc",
-   "category": "Membership and multiple select",
-   "topic": "bb invariant",
-   "q": "Why can abba never be in (a ∪ ab)\\*?",
-   "choices": [
-    "Every b in such a string comes directly after an a, so bb cannot appear",
-    "Every string in the set ends in b",
-    "Every string in the set has odd length",
-    "The set is finite"
-   ],
-   "answer": 0,
-   "explain": "The building blocks are a and ab. Gluing them together, each b is always immediately preceded by the a in its own block, so the substring bb never occurs. abba contains bb, so it is excluded."
-  },
-  {
-   "type": "multi",
-   "category": "Membership and multiple select",
-   "topic": "Where is baab?",
-   "q": "Choose the regular set(s) over {a, b} to which baab belongs.",
-   "choices": [
-    "(a ∪ b)\\*aa(a ∪ b)\\*",
-    "b(ab)\\*a",
-    "(ba ∪ ab)\\*",
-    "(b ∪ ab)\\*"
-   ],
-   "answer": [
-    0,
-    2
-   ],
-   "explain": "(a ∪ b)\\*aa(a ∪ b)\\*: baab = b · aa · b. (ba ∪ ab)\\*: baab = ba · ab. b(ab)\\*a gives ba, baba, …, never containing aa. In (b ∪ ab)\\* every a is immediately followed by b, so aa cannot occur."
-  },
-  {
-   "type": "mc",
-   "category": "Membership and multiple select",
-   "topic": "Proving non-membership",
-   "q": "What is the general technique for showing that a string is NOT in the set described by a regular expression?",
-   "choices": [
-    "Find an invariant — a property every string in the set has that your string lacks",
-    "Try a few decompositions and give up if none works",
-    "Show the string is longer than the expression",
-    "Show the string contains a symbol that appears in the expression"
-   ],
-   "answer": 0,
-   "explain": "Find a property shared by all members — \"ends in b\", \"never contains bb\", \"has length exactly 5\" — that the string fails. One such observation settles the question with nothing else to check."
-  },
-  {
-   "type": "mc",
-   "category": "Membership and multiple select",
-   "topic": "Proving membership",
-   "q": "To show a string IS in the set described by a regular expression, what is enough?",
-   "choices": [
-    "One explicit decomposition of the string that matches the expression",
-    "Every possible decomposition of the string",
-    "Showing the string has the right length",
-    "Listing all strings of the set up to that length"
-   ],
-   "answer": 0,
-   "explain": "Give one way to cut the string into pieces, each piece from the matching part of the expression (e.g. abba = ab · b · a). Strings can often be built more than one way, but a single construction proves membership."
-  },
-  {
-   "type": "mc",
-   "category": "Membership and multiple select",
-   "topic": "Checker membership test",
-   "q": "With the online equivalence checker, how can you test whether a string w belongs to L(R)?",
-   "choices": [
-    "Compare R with w|R: they are equivalent exactly when w ∈ L(R)",
-    "Compare R with w: they are equivalent exactly when w ∈ L(R)",
-    "Compare R with R\\*",
-    "Compare w with (a|b)\\*"
-   ],
-   "answer": 0,
-   "explain": "Adding a string that is already in the set changes nothing (identity 7, u ∪ u = u). So R and w ∪ R describe the same set if and only if w was already in L(R). Comparing R with just w would only be equivalent if R's set were {w}."
-  },
-  {
-   "type": "tf",
-   "category": "Membership and multiple select",
-   "topic": "Listing shortest first",
-   "q": "The tool lists strings of a set in order of length. If it has moved on to length-5 strings and never produced abba, then abba is not in the set.",
-   "answer": true,
-   "explain": "True. Strings appear shortest first, so every length-4 member would have appeared before any length-5 string. abba has length 4."
-  },
-  {
-   "type": "num",
-   "category": "Membership and multiple select",
-   "topic": "Per-option grading",
-   "q": "A multiple-select question has 5 options worth equal shares. A and C are true; B, D, E are false. A student checks A, B and C. Under the course's per-option grading, what percent does the student earn?",
-   "answer": 80,
-   "explain": "Each option is scored separately: A true & checked (earned), B false but checked (lost), C true & checked (earned), D and E false & unchecked (earned). 4 of 5 options = 80 %."
-  },
-  {
-   "type": "num",
-   "category": "Membership and multiple select",
-   "topic": "Grading the baab answer",
-   "q": "For the baab question with options A (a ∪ b)\\*aa(a ∪ b)\\*, B b(ab)\\*a, C (ba ∪ ab)\\*, D (b ∪ ab)\\*, a student checks A and D only. What percent does per-option grading give?",
-   "answer": 50,
-   "explain": "True options are A and C. A checked & true (+1), B unchecked & false (+1), C missed (0), D checked but false (0): 2/4 = 50 %."
-  },
-  {
-   "type": "tf",
-   "category": "Membership and multiple select",
-   "topic": "No correct option?",
-   "q": "In this course, a multiple-select (square checkbox) question may have no correct options at all.",
-   "answer": false,
-   "explain": "False. At least one option is always correct; \"choose none\" is never the intended answer."
-  },
-  {
-   "type": "mc",
-   "category": "Membership and multiple select",
-   "topic": "Member of (b ∪ ab)*",
-   "q": "Which string belongs to (b ∪ ab)\\*?",
-   "choices": [
-    "babb",
-    "baab",
-    "abba",
-    "aab"
-   ],
-   "answer": 0,
-   "explain": "babb = b · ab · b. In (b ∪ ab)\\* every a must be immediately followed by b, so aa (in baab, aab) is impossible, and abba ends in an a with nothing after it."
-  },
-  {
-   "type": "mc",
-   "category": "Membership and multiple select",
-   "topic": "Not in (ab)*a",
-   "q": "Which string is NOT in (ab)\\*a?",
-   "choices": [
-    "abab",
-    "a",
-    "aba",
-    "ababa"
-   ],
-   "answer": 0,
-   "explain": "(ab)\\*a = {a, aba, ababa, …}: (ab)ⁿ followed by a. Every member ends in a and has odd length; abab ends in b."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "Concatenating with ∅",
-   "q": "What is ∅u (and u∅) equal to?",
-   "choices": [
-    "∅",
-    "u",
-    "λ",
-    "u\\*"
-   ],
-   "answer": 0,
-   "explain": "Identity 1. Concatenation needs a prefix from the first set and a suffix from the second; ∅ has no strings to supply, so no strings can be formed."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "∅ star",
-   "q": "Why is ∅\\* = λ?",
-   "choices": [
-    "Because any set to the 0th power is {λ}, and all higher powers of ∅ are ∅",
-    "Because ∅ and λ are the same thing",
-    "Because star always adds λ to a non-empty set only",
-    "It isn't — ∅\\* = ∅"
-   ],
-   "answer": 0,
-   "explain": "Identity 3. ∅\\* = ∅⁰ ∪ ∅¹ ∪ ∅² ∪ … = {λ} ∪ ∅ ∪ ∅ ∪ … = {λ}. X⁰ = {λ} for every set X, even ∅."
-  },
-  {
-   "type": "tf",
-   "category": "Regular-expression identities",
-   "topic": "∅ vs {λ}",
-   "q": "∅ and {λ} are the same set.",
-   "answer": false,
-   "explain": "False. ∅ has no elements; {λ} has exactly one element, the empty string. This difference is why ∅u = ∅ but λu = u."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "Order matters",
-   "q": "Which of these is FALSE in general?",
-   "choices": [
-    "u(v ∪ w) = vu ∪ wu",
-    "u(v ∪ w) = uv ∪ uw",
-    "(u ∪ v)w = uw ∪ vw",
-    "u ∪ v = v ∪ u"
-   ],
-   "answer": 0,
-   "explain": "Concatenation distributes over union (identities 9 and 10), but it is not commutative. In u(v ∪ w), u stays glued on the left: uv ∪ uw. Moving u to the right changes the set (e.g. a(b ∪ c) = {ab, ac} ≠ {ba, ca})."
-  },
-  {
-   "type": "multi",
-   "category": "Regular-expression identities",
-   "topic": "Forms of identity 12",
-   "q": "Which of these are equal to (u ∪ v)\\* for all regular expressions u, v?",
-   "choices": [
-    "(u\\* ∪ v)\\*",
-    "u\\*(u ∪ v)\\*",
-    "(u\\*v\\*)\\*",
-    "(u\\*v)\\*u\\*",
-    "u\\*v\\*",
-    "(uv)\\*"
-   ],
-   "answer": [
-    0,
-    1,
-    2,
-    3
-   ],
-   "explain": "All forms of identity 12 mean \"any sequence of u-pieces and v-pieces\". u\\*v\\* only allows all u's before all v's (no vu), and (uv)\\* forces strict alternation starting with u."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "Identity 11",
-   "q": "Which is identity 11?",
-   "choices": [
-    "(uv)\\*u = u(vu)\\*",
-    "(uv)\\* = u\\*v\\*",
-    "(uv)\\*u = (vu)\\*",
-    "uv = vu"
-   ],
-   "answer": 0,
-   "explain": "Both sides are u, uvu, uvuvu, …: u and v alternate, starting and ending with u. Only the grouping differs, and concatenation is associative. Example: (ab)\\*a = a(ba)\\* = {a, aba, ababa, …}."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "Removing an inner star",
-   "q": "Identity 12 form 1 says (u\\* ∪ v)\\* = (u ∪ v)\\*. When may you delete a star this way?",
-   "choices": [
-    "Only when the star sits on one whole operand of a union that is itself entirely under an outer star",
-    "Whenever a star appears anywhere inside another star",
-    "Whenever the star is on a single symbol",
-    "Always — (u\\*)\\* = u makes stars removable"
-   ],
-   "answer": 0,
-   "explain": "The inner star is redundant only because the outer star already allows any number of u-pieces. In (b\\* ∪ b\\*ab\\*)\\* you may remove the star from the standalone b\\*, but not the stars inside b\\*ab\\*, because they don't cover a whole operand of the union."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "Added identity",
-   "q": "Which identity did the instructor add to the textbook table (identity 13 on the course sheet)?",
-   "choices": [
-    "u\\*u\\* = u\\*",
-    "u\\*u = u\\*",
-    "(u ∪ v)\\* = u\\* ∪ v\\*",
-    "uu\\* = u\\*"
-   ],
-   "answer": 0,
-   "explain": "Two runs of u-pieces in a row are one run of u-pieces, so u\\*u\\* = u\\*. It was used in the worked proof to turn b\\*b\\* into b\\*. The others are false in general (u\\*u and uu\\* are u⁺, which lacks λ unless λ ∈ u; u\\* ∪ v\\* misses mixed strings)."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "Identity 7 meaning",
-   "q": "What set fact is behind identity 7, u ∪ u = u?",
-   "choices": [
-    "Repeated elements don't matter in a set",
-    "Union is commutative",
-    "Adding the empty set changes nothing",
-    "Concatenation is associative"
-   ],
-   "answer": 0,
-   "explain": "A set either contains an element or not; listing it twice changes nothing (e.g. ℕ ∪ ℕ = ℕ). Commutativity is identity 5 and u ∪ ∅ = u is identity 6."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "Star of a star",
-   "q": "Why is (u\\*)\\* = u\\* (identity 8)?",
-   "choices": [
-    "Any concatenation of strings from u\\* is itself a concatenation of u-pieces, so nothing new appears",
-    "Because u\\* is finite",
-    "Because the outer star removes λ",
-    "Because (u\\*)\\* = u\\*\\* is undefined"
-   ],
-   "answer": 0,
-   "explain": "Using the whole set u\\* as building blocks never creates a new string: each block (e.g. aa) is already built from u-pieces, so gluing blocks just gives longer runs of u-pieces, all already in u\\*."
-  },
-  {
-   "type": "multi",
-   "category": "Regular-expression identities",
-   "topic": "Plus facts",
-   "q": "Which of these always hold?",
-   "choices": [
-    "u⁺ = uu\\*",
-    "u⁺ = u\\*u",
-    "u\\* = λ ∪ u⁺",
-    "λ ∈ u⁺",
-    "(u\\*)⁺ = u\\*"
-   ],
-   "answer": [
-    0,
-    1,
-    2,
-    4
-   ],
-   "explain": "u⁺ is one or more copies, so it equals uu\\* = u\\*u, and adding λ gives u\\*. λ ∈ u⁺ only if λ ∈ u. (u\\*)⁺ = u\\* because u\\* already contains λ and is closed under concatenation."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "Name the identity (a)",
-   "q": "(ab ∪ λ)b\\* = abb\\* ∪ λb\\* uses which identity and substitution?",
-   "choices": [
-    "10: (u ∪ v)w = uw ∪ vw, with u = ab, v = λ, w = b\\*",
-    "9: u(v ∪ w) = uv ∪ uw, with u = b\\*, v = ab, w = λ",
-    "2: λu = u, with u = b\\*",
-    "12 form 1, with u = b, v = ab"
-   ],
-   "answer": 0,
-   "explain": "The union is on the left and b\\* is appended on the right, so it is right distribution (identity 10) with w = b\\*."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "Name the identity (b)",
-   "q": "(b\\* ∪ ab)\\* = (b ∪ ab)\\* uses which identity?",
-   "choices": [
-    "12 form 1: (u\\* ∪ v)\\* = (u ∪ v)\\*, with u = b, v = ab",
-    "8: u\\* = (u\\*)\\*, with u = b",
-    "13: u\\*u\\* = u\\*, with u = b",
-    "11: (uv)\\*u = u(vu)\\*, with u = a, v = b"
-   ],
-   "answer": 0,
-   "explain": "A starred operand (b\\*) of a union that is entirely under a star loses its inner star: form 1 with u = b and v = ab."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "Name the identity (c)",
-   "q": "(ab)\\*a = a(ba)\\* uses which identity?",
-   "choices": [
-    "11 with u = a, v = b",
-    "12 form 6 with u = a, v = b",
-    "10 with u = ab, w = a",
-    "5 with u = ab, v = a"
-   ],
-   "answer": 0,
-   "explain": "This is (uv)\\*u = u(vu)\\* with u = a and v = b."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "Name the identity (d)",
-   "q": "a\\*a\\*b = a\\*b uses which identity?",
-   "choices": [
-    "13: u\\*u\\* = u\\*, with u = a",
-    "2: λu = u, with u = a",
-    "7: u ∪ u = u, with u = a\\*",
-    "8: (u\\*)\\* = u\\*, with u = a"
-   ],
-   "answer": 0,
-   "explain": "The prefix a\\*a\\* collapses to a\\* by the course's added identity 13; the b is simply concatenated afterward."
-  },
-  {
-   "type": "mc",
-   "category": "Regular-expression identities",
-   "topic": "Before proving",
-   "q": "Before trying to prove two regular expressions equal with identities, what should you do first?",
-   "choices": [
-    "Check with the equivalence tool / look for a counterexample string",
-    "Convert both to DFAs by hand",
-    "Apply identity 12 to both sides",
-    "Count the stars on each side"
-   ],
-   "answer": 0,
-   "explain": "If they are not equal, a single counterexample string (in one set but not the other) proves it, and no proof exists. The tool finds such a string automatically; if it says \"Equivalent\", a proof exists."
-  },
-  {
-   "type": "mc",
-   "category": "Identity proofs",
-   "topic": "First step",
-   "q": "In proving (a ∪ b)\\* = (b\\*(a ∪ λ)b\\*)\\*, the first step rewrites (b\\*(a ∪ λ)b\\*)\\* as ((b\\*a ∪ b\\*λ)b\\*)\\*. Which identity and substitution is that?",
-   "choices": [
-    "9 with u = b\\*, v = a, w = λ",
-    "10 with u = a, v = λ, w = b\\*",
-    "2 with u = b\\*",
-    "12 form 1 with u = b, v = a"
-   ],
-   "answer": 0,
-   "explain": "The b\\* on the left is distributed into the union (a ∪ λ): u(v ∪ w) = uv ∪ uw with u = b\\*, v = a, w = λ. The trailing b\\* is handled next by identity 10."
-  },
-  {
-   "type": "mc",
-   "category": "Identity proofs",
-   "topic": "Collapsing b*b*",
-   "q": "The step (b\\*ab\\* ∪ b\\*b\\*)\\* → (b\\*ab\\* ∪ b\\*)\\* uses which identity?",
-   "choices": [
-    "13: u\\*u\\* = u\\*, with u = b",
-    "7: u ∪ u = u",
-    "2: λu = u",
-    "8: (u\\*)\\* = u\\*"
-   ],
-   "answer": 0,
-   "explain": "b\\*b\\* is two runs of b's, which is one run of b's: the instructor-added identity 13."
-  },
-  {
-   "type": "mc",
-   "category": "Identity proofs",
-   "topic": "Treating a subexpression as v",
-   "q": "In the step (b\\* ∪ b\\*ab\\*)\\* → (b ∪ b\\*ab\\*)\\*, identity 12 form 1 is applied. What are u and v?",
-   "choices": [
-    "u = b, v = b\\*ab\\*",
-    "u = b\\*, v = a",
-    "u = b, v = a",
-    "u = b\\*a, v = b\\*"
-   ],
-   "answer": 0,
-   "explain": "The key idea is to treat the whole of b\\*ab\\* as a single expression v. Then (b\\* ∪ b\\*ab\\*)\\* has the shape (u\\* ∪ v)\\* with u = b, and the inner star on b\\* can be deleted."
-  },
-  {
-   "type": "mc",
-   "category": "Identity proofs",
-   "topic": "Choosing a split",
-   "q": "The step (b ∪ b\\*ab\\*)\\* → (b ∪ b\\*a)\\* uses identity 12 form 3, (u ∪ vu\\*)\\* = (u ∪ v)\\*. What substitution makes it work?",
-   "choices": [
-    "u = b, v = b\\*a, so vu\\* = b\\*ab\\*",
-    "u = b\\*, v = ab\\*",
-    "u = a, v = b",
-    "u = b\\*ab\\*, v = b"
-   ],
-   "answer": 0,
-   "explain": "b\\*ab\\* has the shape vu\\* with v = b\\*a and u = b. Then (u ∪ vu\\*)\\* collapses to (u ∪ v)\\* = (b ∪ b\\*a)\\*. Choosing the right split is the hard part of these proofs."
-  },
-  {
-   "type": "mc",
-   "category": "Identity proofs",
-   "topic": "Short proof",
-   "q": "Which chain proves (a\\* ∪ ba\\*)\\* = (a ∪ b)\\*?",
-   "choices": [
-    "12 form 1 (u = a, v = ba\\*) gives (a ∪ ba\\*)\\*, then 12 form 3 (u = a, v = b) gives (a ∪ b)\\*",
-    "13 then 5",
-    "9 then 10",
-    "8 then 11"
-   ],
-   "answer": 0,
-   "explain": "First delete the star on the standalone a\\* (form 1), giving (a ∪ ba\\*)\\*. That has the shape (u ∪ vu\\*)\\* with u = a, v = b, which form 3 collapses to (a ∪ b)\\*."
-  },
-  {
-   "type": "mc",
-   "category": "Identity proofs",
-   "topic": "Exposing b*b*",
-   "q": "To prove (a ∪ b)\\*b\\* = (a ∪ b)\\*, you can rewrite (b ∪ a)\\*b\\* as (b\\*a)\\*b\\*b\\* and then simplify. Which identity performs the rewriting (b ∪ a)\\* = (b\\*a)\\*b\\*?",
-   "choices": [
-    "12 form 6: (u ∪ v)\\* = (u\\*v)\\*u\\*, with u = b, v = a",
-    "11: (uv)\\*u = u(vu)\\*",
-    "12 form 2: u\\*(u ∪ v)\\*",
-    "10: (u ∪ v)w = uw ∪ vw"
-   ],
-   "answer": 0,
-   "explain": "Form 6 turns (b ∪ a)\\* into (b\\*a)\\*b\\*, so the trailing b\\* joins it to make b\\*b\\*, which identity 13 reduces to b\\*. Reading form 6 backwards then returns (b ∪ a)\\*, and identity 5 swaps to (a ∪ b)\\*."
-  },
-  {
-   "type": "tf",
-   "category": "Identity proofs",
-   "topic": "Meeting in the middle",
-   "q": "Transforming both sides of an equation in parallel until they reach a common expression is a valid identity proof.",
-   "answer": true,
-   "explain": "True. Equality is transitive: if L = E and R = E, then L = R. You may also start from either side; starting from the more complicated side is usually easier."
-  },
-  {
-   "type": "tf",
-   "category": "Identity proofs",
-   "topic": "Long proofs on tests",
-   "q": "Long identity-chain proofs like (a ∪ b)\\* = (b\\*(a ∪ λ)b\\*)\\* will appear on tests.",
-   "answer": false,
-   "explain": "False. The instructor said a proof that long could take the whole test. They are practice only (5 more exercises with an answer key); any review question of this kind will be easy."
-  },
-  {
-   "type": "mc",
-   "category": "Identity proofs",
-   "topic": "Double inclusion",
-   "q": "A shorter set-based proof of (a ∪ b)\\* ⊆ (b\\*(a ∪ λ)b\\*)\\* observes that the right side R contains a and b. Why does that suffice?",
-   "choices": [
-    "R is starred, so it contains every concatenation of its members — hence every string of a's and b's",
-    "Because a and b are the only symbols, R must equal {a, b}",
-    "Because R contains λ",
-    "Because concatenation is commutative"
-   ],
-   "answer": 0,
-   "explain": "a = λ·a·λ and b = b·λ·λ are in the starred body, and a star is closed under concatenation, so every string over {a, b} is in R. The reverse inclusion is trivial since R only uses a's and b's. If a question says \"use the identities\", though, you must give the identity chain."
-  },
-  {
-   "type": "mc",
-   "category": "Identity proofs",
-   "topic": "Proof bookkeeping",
-   "q": "What must you state at each step of an identity proof?",
-   "choices": [
-    "Which identity is used and what u, v (and w) stand for",
-    "Only the final expression",
-    "The number of strings added at that step",
-    "A counterexample"
-   ],
-   "answer": 0,
-   "explain": "Name the identity and give the substitution. A \"perfect proof\" even writes small steps like b\\*λb\\* → b\\*b\\* (identity 2) as their own line."
-  },
-  {
-   "type": "mc",
-   "category": "Equivalence checker and JFLAP",
-   "topic": "Typing λ",
-   "q": "In the online equivalence checker, how do you write a ∪ λ?",
-   "choices": [
-    "`(a|)` or `a?`",
-    "`a+λ`",
-    "`(a|!)`",
-    "`a*`"
-   ],
-   "answer": 0,
-   "explain": "The tool has no λ key. λ is an empty alternative, so a ∪ λ becomes `(a|)` — \"ugly, but it works\" — or the optional operator `a?`. `!` is JFLAP's notation, not the checker's."
-  },
-  {
-   "type": "mc",
-   "category": "Equivalence checker and JFLAP",
-   "topic": "Not equivalent",
-   "q": "When two expressions are not equivalent, what does the checker report?",
-   "choices": [
-    "A counterexample: a shortest string accepted by one but not the other",
-    "Only the word \"No\"",
-    "The number of strings that differ",
-    "A DFA for their difference"
-   ],
-   "answer": 0,
-   "explain": "It prints a single string \"accepted by first but not second\" (or vice versa). That one string is itself a complete proof that the expressions differ."
-  },
-  {
-   "type": "mc",
-   "category": "Equivalence checker and JFLAP",
-   "topic": "JFLAP plus sign",
-   "q": "JFLAP exports the expression (a+b)\\*ab. What should you paste into the equivalence checker?",
-   "choices": [
-    "`(a|b)*ab`",
-    "`(a+b)*ab`",
-    "`(a b)*ab`",
-    "`(a|b)+ab`"
-   ],
-   "answer": 0,
-   "explain": "JFLAP writes union as +, but in the checker + means \"one or more\". Replace every + with | before pasting, or the comparison will be wrong."
-  },
-  {
-   "type": "mc",
-   "category": "Equivalence checker and JFLAP",
-   "topic": "JFLAP λ",
-   "q": "JFLAP shows the empty string as λ (typed `!`). How must (a+!) be written for the checker?",
-   "choices": [
-    "`(a|)`",
-    "`(a|!)`",
-    "`(a+)`",
-    "`(a|λ)`"
-   ],
-   "answer": 0,
-   "explain": "Replace + with | and the empty string with an empty alternative: `(a|)`."
-  },
-  {
-   "type": "mc",
-   "category": "Equivalence checker and JFLAP",
-   "topic": "Verification workflow",
-   "q": "You designed a DFA in JFLAP for a given regular expression. How do you check it?",
-   "choices": [
-    "Convert → Convert FA to RE, export the expression, and compare it with the given one in the equivalence checker",
-    "Run one string through the DFA",
-    "Count the states and compare with the number of stars",
-    "Convert the given expression to a table by hand"
-   ],
-   "answer": 0,
-   "explain": "JFLAP converts the machine to an equivalent regular expression; if the checker says it is equivalent to the target, the DFA is correct, and otherwise the counterexample shows where it goes wrong."
-  },
-  {
-   "type": "tf",
-   "category": "Equivalence checker and JFLAP",
-   "topic": "Tool availability",
-   "q": "The online regular-expression tool may be used during tests and reviews.",
-   "answer": true,
-   "explain": "True — the instructor stressed you will always be able to use it. The link is in the syllabus and on Teams."
-  },
-  {
-   "type": "mc",
-   "category": "Equivalence checker and JFLAP",
-   "topic": "Exponent syntax",
-   "q": "In the checker, what does `(a|b)^3` describe?",
-   "choices": [
-    "All strings over {a, b} of length exactly 3",
-    "All strings of length at most 3",
-    "The string (a|b) repeated with a star",
-    "Strings with three a's or three b's"
-   ],
-   "answer": 0,
-   "explain": "`^N` means exactly N copies, so `(a|b)^3` = (a ∪ b)(a ∪ b)(a ∪ b)."
-  },
-  {
-   "type": "mc",
-   "category": "Equivalence checker and JFLAP",
-   "topic": "Discovering strings",
-   "q": "How can the checker list the strings of an expression R, shortest first?",
-   "choices": [
-    "Put R in the first box, leave the second empty, then keep adding each reported string to the second box",
-    "Put R in both boxes",
-    "Put R\\* in the first box",
-    "Leave both boxes empty"
-   ],
-   "answer": 0,
-   "explain": "An empty box means {λ}, so the tool reports the shortest string of R not in the second box. Adding it (e.g. `aa`, then `aa|aaa`) makes the tool show the next one — a good way to test whether your expression grabs exactly the right strings."
-  },
-  {
-   "type": "mc",
-   "category": "Formal definition of a DFA",
-   "topic": "The 5-tuple",
-   "q": "Which is the formal definition of a DFA?",
-   "choices": [
-    "M = (Q, Σ, δ, q₀, F)",
-    "M = (Q, Σ, q₀, F)",
-    "M = (Σ, δ, F)",
-    "M = (Q, δ, q₀, F, λ)"
-   ],
-   "answer": 0,
-   "explain": "Five components: a finite set of states Q, an alphabet Σ, a transition function δ, an initial state q₀, and a set of final states F. All five must be specified."
-  },
-  {
-   "type": "multi",
-   "category": "Formal definition of a DFA",
-   "topic": "Constraints",
-   "q": "Which of the following are requirements of the DFA definition?",
-   "choices": [
-    "Q is finite",
-    "q₀ ∈ Q",
-    "F ⊆ Q",
-    "δ : Q × Σ → Q is a total function",
-    "F is non-empty",
-    "There is exactly one final state"
-   ],
-   "answer": [
-    0,
-    1,
-    2,
-    3
-   ],
-   "explain": "The only constraint on F is F ⊆ Q, so F may be empty or have many states. Q must be finite, there is exactly one initial state in Q, and δ must be total."
-  },
-  {
-   "type": "tf",
-   "category": "Formal definition of a DFA",
-   "topic": "No final states",
-   "q": "A DFA may have no final states (F = ∅).",
-   "answer": true,
-   "explain": "True. ∅ is a subset of every set, so F = ∅ satisfies F ⊆ Q. \"Weird, but we accept it\" — like the empty language."
-  },
-  {
-   "type": "tf",
-   "category": "Formal definition of a DFA",
-   "topic": "All final",
-   "q": "Every state of a DFA may be final (F = Q).",
-   "answer": true,
-   "explain": "True. Q ⊆ Q, so F = Q is allowed."
-  },
-  {
-   "type": "mc",
-   "category": "Formal definition of a DFA",
-   "topic": "Extreme languages",
-   "q": "What language does a DFA accept if F = ∅, and if F = Q?",
-   "choices": [
-    "F = ∅: the empty language ∅; F = Q: Σ\\*",
-    "F = ∅: {λ}; F = Q: Σ\\*",
-    "F = ∅: Σ\\*; F = Q: ∅",
-    "Neither is a valid DFA"
-   ],
-   "answer": 0,
-   "explain": "With F = ∅, no computation ends in a final state, so nothing is accepted. With F = Q, every computation ends in a final state, so every string is accepted. Note ∅ ≠ {λ}."
-  },
-  {
-   "type": "multi",
-   "category": "Formal definition of a DFA",
-   "topic": "Monster FSM",
-   "q": "The game-book \"monster attitude\" state machine had 5 states and 5 inputs, no initial-state arrow, no final states, and some missing arrows. Which features keep it from being a DFA?",
-   "choices": [
-    "No initial state",
-    "Missing transitions",
-    "No final states"
-   ],
-   "answer": [
-    0,
-    1
-   ],
-   "explain": "A DFA needs exactly one initial state and a total δ (5 × 5 = 25 arrows here). Having no final states is allowed."
-  },
-  {
-   "type": "mc",
-   "category": "Formal definition of a DFA",
-   "topic": "Meaning of final",
-   "q": "In the rest of this course, what does a final state mean?",
-   "choices": [
-    "The machine accepts the input string if it ends there",
-    "Something happens, like releasing a bottle",
-    "The machine halts immediately",
-    "The machine resets to the initial state"
-   ],
-   "answer": 0,
-   "explain": "From now on machines are language acceptors: final states mark acceptance. In the vending machine \"final\" meant an action; machines that do something return only with Turing machines at the end of the course."
-  },
-  {
-   "type": "tf",
-   "category": "Formal definition of a DFA",
-   "topic": "Two start states",
-   "q": "A DFA may have two initial states.",
-   "answer": false,
-   "explain": "False. q₀ is a single state with q₀ ∈ Q; exactly one state is the initial state, drawn with an incoming arrow tip."
-  },
-  {
-   "type": "mc",
-   "category": "Formal definition of a DFA",
-   "topic": "The × in δ",
-   "q": "In δ : Q × Σ → Q, what does × denote?",
-   "choices": [
-    "The Cartesian product: all pairs (state, symbol)",
-    "Multiplication of the number of states by symbols",
-    "Concatenation of states and symbols",
-    "Intersection"
-   ],
-   "answer": 0,
-   "explain": "The domain of δ is the set of ordered pairs (q, x) with q ∈ Q and x ∈ Σ. δ maps each pair to the next state, like a function delta(state, symbol) → state."
-  },
-  {
-   "type": "num",
-   "category": "Transition function and counting",
-   "topic": "Count transitions",
-   "q": "A DFA has 4 states and alphabet {0, 1, 2}. How many transitions must it have?",
-   "answer": 12,
-   "explain": "δ has exactly one value for each pair in Q × Σ, so there are |Q| · |Σ| = 4 · 3 = 12 transitions."
-  },
-  {
-   "type": "num",
-   "category": "Transition function and counting",
-   "topic": "Count transitions (large)",
-   "q": "A DFA has 100 states over the alphabet {a, b}. How many arrows does its state diagram have (counting each (state, symbol) transition once)?",
-   "answer": 200,
-   "explain": "|Q| · |Σ| = 100 · 2 = 200. Every state needs one a-arrow and one b-arrow."
-  },
-  {
-   "type": "num",
-   "category": "Transition function and counting",
-   "topic": "Vending-machine arrows",
-   "q": "How many transitions does the vending-machine DFA (5 states, inputs quarter and half dollar) have?",
-   "answer": 10,
-   "explain": "5 · 2 = 10 — which is also why writing δ as separate equations would take 10 lines, and a table is neater."
-  },
-  {
-   "type": "num",
-   "category": "Transition function and counting",
-   "topic": "Count transitions (4 symbols)",
-   "q": "A DFA has 7 states and alphabet {a, b, c, d}. How many transitions does it have?",
-   "answer": 28,
-   "explain": "7 · 4 = 28, one per (state, symbol) pair."
-  },
-  {
-   "type": "mc",
-   "category": "Transition function and counting",
-   "topic": "Duplicate arrow",
-   "q": "A machine over {a, b} has states q₀ (initial) and q₁ (final) with arrows q₀ –a→ q₁, q₀ –b→ q₀, q₁ –a→ q₁, q₁ –b→ q₀, q₁ –b→ q₁. Is it a DFA?",
-   "choices": [
-    "No: δ(q₁, b) would have two values, so δ is not a function",
-    "No: a transition is missing",
-    "Yes",
-    "No: q₁ cannot be both final and have a self-loop"
-   ],
-   "answer": 0,
-   "explain": "Every pair has at least one arrow, so nothing is missing, but q₁ has two b-arrows. A function gives exactly one value per input, so this is not a DFA."
-  },
-  {
-   "type": "mc",
-   "category": "Transition function and counting",
-   "topic": "Missing arrow",
-   "q": "If some state has no arrow for some symbol, which part of the DFA definition fails?",
-   "choices": [
-    "δ is not total: it is undefined for that (state, symbol) pair",
-    "Q is not finite",
-    "q₀ ∉ Q",
-    "F ⊄ Q"
-   ],
-   "answer": 0,
-   "explain": "A (total) function must assign a value to every element of its domain Q × Σ. A missing arrow leaves a pair without a value."
-  },
-  {
-   "type": "tf",
-   "category": "Transition function and counting",
-   "topic": "Getting stuck",
-   "q": "A DFA can get stuck on some input string with no arrow to follow.",
-   "answer": false,
-   "explain": "False. Because δ is total, for every state and every symbol there is exactly one arrow to follow (possibly a self-loop). The vending machine keeps working however many coins you insert."
-  },
-  {
-   "type": "mc",
-   "category": "Transition function and counting",
-   "topic": "Total function",
-   "q": "What makes f : A → B a (total) function?",
-   "choices": [
-    "Every element of A is assigned exactly one element of B",
-    "Every element of B is hit by some element of A",
-    "Some elements of A are assigned an element of B",
-    "Each element of B is hit at most once"
-   ],
-   "answer": 0,
-   "explain": "Total function = exactly one output for every input in the domain. Missing values or two different values both break it. (Hitting all of B would be \"onto\"; at most once would be \"one-to-one\" — neither is required.)"
-  },
-  {
-   "type": "mc",
-   "category": "Vending machine and transition tables",
-   "topic": "δ lookup",
-   "q": "In the vending machine, what is δ($0.25, half dollar)?",
-   "choices": [
-    "$0.75",
-    "$0.50",
-    "$1 or more",
-    "$0.25"
-   ],
-   "answer": 0,
-   "explain": "A half dollar adds $0.50 to the $0.25 already inserted: $0.75."
-  },
-  {
-   "type": "mc",
-   "category": "Vending machine and transition tables",
-   "topic": "No change",
-   "q": "In the vending machine, where does a quarter lead from $0.75?",
-   "choices": [
-    "$1 or more",
-    "$0.00",
-    "$0.25",
-    "It is not allowed"
-   ],
-   "answer": 0,
-   "explain": "$0.75 + $0.25 = $1. From $0.75 either coin reaches \"$1 or more\", because the machine gives no change."
-  },
-  {
-   "type": "mc",
-   "category": "Vending machine and transition tables",
-   "topic": "After a sale",
-   "q": "From the \"$1 or more\" state, where does a quarter lead?",
-   "choices": [
-    "$0.25",
-    "$1.25",
-    "$0.00",
-    "It stays in $1 or more"
-   ],
-   "answer": 0,
-   "explain": "After releasing a bottle the count restarts from zero, so the machine behaves as if at $0: a quarter goes to $0.25 and a half dollar to $0.50. It does not go back through the $0.00 state."
-  },
-  {
-   "type": "mc",
-   "category": "Vending machine and transition tables",
-   "topic": "Why not final $0.00",
-   "q": "Why is making \"$0.00 deposited\" the final state (instead of a separate \"$1 or more\" state) a bad design?",
-   "choices": [
-    "Final means \"release a bottle\", so the machine would give a bottle as soon as it's plugged in — and again on every replug",
-    "The definition forbids the initial state from being final",
-    "It would need more transitions",
-    "DFAs cannot have self-loops"
-   ],
-   "answer": 0,
-   "explain": "In this model a final state triggers the bottle. A final initial state means a free bottle on power-up. The definition allows it; it's a modelling choice, and this choice is a bad one."
-  },
-  {
-   "type": "mc",
-   "category": "Vending machine and transition tables",
-   "topic": "Trace 1",
-   "q": "Trace the vending machine on quarter, half dollar, quarter, half dollar, half dollar. How many bottles are released and where does it end?",
-   "choices": [
-    "2 bottles; ends in $1 or more",
-    "1 bottle; ends in $0.50",
-    "2 bottles; ends in $0.50",
-    "3 bottles; ends in $1 or more"
-   ],
-   "answer": 0,
-   "explain": "$0 →q $0.25 →h $0.75 →q $1+ (bottle 1) →h $0.50 →h $1+ (bottle 2). As an acceptor, this input is accepted since it ends in a final state."
-  },
-  {
-   "type": "mc",
-   "category": "Vending machine and transition tables",
-   "topic": "Trace 2",
-   "q": "Run the vending machine as an acceptor on half, quarter, half, quarter. What happens?",
-   "choices": [
-    "It ends in $0.25 and the string is rejected, even though it passed through the final state",
-    "It is accepted because it passed through the final state",
-    "It ends in $1 or more and is accepted",
-    "It gets stuck"
-   ],
-   "answer": 0,
-   "explain": "$0 →h $0.50 →q $0.75 →h $1+ →q $0.25. One bottle came out along the way, but as an acceptor only the state at the end of the input counts: $0.25 ∉ F."
-  },
-  {
-   "type": "mc",
-   "category": "Vending machine and transition tables",
-   "topic": "Table layout",
-   "q": "In a transition table for δ, what are the rows, columns and entries?",
-   "choices": [
-    "Rows = states, columns = alphabet symbols, entries = next states",
-    "Rows = symbols, columns = strings, entries = accept/reject",
-    "Rows = states, columns = states, entries = symbols only",
-    "Rows = final states only"
-   ],
-   "answer": 0,
-   "explain": "Entry (row q, column x) is δ(q, x). The initial state is marked → and final states \\* (or circled). It holds the same information as the diagram."
-  },
-  {
-   "type": "tf",
-   "category": "Vending machine and transition tables",
-   "topic": "Diagram or table on tests",
-   "q": "On a test you may give a DFA either as a state diagram or as a 5-tuple with a transition table.",
-   "answer": true,
-   "explain": "True. Both contain exactly the same information. (The instructor joked \"if you hate me, go with the table\".)"
-  },
-  {
-   "type": "mc",
-   "category": "Vending machine and transition tables",
-   "topic": "Read a table",
-   "q": "A DFA over {a, b} has states q₀ (initial) and q₁ (final); δ(q₀, a) = q₁, δ(q₀, b) = q₀, δ(q₁, a) = q₁, δ(q₁, b) = q₀. Which strings does it accept?",
-   "choices": [
-    "Strings that end in a",
-    "Strings that start with a",
-    "Strings with an odd number of a's",
-    "Strings containing ab"
-   ],
-   "answer": 0,
-   "explain": "An a always leads to q₁ and a b always leads to q₀, so the current state just records the last symbol read. The machine ends in q₁ exactly when the last symbol is a."
-  },
-  {
-   "type": "mc",
-   "category": "Vending machine and transition tables",
-   "topic": "Markings",
-   "q": "How are the initial and final states marked?",
-   "choices": [
-    "Initial: an incoming arrow tip (→ in a table); final: double circle (\\* in a table)",
-    "Initial: double circle; final: arrow tip",
-    "Both are marked with a star",
-    "Initial: shaded; final: dashed"
-   ],
-   "answer": 0,
-   "explain": "In JFLAP and on paper the initial state has an arrow pointing into it and final states are double circles; in tables use → and \\*."
-  },
-  {
-   "type": "mc",
-   "category": "Accepting strings (preview)",
-   "topic": "δ̂ on λ",
-   "q": "The extended transition function δ̂ : Q × Σ\\* → Q satisfies δ̂(q, λ) = ?",
-   "choices": [
-    "q",
-    "q₀",
-    "∅",
-    "δ(q, λ)"
-   ],
-   "answer": 0,
-   "explain": "Reading nothing does not move the machine. The recursive step is δ̂(q, wa) = δ(δ̂(q, w), a)."
-  },
-  {
-   "type": "mc",
-   "category": "Accepting strings (preview)",
-   "topic": "Acceptance",
-   "q": "When does a DFA M accept a string w?",
-   "choices": [
-    "When δ̂(q₀, w) ∈ F",
-    "When the computation passes through any final state",
-    "When δ̂(q₀, w) = q₀",
-    "When w contains a symbol of every final state"
-   ],
-   "answer": 0,
-   "explain": "Start in q₀, read w left to right following arrows, and accept iff the state reached after the whole string is in F. L(M) = { w ∈ Σ\\* | M accepts w }."
-  },
-  {
-   "type": "tf",
-   "category": "Accepting strings (preview)",
-   "topic": "Always defined",
-   "q": "Because δ is total, δ̂(q₀, w) is defined for every string w ∈ Σ\\*.",
-   "answer": true,
-   "explain": "True. Each symbol always has exactly one arrow to follow, so any string can be read to the end — the formal meaning of \"a DFA never gets stuck\"."
-  },
-  {
-   "type": "mc",
-   "category": "Accepting strings (preview)",
-   "topic": "Run the ends-in-a DFA",
-   "q": "In the DFA with δ(q₀, a) = q₁, δ(q₀, b) = q₀, δ(q₁, a) = q₁, δ(q₁, b) = q₀, F = {q₁}, what happens on input abab?",
-   "choices": [
-    "Ends in q₀; rejected",
-    "Ends in q₁; accepted",
-    "Gets stuck after ab",
-    "Ends in q₁; rejected"
-   ],
-   "answer": 0,
-   "explain": "q₀ →a q₁ →b q₀ →a q₁ →b q₀. The final state q₀ ∉ F, so abab is rejected (it doesn't end in a)."
-  }
- ]
+  "title": "CSC3710 - Sept 22, 2026: Regular expressions, identities, and intro to DFAs",
+  "course": "CSC3710",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Writing regular expressions",
+      "q": "Which regular expression describes exactly the strings over {a, b} of length less than 3?",
+      "choices": [
+        "a ∪ b ∪ (a ∪ b)(a ∪ b)",
+        "λ ∪ a ∪ b ∪ (a ∪ b)(a ∪ b)",
+        "(a ∪ b)(a ∪ b)(a ∪ b)",
+        "(a ∪ b)*(a ∪ b)(a ∪ b)"
+      ],
+      "answer": 1,
+      "explain": "List each allowed length: λ (length 0), a ∪ b (length 1), (a ∪ b)(a ∪ b) (length 2). Leaving out λ misses the empty string. The third choice is exactly length 3, and the last is length 2 or more."
+    },
+    {
+      "type": "mc",
+      "category": "Writing regular expressions",
+      "q": "Which regular expression describes the strings over {a, b} of length greater than 3, that is, length at least 4?",
+      "choices": [
+        "(a ∪ b)(a ∪ b)(a ∪ b)(a ∪ b)*",
+        "(a ∪ b)(a ∪ b)(a ∪ b)(a ∪ b)",
+        "(a ∪ b)(a ∪ b)(a ∪ b)(a ∪ b)(a ∪ b)*",
+        "(a ∪ b)*(a ∪ b)*(a ∪ b)*(a ∪ b)*"
+      ],
+      "answer": 2,
+      "explain": "Four required symbols followed by (a ∪ b)* for anything extra. The first choice only forces 3 symbols, the second is exactly length 4, and the last allows any length, including λ."
+    },
+    {
+      "type": "multi",
+      "category": "Writing regular expressions",
+      "q": "Which regular expressions describe the strings over {a, b} that contain the substring ab AND have length greater than 2?",
+      "choices": [
+        "(a ∪ b)*(aab ∪ bab ∪ aba ∪ abb)(a ∪ b)*",
+        "(a ∪ b)*ab(a ∪ b)*",
+        "(a ∪ b)*ab(a ∪ b)(a ∪ b)* ∪ (a ∪ b)*(a ∪ b)ab(a ∪ b)*",
+        "(a ∪ b)*ab(a ∪ b)(a ∪ b)*"
+      ],
+      "answer": [0, 2],
+      "explain": "ab needs at least one more symbol either before it or after it. The four-case version (aab, bab, aba, abb with anything around them) and the two-case version (a symbol follows ab, or a symbol precedes ab) are both correct, which shows that one set can have many regular expressions. (a ∪ b)*ab(a ∪ b)* wrongly includes ab itself (length 2). The last choice misses strings like aab and bab, where ab is at the end."
+    },
+    {
+      "type": "multi",
+      "category": "Writing regular expressions",
+      "q": "Strings over {a, b} of length 2 or more in which all a's come before all b's. Which regular expressions describe this set? (Here x⁺ means xx*, one or more.)",
+      "choices": [
+        "a⁺b⁺",
+        "a⁺b⁺ ∪ aaa* ∪ bbb*",
+        "a*b*",
+        "aaa*b* ∪ aa*bb* ∪ bbb*",
+        "a⁺b⁺ ∪ a⁺ ∪ b⁺"
+      ],
+      "answer": [1, 3],
+      "explain": "a⁺b⁺ misses all-a and all-b strings such as aa and bbb, so they are added with aaa* and bbb*, which keep the length at least 2. aaa*b* ∪ aa*bb* ∪ bbb* is another correct form: 2+ a's then any b's, or 1+ a's then 1+ b's, or 2+ b's. a*b* wrongly includes λ, a, and b. a⁺b⁺ ∪ a⁺ ∪ b⁺ wrongly includes a and b, which are too short."
+    },
+    {
+      "type": "mc",
+      "category": "Writing regular expressions",
+      "q": "Regular expressions over an alphabet are built from the alphabet symbols (plus λ and ∅) using parentheses and which operations only?",
+      "choices": [
+        "Union, concatenation, and Kleene star",
+        "Union, intersection, and complement",
+        "Concatenation, intersection, and Kleene star",
+        "Union, concatenation, and set difference"
+      ],
+      "answer": 0,
+      "explain": "In class: use the alphabet symbols and form expressions with union, Kleene star, and concatenation. That's it. No other operations are allowed."
+    },
+    {
+      "type": "tf",
+      "category": "Writing regular expressions",
+      "q": "(((a ∪ bbb)*bb)* ∪ bab)* is a valid regular expression over {a, b}.",
+      "answer": true,
+      "explain": "This was the in-class example. It uses only alphabet symbols, union, concatenation, Kleene star, and parentheses, so it is a regular expression no matter how deeply it is nested."
+    },
+    {
+      "type": "tf",
+      "category": "Writing regular expressions",
+      "q": "Each regular set has exactly one correct regular expression, so if your answer looks different from the key, it must be wrong.",
+      "answer": false,
+      "explain": "The same set can have many correct regular expressions. For example, the four-case and two-case expressions for 'contains ab, length > 2' are equal. Check equivalence with the online tool instead of comparing by eye."
+    },
+    {
+      "type": "mc",
+      "category": "Writing regular expressions",
+      "q": "Regular expressions are abbreviated notation for regular sets. Which set does the regular expression (a ∪ ab)* denote?",
+      "choices": [
+        "{a}*{ab}*",
+        "{aab}*",
+        "{a, ab}*",
+        "{a, b}*"
+      ],
+      "answer": 2,
+      "explain": "Union inside the star gives the set {a, ab}, and the star allows any concatenation of those building blocks, including λ. {a}*{ab}* would force every a before every ab, and {a, b}* allows strings like bb that (a ∪ ab)* cannot produce."
+    },
+    {
+      "type": "multi",
+      "category": "String membership and multiple-select grading",
+      "q": "Choose the regular set(s) over {a, b} to which the string abba belongs.",
+      "choices": [
+        "(a ∪ ab)*",
+        "(a ∪ b)*ab",
+        "(a ∪ ab)*ba",
+        "(a ∪ b)*bb(a ∪ b)*",
+        "{aabba, ababa, babba}"
+      ],
+      "answer": [2, 3],
+      "explain": "(a ∪ ab)*ba: take ab from the starred part, then ba. (a ∪ b)*bb(a ∪ b)*: a · bb · a. Not in (a ∪ ab)*: every b comes right after an a, so bb is impossible. Not in (a ∪ b)*ab: every string ends with b, but abba ends with a. Not in the finite set: every string there has length 5, and abba has length 4."
+    },
+    {
+      "type": "mc",
+      "category": "String membership and multiple-select grading",
+      "q": "What is the quickest justification that abba is NOT in the set described by (a ∪ b)*ab?",
+      "choices": [
+        "Every string in the set has even length",
+        "Every string in the set ends with b, but abba ends with a",
+        "Every string in the set starts with a, but abba starts with b",
+        "The set is finite and abba is not listed"
+      ],
+      "answer": 1,
+      "explain": "In class: strings in this set 'for sure end with b', so abba is ruled out immediately. Looking for a property that every string in the set has (last symbol, length, building blocks) is the standard way to show a string is NOT in a set."
+    },
+    {
+      "type": "mc",
+      "category": "String membership and multiple-select grading",
+      "q": "Why can't abba be built from the building blocks of (a ∪ ab)*?",
+      "choices": [
+        "Every string in the set has odd length",
+        "The set is finite, and abba is not one of its elements",
+        "Every b produced by these blocks comes right after an a, so bb can never appear",
+        "Every string in the set must start with ab"
+      ],
+      "answer": 2,
+      "explain": "The only blocks are a and ab. Each b comes inside an ab block, so it always follows an a, and abba's bb can't be formed. The set is infinite, it contains even-length strings like aa, and it contains strings that start with a alone, such as a."
+    },
+    {
+      "type": "tf",
+      "category": "String membership and multiple-select grading",
+      "q": "aab is in the set described by (a ∪ ab)*.",
+      "answer": true,
+      "explain": "Cut it into building blocks: a · ab. Each piece is in {a, ab}, so the string is in {a, ab}*."
+    },
+    {
+      "type": "tf",
+      "category": "String membership and multiple-select grading",
+      "q": "abba is in the set described by (ab)*.",
+      "answer": false,
+      "explain": "Strings in (ab)* repeat ab (ab, abab, ...). They never contain bb, and every nonempty one ends in b, while abba ends in a."
+    },
+    {
+      "type": "num",
+      "category": "String membership and multiple-select grading",
+      "q": "A multiple-select question has 4 options, each worth 1 point under the instructor's grading. Two options are true and two are false. You select exactly one of the true options and nothing else. What percentage of the question's points do you get?",
+      "answer": 75,
+      "explain": "Each option is graded separately. You get credit for selecting a true option or leaving a false option unselected. Here you are right on 3 of 4 options (one true selected, two false left blank) and wrong on 1 (a true option missed), so 3/4 = 75%."
+    },
+    {
+      "type": "num",
+      "category": "String membership and multiple-select grading",
+      "q": "A 4-point multiple-select question (1 point per option): options A and C are true, B and D are false. You select A, B, and D. How many points do you earn?",
+      "answer": 1,
+      "explain": "A: true and selected, +1. B: false but selected, 0. C: true but not selected, 0. D: false but selected, 0. Total = 1 point. Selecting a false option loses that option's point."
+    },
+    {
+      "type": "tf",
+      "category": "String membership and multiple-select grading",
+      "q": "On this instructor's multiple-select questions, 'choose none of the options' can be the correct answer.",
+      "answer": false,
+      "explain": "At least one option is always correct, so selecting nothing is never the right answer. Canvas grades these differently, so the instructor or TA grades them by hand, one option at a time."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expression identities",
+      "q": "For any regular expression u, what does ∅u (equivalently u∅) equal?",
+      "choices": [
+        "u",
+        "λ",
+        "∅",
+        "u*"
+      ],
+      "answer": 2,
+      "explain": "Concatenation takes one string from each set. If one set is empty, there is nothing to take, so no strings can be formed: ∅u = u∅ = ∅."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expression identities",
+      "q": "What does ∅* equal?",
+      "choices": [
+        "∅",
+        "λ (the set containing only the empty string)",
+        "It is undefined",
+        "(a ∪ b)*"
+      ],
+      "answer": 1,
+      "explain": "∅* = ∅⁰ ∪ ∅¹ ∪ ∅² ∪ ... . ∅⁰ = {λ}, and every higher power is empty, so the union is {λ}. That is, ∅* = λ."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expression identities",
+      "q": "Which of these is NOT a valid regular expression identity?",
+      "choices": [
+        "u(v ∪ w) = uv ∪ uw",
+        "u ∪ u = u",
+        "(u*)* = u*",
+        "(u ∪ v)w = wu ∪ wv"
+      ],
+      "answer": 3,
+      "explain": "Concatenation is not commutative, so order matters. Distributing from the right keeps w on the right: (u ∪ v)w = uw ∪ vw. The other three are real identities: left distribution, repetition doesn't matter, and starring twice adds nothing."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expression identities",
+      "q": "Use identities to simplify ∅a ∪ λb.",
+      "choices": [
+        "a ∪ b",
+        "b",
+        "∅",
+        "λ ∪ b"
+      ],
+      "answer": 1,
+      "explain": "∅a = ∅ and λb = b, giving ∅ ∪ b. Swap the order to get b ∪ ∅, and u ∪ ∅ = u, so the result is b."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expression identities",
+      "q": "Use identities to rewrite a(b ∪ λ) without parentheses.",
+      "choices": [
+        "ab ∪ λ",
+        "ba ∪ a",
+        "ab ∪ a",
+        "ab"
+      ],
+      "answer": 2,
+      "explain": "Distribute from the left: a(b ∪ λ) = ab ∪ aλ, and aλ = a, so the result is ab ∪ a. The a stays on the left because concatenation order matters."
+    },
+    {
+      "type": "mc",
+      "category": "Regular expression identities",
+      "q": "Why is (u*)* = u*?",
+      "choices": [
+        "Because u* is always a finite set",
+        "Any concatenation of strings from u* is already a string in u*, so starring again adds nothing new",
+        "Because the second star removes λ",
+        "Because (u*)* is always ∅"
+      ],
+      "answer": 1,
+      "explain": "Example from class: {a, b}* already contains every string over {a, b}. Gluing such strings together again only produces strings that are already there."
+    },
+    {
+      "type": "tf",
+      "category": "Regular expression identities",
+      "q": "In the identity list, u, v, and w can stand for any regular expressions, no matter how complicated, not just single symbols.",
+      "answer": true,
+      "explain": "In the class proof, whole subexpressions like b*ab* were treated as a single u or v when an identity was applied."
+    },
+    {
+      "type": "tf",
+      "category": "Regular expression identities",
+      "q": "(b* ∪ b*ab*)* = (b ∪ b*ab*)*",
+      "answer": true,
+      "explain": "Here the star covers the entire u = b, which sits inside a union, and an outer star covers the whole union. In that situation the inner star can be dropped: (u* ∪ v)* = (u ∪ v)*. This step was used in the class proof."
+    },
+    {
+      "type": "tf",
+      "category": "Regular expression identities",
+      "q": "(b*a ∪ b)* = (ba ∪ b)*, because a star inside a starred union can always be dropped.",
+      "answer": false,
+      "explain": "The star in b*a covers only part of that term, not the whole term, so it can't be removed this way. For example, a is in the left side (b* = λ), but in (ba ∪ b)* every a is preceded by a b, so a is not in the right side."
+    },
+    {
+      "type": "tf",
+      "category": "Regular expression identities",
+      "q": "For all regular expressions u and v, uv = vu.",
+      "answer": false,
+      "explain": "Concatenation order matters. For example, ab ≠ ba. Union is commutative (u ∪ v = v ∪ u), but concatenation is not."
+    },
+    {
+      "type": "mc",
+      "category": "Identity proofs and checking tools",
+      "q": "In proving (a ∪ b)* = (b*(a ∪ λ)b*)*, the first step applies u(v ∪ w) = uv ∪ uw to b*(a ∪ λ). What are u, v, and w?",
+      "choices": [
+        "u = b*, v = a ∪ λ, w = b*",
+        "u = b*, v = a, w = λ",
+        "u = a, v = λ, w = b*",
+        "u = b*(a ∪ λ), v = b*, w = λ"
+      ],
+      "answer": 1,
+      "explain": "u is the factor on the left (b*), and v and w are the two parts of the union (a and λ). This gives b*a ∪ b*λ."
+    },
+    {
+      "type": "mc",
+      "category": "Identity proofs and checking tools",
+      "q": "In the same proof, (b*a ∪ b*λ)b* becomes b*ab* ∪ b*λb*. Which identity justifies this step?",
+      "choices": [
+        "u(v ∪ w) = uv ∪ uw",
+        "(u ∪ v)w = uw ∪ vw",
+        "u ∪ v = v ∪ u",
+        "(u*)* = u*"
+      ],
+      "answer": 1,
+      "explain": "The trailing b* is distributed from the right, so w = b* stays on the right of each term."
+    },
+    {
+      "type": "mc",
+      "category": "Identity proofs and checking tools",
+      "q": "In the proof, b*λ is replaced by b*. Which identity allows this?",
+      "choices": [
+        "u ∪ ∅ = u",
+        "λ* = λ",
+        "uλ = u",
+        "∅u = ∅"
+      ],
+      "answer": 2,
+      "explain": "λu = uλ = u. Putting the empty string before or after something changes nothing."
+    },
+    {
+      "type": "mc",
+      "category": "Identity proofs and checking tools",
+      "q": "When proving two regular expressions are equal using identities, what approach did the instructor use and recommend?",
+      "choices": [
+        "List a few strings from each side; if they match, the identity is proved",
+        "Start from the more complicated side and simplify it, naming each identity used, until it becomes the other side",
+        "Convert both sides to DFAs and compare their numbers of states",
+        "Write both sides in set notation and compare how many elements they have"
+      ],
+      "answer": 1,
+      "explain": "Start with the more complicated side (the right-hand side in the class example) and work toward the simpler side. Name the identity used at each step and say what u, v, w are. Checking a few sample strings is not a proof."
+    },
+    {
+      "type": "tf",
+      "category": "Identity proofs and checking tools",
+      "q": "Applying identities to both sides in parallel until they reach the same expression is a valid way to prove an equality.",
+      "answer": true,
+      "explain": "The instructor said you can also work on both sides and meet in the middle, and that this is still a proof."
+    },
+    {
+      "type": "tf",
+      "category": "Identity proofs and checking tools",
+      "q": "You should expect to write a full identity proof, like the long one done in class, on a test.",
+      "answer": false,
+      "explain": "Full proofs like that one are for practice only. They would take the whole test. At most a small piece of one might appear. The instructor is posting 5 more practice proofs with solutions."
+    },
+    {
+      "type": "tf",
+      "category": "Identity proofs and checking tools",
+      "q": "The list of regular expression identities will be attached to the test.",
+      "answer": true,
+      "explain": "The identity sheet (the book's identities plus the one the instructor added) is always attached, and it may be needed on the second test."
+    },
+    {
+      "type": "mc",
+      "category": "Identity proofs and checking tools",
+      "q": "In the online regex-equivalence tool shown in class (which uses | for union), how do you write a ∪ λ?",
+      "choices": [
+        "(a|)",
+        "(a|0)",
+        "(a&λ)",
+        "a*"
+      ],
+      "answer": 0,
+      "explain": "You leave the alternative after the vertical bar empty: (a|) means a or the empty string. It looks odd, but it avoids typing λ."
+    },
+    {
+      "type": "mc",
+      "category": "Identity proofs and checking tools",
+      "q": "You design a DFA in JFLAP for a regular expression you were given. How can you check that your machine is correct?",
+      "choices": [
+        "Check that the number of states equals the length of the regular expression",
+        "Have JFLAP convert your DFA into a regular expression, then check it against the given one with the equivalence tool",
+        "Make every state final and see whether JFLAP accepts the regular expression",
+        "Compare JFLAP's regular expression to the given one by eye; any difference means the DFA is wrong"
+      ],
+      "answer": 1,
+      "explain": "JFLAP can generate a regular expression from your DFA. It will usually look different from the original, so use the equivalence tool to check whether the two describe the same set."
+    },
+    {
+      "type": "num",
+      "category": "DFA formal definition",
+      "q": "How many components are in the formal definition of a deterministic finite automaton (DFA)?",
+      "answer": 5,
+      "explain": "M = (Q, Σ, δ, q0, F): states, alphabet, transition function, initial state, and set of final states."
+    },
+    {
+      "type": "mc",
+      "category": "DFA formal definition",
+      "q": "In a DFA M = (Q, Σ, δ, q0, F), what is the type of the transition function δ?",
+      "choices": [
+        "δ : Σ → Q",
+        "δ : Q × Σ → Q",
+        "δ : Q → Σ",
+        "δ : Q × Q → Σ"
+      ],
+      "answer": 1,
+      "explain": "δ takes a state and a symbol (a pair from the Cartesian product Q × Σ) and returns a state. For example, δ(25¢, quarter) = 50¢."
+    },
+    {
+      "type": "tf",
+      "category": "DFA formal definition",
+      "q": "A DFA is allowed to have no final states at all.",
+      "answer": true,
+      "explain": "The only constraint is F ⊆ Q, and the empty set is a subset of every set, so F = ∅ is allowed. It seems strange, the same way an empty language does, but the definition permits it."
+    },
+    {
+      "type": "tf",
+      "category": "DFA formal definition",
+      "q": "A DFA is allowed to have every one of its states be a final state.",
+      "answer": true,
+      "explain": "Every set is a subset of itself (Q ⊆ Q), so F = Q is allowed."
+    },
+    {
+      "type": "mc",
+      "category": "DFA formal definition",
+      "q": "Why is F = ∅ allowed in a DFA?",
+      "choices": [
+        "Because the initial state automatically counts as final when F is empty",
+        "Because the only constraint on F is F ⊆ Q, and the empty set is a subset of every set",
+        "Because F must be the complement of {q0}",
+        "It isn't allowed; every DFA needs at least one final state"
+      ],
+      "answer": 1,
+      "explain": "The definition requires only F ⊆ Q. Since ∅ ⊆ Q for any Q, a machine with no final states is still a valid DFA."
+    },
+    {
+      "type": "num",
+      "category": "DFA formal definition",
+      "q": "A DFA has 3 states and alphabet {a, b}. How many transition arrows must its state diagram have (count self-loops as arrows)?",
+      "answer": 6,
+      "explain": "δ is a function on Q × Σ, so every state has exactly one outgoing arrow per symbol: 3 × 2 = 6."
+    },
+    {
+      "type": "num",
+      "category": "DFA formal definition",
+      "q": "A DFA has 4 states and alphabet Σ = {0, 1, 2}. How many transitions does it have?",
+      "answer": 12,
+      "explain": "|Q| × |Σ| = 4 × 3 = 12. Each (state, symbol) pair has exactly one next state."
+    },
+    {
+      "type": "tf",
+      "category": "DFA formal definition",
+      "q": "A DFA can get stuck in a state where some input symbol has no transition defined.",
+      "answer": false,
+      "explain": "δ is a function, so it gives an answer for every (state, symbol) pair. The machine always moves somewhere, possibly back to the same state, and never gets stuck."
+    },
+    {
+      "type": "mc",
+      "category": "DFA formal definition",
+      "q": "What does the definition require about the initial state q0?",
+      "choices": [
+        "Exactly one state is the initial state, and q0 ∈ Q",
+        "Any number of states may be initial, as long as they are in F",
+        "The initial state must also be a final state",
+        "A DFA may omit the initial state if it has at least one final state"
+      ],
+      "answer": 0,
+      "explain": "One state is special: the initial state q0, which belongs to Q. Without an initial state (no arrow tip in the diagram), the machine isn't a proper finite automaton."
+    },
+    {
+      "type": "mc",
+      "category": "DFA formal definition",
+      "q": "In a DFA state diagram, how are the initial state and the final states marked?",
+      "choices": [
+        "Initial: double circle; final: an incoming arrow tip",
+        "Initial: an incoming arrow tip; final: double circle",
+        "Initial: shaded circle; final: square",
+        "Both are marked with double circles"
+      ],
+      "answer": 1,
+      "explain": "The initial state has the tip of an arrow pointing into it. Final (accepting) states are drawn with a double circle."
+    },
+    {
+      "type": "tf",
+      "category": "DFA formal definition",
+      "q": "In a DFA, the states must be named q0, q1, q2, and so on.",
+      "answer": false,
+      "explain": "State names are up to you. For example, the vending machine used $0, 25¢, 50¢, and so on. The book and JFLAP use q0, q1, q2, ..., so the course usually does too."
+    },
+    {
+      "type": "tf",
+      "category": "DFA formal definition",
+      "q": "For most of this course, DFAs are treated as language acceptors: each input string is accepted or rejected, and final states mean 'accept'.",
+      "answer": true,
+      "explain": "The vending machine, where a final state means 'something happens', is a special example. The 'machine that does something' view returns only with Turing machines at the end of the course."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine and transition tables",
+      "q": "What is the alphabet Σ of the vending machine DFA from class?",
+      "choices": [
+        "{$0, 25¢, 50¢, 75¢, $1 or more}",
+        "{quarter, half-dollar}",
+        "{0, 1}",
+        "{quarter, half-dollar, dollar}"
+      ],
+      "answer": 1,
+      "explain": "The machine only understands quarters and half-dollars. {$0, 25¢, 50¢, 75¢, $1 or more} is the set of states Q, not the alphabet. A small alphabet is fine; a digital computer really only understands {0, 1}."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine and transition tables",
+      "q": "Vending machine: δ(25¢ deposited, half-dollar) = ?",
+      "choices": [
+        "50¢ deposited",
+        "75¢ deposited",
+        "$1 or more",
+        "$0 deposited"
+      ],
+      "answer": 1,
+      "explain": "25¢ + 50¢ = 75¢, so the machine moves to the 75¢ deposited state."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine and transition tables",
+      "q": "Vending machine: δ(50¢ deposited, half-dollar) = ?",
+      "choices": [
+        "75¢ deposited",
+        "$0 deposited",
+        "$1 or more",
+        "50¢ deposited"
+      ],
+      "answer": 2,
+      "explain": "50¢ + 50¢ = $1.00, which reaches the '$1 or more' state, where the bottle is released."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine and transition tables",
+      "q": "Vending machine: what are δ(75¢ deposited, quarter) and δ(75¢ deposited, half-dollar)?",
+      "choices": [
+        "$1 or more, and $1 or more",
+        "$1 or more, and 25¢ deposited",
+        "$1 or more, and 50¢ deposited",
+        "75¢ deposited, and $1 or more"
+      ],
+      "answer": 0,
+      "explain": "75¢ + 25¢ = $1.00 and 75¢ + 50¢ = $1.25. Both reach '$1 or more', because overpaying still lands in that state."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine and transition tables",
+      "q": "The machine is in '$1 or more' (bottle released, counter reset to 0), and a quarter is deposited. Which state does it move to?",
+      "choices": [
+        "$0 deposited",
+        "$1 or more",
+        "25¢ deposited",
+        "50¢ deposited"
+      ],
+      "answer": 2,
+      "explain": "After the reset, the next coin counts from zero, so a quarter leads to 25¢ deposited. The machine never goes back into the $0 state itself."
+    },
+    {
+      "type": "num",
+      "category": "Vending machine and transition tables",
+      "q": "How many entries are in the full transition table for the vending machine DFA (5 states, 2 symbols)?",
+      "answer": 10,
+      "explain": "|Q| × |Σ| = 5 × 2 = 10. The table is a neater way to write ten separate lines like δ($0, quarter) = 25¢."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine and transition tables",
+      "q": "In the vending machine, what does the double-circled state '$1 or more' represent?",
+      "choices": [
+        "A bottle of water is released and the counter resets to 0",
+        "The machine rejects the coins and returns them",
+        "The machine halts permanently and accepts no more coins",
+        "Nothing special; it is simply the last state drawn"
+      ],
+      "answer": 0,
+      "explain": "In this example, the final state means something happens there: the $1.25 bottle is released and the counter resets. Most machines later in the course are language acceptors instead."
+    },
+    {
+      "type": "mc",
+      "category": "Vending machine and transition tables",
+      "q": "Why not make '$0 deposited' the final state and remove the '$1 or more' state?",
+      "choices": [
+        "A DFA's initial state is never allowed to be final",
+        "The machine would release a bottle as soon as it was plugged in, and again every time it was unplugged and plugged back in",
+        "The machine would then have no final states, which is not allowed",
+        "The transition table would need more than 10 entries"
+      ],
+      "answer": 1,
+      "explain": "The final state means 'release a bottle', so making the initial state final would give away free water at power-on. The definition does allow the initial state to be final (F can even equal Q). The reason is the machine's behavior, not a rule."
+    },
+    {
+      "type": "tf",
+      "category": "Vending machine and transition tables",
+      "q": "If a test asks you to give a machine, you may give its formal description (the 5-tuple plus a transition table) instead of a state diagram.",
+      "answer": true,
+      "explain": "Either form is accepted: the state diagram, or the formal description with a transition table. The instructor finds the formal version harder to read. A readable JFLAP screenshot or file is also fine."
+    }
+  ]
 }
