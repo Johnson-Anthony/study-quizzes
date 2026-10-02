@@ -1,0 +1,450 @@
+{
+  "title": "CSC3710 2026-10-01: DFA to regex, closure under complement, non-regular languages",
+  "course": "CSC3710",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Paths-and-cycles method",
+      "q": "In the paths-and-cycles table, each final state f gets one row. Which regular expression goes in the last column of that row?",
+      "choices": [
+        "(union of the paths)(union of the cycles)*",
+        "(union of the paths)*(union of the cycles)",
+        "(union of the paths) ∪ (union of the cycles)*",
+        "(union of the paths)(union of the cycles)"
+      ],
+      "answer": 0,
+      "explain": "Take any path from the initial state to f, then go around f's cycles in any order, as many times as you like (including zero). That is (∪ paths)(∪ cycles)*."
+    },
+    {
+      "type": "mc",
+      "category": "Paths-and-cycles method",
+      "q": "A DFA has two final states, q3 and q4. You have built the row expressions R_q3 and R_q4. What is the regular expression for L(M)?",
+      "choices": [
+        "R_q3 R_q4",
+        "R_q3 ∪ R_q4",
+        "(R_q3 ∪ R_q4)*",
+        "R_q3 (R_q4)*"
+      ],
+      "answer": 1,
+      "explain": "A string is accepted if it ends in q3 or ends in q4, so you take the union of the rows. The table is not the final answer. The union of its row expressions is."
+    },
+    {
+      "type": "text",
+      "category": "Paths-and-cycles method",
+      "q": "In the paths-and-cycles table, no cycle leaves a final state and comes back to it. What do you write in that row's Cycle(s) column?",
+      "answer": ["λ", "lambda", "empty string", "the empty string"],
+      "explain": "Write λ. Giving the machine nothing leaves it where it is, so λ takes the state back to itself. Since λ* = λ, the row becomes (paths)λ* = paths."
+    },
+    {
+      "type": "mc",
+      "category": "Paths-and-cycles method",
+      "q": "A path from the initial state to final state f passes through a middle state that has a self-loop. Where does that self-loop go in the table?",
+      "choices": [
+        "In the Cycle(s) column for f",
+        "In a separate row of its own",
+        "Inside the path's regex, with a Kleene star",
+        "Nowhere, because only cycles on final states matter"
+      ],
+      "answer": 2,
+      "explain": "A cycle at the beginning or in the middle of a path belongs in the path's regex, written with a star (for example a a* b). Only cycles on the final state itself go in the Cycle(s) column."
+    },
+    {
+      "type": "tf",
+      "category": "Paths-and-cycles method",
+      "q": "True or false: f has a self-loop on b. Its Cycle(s) entry should list b, bb, bbb, and so on, to cover going around the loop several times.",
+      "answer": false,
+      "explain": "The Cycle(s) column holds strings that take f back to f exactly once. The outer Kleene star over the union of cycles handles repetition."
+    },
+    {
+      "type": "mc",
+      "category": "Paths-and-cycles method",
+      "q": "DFA over Σ = {a}: q0 --a--> q1, q1 --a--> q2, q2 --a--> q1. The initial state is q0 and the only final state is q1. What regular expression does the paths-and-cycles method give?",
+      "choices": [
+        "(aa)*",
+        "a*",
+        "a(aa)*",
+        "aa(a)*"
+      ],
+      "answer": 2,
+      "explain": "The path q0 to q1 is a. The cycle q1 to q2 to q1 is aa. So the row is a(aa)*, which is the odd-length strings. That is the same language as the 2-state odd-length DFA."
+    },
+    {
+      "type": "mc",
+      "category": "Paths-and-cycles method",
+      "q": "DFA over Σ = {a, b}: q0 --a--> q1 and q0 --b--> q1. q1 is the only final state, and every other transition goes to a trap state. What does the method give?",
+      "choices": [
+        "(a ∪ b)*",
+        "ab",
+        "(a ∪ b)(a ∪ b)*",
+        "a ∪ b"
+      ],
+      "answer": 3,
+      "explain": "There are two paths, a and b. No cycle leaves q1 and returns, so the cycle entry is λ. (a ∪ b)λ* = a ∪ b. The machine accepts exactly the strings a and b."
+    },
+    {
+      "type": "multi",
+      "category": "Kleene star, identities, and equivalence",
+      "q": "DFA over {a, b}, initial state q0, only final state q2. Transitions: q0 --b--> q1, q1 --b--> q2, q2 --b--> q2, q2 --a--> q3, q3 --a--> q3, q3 --b--> q4, q4 --a--> q3, q4 --b--> q2. All other transitions go to a trap state. Its language is bb(b ∪ aa*b(aa*b)*b)*. A student leaves off the outer star and writes bb(b ∪ aa*b(aa*b)*b). Which strings does the machine accept that the student's expression misses?",
+      "choices": [
+        "bb",
+        "bbbb",
+        "bbbabb",
+        "bbb",
+        "bbabb"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Without the outer star you must go around exactly one cycle exactly once. bb uses zero cycles, bbbb uses green twice, and bbbabb uses green and then blue, so all three are missed. bbb (green once) and bbabb (blue once) are still matched. The outer star is what lets the machine switch between cycles."
+    },
+    {
+      "type": "tf",
+      "category": "Kleene star, identities, and equivalence",
+      "q": "True or false: for any regular expressions r and s, (r ∪ s)* = (r* ∪ s)*.",
+      "answer": true,
+      "explain": "Under an outer star over a union, you can add a star to either part, or to both: (r ∪ s)* = (r* ∪ s)* = (r ∪ s*)* = (r* ∪ s*)*. That is why putting a star on every cycle you see is still correct."
+    },
+    {
+      "type": "multi",
+      "category": "Kleene star, identities, and equivalence",
+      "q": "The machine with only final state q2 (path bb, green self-loop b on q2, blue cycle aa*b(aa*b)*b) has language bb(b ∪ aa*b(aa*b)*b)*. Which of these also describe that language?",
+      "choices": [
+        "bbb*(b ∪ aa*b(aa*b)*b)*",
+        "bb(b* ∪ aa*b(aa*b)*b)*",
+        "bb(b ∪ aa*b(aa*b)*b)",
+        "bbb*(aa*b(aa*b)*b)*"
+      ],
+      "answer": [0, 1],
+      "explain": "The extra b* in the first choice is redundant, because the starred union already allows any number of b's, but it is not an error. The second choice follows from (r ∪ s)* = (r* ∪ s)*. The third has no outer star. The fourth does not allow a green b after a blue cycle, so it misses bbabbb."
+    },
+    {
+      "type": "mc",
+      "category": "Kleene star, identities, and equivalence",
+      "q": "In that same machine, the blue cycle from q2 back to q2 has the regex a a* b (a a* b)* b. What does the (a a* b)* part capture?",
+      "choices": [
+        "Going around the green self-loop on q2 any number of times",
+        "Going back from q4 to q3 (with the a-loop at q3) and returning to q4, zero or more times",
+        "Going around the whole blue cycle more than once",
+        "The path from the initial state to q2"
+      ],
+      "answer": 1,
+      "explain": "After a a* b, the machine is at q4. From there it can take a back to q3, loop on a, then take b back to q4, as many times as it likes or not at all. The final b then returns it to q2."
+    },
+    {
+      "type": "mc",
+      "category": "Kleene star, identities, and equivalence",
+      "q": "JFLAP exports a regular expression containing a+b. What does + mean in JFLAP's output?",
+      "choices": [
+        "Union (our ∪)",
+        "One or more (our a+ = aa*)",
+        "Concatenation",
+        "Kleene star"
+      ],
+      "answer": 0,
+      "explain": "JFLAP uses + for union, so a+b means a ∪ b. In our course notation, a+ means aa* (one or more), and JFLAP has no symbol for that. The online regex tool uses | for union."
+    },
+    {
+      "type": "mc",
+      "category": "Kleene star, identities, and equivalence",
+      "q": "You compare your regular expression with JFLAP's in a regex comparison tool. It lists bbabb as \"accepted by first but not second.\" What does that tell you?",
+      "choices": [
+        "The two expressions are equivalent",
+        "The two expressions are not equivalent, and bbabb is a counterexample you can trace through the machine to find the mistake",
+        "Only bbabb differs, so the expressions are equivalent apart from one string",
+        "The machine is not a DFA"
+      ],
+      "answer": 1,
+      "explain": "A single string accepted by one expression and not the other proves they differ. Trace that string through the DFA to see which expression is wrong. In lecture this showed that an a had been typed where a b belonged."
+    },
+    {
+      "type": "multi",
+      "category": "Kleene star, identities, and equivalence",
+      "q": "Which of these are equivalent to ▲▲▲▲(▲▲▲)* (4, 7, 10, ... triangles)?",
+      "choices": [
+        "(▲▲▲)*▲▲▲▲",
+        "▲(▲▲▲)+",
+        "▲▲▲▲▲*",
+        "(▲▲▲▲)*",
+        "▲(▲▲▲)*"
+      ],
+      "answer": [0, 1],
+      "explain": "Every piece uses only triangles, so the order of concatenation does not change the language. ▲(▲▲▲)+ gives 1 + 3m triangles with m ≥ 1, which is 4, 7, 10, .... ▲▲▲▲▲* allows any count of 4 or more. (▲▲▲▲)* gives multiples of 4. ▲(▲▲▲)* also allows a single triangle."
+    },
+    {
+      "type": "tf",
+      "category": "DFA definition and properties",
+      "q": "True or false: every DFA must have at least one final state.",
+      "answer": false,
+      "explain": "The definition only requires exactly one transition for each symbol out of every state. A DFA with no final states is valid and accepts the empty language ∅."
+    },
+    {
+      "type": "mc",
+      "category": "DFA definition and properties",
+      "q": "Over {a, b}, every state of a machine has exactly one a-arrow and one b-arrow leaving it, but its only final state cannot be reached from the initial state. Which statement is correct?",
+      "choices": [
+        "It is not a DFA, because a DFA's final states must be reachable",
+        "It is a DFA, and it accepts every string",
+        "It is a DFA, and it accepts no strings (the empty language)",
+        "It is not a DFA, because it has a useless state"
+      ],
+      "answer": 2,
+      "explain": "Nothing in the definition requires final states to be reachable, so it is a DFA. No run can end in the final state, so the language is ∅. It is equivalent to a DFA with no final states at all."
+    },
+    {
+      "type": "mc",
+      "category": "DFA definition and properties",
+      "q": "What languages can a DFA with exactly one state accept?",
+      "choices": [
+        "Any finite language",
+        "Only the language {λ}",
+        "Either every string over Σ or no strings",
+        "Any regular language over a one-symbol alphabet"
+      ],
+      "answer": 2,
+      "explain": "The single state is both the start state and the state every run ends in. If it is final, every string is accepted. If not, nothing is."
+    },
+    {
+      "type": "num",
+      "category": "DFA definition and properties",
+      "q": "What is the smallest number of states a DFA over Σ = {a} can have if it accepts exactly the odd-length strings?",
+      "answer": 2,
+      "explain": "The language accepts some strings and rejects others, so one state cannot be enough (one state accepts everything or nothing). A 2-state machine does it."
+    },
+    {
+      "type": "tf",
+      "category": "DFA definition and properties",
+      "q": "True or false: a 3-state DFA and a 2-state DFA over {a} can both accept exactly the odd-length strings.",
+      "answer": true,
+      "explain": "A DFA may have more states than it needs, much like code that is not optimized. The 3-state machine q0 --a--> q1, q1 --a--> q2, q2 --a--> q1 with final state q1 accepts a(aa)*, the same language as the 2-state machine."
+    },
+    {
+      "type": "mc",
+      "category": "DFA definition and properties",
+      "q": "Which condition describes when a DFA accepts an infinite language?",
+      "choices": [
+        "The initial state is final and has a self-loop",
+        "The DFA contains at least one cycle somewhere",
+        "There is a path from the initial state to some final state with a cycle on it",
+        "The DFA has more than two states"
+      ],
+      "answer": 2,
+      "explain": "The cycle has to be reachable from the initial state, and some final state has to be reachable after it. The cycle can be at the beginning, in the middle, or at the end of the path. An initial final state with a self-loop is only one example of this."
+    },
+    {
+      "type": "tf",
+      "category": "DFA definition and properties",
+      "q": "True or false: if a DFA's only cycle is the self-loop on its trap state, the DFA accepts an infinite language.",
+      "answer": false,
+      "explain": "No final state can be reached from a trap state, so that cycle never lies on a path to a final state. With no other cycle, only finitely many strings can be accepted."
+    },
+    {
+      "type": "mc",
+      "category": "Closure under complement",
+      "q": "What does \"the set of regular languages is closed under complement\" mean?",
+      "choices": [
+        "If L is regular, then its complement Σ* − L is also regular",
+        "If L is regular, then its complement is not regular",
+        "The complement of any language is regular",
+        "A regular language contains its own complement"
+      ],
+      "answer": 0,
+      "explain": "Applying the operation (complement) to a member of the set (a regular language) always gives another member of the set. So for the complement you can always build a DFA or write a regular expression."
+    },
+    {
+      "type": "tf",
+      "category": "Closure under complement",
+      "q": "True or false: the set of integers is closed under division.",
+      "answer": false,
+      "explain": "1 ÷ 2 is not an integer. The integers are closed under addition and multiplication but not under division. This is the same idea of closure as \"regular languages are closed under complement.\""
+    },
+    {
+      "type": "mc",
+      "category": "Closure under complement",
+      "q": "M = (Q, Σ, δ, q0, F) is a DFA with L(M) = L. Which machine accepts the complement of L?",
+      "choices": [
+        "(Q, Σ, δ, q0, F)",
+        "(Q, Σ, δ, q0, Q − F)",
+        "(Q, Σ, δ, q0, ∅)",
+        "(Q − F, Σ, δ, q0, F)"
+      ],
+      "answer": 1,
+      "explain": "Keep everything the same except the final states: states that were not final become final, and states that were final stop being final. Each string has exactly one run, ending in one state, so M′ accepts exactly the strings M rejects."
+    },
+    {
+      "type": "mc",
+      "category": "Closure under complement",
+      "q": "A DFA has Q = {q0, q1, q2, q3} and F = {q1, q3}. What is the set of final states of the DFA that accepts the complement?",
+      "choices": [
+        "{q1, q3}",
+        "{q0, q1, q2, q3}",
+        "{q0, q2}",
+        "{q0}"
+      ],
+      "answer": 2,
+      "explain": "The complement machine's final states are Q − F = {q0, q2}."
+    },
+    {
+      "type": "mc",
+      "category": "Closure under complement",
+      "q": "Over Σ = {a}, L = (aa)*, the even-length strings. Which regular expression describes the complement of L?",
+      "choices": [
+        "a(aa)*",
+        "a*",
+        "(aa)*a*",
+        "∅"
+      ],
+      "answer": 0,
+      "explain": "Every string is either odd or even length, so the complement of the even-length strings is the odd-length strings, a(aa)*."
+    },
+    {
+      "type": "mc",
+      "category": "Closure under complement",
+      "q": "Over Σ = {a, b}, you derive a regex for L(M), flip M's final states to get M′, derive a regex for L(M′), and take the union of the two. What language do you get?",
+      "choices": [
+        "∅",
+        "{λ}",
+        "L(M) again",
+        "(a ∪ b)*, all strings over Σ"
+      ],
+      "answer": 3,
+      "explain": "L(M′) is the complement of L(M), and L ∪ (Σ* − L) = Σ*. For Σ = {a}, the same idea gives (aa)* ∪ a(aa)* = a*."
+    },
+    {
+      "type": "mc",
+      "category": "Closure under complement",
+      "q": "You already have a DFA for strings that start with bb and end with bb. What is the easiest way to get a DFA for strings that do NOT (start with bb and end with bb)?",
+      "choices": [
+        "Design a new machine from scratch",
+        "Reverse every arrow in the existing machine",
+        "Swap final and non-final states in the existing machine",
+        "Make the initial state final"
+      ],
+      "answer": 2,
+      "explain": "The new language is the complement of the old one, so flipping the final states (Q − F) gives the machine directly. Sometimes it is easier to design the complement first and then flip it."
+    },
+    {
+      "type": "mc",
+      "category": "Closure under complement",
+      "q": "A DFA M over Σ has no final states. You flip its final states to build M′. What does M′ accept?",
+      "choices": [
+        "No strings",
+        "Every string over Σ",
+        "Only λ",
+        "Nothing, because M was not a valid DFA"
+      ],
+      "answer": 1,
+      "explain": "M accepts ∅. M′ has final states Q − ∅ = Q, so every run ends in a final state and M′ accepts Σ*, the complement of ∅."
+    },
+    {
+      "type": "mc",
+      "category": "Regular and non-regular languages",
+      "q": "Which of these makes a language regular?",
+      "choices": [
+        "It is a subset of Σ*",
+        "It is described by a regular expression or accepted by a DFA",
+        "It is infinite",
+        "Its strings can be listed in order of length"
+      ],
+      "answer": 1,
+      "explain": "A language described by a regular expression is regular, and so is a language accepted by a DFA. Being a subset of Σ* only makes it a language."
+    },
+    {
+      "type": "mc",
+      "category": "Regular and non-regular languages",
+      "q": "A language over Σ is any subset of Σ*. What is the set of all languages over Σ?",
+      "choices": [
+        "Σ*",
+        "P(Σ*), the power set of Σ*",
+        "The set of regular languages",
+        "P(Σ), the power set of Σ"
+      ],
+      "answer": 1,
+      "explain": "Every subset of Σ* is a language, so the collection of all of them is the power set P(Σ*). The regular languages are one region inside it."
+    },
+    {
+      "type": "tf",
+      "category": "Regular and non-regular languages",
+      "q": "True or false: { aⁱbⁱ | i ≥ 0 } is a regular language.",
+      "answer": false,
+      "explain": "It is not regular, and there is a proof that no DFA accepts it. It is an example of a context-free language."
+    },
+    {
+      "type": "multi",
+      "category": "Regular and non-regular languages",
+      "q": "Which strings are in a*b* but NOT in { aⁱbⁱ | i ≥ 0 }?",
+      "choices": [
+        "aab",
+        "ab",
+        "b",
+        "aabb",
+        "abb"
+      ],
+      "answer": [0, 2, 4],
+      "explain": "a*b* allows any number of a's followed by any number of b's, with nothing tying the two counts together. aab, b, and abb have unequal counts. ab and aabb have equal counts, so they are in both. This is why a*b* does not describe aⁱbⁱ."
+    },
+    {
+      "type": "mc",
+      "category": "Regular and non-regular languages",
+      "q": "Programming languages are context-free, like { aⁱbⁱ | i ≥ 0 }. Which feature gives the intuition for this?",
+      "choices": [
+        "Keywords come from a fixed finite list",
+        "The number of opening parentheses must match the number of closing ones, in the right order",
+        "Identifiers are made of letters and digits",
+        "Programs are finite strings"
+      ],
+      "answer": 1,
+      "explain": "Matching opening and closing parentheses ties two counts together, as one i controls both the a's and the b's in aⁱbⁱ. A parser checks this."
+    },
+    {
+      "type": "mc",
+      "category": "Regular and non-regular languages",
+      "q": "L = { ♥ⁱ ●²ʲ ▲³ᵏ⁺¹ | i ≥ 1, j ≥ 0, k ≥ 1 }. What is the shortest string in L?",
+      "choices": [
+        "♥▲",
+        "▲▲▲▲",
+        "♥●●▲▲▲▲",
+        "♥▲▲▲▲"
+      ],
+      "answer": 3,
+      "explain": "Use the smallest values: i = 1 gives one heart, j = 0 gives no circles, and k = 1 gives 3(1) + 1 = 4 triangles. That is ♥▲▲▲▲, length 5."
+    },
+    {
+      "type": "multi",
+      "category": "Regular and non-regular languages",
+      "q": "L = { ♥ⁱ ●²ʲ ▲³ᵏ⁺¹ | i ≥ 1, j ≥ 0, k ≥ 1 }. Which strings are in L?",
+      "choices": [
+        "♥●▲▲▲▲",
+        "♥●●▲▲▲▲▲▲▲",
+        "♥♥▲▲▲▲",
+        "●●▲▲▲▲",
+        "♥▲"
+      ],
+      "answer": [1, 2],
+      "explain": "♥●●▲▲▲▲▲▲▲: i = 1, j = 1, and 7 triangles means k = 2, so it is in L. ♥♥▲▲▲▲: i = 2, j = 0, k = 1, so it is in L. ♥●▲▲▲▲ has an odd number of circles. ●●▲▲▲▲ has no hearts, but i ≥ 1. ♥▲ has 1 triangle, but k ≥ 1 requires at least 4."
+    },
+    {
+      "type": "mc",
+      "category": "Regular and non-regular languages",
+      "q": "Which regular expression describes L = { ♥ⁱ ●²ʲ ▲³ᵏ⁺¹ | i ≥ 1, j ≥ 0, k ≥ 1 }?",
+      "choices": [
+        "♥*(●●)*▲▲▲▲(▲▲▲)*",
+        "♥♥*●●*▲▲▲▲(▲▲▲)*",
+        "♥♥*(●●)*▲▲▲▲(▲▲▲)*",
+        "♥♥*(●●)*▲(▲▲▲)*"
+      ],
+      "answer": 2,
+      "explain": "♥♥* gives one or more hearts, (●●)* gives an even number of circles (possibly zero), and ▲▲▲▲(▲▲▲)* gives 4, 7, 10, ... triangles. The first choice allows zero hearts, the second allows an odd number of circles, and the last allows a single triangle (k = 0)."
+    },
+    {
+      "type": "mc",
+      "category": "Regular and non-regular languages",
+      "q": "Intuitively, why is { ♥ⁱ ●²ʲ ▲³ᵏ⁺¹ | i ≥ 1, j ≥ 0, k ≥ 1 } regular while { aⁱbⁱ | i ≥ 0 } is not?",
+      "choices": [
+        "The first uses three symbols and the second uses only two",
+        "In the first, each count has its own variable. In the second, one variable controls both counts, so they must stay in sync",
+        "The first language is finite",
+        "The second language contains λ"
+      ],
+      "answer": 1,
+      "explain": "The numbers of hearts, circles, and triangles do not depend on each other. In aⁱbⁱ the same i sets both the a's and the b's, and a DFA or regular expression cannot keep two counts in sync."
+    }
+  ]
+}
