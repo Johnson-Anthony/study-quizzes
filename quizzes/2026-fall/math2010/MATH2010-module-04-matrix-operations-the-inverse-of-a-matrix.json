@@ -1,0 +1,536 @@
+{
+  "title": "MATH2010 Module 04: Matrix Operations & the Inverse of a Matrix",
+  "course": "MATH2010",
+  "questions": [
+    {
+      "type": "text",
+      "category": "Product size rule",
+      "q": "A is a 2×6 matrix and the product AB is 2×9. What size is B? (Answer in the form m×n.)",
+      "answer": ["6×9", "6x9", "6 × 9", "6 x 9", "6X9", "6 by 9"],
+      "explain": "The inner sizes must match, so B has 6 rows (the number of columns of A). The outer sizes give the size of AB, so B has 9 columns. B is 6×9."
+    },
+    {
+      "type": "mc",
+      "category": "Product size rule",
+      "q": "A is 4×3 and B is 3×5. Which statement is correct?",
+      "choices": [
+        "AB is 4×5, and BA is not defined",
+        "AB is 3×3, and BA is 5×4",
+        "AB is 4×5, and BA is 5×4",
+        "Neither AB nor BA is defined"
+      ],
+      "answer": 0,
+      "explain": "AB is (4×3)(3×5): the inner 3s match and the outer numbers give 4×5. BA would be (3×5)(4×3): the inner numbers 5 and 4 differ, so BA is not defined."
+    },
+    {
+      "type": "num",
+      "category": "Product size rule",
+      "q": "The product AB is a 7×2 matrix. How many rows does A have?",
+      "answer": 7,
+      "explain": "AB always has as many rows as A, because the size of AB is (rows of A)×(columns of B)."
+    },
+    {
+      "type": "tf",
+      "category": "Product size rule",
+      "q": "If AB is a 5×6 matrix, then A must have 6 columns.",
+      "answer": false,
+      "explain": "The 6 is the number of columns of B. The number of columns of A equals the number of rows of B, and this information does not tell us that. We only know that A has 5 rows."
+    },
+    {
+      "type": "tf",
+      "category": "Product size rule",
+      "q": "If the product AB is defined, then BA is also defined.",
+      "answer": false,
+      "explain": "Example: A is 3×2 and B is 2×2. AB = (3×2)(2×2) is defined and is 3×2. BA = (2×2)(3×2) is not defined, because 2 ≠ 3."
+    },
+    {
+      "type": "tf",
+      "category": "Product size rule",
+      "q": "If A is 2×3 and B is 3×2, then AB and BA are both defined and have the same size.",
+      "answer": false,
+      "explain": "Both are defined, but AB = (2×3)(3×2) is 2×2 while BA = (3×2)(2×3) is 3×3. This is one reason AB ≠ BA in general."
+    },
+    {
+      "type": "num",
+      "category": "Computing products",
+      "q": "Let A = [2 4 -1; 1 0 -3] and B = [2 4; 1 0; -1 3] (rows separated by semicolons). What is the (2,2) entry of AB?",
+      "answer": -5,
+      "explain": "Row 2 of A is (1, 0, -3) and column 2 of B is (4, 0, 3). 1(4) + 0(0) + (-3)(3) = 4 - 9 = -5. The full product is AB = [9 5; 5 -5]."
+    },
+    {
+      "type": "mc",
+      "category": "Computing products",
+      "q": "Let A = [1 2; 1 4; -1 3] and B = [2 1; 1 -1] (rows separated by semicolons). Using the definition AB = [Ab₁ Ab₂], what is the first column of AB?",
+      "choices": ["(4, 6, 1)", "(-1, -3, -4)", "(5, 9, 5)", "(4, -1)"],
+      "answer": 0,
+      "explain": "b₁ = (2, 1), so Ab₁ = 2·(1, 1, -1) + 1·(2, 4, 3) = (4, 6, 1). (-1, -3, -4) is Ab₂, the second column. (5, 9, 5) uses the weights in the wrong order. (4, -1) is the first row of AB."
+    },
+    {
+      "type": "num",
+      "category": "Computing products",
+      "q": "Let A = [3 1; -2 4] and B = [1 0 2; -1 5 1] (rows separated by semicolons). What is the (2,1) entry of AB?",
+      "answer": -6,
+      "explain": "Row 2 of A is (-2, 4) and column 1 of B is (1, -1). (-2)(1) + 4(-1) = -6. The full product is AB = [2 5 7; -6 20 0]."
+    },
+    {
+      "type": "mc",
+      "category": "Computing products",
+      "q": "Write A by its columns, A = [a₁ a₂ ⋯ aₙ], and let x = (x₁, …, xₙ). What is Ax?",
+      "choices": [
+        "The vector x₁a₁ + x₂a₂ + ⋯ + xₙaₙ, a linear combination of the columns of A",
+        "A linear combination of the rows of A, with weights x₁, …, xₙ",
+        "The matrix whose j-th column is xⱼaⱼ",
+        "The vector (x₁, …, xₙ) with each entry multiplied by the sum of the matching column of A"
+      ],
+      "answer": 0,
+      "explain": "Ax is a linear combination of the columns of A, and the weights are the entries of x. The result is a single vector, not a matrix."
+    },
+    {
+      "type": "mc",
+      "category": "Computing products",
+      "q": "B is written by its columns, B = [b₁ b₂ ⋯ bₚ]. By the definition of the matrix product, column j of AB is:",
+      "choices": [
+        "A times column j of B, that is, A·b_j",
+        "Row j of A times B",
+        "Column j of A times B",
+        "Column j of B times A"
+      ],
+      "answer": 0,
+      "explain": "AB = [Ab₁ Ab₂ ⋯ Abₚ], so column j of AB is A times column j of B. (Row j of A times B gives row j of AB, not column j.)"
+    },
+    {
+      "type": "mc",
+      "category": "Computing products",
+      "q": "A is m×n and B is n×p. By the row-column rule, the (i, j) entry of AB is:",
+      "choices": [
+        "a_i1·b_1j + a_i2·b_2j + ⋯ + a_in·b_nj (row i of A with column j of B)",
+        "a_1j·b_i1 + a_2j·b_i2 + ⋯ + a_nj·b_in (column j of A with row i of B)",
+        "a_ij·b_ij",
+        "(a_i1 + a_i2 + ⋯ + a_in) times (b_1j + b_2j + ⋯ + b_nj)"
+      ],
+      "answer": 0,
+      "explain": "The (i, j) entry of AB is row i of A dotted with column j of B: multiply matching entries and add."
+    },
+    {
+      "type": "multi",
+      "category": "Identity matrix and unit vectors",
+      "q": "A is a 3×5 matrix. Which of these products are defined and equal to A?",
+      "choices": ["I₃A", "AI₅", "I₅A", "AI₃"],
+      "answer": [0, 1],
+      "explain": "For an m×n matrix A, I_m·A = A and A·I_n = A. Here m = 3 and n = 5. I₅A = (5×5)(3×5) and AI₃ = (3×5)(3×3) are not defined."
+    },
+    {
+      "type": "text",
+      "category": "Identity matrix and unit vectors",
+      "q": "Which basic unit vector is the 4th column of I₆? (Type it like e2 for e₂.)",
+      "answer": ["e4", "e_4", "e₄", "E4"],
+      "explain": "I_n = [e₁ e₂ ⋯ e_n], so column j of the identity is e_j. Column 4 of I₆ is e₄ = (0, 0, 0, 1, 0, 0)."
+    },
+    {
+      "type": "mc",
+      "category": "Identity matrix and unit vectors",
+      "q": "For an n×n matrix A = [a_ij], the main diagonal consists of:",
+      "choices": [
+        "The entries a_ii for i = 1, 2, …, n",
+        "The entries running from the top-right corner to the bottom-left corner",
+        "The entries of the first row and the first column",
+        "Every entry that equals 1"
+      ],
+      "answer": 0,
+      "explain": "The diagonal entries of a square matrix are a₁₁, a₂₂, …, aₙₙ, and together they form the main diagonal. The identity matrix has 1s there and 0s everywhere else."
+    },
+    {
+      "type": "tf",
+      "category": "Identity matrix and unit vectors",
+      "q": "In ℝ⁴, the basic unit vector e₂ is (0, 1, 0, 0).",
+      "answer": true,
+      "explain": "e_i has a 1 in position i and 0s everywhere else, so in ℝ⁴, e₂ = (0, 1, 0, 0)."
+    },
+    {
+      "type": "mc",
+      "category": "Invertible matrices and their properties",
+      "q": "A square matrix A is called invertible when there is a matrix C such that:",
+      "choices": [
+        "AC = I and CA = I",
+        "AC = 0",
+        "Each entry of C is 1 divided by the matching entry of A",
+        "CA = A"
+      ],
+      "answer": 0,
+      "explain": "By definition, square A is invertible if some C satisfies both AC = I and CA = I. That C is unique and is written A⁻¹."
+    },
+    {
+      "type": "multi",
+      "category": "Invertible matrices and their properties",
+      "q": "Let A be an n×n matrix. Which statements each mean the same thing as \"A is invertible\"?",
+      "choices": [
+        "A is non-singular",
+        "A is singular",
+        "A is row equivalent to Iₙ",
+        "There is a matrix C with AC = I and CA = I",
+        "Every entry of A is nonzero"
+      ],
+      "answer": [0, 2, 3],
+      "explain": "Invertible means the same as non-singular; singular means not invertible. A square matrix is invertible exactly when it is row equivalent to I. Nonzero entries are irrelevant: I₂ has zero entries and is invertible, while [1 1; 1 1] has none and is singular."
+    },
+    {
+      "type": "tf",
+      "category": "Invertible matrices and their properties",
+      "q": "A 2×3 matrix can be invertible.",
+      "answer": false,
+      "explain": "Invertibility is defined only for square matrices, so a non-square matrix is never called invertible."
+    },
+    {
+      "type": "mc",
+      "category": "Invertible matrices and their properties",
+      "q": "A and B are invertible n×n matrices. What is (AB)⁻¹?",
+      "choices": [
+        "B⁻¹A⁻¹",
+        "A⁻¹B⁻¹",
+        "A⁻¹ + B⁻¹",
+        "It may not exist, because AB need not be invertible"
+      ],
+      "answer": 0,
+      "explain": "(AB)(B⁻¹A⁻¹) = A(BB⁻¹)A⁻¹ = AA⁻¹ = I, and (B⁻¹A⁻¹)(AB) = I in the same way. The order reverses, like taking off your shoes before your socks."
+    },
+    {
+      "type": "mc",
+      "category": "Invertible matrices and their properties",
+      "q": "A, B and C are invertible n×n matrices. What is (ABC)⁻¹?",
+      "choices": ["C⁻¹B⁻¹A⁻¹", "A⁻¹B⁻¹C⁻¹", "B⁻¹A⁻¹C⁻¹", "A⁻¹C⁻¹B⁻¹"],
+      "answer": 0,
+      "explain": "Apply the product rule twice: (ABC)⁻¹ = ((AB)C)⁻¹ = C⁻¹(AB)⁻¹ = C⁻¹B⁻¹A⁻¹. All the factors appear in reverse order."
+    },
+    {
+      "type": "mc",
+      "category": "Invertible matrices and their properties",
+      "q": "A is an invertible n×n matrix. What is (Aᵀ)⁻¹?",
+      "choices": ["(A⁻¹)ᵀ", "A", "Aᵀ", "-Aᵀ"],
+      "answer": 0,
+      "explain": "If A is invertible, then Aᵀ is invertible too, and (Aᵀ)⁻¹ = (A⁻¹)ᵀ: the transpose of the inverse."
+    },
+    {
+      "type": "tf",
+      "category": "Invertible matrices and their properties",
+      "q": "To find A⁻¹, replace each entry a_ij of A by 1/a_ij.",
+      "answer": false,
+      "explain": "A⁻¹ is the matrix with AA⁻¹ = A⁻¹A = I. It is not computed entry by entry. For example, I₂ has zero entries, yet I₂⁻¹ = I₂."
+    },
+    {
+      "type": "mc",
+      "category": "Invertible matrices and their properties",
+      "q": "Suppose A⁻¹ = [2 1; 0 1] and B⁻¹ = [1 0; 1 1] (rows separated by semicolons). What is (AB)⁻¹?",
+      "choices": [
+        "[2 1; 2 2]",
+        "[3 1; 1 1]",
+        "[2 0; 0 1]",
+        "It cannot be found without first computing A and B"
+      ],
+      "answer": 0,
+      "explain": "(AB)⁻¹ = B⁻¹A⁻¹ = [1 0; 1 1][2 1; 0 1] = [2 1; 2 2]. The wrong order, A⁻¹B⁻¹, gives [3 1; 1 1]."
+    },
+    {
+      "type": "tf",
+      "category": "Invertible matrices and their properties",
+      "q": "An invertible matrix can have two different inverses.",
+      "answer": false,
+      "explain": "If A is invertible, the matrix C with AC = CA = I is unique. That is why we can call it the inverse and write A⁻¹."
+    },
+    {
+      "type": "mc",
+      "category": "Elementary matrices",
+      "q": "An elementary matrix is:",
+      "choices": [
+        "A matrix obtained from the identity matrix by performing at most one elementary row operation",
+        "Any matrix whose entries are all 0s and 1s",
+        "Any matrix in reduced row echelon form",
+        "A matrix obtained from the identity matrix by any sequence of row operations"
+      ],
+      "answer": 0,
+      "explain": "An elementary matrix comes from I by at most one elementary row operation: a replacement, an interchange, or a scaling by a nonzero constant."
+    },
+    {
+      "type": "mc",
+      "category": "Elementary matrices",
+      "q": "E is obtained from I₃ by the row operation R₃ → R₃ + 2R₁, so E = [1 0 0; 0 1 0; 2 0 1] (rows separated by semicolons). What is E⁻¹?",
+      "choices": [
+        "[1 0 0; 0 1 0; -2 0 1]",
+        "[1 0 0; 0 1 0; 2 0 1]",
+        "[1 0 -2; 0 1 0; 0 0 1]",
+        "[1 0 0; 0 1 0; 1/2 0 1]"
+      ],
+      "answer": 0,
+      "explain": "E⁻¹ is the elementary matrix of the operation that undoes R₃ → R₃ + 2R₁, which is R₃ → R₃ - 2R₁. Applying that to I₃ gives [1 0 0; 0 1 0; -2 0 1]."
+    },
+    {
+      "type": "mc",
+      "category": "Elementary matrices",
+      "q": "E is obtained from I₃ by swapping rows 1 and 2. Let A = [1 2; 3 4; 5 6] (rows separated by semicolons). What is EA?",
+      "choices": [
+        "[3 4; 1 2; 5 6]",
+        "[5 6; 3 4; 1 2]",
+        "[2 1; 4 3; 6 5]",
+        "EA is not defined"
+      ],
+      "answer": 0,
+      "explain": "EA is A with the same row operation applied, so rows 1 and 2 are swapped. E is 3×3 and A is 3×2, so EA is defined and is 3×2."
+    },
+    {
+      "type": "tf",
+      "category": "Elementary matrices",
+      "q": "Every elementary matrix is invertible.",
+      "answer": true,
+      "explain": "Every elementary row operation can be undone by another elementary row operation. The elementary matrix of the undoing operation is the inverse."
+    },
+    {
+      "type": "mc",
+      "category": "Elementary matrices",
+      "q": "A is an m×n matrix and E is an m×m elementary matrix. What is EA?",
+      "choices": [
+        "A with the same row operation applied that was used to make E from I",
+        "A with the same operation applied to its columns instead of its rows",
+        "Just A, because elementary matrices act like the identity",
+        "A with the reverse of E's row operation applied"
+      ],
+      "answer": 0,
+      "explain": "Multiplying on the left by an elementary matrix carries out its row operation: EA is A with the same row operation that turned I into E."
+    },
+    {
+      "type": "tf",
+      "category": "Elementary matrices",
+      "q": "The identity matrix I₃ is itself an elementary matrix.",
+      "answer": true,
+      "explain": "The definition says at most one row operation, so zero operations is allowed. (Scaling a row of I₃ by 1 also gives I₃.)"
+    },
+    {
+      "type": "num",
+      "category": "Elementary matrices",
+      "q": "E is obtained from I₃ by multiplying row 2 by 5. What is the (2,2) entry of E⁻¹?",
+      "answer": 0.2,
+      "tolerance": 0.001,
+      "explain": "The undoing operation multiplies row 2 by 1/5, so E⁻¹ = [1 0 0; 0 1/5 0; 0 0 1]. The (2,2) entry is 1/5 = 0.2."
+    },
+    {
+      "type": "mc",
+      "category": "Finding A⁻¹ by row reduction",
+      "q": "For a square matrix A, which condition is equivalent to A being invertible?",
+      "choices": [
+        "A is row equivalent to the identity matrix",
+        "A has no zero entries",
+        "A has a row of zeros",
+        "A equals its transpose"
+      ],
+      "answer": 0,
+      "explain": "Theorem: a square matrix A is invertible if and only if A is row equivalent to I."
+    },
+    {
+      "type": "mc",
+      "category": "Finding A⁻¹ by row reduction",
+      "q": "You row-reduce [A | I] and the left half becomes I. What is now in the right half?",
+      "choices": ["A⁻¹", "A", "Aᵀ", "I"],
+      "answer": 0,
+      "explain": "Any sequence of row operations that reduces A to I also turns I into A⁻¹, so [A | I] ~ [I | A⁻¹]."
+    },
+    {
+      "type": "tf",
+      "category": "Finding A⁻¹ by row reduction",
+      "q": "If row-reducing [A | I] produces a row of zeros in the left half, then A is singular.",
+      "answer": true,
+      "explain": "A zero row means some column of the left half has no pivot, so the left half can never become I. A is not row equivalent to I, so A is not invertible."
+    },
+    {
+      "type": "mc",
+      "category": "Finding A⁻¹ by row reduction",
+      "q": "Find A⁻¹ for A = [1 0 1; 1 1 0; 1 1 1] (rows separated by semicolons).",
+      "choices": [
+        "[1 1 -1; -1 0 1; 0 -1 1]",
+        "[1 -1 0; 1 0 -1; -1 1 1]",
+        "[-1 -1 1; 1 0 -1; 0 1 -1]",
+        "A is singular"
+      ],
+      "answer": 0,
+      "explain": "Row-reduce [A | I] with R₂ - R₁ and R₃ - R₁, then R₃ - R₂, then R₁ - R₃ and R₂ + R₃. The right half becomes [1 1 -1; -1 0 1; 0 -1 1]. Check: row 1 of A, (1, 0, 1), against the three columns gives 1, 0, 0."
+    },
+    {
+      "type": "num",
+      "category": "Finding A⁻¹ by row reduction",
+      "q": "Let A = [1 2 1; 1 1 2; 1 1 1] (rows separated by semicolons). What is the (1,3) entry of A⁻¹?",
+      "answer": 3,
+      "explain": "Row-reducing [A | I] gives A⁻¹ = [-1 -1 3; 1 0 -1; 0 1 -1], so the (1,3) entry is 3. Check: row 1 of A, (1, 2, 1), against column 3 of A⁻¹, (3, -1, -1), gives 3 - 2 - 1 = 0, which is the (1,3) entry of I."
+    },
+    {
+      "type": "num",
+      "category": "Finding A⁻¹ by row reduction",
+      "q": "Let A = [1 2; 3 7] (rows separated by semicolons). Row-reduce [A | I] to find A⁻¹. What is its (2,1) entry?",
+      "answer": -3,
+      "explain": "R₂ - 3R₁ gives [1 2 | 1 0; 0 1 | -3 1]. Then R₁ - 2R₂ gives [1 0 | 7 -2; 0 1 | -3 1]. So A⁻¹ = [7 -2; -3 1], and its (2,1) entry is -3."
+    },
+    {
+      "type": "mc",
+      "category": "Finding A⁻¹ by row reduction",
+      "q": "Which of these matrices is singular? (Rows are separated by semicolons.)",
+      "choices": ["[2 -1; -6 3]", "[1 2; 3 7]", "[1 0; 0 5]", "[0 1; 1 0]"],
+      "answer": 0,
+      "explain": "For [2 -1; -6 3], R₂ + 3R₁ gives the row (0, 0), so the matrix is not row equivalent to I. Each of the others reduces to I; the last one needs only a row swap."
+    },
+    {
+      "type": "mc",
+      "category": "Finding A⁻¹ by row reduction",
+      "q": "Row operations reduce A to I, so E_k ⋯ E₂E₁A = I for some elementary matrices E₁, …, E_k. What does this show?",
+      "choices": [
+        "E_k ⋯ E₂E₁ = A⁻¹",
+        "E₁E₂ ⋯ E_k = A",
+        "E_k ⋯ E₂E₁ = A",
+        "Each Eᵢ equals A⁻¹"
+      ],
+      "answer": 0,
+      "explain": "The product E_k ⋯ E₁ times A gives I, so that product is A⁻¹. Applying the same operations to I gives E_k ⋯ E₁I = A⁻¹, which is why the right half of [A | I] ends up as A⁻¹."
+    },
+    {
+      "type": "tf",
+      "category": "Finding A⁻¹ by row reduction",
+      "q": "When row-reducing [A | I], you only need to apply each row operation to the left half.",
+      "answer": false,
+      "explain": "Each operation must be applied to the whole row, both halves. The right half records the operations and becomes A⁻¹."
+    },
+    {
+      "type": "num",
+      "category": "Finding A⁻¹ by row reduction",
+      "q": "Let A = [1 0 0; 2 1 0; 0 3 1] (rows separated by semicolons). What is the (3,1) entry of A⁻¹?",
+      "answer": 6,
+      "explain": "In [A | I], R₂ - 2R₁ makes row 2 of the right half (-2, 1, 0). Then R₃ - 3R₂ makes row 3 of the right half (0, 0, 1) - 3(-2, 1, 0) = (6, -3, 1). So A⁻¹ = [1 0 0; -2 1 0; 6 -3 1]. Check: row 3 of A, (0, 3, 1), against column 1, (1, -2, 6), gives -6 + 6 = 0."
+    },
+    {
+      "type": "tf",
+      "category": "Finding A⁻¹ by row reduction",
+      "q": "The matrix [1 1 2; 0 1 1; 1 2 3] (rows separated by semicolons) is invertible.",
+      "answer": false,
+      "explain": "R₃ - R₁ gives (0, 1, 1), and then R₃ - R₂ gives (0, 0, 0). With a zero row the matrix cannot be row equivalent to I, so it is singular."
+    },
+    {
+      "type": "mc",
+      "category": "One column of A⁻¹",
+      "q": "A is an invertible n×n matrix. Column j of A⁻¹ is:",
+      "choices": [
+        "The solution x of Ax = e_j",
+        "The solution x of A⁻¹x = e_j",
+        "Row j of A, written as a column",
+        "Column j of A with each entry replaced by its reciprocal"
+      ],
+      "answer": 0,
+      "explain": "AA⁻¹ = I, and column j of a product is A times column j of the second factor. So A·(column j of A⁻¹) = column j of I = e_j. (Solving A⁻¹x = e_j instead gives x = Ae_j, which is column j of A.)"
+    },
+    {
+      "type": "mc",
+      "category": "One column of A⁻¹",
+      "q": "Let A = [1 0 0 0 0 0; 1 1 0 0 0 0; 1 0 1 0 0 0; 1 0 0 1 0 0; 1 0 0 0 1 0; 1 1 1 1 1 1] (rows separated by semicolons). What is the third column of A⁻¹?",
+      "choices": [
+        "(0, 0, 1, 0, 0, -1)",
+        "(0, 0, 1, 0, 0, 0)",
+        "(0, 0, 1, 0, 0, 1)",
+        "(-1, 0, 1, 0, 0, 0)"
+      ],
+      "answer": 0,
+      "explain": "Solve Ax = e₃ by forward substitution: x₁ = 0, x₂ = 0, x₃ = 1, x₄ = 0, x₅ = 0. The last row gives x₁ + ⋯ + x₆ = 0, so 1 + x₆ = 0 and x₆ = -1."
+    },
+    {
+      "type": "num",
+      "category": "One column of A⁻¹",
+      "q": "Let A = [1 0 0 1; 1 0 1 0; 1 1 0 0; 1 1 1 1] (rows separated by semicolons). Find the third column of A⁻¹ without computing the other columns. What is its 4th entry?",
+      "answer": -0.5,
+      "tolerance": 0.001,
+      "explain": "Row-reduce [A | e₃]: R₂ - R₁, R₃ - R₁, R₄ - R₁, swap R₂ and R₃, then R₄ - R₂ and R₄ - R₃. The last row becomes 2x₄ = -1, so x₄ = -1/2. Back-substitution gives the column (1/2, 1/2, -1/2, -1/2). Check: row 3 of A gives x₁ + x₂ = 1."
+    },
+    {
+      "type": "mc",
+      "category": "One column of A⁻¹",
+      "q": "Let A = [2 1; 5 3] (rows separated by semicolons). What is the second column of A⁻¹?",
+      "choices": ["(-1, 2)", "(3, -5)", "(1, 3)", "(2, -1)"],
+      "answer": 0,
+      "explain": "Solve Ax = e₂: 2x₁ + x₂ = 0 and 5x₁ + 3x₂ = 1. The first equation gives x₂ = -2x₁, so 5x₁ - 6x₁ = 1, x₁ = -1 and x₂ = 2. Check: A(-1, 2) = (0, 1). (3, -5) is the first column of A⁻¹, and (1, 3) is the second column of A."
+    },
+    {
+      "type": "tf",
+      "category": "One column of A⁻¹",
+      "q": "To find only the third column of A⁻¹ for a 6×6 matrix A, you must row-reduce the full 6×12 matrix [A | I].",
+      "answer": false,
+      "explain": "Column 3 of A⁻¹ is the solution of Ax = e₃, so it is enough to row-reduce the 6×7 matrix [A | e₃] or to solve the system by substitution."
+    },
+    {
+      "type": "num",
+      "category": "One column of A⁻¹",
+      "q": "Let A = [1 0 0 0 0 0; 1 1 0 0 0 0; 1 0 1 0 0 0; 1 0 0 1 0 0; 1 0 0 0 1 0; 1 1 1 1 1 1] (rows separated by semicolons). What is the last (6th) entry of the first column of A⁻¹?",
+      "answer": 3,
+      "explain": "Solve Ax = e₁. Row 1 gives x₁ = 1. Rows 2 to 5 give x₁ + xᵢ = 0, so x₂ = x₃ = x₄ = x₅ = -1. The last row gives 1 - 4 + x₆ = 0, so x₆ = 3."
+    },
+    {
+      "type": "mc",
+      "category": "Solving matrix equations",
+      "q": "A, B and C are invertible n×n matrices. Solve A(2B + 3X)C⁻¹ = I for X.",
+      "choices": [
+        "X = (1/3)(A⁻¹C - 2B)",
+        "X = (1/3)(CA⁻¹ - 2B)",
+        "X = (1/3)A⁻¹C - 2B",
+        "X = (1/3)(A⁻¹C⁻¹ - 2B)"
+      ],
+      "answer": 0,
+      "explain": "Multiply both sides on the left by A⁻¹: (2B + 3X)C⁻¹ = A⁻¹. Multiply both sides on the right by C: 2B + 3X = A⁻¹C. So X = (1/3)(A⁻¹C - 2B). A⁻¹ stays to the left of C because it was applied on the left."
+    },
+    {
+      "type": "mc",
+      "category": "Solving matrix equations",
+      "q": "A and B are invertible n×n matrices and AXB = C. What is X?",
+      "choices": ["A⁻¹CB⁻¹", "CA⁻¹B⁻¹", "B⁻¹CA⁻¹", "A⁻¹B⁻¹C"],
+      "answer": 0,
+      "explain": "Multiply both sides on the left by A⁻¹ to remove A, and on the right by B⁻¹ to remove B. This gives X = A⁻¹CB⁻¹."
+    },
+    {
+      "type": "mc",
+      "category": "Solving matrix equations",
+      "q": "A, B and C are invertible n×n matrices and B(X + A)C = I. What is X?",
+      "choices": [
+        "X = B⁻¹C⁻¹ - A",
+        "X = (BC)⁻¹ - A",
+        "X = B⁻¹C⁻¹ + A",
+        "X = B⁻¹C⁻¹A⁻¹"
+      ],
+      "answer": 0,
+      "explain": "Multiply on the left by B⁻¹: (X + A)C = B⁻¹. Multiply on the right by C⁻¹: X + A = B⁻¹C⁻¹. So X = B⁻¹C⁻¹ - A. Note that (BC)⁻¹ = C⁻¹B⁻¹, which in general is a different matrix."
+    },
+    {
+      "type": "mc",
+      "category": "Solving matrix equations",
+      "q": "A, B and C are n×n matrices. When solving A(2B + 3X)C⁻¹ = I for X, which assumption is never needed?",
+      "choices": [
+        "B is invertible",
+        "A is invertible",
+        "C is invertible",
+        "None: all three are needed"
+      ],
+      "answer": 0,
+      "explain": "The solution multiplies by A⁻¹ and by C, so A must be invertible, and C⁻¹ appears in the equation, so C must be too. B appears only in 2B, which is moved across by subtraction, so B being invertible is never used."
+    },
+    {
+      "type": "tf",
+      "category": "Solving matrix equations",
+      "q": "If A is invertible and XA = B, then X = A⁻¹B.",
+      "answer": false,
+      "explain": "A is to the right of X, so multiply both sides on the right by A⁻¹: XAA⁻¹ = BA⁻¹, which gives X = BA⁻¹. In general A⁻¹B is a different matrix."
+    },
+    {
+      "type": "mc",
+      "category": "Solving matrix equations",
+      "q": "A and B are invertible n×n matrices and (AX)⁻¹ = B. What is X?",
+      "choices": ["A⁻¹B⁻¹", "B⁻¹A⁻¹", "BA⁻¹", "A⁻¹B"],
+      "answer": 0,
+      "explain": "Take the inverse of both sides: AX = B⁻¹, because ((AX)⁻¹)⁻¹ = AX. Then multiply on the left by A⁻¹: X = A⁻¹B⁻¹."
+    },
+    {
+      "type": "tf",
+      "category": "Solving matrix equations",
+      "q": "A is invertible. To remove A from the left side of A(X + B) = C, multiply both sides on the right by A⁻¹.",
+      "answer": false,
+      "explain": "A is to the left of (X + B), so multiply both sides on the left by A⁻¹, which gives X + B = A⁻¹C. Multiplying on the right gives A(X + B)A⁻¹, where nothing cancels."
+    }
+  ]
+}

@@ -1,0 +1,425 @@
+{
+  "title": "CSC2400 Module 6: Intro to Graphs",
+  "course": "CSC2400",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Graph notation",
+      "q": "For a graph G = (V, E), what does n = |V| denote?",
+      "choices": [
+        "The number of vertices",
+        "The number of edges",
+        "The set of vertices itself",
+        "The largest number of edges touching any one vertex"
+      ],
+      "answer": 0,
+      "explain": "V is the set of vertices and |V| is its size, so n is the number of vertices. The number of edges is m = |E|."
+    },
+    {
+      "type": "mc",
+      "category": "Graph notation",
+      "q": "A graph has V = {A, B, C, D} and E = {(A,B), (B,C), (C,D)}. What are n and m?",
+      "choices": [
+        "n = 4, m = 3",
+        "n = 3, m = 4",
+        "n = 4, m = 4",
+        "n = 7, m = 3"
+      ],
+      "answer": 0,
+      "explain": "n = |V| counts vertices (4) and m = |E| counts edges (3)."
+    },
+    {
+      "type": "mc",
+      "category": "Graph notation",
+      "q": "In a graph, what do the vertices and edges represent?",
+      "choices": [
+        "Vertices are objects; edges are pairwise relationships between those objects",
+        "Vertices are relationships; edges are the objects being related",
+        "Vertices are paths; edges are the steps along each path",
+        "Vertices are rows of a matrix; edges are its columns"
+      ],
+      "answer": 0,
+      "explain": "A graph represents pairwise relationships between objects. Vertices are the objects and edges are the relationships between pairs of them."
+    },
+    {
+      "type": "tf",
+      "category": "Directed vs. undirected",
+      "q": "In an undirected graph, (v, w) and (w, v) are the same edge.",
+      "answer": true,
+      "explain": "Undirected edges have no direction, so (v, w) = (w, v)."
+    },
+    {
+      "type": "tf",
+      "category": "Directed vs. undirected",
+      "q": "In a directed graph, if (v, w) is an edge then (w, v) must also be an edge.",
+      "answer": false,
+      "explain": "In a directed graph, (v, w) ≠ (w, v) in general. The edge (w, v) exists only if it is separately included in E."
+    },
+    {
+      "type": "mc",
+      "category": "Directed vs. undirected",
+      "q": "A directed graph has edges A→B, B→C, and D→A. Generic graph search starts at C. Which vertices end up explored?",
+      "choices": [
+        "{C}",
+        "{B, C}",
+        "{A, B, C}",
+        "{A, B, C, D}"
+      ],
+      "answer": 0,
+      "explain": "No edge leaves C, so no edge (v, w) ever has v explored and w unexplored. Only the start vertex C is explored."
+    },
+    {
+      "type": "mc",
+      "category": "Directed vs. undirected",
+      "q": "An undirected graph has edges (A,B), (B,C), and (D,A). Generic graph search starts at C. Which vertices end up explored?",
+      "choices": [
+        "{C}",
+        "{B, C}",
+        "{A, B, C}",
+        "{A, B, C, D}"
+      ],
+      "answer": 3,
+      "explain": "Undirected edges work both ways: C reaches B, B reaches A, and A reaches D. All four vertices are reachable from C, so all four are explored."
+    },
+    {
+      "type": "num",
+      "category": "Edge bounds",
+      "q": "A connected, simple, undirected graph has 12 vertices. What is the minimum possible number of edges?",
+      "answer": 11,
+      "explain": "Connecting n vertices requires at least n - 1 edges: 12 - 1 = 11."
+    },
+    {
+      "type": "num",
+      "category": "Edge bounds",
+      "q": "A simple, undirected graph has 12 vertices. What is the maximum possible number of edges?",
+      "answer": 66,
+      "explain": "The maximum occurs when every pair of distinct vertices is connected: n(n-1)/2 = 12·11/2 = 66."
+    },
+    {
+      "type": "mc",
+      "category": "Edge bounds",
+      "q": "Which expression gives the maximum number of edges in a simple, undirected graph with n vertices?",
+      "choices": [
+        "n(n-1)/2",
+        "n^2",
+        "n - 1",
+        "n(n+1)/2"
+      ],
+      "answer": 0,
+      "explain": "Every pair of distinct vertices gets one edge, and there are C(n, 2) = n(n-1)/2 such pairs."
+    },
+    {
+      "type": "multi",
+      "category": "Edge bounds",
+      "q": "A connected, simple, undirected graph has 6 vertices. Which of these could be its number of edges?",
+      "choices": [
+        "4",
+        "5",
+        "10",
+        "15",
+        "16"
+      ],
+      "answer": [1, 2, 3],
+      "explain": "For such a graph, n - 1 ≤ m ≤ n(n-1)/2, which here is 5 ≤ m ≤ 15. 4 is too few to connect 6 vertices, and 16 exceeds the 15 possible pairs."
+    },
+    {
+      "type": "mc",
+      "category": "Sparse vs. dense",
+      "q": "When is a graph called sparse?",
+      "choices": [
+        "When |E| is relatively close to linear in n",
+        "When |E| is Θ(n^2)",
+        "When it has no edges at all",
+        "When it is disconnected"
+      ],
+      "answer": 0,
+      "explain": "A sparse graph has a number of edges roughly linear in the number of vertices. A dense graph has many more edges than linear."
+    },
+    {
+      "type": "mc",
+      "category": "Sparse vs. dense",
+      "q": "Which edge count makes a graph on n vertices dense?",
+      "choices": [
+        "n - 1",
+        "2n",
+        "3n + 7",
+        "n(n-1)/4"
+      ],
+      "answer": 3,
+      "explain": "n(n-1)/4 is Θ(n^2), which is much larger than linear. The other three are all linear in n, which is sparse."
+    },
+    {
+      "type": "mc",
+      "category": "Sparse vs. dense",
+      "q": "How many edges does a complete undirected graph on n vertices have, asymptotically?",
+      "choices": [
+        "Θ(n^2)",
+        "Θ(n)",
+        "Θ(log n)",
+        "Θ(n^3)"
+      ],
+      "answer": 0,
+      "explain": "A complete undirected graph has n(n-1)/2 edges, which is Θ(n^2). This is the extreme dense case."
+    },
+    {
+      "type": "tf",
+      "category": "Sparse vs. dense",
+      "q": "A connected graph that uses exactly n - 1 edges is sparse.",
+      "answer": true,
+      "explain": "n - 1 is linear in n, which is the low (sparse) end of the range from about n to about n^2 edges."
+    },
+    {
+      "type": "mc",
+      "category": "Graph representations",
+      "q": "What is the space requirement of an adjacency matrix for a graph with n vertices and m edges?",
+      "choices": [
+        "O(n^2)",
+        "O(n + m)",
+        "O(m)",
+        "O(n)"
+      ],
+      "answer": 0,
+      "explain": "An adjacency matrix has n × n entries no matter how many edges the graph has."
+    },
+    {
+      "type": "mc",
+      "category": "Graph representations",
+      "q": "What is the space requirement of an adjacency list for a graph with n vertices and m edges?",
+      "choices": [
+        "O(n + m)",
+        "O(n^2)",
+        "O(n · m)",
+        "O(m^2)"
+      ],
+      "answer": 0,
+      "explain": "An adjacency list stores one list per vertex plus the neighbor entries for the edges, giving O(n + m), or O(|V| + |E|)."
+    },
+    {
+      "type": "tf",
+      "category": "Graph representations",
+      "q": "An adjacency matrix uses less space when the graph has fewer edges.",
+      "answer": false,
+      "explain": "The matrix always has n × n entries, so its space is O(n^2) even when the graph has almost no edges. Only the 0/1 values change."
+    },
+    {
+      "type": "num",
+      "category": "Graph representations",
+      "q": "A graph has 2000 vertices and about 2000 edges. How many entries does its adjacency matrix have?",
+      "answer": 4000000,
+      "explain": "The matrix is n × n = 2000 × 2000 = 4,000,000 entries. An adjacency list would need space on the order of n + m ≈ 4000."
+    },
+    {
+      "type": "mc",
+      "category": "Graph representations",
+      "q": "Which adjacency list correctly represents the undirected graph with vertices 1, 2, 3, 4 and edges (1,2), (1,3), (3,4)?",
+      "choices": [
+        "1: 2, 3;  2: 1;  3: 1, 4;  4: 3",
+        "1: 2, 3;  2: (none);  3: 4;  4: (none)",
+        "1: 2;  2: 1, 3;  3: 2, 4;  4: 3",
+        "1: 2, 3, 4;  2: 1;  3: 1;  4: 1"
+      ],
+      "answer": 0,
+      "explain": "Each vertex lists all of its neighbors. Because the graph is undirected, each edge appears in both endpoints' lists. The second choice treats the edges as directed, the third is the path 1-2-3-4, and the fourth connects 4 to 1 instead of 3."
+    },
+    {
+      "type": "num",
+      "category": "Graph representations",
+      "q": "An undirected graph has vertices A, B, C, D and edges (A,B), (B,C), (C,D), (D,A). How many entries in its adjacency matrix are 1?",
+      "answer": 8,
+      "explain": "Each undirected edge sets two entries to 1 (row i, column j and row j, column i), so the matrix is symmetric. 4 edges × 2 = 8."
+    },
+    {
+      "type": "mc",
+      "category": "Graph representations",
+      "q": "You need to store a graph with 1,000,000 vertices and about 3,000,000 edges. Which representation uses far less space, and why?",
+      "choices": [
+        "Adjacency list, because its O(n + m) space is far smaller than n^2 when the graph is sparse",
+        "Adjacency matrix, because its O(n^2) space does not depend on m",
+        "Adjacency matrix, because it stores only the edges that exist",
+        "They use about the same space, because both depend only on n"
+      ],
+      "answer": 0,
+      "explain": "The graph is sparse (m is linear in n). The list needs about n + m ≈ 4,000,000 units, while the matrix needs n^2 = 10^12 entries."
+    },
+    {
+      "type": "mc",
+      "category": "Graph representations",
+      "q": "For a dense graph where m = Θ(n^2), what is the adjacency list's space requirement?",
+      "choices": [
+        "O(n^2), the same order as the adjacency matrix",
+        "O(n), much smaller than the adjacency matrix",
+        "O(n^3), much larger than the adjacency matrix",
+        "O(log n)"
+      ],
+      "answer": 0,
+      "explain": "O(n + m) with m = Θ(n^2) is O(n^2), so the list's advantage over the matrix disappears for dense graphs."
+    },
+    {
+      "type": "mc",
+      "category": "The graph-search problem",
+      "q": "What are the input and the goal of the graph-search problem?",
+      "choices": [
+        "Input: a graph G = (V, E) and a start vertex s ∈ V. Goal: identify the vertices of V reachable from s in G.",
+        "Input: a graph G = (V, E). Goal: list every vertex in V.",
+        "Input: a graph G = (V, E) and two vertices s and t. Goal: count the edges in G.",
+        "Input: an adjacency matrix. Goal: convert it to an adjacency list."
+      ],
+      "answer": 0,
+      "explain": "Graph search takes G and a starting vertex s and finds exactly the vertices that can be reached from s."
+    },
+    {
+      "type": "multi",
+      "category": "The graph-search problem",
+      "q": "Graph search is useful for problems involving which of the following?",
+      "choices": [
+        "Connectivity",
+        "Shortest paths",
+        "Planning",
+        "Connected components",
+        "Multiplying two integers"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Graph search helps with connectivity, shortest paths, planning, and connected components. Multiplying integers is not a graph problem."
+    },
+    {
+      "type": "tf",
+      "category": "The graph-search problem",
+      "q": "The goal of graph search is to visit every vertex in V, whether or not it can be reached from the start vertex s.",
+      "answer": false,
+      "explain": "The goal is to identify the vertices reachable from s. Vertices with no path from s are not part of the answer."
+    },
+    {
+      "type": "mc",
+      "category": "Generic graph search",
+      "q": "In generic graph search, which edges (v, w) can be chosen at each step?",
+      "choices": [
+        "Edges with v explored and w unexplored",
+        "Edges with v unexplored and w explored",
+        "Edges with both v and w explored",
+        "Any edge in E, explored or not"
+      ],
+      "answer": 0,
+      "explain": "The loop looks for an edge from the explored region to the unexplored region (v explored, w unexplored), then marks w as explored."
+    },
+    {
+      "type": "text",
+      "category": "Generic graph search",
+      "q": "Fill in the blank in the generic search pseudocode: \"choose ____ edge (v, w)\". (This one word is what lets different selection rules produce different search algorithms.)",
+      "answer": ["some", "\"some\""],
+      "explain": "The pseudocode says to choose \"some\" qualifying edge without saying which one. Different rules for that choice give different graph-search algorithms."
+    },
+    {
+      "type": "mc",
+      "category": "Generic graph search",
+      "q": "Why does it matter that generic graph search says to choose \"some\" qualifying edge?",
+      "choices": [
+        "Different rules for choosing the next edge lead to different graph-search algorithms",
+        "It means the algorithm may skip reachable vertices",
+        "It means the algorithm picks edges uniformly at random",
+        "It means the algorithm must try every edge at every step"
+      ],
+      "answer": 0,
+      "explain": "Generic search is a template. Specific search algorithms come from filling in a rule for which qualifying edge to choose."
+    },
+    {
+      "type": "mc",
+      "category": "Generic graph search",
+      "q": "An undirected graph has edges (s,a), (a,b), (s,c). Which of these could NOT be the order in which generic search from s explores the vertices?",
+      "choices": [
+        "s, a, b, c",
+        "s, c, a, b",
+        "s, a, c, b",
+        "s, b, a, c"
+      ],
+      "answer": 3,
+      "explain": "b's only neighbor is a. b can be explored only through an edge from an already explored vertex, so it can't come before a. The other three orders each use a valid explored-to-unexplored edge at every step."
+    },
+    {
+      "type": "num",
+      "category": "Generic graph search",
+      "q": "An undirected graph has V = {s, a, b, c, d, e, f} and E = {(s,a), (a,b), (b,f), (c,d), (d,e), (e,c)}. Generic search starts at s. How many vertices are explored when it finishes, counting s?",
+      "answer": 4,
+      "explain": "From s: a via (s,a), b via (a,b), f via (b,f). The triangle c, d, e has no edge to the explored region. Explored set: {s, a, b, f}, which is 4 vertices."
+    },
+    {
+      "type": "num",
+      "category": "Generic graph search",
+      "q": "An undirected graph has V = {s, a, b, c, d} and E = {(s,a), (s,b), (a,b), (a,c), (b,c)}. Generic search starts at s. How many times does the body of the while loop (\"choose some edge (v, w); mark w as explored\") run?",
+      "answer": 3,
+      "explain": "Each loop iteration marks exactly one previously unexplored vertex. The reachable set is {s, a, b, c} (d is isolated), and s is marked before the loop, so the loop runs 4 - 1 = 3 times."
+    },
+    {
+      "type": "mc",
+      "category": "Correctness of generic search",
+      "q": "Which statement is the correctness property of generic graph search from s?",
+      "choices": [
+        "When it finishes, v is explored if and only if there is a path from s to v",
+        "When it finishes, every vertex in V is explored",
+        "When it finishes, v is explored if and only if (s, v) is an edge",
+        "When it finishes, the explored vertices form a path starting at s"
+      ],
+      "answer": 0,
+      "explain": "Generic search explores exactly the vertices reachable from s: nothing unreachable is explored, and nothing reachable is missed."
+    },
+    {
+      "type": "mc",
+      "category": "Correctness of generic search",
+      "q": "After generic search from s finishes, vertex x is still unexplored. What can you conclude?",
+      "choices": [
+        "There is no path from s to x",
+        "x has no edges at all",
+        "A different choice of edges would have explored x",
+        "x is adjacent to s"
+      ],
+      "answer": 0,
+      "explain": "By the \"if and only if\" property, if x were reachable from s it would have been explored. x may still have edges, just none that connect it to the region reachable from s."
+    },
+    {
+      "type": "tf",
+      "category": "Correctness of generic search",
+      "q": "Choosing different qualifying edges during generic search can change which vertices are explored at the end.",
+      "answer": false,
+      "explain": "The choice of edge changes the order of exploration (and defines different search algorithms), but the final explored set is always exactly the vertices reachable from s."
+    },
+    {
+      "type": "tf",
+      "category": "Correctness of generic search",
+      "q": "If generic search from s explores vertex v, then there is a path from s to v.",
+      "answer": true,
+      "explain": "This is the forward direction of the correctness property. Every explored vertex was reached by a chain of edges starting at s, so there are no false positives."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime goal",
+      "q": "With n = |V| and m = |E|, what is the natural runtime goal for graph search?",
+      "choices": [
+        "O(n + m)",
+        "O(n^2)",
+        "O(n · m)",
+        "O(m log n)"
+      ],
+      "answer": 0,
+      "explain": "The goal is O(n + m), equivalently O(|V| + |E|): about the cost of reading the graph once."
+    },
+    {
+      "type": "text",
+      "category": "Runtime goal",
+      "q": "What is the term for an operation whose execution time barely exceeds the time required to read the necessary input data?",
+      "answer": ["free primitive", "a free primitive", "free primitives"],
+      "explain": "A free primitive costs barely more than reading its input. O(n + m) graph search qualifies because the graph's input is n vertices and m edges."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime goal",
+      "q": "Why does an O(n + m) graph search count as a \"free primitive\"?",
+      "choices": [
+        "Reading a graph's n vertices and m edges already takes about n + m work, so the search costs about the same as reading the input",
+        "It runs in constant time no matter how large the graph is",
+        "It never needs to look at the edges",
+        "It is faster than reading the input"
+      ],
+      "answer": 0,
+      "explain": "A free primitive's running time barely exceeds the time to read its input. For a graph, the input size is about n + m."
+    }
+  ]
+}

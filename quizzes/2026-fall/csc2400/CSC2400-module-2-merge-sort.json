@@ -1,0 +1,335 @@
+{
+  "title": "Module 2: Divide and Conquer, Merge Sort, and Recursion Trees",
+  "course": "CSC2400",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Divide and Conquer",
+      "q": "What are the three steps of a Divide and Conquer algorithm, in order?",
+      "choices": ["Divide, Conquer, Combine", "Divide, Combine, Conquer", "Conquer, Divide, Combine", "Split, Search, Sort"],
+      "answer": 0,
+      "explain": "Divide the problem into smaller subproblems, Conquer them (usually recursively), then Combine their solutions into a solution to the original problem."
+    },
+    {
+      "type": "text",
+      "category": "Divide and Conquer",
+      "q": "Which Divide and Conquer step usually solves the smaller subproblems recursively? (one word)",
+      "answer": ["Conquer", "conquer"],
+      "explain": "Conquer: solve the smaller problems, usually by solving them recursively."
+    },
+    {
+      "type": "mc",
+      "category": "Divide and Conquer",
+      "q": "In Merge Sort, what happens during the Combine step?",
+      "choices": ["The two sorted halves are merged into one sorted array", "The array is split into a first half and a second half", "Each half is sorted recursively", "Each subarray is checked to see whether it has one element"],
+      "answer": 0,
+      "explain": "Divide = split into halves, Conquer = recursively sort each half, Combine = MERGE the two sorted halves."
+    },
+    {
+      "type": "mc",
+      "category": "Divide and Conquer",
+      "q": "What is Merge Sort's base case, and why does it need no work?",
+      "choices": ["A subarray with one element, because a single element is already sorted", "A subarray with two elements, because one comparison sorts it", "An empty array, because MERGE skips it", "A subarray of size log₂ n, because that is the height of the tree"],
+      "answer": 0,
+      "explain": "Merge Sort keeps dividing until every subproblem has one element. A single element is already sorted."
+    },
+    {
+      "type": "tf",
+      "category": "Divide and Conquer",
+      "q": "In Divide and Conquer, the subproblems are smaller instances of the same problem as the original.",
+      "answer": true,
+      "explain": "The key feature is recursion: the algorithm solves smaller instances of the same problem until an instance is small enough to solve directly."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing Merge Sort",
+      "q": "Merge Sort is dividing 8 3 5 4 7 6 1 2. Which line shows the pieces after the second round of division?",
+      "choices": ["8 3 | 5 4 | 7 6 | 1 2", "8 3 5 4 | 7 6 1 2", "3 8 | 4 5 | 6 7 | 1 2", "8 | 3 | 5 | 4 | 7 | 6 | 1 | 2"],
+      "answer": 0,
+      "explain": "Round 1 gives 8 3 5 4 | 7 6 1 2. Round 2 halves each piece: 8 3 | 5 4 | 7 6 | 1 2. Nothing is sorted yet; sorting happens only during merging."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing Merge Sort",
+      "q": "Merge Sort runs on 5 4 1 8 7 2 6 3. Which two sorted arrays go into the final merge?",
+      "choices": ["[1 4 5 8] and [2 3 6 7]", "[4 5 1 8] and [2 7 3 6]", "[1 2 3 4] and [5 6 7 8]", "[5 4 1 8] and [7 2 6 3]"],
+      "answer": 0,
+      "explain": "The first half 5 4 1 8 becomes [4 5] and [1 8], then [1 4 5 8]. The second half 7 2 6 3 becomes [2 7] and [3 6], then [2 3 6 7]."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing Merge Sort",
+      "q": "Merge Sort runs on 8 3 5 4 7 6 1 2. After the single elements are merged into pairs, which four sorted pairs exist?",
+      "choices": ["[3 8] [4 5] [6 7] [1 2]", "[3 8] [4 5] [1 7] [2 6]", "[8 3] [5 4] [7 6] [1 2]", "[1 2] [3 4] [5 6] [7 8]"],
+      "answer": 0,
+      "explain": "Each pair comes from merging two neighboring single elements: 8,3 -> 3 8; 5,4 -> 4 5; 7,6 -> 6 7; 1,2 -> 1 2."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing Merge Sort",
+      "q": "Merge Sort runs on 8 3 5 4 7 6 1 2. Which two sorted arrays go into the final merge?",
+      "choices": ["[3 4 5 8] and [1 2 6 7]", "[1 2 3 4] and [5 6 7 8]", "[3 8 4 5] and [6 7 1 2]", "[8 3 5 4] and [7 6 1 2]"],
+      "answer": 0,
+      "explain": "[3 8] and [4 5] merge to [3 4 5 8]. [6 7] and [1 2] merge to [1 2 6 7]. The final merge gives 1 2 3 4 5 6 7 8."
+    },
+    {
+      "type": "tf",
+      "category": "Tracing Merge Sort",
+      "q": "In MERGESORT, the two recursive calls do the comparing and placing of elements, and MERGE only joins the two halves end to end.",
+      "answer": false,
+      "explain": "The recursive calls only split the array and recurse. All of the comparisons and placements happen inside MERGE."
+    },
+    {
+      "type": "mc",
+      "category": "The MERGE subroutine",
+      "q": "Merge the sorted arrays A = [1, 4, 7, 9] and B = [2, 3, 5, 8]. What is the result?",
+      "choices": ["[1, 2, 3, 4, 5, 7, 8, 9]", "[1, 2, 3, 4, 7, 5, 8, 9]", "[1, 4, 7, 9, 2, 3, 5, 8]", "[1, 2, 4, 3, 5, 7, 8, 9]"],
+      "answer": 0,
+      "explain": "Compare the front elements each time: 1v2->1, 4v2->2, 4v3->3, 4v5->4, 7v5->5, 7v8->7, 9v8->8. B is now used up, so copy the 9."
+    },
+    {
+      "type": "num",
+      "category": "The MERGE subroutine",
+      "q": "MERGE runs on C = [4, 5] and D = [1, 8]. What value is written to B[2]?",
+      "answer": 4,
+      "explain": "k=1: 4 vs 1, so B[1]=1 (from D). k=2: 4 vs 8, so B[2]=4 (from C)."
+    },
+    {
+      "type": "mc",
+      "category": "The MERGE subroutine",
+      "q": "In MERGE, the else branch (taken when D[j] is the smaller front element) contains the line B[k] = ___ followed by j++. What fills the blank?",
+      "choices": ["D[j]", "C[j]", "C[i]", "D[i]"],
+      "answer": 0,
+      "explain": "The else branch copies the smaller element from D, which is D[j]. That is why it then increments j. Writing C[j] is a common transcription error."
+    },
+    {
+      "type": "mc",
+      "category": "The MERGE subroutine",
+      "q": "In MERGE, what does the loop variable k index?",
+      "choices": ["The next position to fill in the output array B", "The smallest unused element of C", "The smallest unused element of D", "The current level of the recursion tree"],
+      "answer": 0,
+      "explain": "i points into C, j points into D, and k is the next output position in B."
+    },
+    {
+      "type": "mc",
+      "category": "The MERGE subroutine",
+      "q": "During a merge, array C runs out of elements while D still has some left. What should happen?",
+      "choices": ["Copy the rest of D into B in order", "Stop, because B is already complete", "Sort the rest of D again before copying it", "Compare D's remaining elements against C's last element"],
+      "answer": 0,
+      "explain": "D is already sorted, and everything left in it is at least as large as everything already placed. So the rest of D is copied into B in order."
+    },
+    {
+      "type": "num",
+      "category": "The MERGE subroutine",
+      "q": "MERGE combines two sorted arrays whose combined length is n = 10. How many times does its for loop run?",
+      "answer": 10,
+      "explain": "The loop runs for k = 1 to n and fills one output position per iteration, so it runs n = 10 times."
+    },
+    {
+      "type": "num",
+      "category": "The MERGE subroutine",
+      "q": "MERGE runs on C = [1, 4, 7, 9] and D = [2, 3, 5, 8]. Which element is placed without any comparison because the other array is already used up?",
+      "answer": 9,
+      "explain": "After 8 is placed, D is used up. The remaining 9 from C is copied directly."
+    },
+    {
+      "type": "num",
+      "category": "Counting MERGE's work (Lemma 1)",
+      "q": "Count MERGE's operations as 2 setup operations plus 4 per loop iteration (4n + 2 in total). How many operations does it do for a combined length of n = 10?",
+      "answer": 42,
+      "explain": "4(10) + 2 = 42."
+    },
+    {
+      "type": "mc",
+      "category": "Counting MERGE's work (Lemma 1)",
+      "q": "Which fact justifies the inequality 4l + 2 ≤ 6l for every integer l ≥ 1?",
+      "choices": ["2 ≤ 2l when l ≥ 1", "4l ≤ 2 when l ≥ 1", "6l ≤ 4l when l ≥ 1", "l² ≥ l when l ≥ 1"],
+      "answer": 0,
+      "explain": "Since l ≥ 1, 2 ≤ 2l. Add 4l to both sides: 4l + 2 ≤ 4l + 2l = 6l."
+    },
+    {
+      "type": "mc",
+      "category": "Counting MERGE's work (Lemma 1)",
+      "q": "Why replace the exact count 4l + 2 with the looser bound 6l?",
+      "choices": ["6l is still a valid upper bound, and a single term is much easier to multiply and add across the recursion tree", "6l is the exact count once the base case is included", "6l is a lower bound, and a lower bound is what the running-time proof needs", "4l + 2 is not linear, but 6l is"],
+      "answer": 0,
+      "explain": "The bound is slightly looser but much easier to work with. It is a deliberate trade of a little accuracy for tractability."
+    },
+    {
+      "type": "tf",
+      "category": "Counting MERGE's work (Lemma 1)",
+      "q": "Lemma 1 says that for two sorted arrays C and D of length l/2 each, MERGE performs at least 6l operations.",
+      "answer": false,
+      "explain": "Lemma 1 is an upper bound: MERGE performs at most 6l operations."
+    },
+    {
+      "type": "multi",
+      "category": "Counting MERGE's work (Lemma 1)",
+      "q": "Which of these are counted as operations in each iteration of MERGE's loop?",
+      "choices": ["Incrementing k", "Comparing C[i] and D[j]", "Setting B[k] to C[i] or D[j]", "Incrementing i or j", "Recursively calling MERGESORT", "Copying all of C into a temporary array"],
+      "answer": [0, 1, 2, 3],
+      "explain": "Each iteration counts 4 operations: increment k, compare C[i] with D[j], write B[k], and increment i or j. MERGE makes no recursive calls."
+    },
+    {
+      "type": "mc",
+      "category": "Counting MERGE's work (Lemma 1)",
+      "q": "How does the work of merging two sorted arrays grow with their combined length n?",
+      "choices": ["Linearly, Θ(n)", "Θ(n log n)", "Θ(log n)", "Θ(n²)"],
+      "answer": 0,
+      "explain": "MERGE does 4n + 2 ≤ 6n operations. Merging two sorted arrays takes linear time."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion tree analysis",
+      "q": "At level j of Merge Sort's recursion tree (the root is level 0), how many subproblems are there?",
+      "choices": ["2^j", "j²", "n/2^j", "2j"],
+      "answer": 0,
+      "explain": "Each call makes 2 recursive calls, so the number of subproblems doubles at every level: 1, 2, 4, ..., 2^j."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion tree analysis",
+      "q": "At level j of Merge Sort's recursion tree, how large is each subproblem?",
+      "choices": ["n/2^j", "n/j", "2^j", "n − j"],
+      "answer": 0,
+      "explain": "The size halves at each level: n, n/2, n/4, ..., n/2^j."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion tree analysis",
+      "q": "Using Lemma 1, what bound do you get on the total work at level j?",
+      "choices": ["2^j · 6n/2^j = 6n", "2^j · 6n = 6n·2^j", "6n/2^j", "6n·j"],
+      "answer": 0,
+      "explain": "There are 2^j subproblems, and each does at most 6(n/2^j) work. The 2^j cancels, leaving at most 6n."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion tree analysis",
+      "q": "Why is the work bound the same, 6n, at every level of Merge Sort's recursion tree?",
+      "choices": ["The number of subproblems doubles exactly as fast as each subproblem's size halves", "Every level has exactly n subproblems", "MERGE does a constant amount of work regardless of input size", "Deeper levels skip the merge step"],
+      "answer": 0,
+      "explain": "2^j subproblems times 6n/2^j work each: the growth in count and the shrinking in size cancel."
+    },
+    {
+      "type": "num",
+      "category": "Recursion tree analysis",
+      "q": "For n = 16, how many levels does Merge Sort's recursion tree have, counting level 0?",
+      "answer": 5,
+      "explain": "log₂ 16 + 1 = 4 + 1 = 5 (sizes 16, 8, 4, 2, 1)."
+    },
+    {
+      "type": "num",
+      "category": "Recursion tree analysis",
+      "q": "For n = 16, what is the Lemma 1 bound on the total work done at level 2 of the recursion tree?",
+      "answer": 96,
+      "explain": "Level 2 has 4 subproblems of size 4. Each does at most 6·4 = 24 work, so the total is at most 96 = 6·16."
+    },
+    {
+      "type": "num",
+      "category": "Recursion tree analysis",
+      "q": "For n = 16, how many subproblems are at level 3 of the recursion tree?",
+      "answer": 8,
+      "explain": "2^3 = 8 subproblems, each of size 16/8 = 2."
+    },
+    {
+      "type": "num",
+      "category": "Recursion tree analysis",
+      "q": "Theorem 1 bounds the operations Merge Sort performs by 6n log₂ n + 6n. What is that bound for n = 8?",
+      "answer": 192,
+      "explain": "6·8·3 + 6·8 = 144 + 48 = 192. Equivalently, 6n per level times (log₂ 8 + 1) = 4 levels: 48·4 = 192."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion tree analysis",
+      "q": "One analysis says Merge Sort's recursion tree has log₂ n levels, and another says log₂ n + 1. Which is right?",
+      "choices": ["Both: log₂ n + 1 counts every level including level 0, while log₂ n counts the halvings; both are Θ(log n)", "Only log₂ n, because level 0 does no work", "Only log₂ n + 1, because log₂ n is an arithmetic mistake", "Neither, because the tree has n levels"],
+      "answer": 0,
+      "explain": "Halving n, n/2, ..., 1 takes log₂ n steps, giving log₂ n + 1 levels if you include the root. The exact proof of Theorem 1 uses log₂ n + 1."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and the Big Idea",
+      "q": "Which recurrence describes Merge Sort's running time?",
+      "choices": ["T(n) = 2T(n/2) + Θ(n)", "T(n) = T(n/2) + Θ(1)", "T(n) = 2T(n − 1) + Θ(1)", "T(n) = 2T(n/2) + Θ(n²)"],
+      "answer": 0,
+      "explain": "There are two recursive calls on halves, plus linear work to merge."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and the Big Idea",
+      "q": "In T(n) = 2T(n/2) + Θ(n), what does the 2T(n/2) term represent?",
+      "choices": ["Two recursive subproblems, each half the size", "One subproblem of size 2n", "Two passes of MERGE over the whole array", "Doubling the input size at each level"],
+      "answer": 0,
+      "explain": "The coefficient 2 is the number of recursive calls (2 children per node in the tree). The n/2 is the halving, which gives log₂ n levels."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and the Big Idea",
+      "q": "In T(n) = 2T(n/2) + Θ(n), what does the Θ(n) term represent?",
+      "choices": ["The work to merge the two sorted halves", "The cost of the two recursive calls", "The number of levels in the recursion tree", "The cost of the base case"],
+      "answer": 0,
+      "explain": "Θ(n) is the linear-time MERGE work done at each call."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and the Big Idea",
+      "q": "Drop constants and lower-order terms from the bound 6n log₂ n + 6n. What is Merge Sort's running time?",
+      "choices": ["Θ(n log n)", "Θ(n)", "Θ(n²)", "Θ(log n)"],
+      "answer": 0,
+      "explain": "6n is lower order than 6n log₂ n, and the constant 6 is dropped, leaving Θ(n log n)."
+    },
+    {
+      "type": "num",
+      "category": "Recurrence and the Big Idea",
+      "q": "For n = 8, there are log₂ 8 levels of division, and about 8 elements are processed at each level. About how much total work is that?",
+      "answer": 24,
+      "explain": "8 + 8 + 8 = 24, which matches n log₂ n = 8·3."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and the Big Idea",
+      "q": "Which principle does Merge Sort's analysis demonstrate?",
+      "choices": ["Doing a small amount of work across many levels can be much more efficient than doing a large amount of work within one level", "Recursive algorithms are always faster than iterative ones", "No sorting algorithm can run faster than Θ(n²)", "The more levels a recursion tree has, the faster the algorithm"],
+      "answer": 0,
+      "explain": "Merge Sort does only Θ(n) work per level across only Θ(log n) levels, for Θ(n log n) total."
+    },
+    {
+      "type": "mc",
+      "category": "Other recurrences: T(n) = 2T(n/2) + Θ(n²)",
+      "q": "For T(n) = 2T(n/2) + Θ(n²), how many levels does the recursion tree have?",
+      "choices": ["log₂ n + 1, the same shape as Merge Sort's tree", "n levels", "2 log₂ n + 1, because the cost is squared", "Only 1 level"],
+      "answer": 0,
+      "explain": "The tree still has 2 subproblems of half the size at each step, so its shape matches Merge Sort's. Only the cost per node changes."
+    },
+    {
+      "type": "mc",
+      "category": "Other recurrences: T(n) = 2T(n/2) + Θ(n²)",
+      "q": "For T(n) = 2T(n/2) + Θ(n²), how much work is done at level j (ignoring constants)?",
+      "choices": ["n²/2^j", "n² at every level", "2^j · n²", "n/2^j"],
+      "answer": 0,
+      "explain": "2^j subproblems of size n/2^j, each costing (n/2^j)², gives 2^j · n²/4^j = n²/2^j. The work halves at each level."
+    },
+    {
+      "type": "mc",
+      "category": "Other recurrences: T(n) = 2T(n/2) + Θ(n²)",
+      "q": "What is the overall running time for T(n) = 2T(n/2) + Θ(n²)?",
+      "choices": ["Θ(n²)", "Θ(n² log n)", "Θ(n log n)", "Θ(n³)"],
+      "answer": 0,
+      "explain": "n²(1 + 1/2 + 1/4 + ...) < 2n², and level 0 alone is n². The top level dominates, so the total is Θ(n²)."
+    },
+    {
+      "type": "tf",
+      "category": "Other recurrences: T(n) = 2T(n/2) + Θ(n²)",
+      "q": "For T(n) = 2T(n/2) + Θ(n²), multiplying level 0's work by the number of levels gives the tight answer Θ(n² log n).",
+      "answer": false,
+      "explain": "That shortcut only works when every level does the same work, as in Merge Sort. Here the work halves at each level, so the levels sum to less than 2n² and the answer is Θ(n²)."
+    },
+    {
+      "type": "num",
+      "category": "Other recurrences: T(n) = 2T(n/2) + Θ(n²)",
+      "q": "Suppose a subproblem of size m costs exactly m² in T(n) = 2T(n/2) + n². For n = 8, what is the total work summed over levels 0 through 3?",
+      "answer": 120,
+      "explain": "Level 0: 8² = 64. Level 1: 2·4² = 32. Level 2: 4·2² = 16. Level 3: 8·1² = 8. The total is 120, which is under 2n² = 128."
+    }
+  ]
+}

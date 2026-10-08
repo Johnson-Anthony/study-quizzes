@@ -1,0 +1,481 @@
+{
+  "title": "CSC2400 Module 4: The Master Method",
+  "course": "CSC2400",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Reading a, b, and d",
+      "q": "In the recurrence T(n) <= aT(n/b) + O(n^d), what does a represent?",
+      "choices": [
+        "The factor by which the problem size shrinks",
+        "The number of recursive calls",
+        "The exponent of the non-recursive (combination) work",
+        "The depth of the recursion tree"
+      ],
+      "answer": 1,
+      "explain": "a is the coefficient in front of T(.), so it counts how many recursive calls each step makes."
+    },
+    {
+      "type": "mc",
+      "category": "Reading a, b, and d",
+      "q": "In the recurrence T(n) <= aT(n/b) + O(n^d), what does b represent?",
+      "choices": [
+        "The number of recursive calls",
+        "The exponent of the combination work",
+        "The factor by which the problem size shrinks in each recursive call",
+        "The total number of levels in the recursion"
+      ],
+      "answer": 2,
+      "explain": "b is the divisor inside T(n/b). Each subproblem has size n/b."
+    },
+    {
+      "type": "mc",
+      "category": "Reading a, b, and d",
+      "q": "In the recurrence T(n) <= aT(n/b) + O(n^d), what does d represent?",
+      "choices": [
+        "The exponent of the non-recursive (combination) work",
+        "The number of recursive calls",
+        "The size of the base case",
+        "The factor by which the problem shrinks"
+      ],
+      "answer": 0,
+      "explain": "d is the exponent inside O(n^d), the work done outside the recursive calls (for example, merging)."
+    },
+    {
+      "type": "mc",
+      "category": "Reading a, b, and d",
+      "q": "For T(n) = 3T(n/4) + O(n), what are a, b, and d?",
+      "choices": [
+        "a = 4, b = 3, d = 1",
+        "a = 3, b = 4, d = 0",
+        "a = 3, b = 1, d = 4",
+        "a = 3, b = 4, d = 1"
+      ],
+      "answer": 3,
+      "explain": "There are 3 recursive calls (a = 3), each on size n/4 (b = 4), and the extra work is O(n) = O(n^1) (d = 1)."
+    },
+    {
+      "type": "num",
+      "category": "Reading a, b, and d",
+      "q": "For T(n) = 2T(n/4) + O(n), what is the value of b?",
+      "answer": 4,
+      "explain": "b is the divisor in T(n/b). Here the subproblems have size n/4, so b = 4. The 2 in front is a, not b."
+    },
+    {
+      "type": "num",
+      "category": "Reading a, b, and d",
+      "q": "For T(n) = T(n/2) + O(1), what is the value of d?",
+      "answer": 0,
+      "explain": "O(1) = O(n^0), so d = 0."
+    },
+    {
+      "type": "num",
+      "category": "Reading a, b, and d",
+      "q": "For T(n) = 8T(n/2) + O(n^2), what is b^d?",
+      "answer": 4,
+      "explain": "b = 2 and d = 2, so b^d = 2^2 = 4."
+    },
+    {
+      "type": "mc",
+      "category": "The three cases",
+      "q": "To decide which Master Method case applies, which two quantities do you compare?",
+      "choices": [
+        "a and b",
+        "a and b^d",
+        "b and d",
+        "a^d and b"
+      ],
+      "answer": 1,
+      "explain": "Always compute b^d first, then compare it with a. Comparing a with b alone is a common mistake."
+    },
+    {
+      "type": "mc",
+      "category": "The three cases",
+      "q": "If a < b^d, what is T(n)?",
+      "choices": [
+        "O(n^d)",
+        "O(n^d log n)",
+        "O(n^(log_b a))",
+        "O(n^a)"
+      ],
+      "answer": 0,
+      "explain": "Case 1: a < b^d gives O(n^d). The non-recursive work dominates."
+    },
+    {
+      "type": "mc",
+      "category": "The three cases",
+      "q": "If a = b^d, what is T(n)?",
+      "choices": [
+        "O(n^d)",
+        "O(n^(log_b a))",
+        "O(n^d log n)",
+        "O(log n)"
+      ],
+      "answer": 2,
+      "explain": "Case 2: a = b^d gives O(n^d log n). Don't drop the log n factor."
+    },
+    {
+      "type": "mc",
+      "category": "The three cases",
+      "q": "If a > b^d, what is T(n)?",
+      "choices": [
+        "O(n^(log_a b))",
+        "O(n^d log n)",
+        "O(n^d)",
+        "O(n^(log_b a))"
+      ],
+      "answer": 3,
+      "explain": "Case 3: a > b^d gives O(n^(log_b a)). The log has base b and argument a. Writing log_a b flips it."
+    },
+    {
+      "type": "mc",
+      "category": "The three cases",
+      "q": "In which case does the non-recursive (combination) work dominate the runtime?",
+      "choices": [
+        "Case 1 (a < b^d)",
+        "Case 2 (a = b^d)",
+        "Case 3 (a > b^d)",
+        "None of them; the recursive work always dominates"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Case 1: non-recursive work dominates. Case 2: the two are balanced. Case 3: recursive work dominates."
+    },
+    {
+      "type": "tf",
+      "category": "The three cases",
+      "q": "In Case 2 (a = b^d), the recursive work and the non-recursive work are balanced.",
+      "answer": true,
+      "explain": "Neither dominates in Case 2, which is why the runtime picks up a log n factor: O(n^d log n)."
+    },
+    {
+      "type": "tf",
+      "category": "The three cases",
+      "q": "In Case 3 (a > b^d), the value of d appears in the final runtime.",
+      "answer": false,
+      "explain": "Case 3 gives O(n^(log_b a)), which depends only on a and b. d is used only to decide which case applies."
+    },
+    {
+      "type": "multi",
+      "category": "The three cases",
+      "q": "Which of these statements about the Master Method are correct?",
+      "choices": [
+        "In Case 3, the recursive subproblems dominate the runtime.",
+        "Case 2's runtime is O(n^d), the same as Case 1.",
+        "You should compute b^d before comparing it with a.",
+        "In Case 3, the exponent is log_a b.",
+        "In Case 1, the runtime is determined by the combination work O(n^d)."
+      ],
+      "answer": [0, 2, 4],
+      "explain": "Case 2 is O(n^d log n), not O(n^d). The Case 3 exponent is log_b a, not log_a b."
+    },
+    {
+      "type": "mc",
+      "category": "RSP vs. RSW",
+      "q": "The Rate of Subproblem Proliferation (RSP) corresponds to which quantity in T(n) = aT(n/b) + O(n^d)?",
+      "choices": [
+        "b^d",
+        "a",
+        "b",
+        "log_b a"
+      ],
+      "answer": 1,
+      "explain": "RSP is a, the number of new subproblems each call creates. For example, 8T(n/2) creates 8 calls at each step."
+    },
+    {
+      "type": "mc",
+      "category": "RSP vs. RSW",
+      "q": "The Rate of Work Shrinkage (RSW) corresponds to which quantity in T(n) = aT(n/b) + O(n^d)?",
+      "choices": [
+        "a",
+        "d",
+        "b^d",
+        "n^d"
+      ],
+      "answer": 2,
+      "explain": "RSW is b^d, which measures how much the work per subproblem shrinks."
+    },
+    {
+      "type": "mc",
+      "category": "RSP vs. RSW",
+      "q": "If RSP > RSW, which case applies and what is the runtime?",
+      "choices": [
+        "Case 1, O(n^d)",
+        "Case 2, O(n^d log n)",
+        "Case 3, O(n^(log_b a))",
+        "Case 3, O(n^d)"
+      ],
+      "answer": 2,
+      "fixed": true,
+      "explain": "RSP > RSW means a > b^d. Subproblems multiply faster than the work shrinks, so it is Case 3: O(n^(log_b a))."
+    },
+    {
+      "type": "tf",
+      "category": "RSP vs. RSW",
+      "q": "When RSP < RSW, the work shrinks faster than the subproblems multiply, and the runtime is O(n^d).",
+      "answer": true,
+      "explain": "RSP < RSW means a < b^d, which is Case 1: O(n^d)."
+    },
+    {
+      "type": "mc",
+      "category": "RSP vs. RSW",
+      "q": "If RSP = RSW, what is the runtime?",
+      "choices": [
+        "O(n^d log n)",
+        "O(n^d)",
+        "O(n^(log_b a))",
+        "O(log n)"
+      ],
+      "answer": 0,
+      "explain": "RSP = RSW means a = b^d. The two balance, which is Case 2: O(n^d log n)."
+    },
+    {
+      "type": "mc",
+      "category": "Solving recurrences",
+      "q": "Use the Master Method: T(n) = 2T(n/2) + O(n).",
+      "choices": [
+        "O(n)",
+        "O(n^2)",
+        "O(n log n)",
+        "O(log n)"
+      ],
+      "answer": 2,
+      "explain": "a = 2, b = 2, d = 1, so b^d = 2. a = b^d gives Case 2: O(n^1 log n) = O(n log n). This is Merge Sort."
+    },
+    {
+      "type": "mc",
+      "category": "Solving recurrences",
+      "q": "Use the Master Method: T(n) = 3T(n/4) + O(n).",
+      "choices": [
+        "O(n log n)",
+        "O(n)",
+        "O(n^(log_4 3))",
+        "O(n^(log_3 4))"
+      ],
+      "answer": 1,
+      "explain": "a = 3, b = 4, d = 1, so b^d = 4. 3 < 4 gives Case 1: O(n^d) = O(n)."
+    },
+    {
+      "type": "text",
+      "category": "Solving recurrences",
+      "q": "Which Master Method case applies to T(n) = 2T(n/4) + O(n)? (Answer with the case number.)",
+      "answer": ["1", "Case 1", "case 1", "one", "Case one", "case one"],
+      "explain": "a = 2, b^d = 4^1 = 4. 2 < 4, so it is Case 1, giving O(n)."
+    },
+    {
+      "type": "mc",
+      "category": "Solving recurrences",
+      "q": "Use the Master Method: T(n) = 9T(n/3) + O(n^2).",
+      "choices": [
+        "O(n^2)",
+        "O(n^9)",
+        "O(n^(log_3 9)) = O(n^2), with no log factor",
+        "O(n^2 log n)"
+      ],
+      "answer": 3,
+      "explain": "a = 9, b = 3, d = 2, so b^d = 3^2 = 9. a = b^d gives Case 2: O(n^2 log n)."
+    },
+    {
+      "type": "mc",
+      "category": "Solving recurrences",
+      "q": "Use the Master Method: T(n) = 3T(n/2) + O(n).",
+      "choices": [
+        "O(n^(log_2 3)), about O(n^1.585)",
+        "O(n log n)",
+        "O(n)",
+        "O(n^(log_3 2))"
+      ],
+      "answer": 0,
+      "explain": "a = 3, b = 2, d = 1, so b^d = 2. 3 > 2 gives Case 3: O(n^(log_2 3)), about O(n^1.585)."
+    },
+    {
+      "type": "mc",
+      "category": "Solving recurrences",
+      "q": "Use the Master Method: T(n) = 2T(n/2) + O(n^2).",
+      "choices": [
+        "O(n log n)",
+        "O(n^2 log n)",
+        "O(n^2)",
+        "O(n)"
+      ],
+      "answer": 2,
+      "explain": "a = 2, b = 2, d = 2, so b^d = 4. 2 < 4 gives Case 1: O(n^d) = O(n^2)."
+    },
+    {
+      "type": "mc",
+      "category": "Solving recurrences",
+      "q": "Use the Master Method: T(n) = T(n/2) + O(1).",
+      "choices": [
+        "O(1)",
+        "O(log n)",
+        "O(n)",
+        "O(n log n)"
+      ],
+      "answer": 1,
+      "explain": "a = 1, b = 2, d = 0 (since O(1) = O(n^0)), so b^d = 2^0 = 1. a = b^d gives Case 2: O(n^0 log n) = O(log n)."
+    },
+    {
+      "type": "mc",
+      "category": "Solving recurrences",
+      "q": "Use the Master Method: T(n) = 16T(n/4) + O(n^2).",
+      "choices": [
+        "O(n^2)",
+        "O(n^16)",
+        "O(n^2 log n)",
+        "O(n^4)"
+      ],
+      "answer": 2,
+      "explain": "a = 16, b = 4, d = 2, so b^d = 4^2 = 16. a = b^d gives Case 2: O(n^2 log n)."
+    },
+    {
+      "type": "mc",
+      "category": "Solving recurrences",
+      "q": "Use the Master Method: T(n) = 2T(n/2) + O(1).",
+      "choices": [
+        "O(log n)",
+        "O(n log n)",
+        "O(1)",
+        "O(n)"
+      ],
+      "answer": 3,
+      "explain": "a = 2, b = 2, d = 0, so b^d = 2^0 = 1. 2 > 1 gives Case 3: O(n^(log_2 2)) = O(n^1) = O(n)."
+    },
+    {
+      "type": "multi",
+      "category": "Solving recurrences",
+      "q": "Which of these recurrences fall into Case 3 (a > b^d)?",
+      "choices": [
+        "T(n) = 4T(n/2) + O(n)",
+        "T(n) = 2T(n/2) + O(n)",
+        "T(n) = 8T(n/2) + O(n^2)",
+        "T(n) = 3T(n/4) + O(n)",
+        "T(n) = 7T(n/2) + O(n^2)",
+        "T(n) = 9T(n/3) + O(n^2)"
+      ],
+      "answer": [0, 2, 4],
+      "explain": "4 > 2^1 = 2; 8 > 2^2 = 4; 7 > 2^2 = 4. The others: 2 = 2^1 (Case 2), 3 < 4^1 (Case 1), 9 = 3^2 (Case 2)."
+    },
+    {
+      "type": "mc",
+      "category": "Solving recurrences",
+      "q": "A student says T(n) = 4T(n/2) + O(n^2) is Case 3 because 4 > 2. What is the correct analysis?",
+      "choices": [
+        "The student is right: Case 3, O(n^2)",
+        "The student compared a with b instead of b^d. b^d = 4 = a, so it is Case 2: O(n^2 log n)",
+        "b^d = 4 > a is false, so it is Case 1: O(n^2)",
+        "The Master Method does not apply because d = 2"
+      ],
+      "answer": 1,
+      "explain": "b^d = 2^2 = 4, which equals a = 4. That is Case 2, giving O(n^2 log n)."
+    },
+    {
+      "type": "mc",
+      "category": "Solving recurrences",
+      "q": "Use the Master Method: T(n) = 8T(n/2) + O(n^3).",
+      "choices": [
+        "O(n^3)",
+        "O(n^3 log n)",
+        "O(n^8)",
+        "O(n^(log_2 8)) = O(n^3), with no log factor"
+      ],
+      "answer": 1,
+      "explain": "a = 8, b = 2, d = 3, so b^d = 2^3 = 8. a = b^d gives Case 2: O(n^3 log n)."
+    },
+    {
+      "type": "num",
+      "category": "Applications",
+      "q": "How many recursive matrix multiplications does standard divide-and-conquer matrix multiplication (splitting each matrix into four blocks) require?",
+      "answer": 8,
+      "explain": "XY = [[AE + BG, AF + BH], [CE + DG, CF + DH]] uses 8 products: AE, BG, AF, BH, CE, DG, CF, DH."
+    },
+    {
+      "type": "mc",
+      "category": "Applications",
+      "q": "Standard divide-and-conquer matrix multiplication has T(n) = 8T(n/2) + O(n^2). What is its runtime?",
+      "choices": [
+        "O(n^2 log n)",
+        "O(n^2)",
+        "O(n^3)",
+        "O(n^2.807)"
+      ],
+      "answer": 2,
+      "explain": "a = 8, b^d = 2^2 = 4. 8 > 4 gives Case 3: O(n^(log_2 8)) = O(n^3)."
+    },
+    {
+      "type": "num",
+      "category": "Applications",
+      "q": "How many recursive matrix multiplications does Strassen's method use?",
+      "answer": 7,
+      "explain": "Strassen reduces the recursive multiplications from 8 to 7, giving T(n) = 7T(n/2) + O(n^2)."
+    },
+    {
+      "type": "num",
+      "category": "Applications",
+      "q": "Strassen's method runs in O(n^(log_2 7)). To three decimal places, what is log_2 7?",
+      "answer": 2.807,
+      "tolerance": 0.002,
+      "explain": "log_2 7 is about 2.807, so Strassen runs in about O(n^2.807)."
+    },
+    {
+      "type": "mc",
+      "category": "Applications",
+      "q": "Why does Strassen's method beat the standard O(n^3) divide-and-conquer matrix multiplication?",
+      "choices": [
+        "It reduces the combination work from O(n^2) to O(n)",
+        "It splits the matrices into more blocks, which increases b",
+        "It changes the recurrence from Case 3 to Case 2",
+        "It reduces the recursive calls from 8 to 7, which lowers the Case 3 exponent log_b a from 3 to about 2.807"
+      ],
+      "answer": 3,
+      "explain": "Both are Case 3, where the runtime is O(n^(log_b a)). Lowering a from 8 to 7 lowers the exponent directly: log_2 8 = 3, log_2 7 is about 2.807."
+    },
+    {
+      "type": "mc",
+      "category": "Applications",
+      "q": "Splitting two n-digit integers as X = 10^(n/2)a + b and Y = 10^(n/2)c + d and computing XY = 10^n(ac) + 10^(n/2)(ad + bc) + bd gives which recurrence and runtime?",
+      "choices": [
+        "T(n) = 4T(n/2) + O(n), O(n^2)",
+        "T(n) = 4T(n/2) + O(n), O(n log n)",
+        "T(n) = 2T(n/2) + O(n), O(n log n)",
+        "T(n) = 3T(n/2) + O(n), O(n^2)"
+      ],
+      "answer": 0,
+      "explain": "Four recursive products (ac, ad, bc, bd) on n/2-digit numbers plus O(n) extra work. a = 4, b^d = 2^1 = 2, 4 > 2 gives Case 3: O(n^(log_2 4)) = O(n^2)."
+    },
+    {
+      "type": "multi",
+      "category": "Applications",
+      "q": "In the split integer multiplication X = 10^(n/2)a + b, Y = 10^(n/2)c + d, which products must be computed recursively to get XY = 10^n(ac) + 10^(n/2)(ad + bc) + bd?",
+      "choices": [
+        "ac",
+        "ab",
+        "ad",
+        "bc",
+        "cd",
+        "bd"
+      ],
+      "answer": [0, 2, 3, 5],
+      "explain": "The expansion needs ac, ad, bc, and bd: four recursive products."
+    },
+    {
+      "type": "tf",
+      "category": "Applications",
+      "q": "In the integer multiplication split X = 10^(n/2)a + b, Y = 10^(n/2)c + d, the letters a and b are the same as the Master Method parameters a and b.",
+      "answer": false,
+      "explain": "Here a, b, c, d are the digit halves of the numbers. The Master Method parameters for this algorithm are a = 4 (recursive calls), b = 2, d = 1."
+    },
+    {
+      "type": "mc",
+      "category": "Applications",
+      "q": "Which of these algorithms falls into Master Method Case 2?",
+      "choices": [
+        "Strassen's matrix multiplication",
+        "Merge Sort",
+        "Standard divide-and-conquer matrix multiplication",
+        "Recursive integer multiplication with four recursive products"
+      ],
+      "answer": 1,
+      "explain": "Merge Sort: 2T(n/2) + O(n), a = 2 = 2^1 = b^d, so Case 2, O(n log n). The other three are all Case 3."
+    }
+  ]
+}

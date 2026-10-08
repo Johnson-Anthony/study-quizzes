@@ -1,0 +1,335 @@
+{
+  "title": "CSC2400 Module 1: Asymptotic Notation",
+  "course": "CSC2400",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Why analyze algorithms",
+      "q": "What is the main goal of the asymptotic analysis of an algorithm?",
+      "choices": [
+        "To count the exact number of operations for one particular input",
+        "To understand how the amount of work grows as the input size grows",
+        "To measure the running time in seconds on a specific machine",
+        "To find the smallest input on which the algorithm fails"
+      ],
+      "answer": 1,
+      "explain": "The goal is not an exact operation count. It is how the work grows as n grows, so we focus on the dominant growth."
+    },
+    {
+      "type": "num",
+      "category": "Why analyze algorithms",
+      "q": "GenericSORT runs: for i ← 1 to n: for j ← i + 1 to n: if A[i] > A[j]: swap. For n = 5, how many times is the comparison A[i] > A[j] executed?",
+      "answer": 10,
+      "tolerance": 0,
+      "explain": "For each i the inner loop runs n − i times: 4 + 3 + 2 + 1 + 0 = 10. In general the count is n(n − 1)/2."
+    },
+    {
+      "type": "mc",
+      "category": "Why analyze algorithms",
+      "q": "GenericSORT (two nested loops: i from 1 to n, j from i + 1 to n) performs n(n − 1)/2 comparisons on every input. What is the tight bound on its number of comparisons?",
+      "choices": [
+        "Θ(1)",
+        "Θ(n)",
+        "Θ(n^2)",
+        "Θ(n^3)"
+      ],
+      "answer": 2,
+      "explain": "n(n − 1)/2 = ½n^2 − ½n is a degree-2 polynomial, so it is Θ(n^2)."
+    },
+    {
+      "type": "tf",
+      "category": "Why analyze algorithms",
+      "q": "If an algorithm runs quickly on small inputs, it will also be practical on very large inputs.",
+      "answer": false,
+      "explain": "Two algorithms can solve the same problem with very different growth. One that is fine for small n can become impractical when n is very large."
+    },
+    {
+      "type": "mc",
+      "category": "Big O definition",
+      "q": "Which is the formal definition of T(n) = O(f(n))?",
+      "choices": [
+        "There exist constants c and n0 such that T(n) ≤ c·f(n) for all n ≥ n0",
+        "T(n) ≤ f(n) for all n ≥ 1",
+        "There exist constants c and n0 such that T(n) ≥ c·f(n) for all n ≥ n0",
+        "T(n) = c·f(n) for some constant c"
+      ],
+      "answer": 0,
+      "explain": "Big O needs some constant c and starting point n0 so that T(n) never exceeds c·f(n) once n ≥ n0. The ≥ version is the definition of Ω."
+    },
+    {
+      "type": "tf",
+      "category": "Big O definition",
+      "q": "For T(n) = O(f(n)) to hold, T(n) ≤ c·f(n) must be true for every input size n, including small ones.",
+      "answer": false,
+      "explain": "Big O is an eventual upper bound. The inequality only has to hold for n ≥ n0. What happens for small n does not matter."
+    },
+    {
+      "type": "text",
+      "category": "Big O definition",
+      "q": "Fill in the blank: Big O is described as an eventual ______ bound.",
+      "answer": ["upper", "upper bound"],
+      "explain": "T(n) stays at or below c·f(n) (upper bound) from n0 onward (eventual)."
+    },
+    {
+      "type": "multi",
+      "category": "Big O definition",
+      "q": "Which of these statements are true?",
+      "choices": [
+        "n^2 = O(n^3)",
+        "n^3 = O(n^2)",
+        "5n^2 + 3n = O(n^2)",
+        "7n^4 + n = O(n^4)"
+      ],
+      "answer": [0, 2, 3],
+      "explain": "n^2 ≤ n^3 for n ≥ 1, so a loose upper bound is valid. 5n^2 + 3n ≤ 8n^2 and 7n^4 + n ≤ 8n^4 for n ≥ 1. n^3 ≤ c·n^2 would need n ≤ c for all large n, which fails."
+    },
+    {
+      "type": "tf",
+      "category": "Big O definition",
+      "q": "The statement n^2 = O(n^3) is false, because n^3 is not a tight bound for n^2.",
+      "answer": false,
+      "explain": "Big O is only an upper bound. It does not have to be tight. For n ≥ 1, n^2 ≤ 1·n^3, so n^2 = O(n^3) is true."
+    },
+    {
+      "type": "mc",
+      "category": "Proposition 1 proof",
+      "q": "Proposition 1 says that a polynomial of degree k is:",
+      "choices": [
+        "O(n^k)",
+        "O(n^(k−1))",
+        "O(n)",
+        "O(k)"
+      ],
+      "answer": 0,
+      "explain": "A polynomial a_k·n^k + ... + a_1·n + a_0 is O(n^k). It is not O(n^(k−1)) or any lower power."
+    },
+    {
+      "type": "num",
+      "category": "Proposition 1 proof",
+      "q": "The proof of Proposition 1 picks n0 = 1 and c = the sum of the absolute values of the coefficients. What c does it pick for T(n) = 3n^3 − 2n^2 + n + 4?",
+      "answer": 10,
+      "tolerance": 0,
+      "explain": "c = |3| + |−2| + |1| + |4| = 3 + 2 + 1 + 4 = 10. The negative coefficient counts as +2."
+    },
+    {
+      "type": "mc",
+      "category": "Proposition 1 proof",
+      "q": "In the proof of Proposition 1, why is n0 chosen to be 1?",
+      "choices": [
+        "For n ≥ 1, n^k is at least as large as every lower power of n, which is needed to replace every power with n^k",
+        "Because T(1) always equals c",
+        "Because the definition of Big O requires n0 = 1",
+        "Because absolute values are only defined for n ≥ 1"
+      ],
+      "answer": 0,
+      "explain": "The step that raises n^0, n^1, ..., n^(k−1) up to n^k only makes the right side bigger when n ≥ 1. For 0 < n < 1, higher powers are smaller."
+    },
+    {
+      "type": "mc",
+      "category": "Proposition 1 proof",
+      "q": "In the proof of Proposition 1, why can each coefficient a_i be replaced by |a_i| while keeping T(n) ≤ (the new expression)?",
+      "choices": [
+        "Because |a| ≥ a for every real number a, so the expression can only stay the same or get larger",
+        "Because polynomial coefficients are always positive",
+        "Because taking absolute values makes the polynomial equal to c·n^k",
+        "Because Big O ignores negative coefficients"
+      ],
+      "answer": 0,
+      "explain": "A number's absolute value is at least as large as the number (larger if it is negative). Raising the right side turns = into ≤."
+    },
+    {
+      "type": "tf",
+      "category": "Proposition 1 proof",
+      "q": "Compare 4x^2 + 2x + 1 with 7x^2. They are equal at x = 1, and for every x > 1, 7x^2 is the larger one.",
+      "answer": true,
+      "explain": "At x = 1 both equal 7. 7x^2 − (4x^2 + 2x + 1) = 3x^2 − 2x − 1 = (3x + 1)(x − 1), which is positive for x > 1. So 4x^2 + 2x + 1 = O(x^2) with c = 7, n0 = 1."
+    },
+    {
+      "type": "text",
+      "category": "Dominant term",
+      "q": "Which term determines the asymptotic growth of 12n^3 + n^2 + 100? (Write it like n^2.)",
+      "answer": ["n^3", "12n^3", "n³", "12n³"],
+      "explain": "The highest-degree term, 12n^3, dominates. Its growth is n^3, and the coefficient 12 does not change that."
+    },
+    {
+      "type": "mc",
+      "category": "Dominant term",
+      "q": "T(n) = 5n^3 + 7n^2 + 3n + 10. Which is the best (lowest) Big O bound?",
+      "choices": [
+        "O(1)",
+        "O(n)",
+        "O(n^2)",
+        "O(n^3)"
+      ],
+      "answer": 3,
+      "explain": "The highest-degree term is n^3. As n grows, 7n^2, 3n, and 10 become small compared with n^3."
+    },
+    {
+      "type": "tf",
+      "category": "Dominant term",
+      "q": "Changing the leading term of a polynomial from 5n^3 to 500n^3 changes its growth category.",
+      "answer": false,
+      "explain": "Constant coefficients do not change the growth category. Both are Θ(n^3)."
+    },
+    {
+      "type": "mc",
+      "category": "Dominant term",
+      "q": "Which function grows fastest as n becomes very large?",
+      "choices": [
+        "1000n^2 + 50n",
+        "0.001n^3",
+        "999n + 1000000",
+        "50n^2 + n"
+      ],
+      "answer": 1,
+      "explain": "0.001n^3 has the highest degree (3). Coefficients do not decide growth, so it eventually passes the degree-2 and degree-1 functions."
+    },
+    {
+      "type": "multi",
+      "category": "Dominant term",
+      "q": "For T(n) = ½n^3 + 3n, which of these are true?",
+      "choices": [
+        "T(n) = O(n)",
+        "T(n) = O(n^2)",
+        "T(n) = O(n^3)",
+        "T(n) = Ω(n)",
+        "T(n) = Ω(n^3)",
+        "T(n) = Θ(n^3)"
+      ],
+      "answer": [2, 3, 4, 5],
+      "explain": "The dominant term is n^3 (degree 3). Big O holds for powers ≥ 3, Ω holds for powers ≤ 3, and Θ holds only at exactly 3. So O(n) and O(n^2) are false and the rest are true."
+    },
+    {
+      "type": "mc",
+      "category": "Disproving a bound",
+      "q": "To disprove n^k = O(n^(k−1)), assume n^k ≤ c·n^(k−1) for all large n and divide both sides by n^(k−1). What do you get?",
+      "choices": [
+        "n ≤ c",
+        "n^k ≤ c",
+        "1 ≤ c·n",
+        "n ≥ c"
+      ],
+      "answer": 0,
+      "explain": "n^k / n^(k−1) = n, so the assumption becomes n ≤ c for all sufficiently large n."
+    },
+    {
+      "type": "mc",
+      "category": "Disproving a bound",
+      "q": "Why does the requirement \"n ≤ c for all sufficiently large n\" give a contradiction?",
+      "choices": [
+        "n keeps growing and eventually passes any fixed constant c",
+        "c has to be 0",
+        "n0 has to be 1",
+        "c has to be an integer"
+      ],
+      "answer": 0,
+      "explain": "No fixed constant can stay above n forever, so no c works and n^k ≠ O(n^(k−1))."
+    },
+    {
+      "type": "tf",
+      "category": "Disproving a bound",
+      "q": "The same divide-and-compare argument shows that n^5 is not O(n^2).",
+      "answer": true,
+      "explain": "n^5 ≤ c·n^2 would mean n^3 ≤ c for all large n, which is impossible. A degree-k polynomial is not O(n^m) for any m < k."
+    },
+    {
+      "type": "num",
+      "category": "Disproving a bound",
+      "q": "Suppose ½n^3 + 3n ≤ 10n^2 held for all large n. Then ½n^3 ≤ 10n^2 would hold too. Dividing by n^2, this requires n ≤ what number?",
+      "answer": 20,
+      "tolerance": 0,
+      "explain": "½n ≤ 10, so n ≤ 20. That fails once n > 20, so ½n^3 + 3n is not bounded by 10n^2. The same happens for any c (n ≤ 2c), so it is not O(n^2)."
+    },
+    {
+      "type": "mc",
+      "category": "Omega",
+      "q": "Which condition, for some constants c and n0 and all n ≥ n0, defines T(n) = Ω(f(n))?",
+      "choices": [
+        "T(n) ≥ c·f(n)",
+        "T(n) ≤ c·f(n)",
+        "c1·f(n) ≤ T(n) ≤ c2·f(n)",
+        "f(n) ≥ c·T(n)"
+      ],
+      "answer": 0,
+      "explain": "Ω is a lower bound, the mirror image of Big O: ≤ becomes ≥. The two-sided version is Θ."
+    },
+    {
+      "type": "multi",
+      "category": "Omega",
+      "q": "Which of these statements are true?",
+      "choices": [
+        "n^3 = Ω(n)",
+        "n = Ω(n^2)",
+        "4n^2 + 2n = Ω(n^2)",
+        "½n^3 + 3n = Ω(n^3)",
+        "10n^2 = Ω(n^3)"
+      ],
+      "answer": [0, 2, 3],
+      "explain": "n^3 ≥ n for n ≥ 1. 4n^2 + 2n ≥ 4n^2. ½n^3 + 3n ≥ ½n^3. But n ≥ c·n^2 and 10n^2 ≥ c·n^3 both fail for large n."
+    },
+    {
+      "type": "num",
+      "category": "Omega",
+      "q": "To show 4n^2 + 2n = Ω(n^2), we need 4n^2 + 2n ≥ c·n^2 for all n ≥ 1. What is the largest constant c that works?",
+      "answer": 4,
+      "tolerance": 0,
+      "explain": "Dividing by n^2 gives 4 + 2/n ≥ c. 2/n gets close to 0 as n grows, so c = 4 works and anything above 4 eventually fails."
+    },
+    {
+      "type": "mc",
+      "category": "Omega",
+      "q": "Why is n NOT Ω(n^2)?",
+      "choices": [
+        "n ≥ c·n^2 means 1 ≥ c·n, which fails once n > 1/c",
+        "n is smaller than n^2 when n = 1",
+        "Ω only applies to polynomials of degree 2 or more",
+        "n ≥ c·n^2 requires c to be negative"
+      ],
+      "answer": 0,
+      "explain": "Dividing n ≥ c·n^2 by n gives 1 ≥ c·n. For any positive c, this breaks once n > 1/c, so no constant works for all large n."
+    },
+    {
+      "type": "tf",
+      "category": "Theta",
+      "q": "T(n) = Θ(f(n)) means T(n) is both O(f(n)) and Ω(f(n)).",
+      "answer": true,
+      "explain": "c1·f(n) ≤ T(n) ≤ c2·f(n). The c2 side is the Big O bound and the c1 side is the Ω bound."
+    },
+    {
+      "type": "text",
+      "category": "Theta",
+      "q": "Give the tight asymptotic bound of T(n) = 10n^2 + 7n + 4, in the form Θ(...).",
+      "answer": ["Θ(n^2)", "Θ(n²)", "theta(n^2)", "Theta(n^2)", "n^2"],
+      "explain": "The dominant term is 10n^2. For n ≥ 1: 10n^2 ≤ 10n^2 + 7n + 4 ≤ 21n^2, so c1 = 10, c2 = 21, n0 = 1."
+    },
+    {
+      "type": "multi",
+      "category": "Theta",
+      "q": "T(n) = 3n + 5 is Θ(n). Which choices of constants satisfy c1·n ≤ 3n + 5 ≤ c2·n for all n ≥ n0?",
+      "choices": [
+        "c1 = 3, c2 = 8, n0 = 1",
+        "c1 = 4, c2 = 8, n0 = 1",
+        "c1 = 3, c2 = 3, n0 = 1",
+        "c1 = 1, c2 = 4, n0 = 1",
+        "c1 = 1, c2 = 4, n0 = 5"
+      ],
+      "answer": [0, 4],
+      "explain": "(3, 8, 1): 3n ≤ 3n + 5 ≤ 3n + 5n = 8n. (1, 4, 5): 3n + 5 ≤ 4n exactly when n ≥ 5. c1 = 4 fails for n > 5, c2 = 3 never works, and c2 = 4 fails at n = 1 (8 > 4)."
+    },
+    {
+      "type": "tf",
+      "category": "Theta",
+      "q": "Because ½n^3 + 3n = Ω(n), it is also Θ(n).",
+      "answer": false,
+      "explain": "Θ needs both bounds with the same f(n). ½n^3 + 3n is Ω(n) but not O(n), so it is not Θ(n). Its tight bound is Θ(n^3)."
+    },
+    {
+      "type": "num",
+      "category": "Theta",
+      "q": "Using the absolute-value-sum method with n0 = 1, what upper constant c2 gives ½n^3 + 3n ≤ c2·n^3?",
+      "answer": 3.5,
+      "tolerance": 0.001,
+      "explain": "For n ≥ 1, ½n^3 + 3n ≤ ½n^3 + 3n^3 = 3.5n^3. With c1 = ½ for the lower side, this shows Θ(n^3)."
+    }
+  ]
+}

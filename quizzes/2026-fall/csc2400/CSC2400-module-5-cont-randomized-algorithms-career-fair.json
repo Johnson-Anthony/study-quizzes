@@ -1,0 +1,292 @@
+{
+  "title": "CSC2400 Module 5 (cont.): Randomized Algorithms",
+  "course": "CSC2400",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Randomized Quick Sort",
+      "q": "Quick Sort always picks the FIRST element as the pivot and is given the already sorted array [1, 2, 3, 4, 5, 6]. What is its running time on inputs like this?",
+      "choices": ["Θ(n)", "Θ(n log n)", "Θ(n^2)", "Θ(2^n)"],
+      "answer": 2,
+      "explain": "The pivot is always the smallest element, so every partition is as unbalanced as possible. The work is n + (n-1) + ... + 1 = n(n+1)/2, which is Θ(n^2)."
+    },
+    {
+      "type": "num",
+      "category": "Randomized Quick Sort",
+      "q": "First-element-pivot Quick Sort runs on the sorted array [1, 2, 3, 4, 5, 6, 7, 8]. Using the work sum n + (n-1) + ... + 1, what is the total work?",
+      "answer": 36,
+      "explain": "8 + 7 + 6 + 5 + 4 + 3 + 2 + 1 = 36, which is 8·9/2. In general n(n+1)/2 = Θ(n^2)."
+    },
+    {
+      "type": "num",
+      "category": "Randomized Quick Sort",
+      "q": "Randomized Quick Sort is partitioning a subarray of 12 elements. What is the probability that one particular element is chosen as the pivot? Give a decimal.",
+      "answer": 0.0833,
+      "tolerance": 0.002,
+      "explain": "Each of the n positions is equally likely, so each one has probability 1/n = 1/12 ≈ 0.0833."
+    },
+    {
+      "type": "tf",
+      "category": "Randomized Quick Sort",
+      "q": "True or false: choosing the pivot at random brings Quick Sort's worst-case running time down to Θ(n log n).",
+      "answer": false,
+      "explain": "The worst case is still Θ(n^2), because the random choices could keep landing on bad pivots. Randomization improves the EXPECTED running time to Θ(n log n)."
+    },
+    {
+      "type": "mc",
+      "category": "Randomized Quick Sort",
+      "q": "Which pair correctly gives the worst-case and expected running times of Randomized Quick Sort?",
+      "choices": [
+        "Worst case Θ(n^2); expected Θ(n log n)",
+        "Worst case Θ(n log n); expected Θ(n log n)",
+        "Worst case Θ(n^2); expected Θ(n^2)",
+        "Worst case Θ(n log n); expected Θ(n^2)"
+      ],
+      "answer": 0,
+      "explain": "A long run of bad pivots is still possible, so the worst case stays Θ(n^2). Because that run is unlikely, the expected time is Θ(n log n)."
+    },
+    {
+      "type": "mc",
+      "category": "Randomized Quick Sort",
+      "q": "Picture the values split as 25% | 50% | 25%. Which pivots count as \"good\" for Quick Sort?",
+      "choices": [
+        "Only the exact median",
+        "Any pivot from the middle 50% of the values",
+        "Any pivot from the bottom 25% of the values",
+        "Only the smallest or largest value"
+      ],
+      "answer": 1,
+      "explain": "You don't need the exact median. A pivot from the middle 50% gives a reasonably balanced split (neither side gets more than about 75%). The goal is to get enough good pivots, not perfect ones."
+    },
+    {
+      "type": "tf",
+      "category": "Randomized Quick Sort",
+      "q": "True or false: if Randomized Quick Sort runs twice on the same input array, it always picks the same pivots both times.",
+      "answer": false,
+      "explain": "The pivots are chosen at random, so the same input can lead to different pivot choices and different amounts of work. The output is correctly sorted either way."
+    },
+    {
+      "type": "mc",
+      "category": "Randomized Quick Sort",
+      "q": "Why does picking the pivot at random help Quick Sort?",
+      "choices": [
+        "It guarantees that every pivot is the median",
+        "It makes a long sequence of bad pivot choices unlikely, so no single input reliably triggers the slow case",
+        "It removes the need to partition the array",
+        "It makes Quick Sort run in linear time"
+      ],
+      "answer": 1,
+      "explain": "A fixed rule such as 'always take the first element' can be beaten by one specific input, like a sorted array. With random pivots, a long run of bad choices is unlikely, so the expected time is Θ(n log n)."
+    },
+    {
+      "type": "mc",
+      "category": "Monte Carlo vs. Las Vegas",
+      "q": "What is a randomized algorithm?",
+      "choices": [
+        "An algorithm whose input must be randomly ordered before it runs",
+        "An algorithm that deliberately uses randomness as part of its decision-making",
+        "An algorithm that returns a random output, ignoring its input",
+        "Any algorithm whose running time is Θ(n log n)"
+      ],
+      "answer": 1,
+      "explain": "A randomized algorithm deliberately makes random choices while it runs. Choosing a random pivot in Quick Sort is one example."
+    },
+    {
+      "type": "mc",
+      "category": "Monte Carlo vs. Las Vegas",
+      "q": "Randomized Quick Sort is an example of which kind of randomized algorithm?",
+      "choices": ["Monte Carlo", "Las Vegas", "Neither; it is deterministic", "Both equally"],
+      "answer": 1,
+      "fixed": true,
+      "explain": "Las Vegas: the array always ends up correctly sorted, but different random pivots mean different amounts of work, so the running time varies."
+    },
+    {
+      "type": "mc",
+      "category": "Monte Carlo vs. Las Vegas",
+      "q": "Which row correctly describes a Monte Carlo algorithm?",
+      "choices": [
+        "Answer: always correct. Runtime: may vary.",
+        "Answer: may vary between runs. Runtime: usually controlled or bounded.",
+        "Answer: always correct. Runtime: always the same.",
+        "Answer: may vary. Runtime: unbounded."
+      ],
+      "answer": 1,
+      "explain": "In Monte Carlo algorithms, randomness affects the answer and the runtime is usually controlled. In Las Vegas algorithms, the answer is always correct and the time may vary."
+    },
+    {
+      "type": "tf",
+      "category": "Monte Carlo vs. Las Vegas",
+      "q": "True or false: a Las Vegas algorithm always produces the correct answer, but the time it takes can vary from run to run.",
+      "answer": true,
+      "explain": "That is the definition of a Las Vegas algorithm: randomness affects the time, not whether the answer is correct."
+    },
+    {
+      "type": "num",
+      "category": "Monte Carlo vs. Las Vegas",
+      "q": "In the Monte Carlo sampling pseudocode (S := 0; for i := 1 to n: run the simulation, S := S + X_i; then m := S / n), five runs give X_1 = 6, X_2 = 9, X_3 = 3, X_4 = 7, X_5 = 10. What is m?",
+      "answer": 7,
+      "explain": "S = 6 + 9 + 3 + 7 + 10 = 35, and m = S / n = 35 / 5 = 7. The estimate m is the average of the sampled results."
+    },
+    {
+      "type": "mc",
+      "category": "Monte Carlo vs. Las Vegas",
+      "q": "In the Monte Carlo sampling pseudocode that ends with m := S / n, what does n stand for?",
+      "choices": [
+        "The size of the input array",
+        "The number of times the simulation is run",
+        "The largest sampled value",
+        "The probability of a correct answer"
+      ],
+      "answer": 1,
+      "explain": "n is the number of simulation runs. S adds up the n results X_i, and m = S/n is their average."
+    },
+    {
+      "type": "mc",
+      "category": "Monte Carlo vs. Las Vegas",
+      "q": "An algorithm estimates a quantity by running 10,000 random simulations and reporting the average result. Two separate executions may report slightly different numbers. What kind of algorithm is this?",
+      "choices": ["Las Vegas", "Monte Carlo", "Deterministic", "Divide and conquer"],
+      "answer": 1,
+      "explain": "It samples and averages, and its answer can differ between runs. That makes it Monte Carlo."
+    },
+    {
+      "type": "text",
+      "category": "Monte Carlo vs. Las Vegas",
+      "q": "Fill in the blank with one word: in a Monte Carlo algorithm, randomness can affect the answer; in a Las Vegas algorithm, randomness can affect the ____.",
+      "answer": ["time", "runtime", "run time", "running time"],
+      "explain": "Las Vegas algorithms always give the correct answer, but how long they take can vary."
+    },
+    {
+      "type": "mc",
+      "category": "The Hiring Problem",
+      "q": "In the Hiring Problem, you hire any candidate who is better than everyone interviewed so far. The applicants arrive in order from worst to best. How many people do you hire out of n applicants?",
+      "choices": ["1", "about n/e", "about n/2", "n"],
+      "answer": 3,
+      "fixed": true,
+      "explain": "Each new applicant beats everyone before them, so you hire all n of them and pay the hiring cost n times. It is the same kind of failure as Quick Sort on sorted input: a bad input order hurts you."
+    },
+    {
+      "type": "mc",
+      "category": "The Hiring Problem",
+      "q": "Which statement describes the n/e strategy for the Hiring Problem?",
+      "choices": [
+        "Hire the first applicant, then replace them whenever someone better appears",
+        "Interview the first n/e applicants without hiring any of them, then hire the first later applicant who is better than the best of that group",
+        "Interview n/e applicants chosen at random and hire the best of them",
+        "Hire the best of the first n/e applicants and stop interviewing"
+      ],
+      "answer": 1,
+      "explain": "The first n/e applicants only set a benchmark (their maximum). After that, you hire the first applicant who beats that maximum."
+    },
+    {
+      "type": "num",
+      "category": "The Hiring Problem",
+      "q": "Under the n/e rule with n = 200 applicants, about how many applicants do you interview with no intention of hiring? Round to the nearest whole number.",
+      "answer": 74,
+      "tolerance": 1,
+      "explain": "e ≈ 2.718, so 200/e ≈ 73.6, which rounds to about 74. That is roughly the first 37% of applicants."
+    },
+    {
+      "type": "tf",
+      "category": "The Hiring Problem",
+      "q": "True or false: the n/e rule always hires the best applicant.",
+      "answer": false,
+      "explain": "It is a strategy, not a guarantee. For example, if a strong applicant who beats the benchmark shows up before the very best one, you hire that strong applicant and never reach the best."
+    },
+    {
+      "type": "num",
+      "category": "The Hiring Problem",
+      "q": "Hiring Problem with n = 10. Quality scores (higher is better) arrive in this order: [6, 2, 9, 4, 5, 8, 10, 3, 7, 1]. Using the n/e rule, you skip the first 4 applicants (10/e ≈ 3.68, rounded up). What is the score of the applicant you hire?",
+      "answer": 10,
+      "explain": "The first 4 are [6, 2, 9, 4], with maximum 9. Next come 5 (not better), 8 (not better), then 10 (better than 9), so you hire 10. This time the rule found the best applicant."
+    },
+    {
+      "type": "mc",
+      "category": "The Hiring Problem",
+      "q": "One Hiring Problem strategy is to shuffle the applicants into a random order as they arrive. Why does this help?",
+      "choices": [
+        "It guarantees that the best applicant comes first",
+        "It removes the cost of interviewing",
+        "It makes the worst-first ordering unlikely, the same idea as choosing a random pivot in Quick Sort",
+        "It lowers the number of applicants to n/e"
+      ],
+      "answer": 2,
+      "explain": "Randomizing the input is a basic action you can apply to data. Like the random pivot, it takes away an adversary's ability to hand you the worst ordering."
+    },
+    {
+      "type": "tf",
+      "category": "The Hiring Problem",
+      "q": "True or false: under the n/e rule, you hire the best applicant from the first group of n/e applicants.",
+      "answer": false,
+      "explain": "Nobody in the first n/e group is hired. Their maximum only serves as the benchmark that a later applicant has to beat."
+    },
+    {
+      "type": "mc",
+      "category": "Random Variables and Expected Value",
+      "q": "Which formula gives the expected value of a discrete random variable X?",
+      "choices": [
+        "E[X] = Σ_i P(X = x_i) · x_i",
+        "E[X] = Σ_i x_i",
+        "E[X] = Σ_i P(X = x_i)",
+        "E[X] = max_i x_i"
+      ],
+      "answer": 0,
+      "explain": "Multiply each outcome's probability by its value, then add up the products."
+    },
+    {
+      "type": "num",
+      "category": "Random Variables and Expected Value",
+      "q": "What is the expected value of one roll of a fair eight-sided die with faces 1 through 8?",
+      "answer": 4.5,
+      "tolerance": 0.001,
+      "explain": "E[X] = (1/8)(1 + 2 + ... + 8) = 36/8 = 4.5."
+    },
+    {
+      "type": "tf",
+      "category": "Random Variables and Expected Value",
+      "q": "True or false: the expected value of a random variable must be one of its possible outcomes.",
+      "answer": false,
+      "explain": "A fair six-sided die has E[X] = 3.5, but you can never roll a 3.5."
+    },
+    {
+      "type": "num",
+      "category": "Random Variables and Expected Value",
+      "q": "A factory makes a good phone worth $1000 with probability 499/500 and a bad phone worth -$5000 with probability 1/500. What is the expected value per phone, in dollars?",
+      "answer": 988,
+      "explain": "(499/500)(1000) + (1/500)(-5000) = 998 - 10 = 988."
+    },
+    {
+      "type": "num",
+      "category": "Random Variables and Expected Value",
+      "q": "A game pays you $12 with probability 1/3 and costs you $3 (value -3) with probability 2/3. What is the expected value of one play, in dollars?",
+      "answer": 2,
+      "explain": "E[X] = (1/3)(12) + (2/3)(-3) = 4 - 2 = 2. Losses count as negative values."
+    },
+    {
+      "type": "multi",
+      "category": "Random Variables and Expected Value",
+      "q": "Which of these are discrete random variables?",
+      "choices": [
+        "The number showing on a six-sided die",
+        "Tomorrow's rainfall in millimeters",
+        "The number of heads in 10 coin flips",
+        "A person's exact height",
+        "The temperature at noon"
+      ],
+      "answer": [0, 2],
+      "explain": "Die rolls and counts of heads come from a separate, countable set of values. Rainfall, height, and temperature can take any value in a range, so they are continuous."
+    },
+    {
+      "type": "mc",
+      "category": "Random Variables and Expected Value",
+      "q": "In the statement E[T(n)] = Θ(n log n) for Randomized Quick Sort, why is the running time T(n) treated as a random variable?",
+      "choices": [
+        "Because the input array is always generated at random",
+        "Because T(n) depends on which pivots are randomly chosen",
+        "Because n itself is chosen at random",
+        "Because the sorted output is different on every run"
+      ],
+      "answer": 1,
+      "explain": "On a fixed input, the amount of work depends on the random pivot choices, so T(n) is a random variable. Its expected value is Θ(n log n). The output is always the same correctly sorted array."
+    }
+  ]
+}

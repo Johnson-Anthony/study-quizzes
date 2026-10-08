@@ -1,0 +1,547 @@
+{
+  "title": "CSC2400 Module 3: Divide and Conquer — Matrix Multiplication",
+  "course": "CSC2400",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Matrix multiplication basics",
+      "q": "X and Y are n × n matrices and Z = X · Y. Which formula gives entry Z_ij?",
+      "choices": [
+        "Z_ij = Σ (k = 1..n) X_ik · Y_kj",
+        "Z_ij = Σ (k = 1..n) X_ki · Y_jk",
+        "Z_ij = X_ij · Y_ij",
+        "Z_ij = Σ (k = 1..n) X_ik · Y_jk"
+      ],
+      "answer": 0,
+      "explain": "Take row i of X and column j of Y, multiply matching pairs, and add them up. The shared index k is the column index in X and the row index in Y."
+    },
+    {
+      "type": "tf",
+      "category": "Matrix multiplication basics",
+      "q": "Entry Z_ij of Z = X · Y is computed from the i-th column of X and the j-th row of Y.",
+      "answer": false,
+      "explain": "It is the reverse: the i-th ROW of X and the j-th COLUMN of Y. The row comes from the left matrix and the column from the right matrix."
+    },
+    {
+      "type": "num",
+      "category": "Matrix multiplication basics",
+      "q": "X = [[1, 2], [3, 4]] and Y = [[5, 6], [7, 8]] (rows listed top to bottom). What is entry Z_21 of Z = X · Y?",
+      "answer": 43,
+      "explain": "Row 2 of X is (3, 4) and column 1 of Y is (5, 7). 3·5 + 4·7 = 15 + 28 = 43. The full product is [[19, 22], [43, 50]]."
+    },
+    {
+      "type": "num",
+      "category": "Matrix multiplication basics",
+      "q": "X = [[2, 0], [1, 3]] and Y = [[4, 1], [2, 5]] (rows listed top to bottom). What is entry Z_22 of Z = X · Y?",
+      "answer": 16,
+      "explain": "Row 2 of X is (1, 3) and column 2 of Y is (1, 5). 1·1 + 3·5 = 1 + 15 = 16. The full product is [[8, 2], [10, 16]]."
+    },
+    {
+      "type": "mc",
+      "category": "Matrix multiplication basics",
+      "q": "X = [[a, b], [c, d]] and Y = [[e, f], [g, h]]. What is the bottom-left entry Z_21 of X · Y?",
+      "choices": [
+        "ae + bg",
+        "cf + dh",
+        "ce + dg",
+        "ag + ce"
+      ],
+      "answer": 2,
+      "explain": "Row 2 of X is (c, d) and column 1 of Y is (e, g), so Z_21 = ce + dg. The full product is [[ae + bg, af + bh], [ce + dg, cf + dh]]."
+    },
+    {
+      "type": "num",
+      "category": "Matrix multiplication basics",
+      "q": "How many scalar multiplications does the ordinary row-times-column formula use to multiply two 2 × 2 matrices?",
+      "answer": 8,
+      "explain": "There are 4 entries and each needs 2 multiplications (for example Z_11 = ae + bg), so 4 × 2 = 8."
+    },
+    {
+      "type": "num",
+      "category": "Matrix multiplication basics",
+      "q": "X and Y are both 10 × 10. How many scalar multiplications does it take to compute ONE entry Z_ij of X · Y with the row-times-column formula?",
+      "answer": 10,
+      "explain": "One entry is a sum of n products X_ik · Y_kj for k = 1..n. With n = 10, that is 10 multiplications (and about as many additions)."
+    },
+    {
+      "type": "mc",
+      "category": "Standard algorithm",
+      "q": "In the standard triple-loop algorithm (loops i, j, k with Z[i][j] += X[i][k] * Y[k][j] inside), what does the innermost k loop do?",
+      "choices": [
+        "Chooses which row of Z is being filled",
+        "Walks along row i of X and down column j of Y, building the sum for the single entry Z[i][j]",
+        "Chooses which column of Z is being filled",
+        "Adds the finished entries of Z together to form the result"
+      ],
+      "answer": 1,
+      "explain": "The i loop picks the row, the j loop picks the column, and the k loop accumulates X[i][k] · Y[k][j] over k = 1..n to compute one entry."
+    },
+    {
+      "type": "mc",
+      "category": "Standard algorithm",
+      "q": "What is the running time of the standard triple-loop matrix multiplication algorithm for n × n matrices?",
+      "choices": [
+        "Θ(n²)",
+        "Θ(n^2.807)",
+        "Θ(n log n)",
+        "Θ(n³)"
+      ],
+      "answer": 3,
+      "explain": "Each of the three nested loops runs n times, so the innermost statement runs n · n · n = n³ times."
+    },
+    {
+      "type": "num",
+      "category": "Standard algorithm",
+      "q": "The standard triple-loop algorithm multiplies two 10 × 10 matrices. How many times does the innermost statement Z[i][j] += X[i][k] * Y[k][j] execute?",
+      "answer": 1000,
+      "explain": "The loops run n, n, and n times, so the inner statement runs n³ = 10³ = 1000 times."
+    },
+    {
+      "type": "mc",
+      "category": "Standard algorithm",
+      "q": "Which is a correct way to explain why the standard algorithm takes Θ(n³) time?",
+      "choices": [
+        "There are n entries in Z, and each takes about n² work",
+        "There are n³ entries in Z, and each takes constant work",
+        "There are n² entries in Z, and each takes about n multiplications and additions",
+        "There are n² entries in Z, and each takes constant work"
+      ],
+      "answer": 2,
+      "explain": "Z is n × n, so it has n² entries. Each entry is a sum of n products, so the total is n² × n = n³."
+    },
+    {
+      "type": "mc",
+      "category": "Divide and Conquer",
+      "q": "In Divide and Conquer matrix multiplication, X is split into blocks A, B, C, D and Y into blocks E, F, G, H. What size is each block?",
+      "choices": [
+        "n/4 × n/4",
+        "n/2 × n",
+        "n/2 × n/2",
+        "(n − 1) × (n − 1)"
+      ],
+      "answer": 2,
+      "explain": "Each matrix is cut into four quarters (top-left, top-right, bottom-left, bottom-right). Each quarter has side length n/2."
+    },
+    {
+      "type": "mc",
+      "category": "Divide and Conquer",
+      "q": "What key observation makes recursive (Divide and Conquer) matrix multiplication possible?",
+      "choices": [
+        "Block matrices multiply exactly like 2 × 2 matrices of numbers, with the blocks in place of the numbers",
+        "Matrix multiplication is commutative, so the blocks can be multiplied in any order",
+        "Each entry of the product depends on only one block of X",
+        "The product of two blocks is always a 1 × 1 matrix"
+      ],
+      "answer": 0,
+      "explain": "XY = [[AE + BG, AF + BH], [CE + DG, CF + DH]] has the same shape as the 2 × 2 formula. Each block product is a smaller copy of the original problem, so it can be solved recursively."
+    },
+    {
+      "type": "text",
+      "category": "Divide and Conquer",
+      "q": "X = [[A, B], [C, D]] and Y = [[E, F], [G, H]], where each letter is a block. Write the top-right block of XY (use the block letters, e.g. \"PQ + RS\").",
+      "answer": ["AF + BH", "AF+BH", "BH + AF", "BH+AF", "af + bh", "af+bh", "bh + af", "bh+af"],
+      "explain": "Top-right = (top row of X) times (right column of Y) = AF + BH."
+    },
+    {
+      "type": "mc",
+      "category": "Divide and Conquer",
+      "q": "X = [[A, B], [C, D]] and Y = [[E, F], [G, H]] are block matrices. What is the bottom-left block of XY?",
+      "choices": [
+        "CF + DH",
+        "EC + GD",
+        "AE + BG",
+        "CE + DG"
+      ],
+      "answer": 3,
+      "explain": "Bottom-left = (bottom row of X) times (left column of Y) = CE + DG. EC + GD has the factors reversed. Matrix multiplication is not commutative, so the X-block must stay on the left."
+    },
+    {
+      "type": "tf",
+      "category": "Divide and Conquer",
+      "q": "In the block formula for XY, the product AE can be written as EA, since swapping the factors gives the same result.",
+      "answer": false,
+      "explain": "Blocks are matrices, and matrix multiplication is not commutative. The X-block always goes on the left: AE, not EA."
+    },
+    {
+      "type": "num",
+      "category": "Divide and Conquer",
+      "q": "How many recursive matrix multiplications does the straightforward Divide and Conquer algorithm make at each level?",
+      "answer": 8,
+      "explain": "AE, BG, AF, BH, CE, DG, CF, DH. Each multiplies two (n/2) × (n/2) matrices."
+    },
+    {
+      "type": "multi",
+      "category": "Divide and Conquer",
+      "q": "X = [[A, B], [C, D]] and Y = [[E, F], [G, H]]. Which of these block products does straightforward Divide and Conquer compute?",
+      "choices": [
+        "AE",
+        "EA",
+        "BG",
+        "BE",
+        "CF",
+        "DH",
+        "AG",
+        "DG"
+      ],
+      "answer": [0, 2, 4, 5, 7],
+      "explain": "The eight products are AE, BG, AF, BH, CE, DG, CF, DH. EA has the factors reversed. BE and AG do not appear in any block of XY."
+    },
+    {
+      "type": "num",
+      "category": "Divide and Conquer",
+      "q": "After the eight recursive products are computed, how many (n/2) × (n/2) matrix additions does straightforward Divide and Conquer need to build the four result blocks?",
+      "answer": 4,
+      "explain": "Each result block is the sum of two products (AE + BG, AF + BH, CE + DG, CF + DH), so that is one addition per block, 4 in total."
+    },
+    {
+      "type": "tf",
+      "category": "Divide and Conquer",
+      "q": "The base case of Divide and Conquer matrix multiplication is reached when the matrices are 1 × 1. If X = [x] and Y = [y], the algorithm returns [xy].",
+      "answer": true,
+      "explain": "A 1 × 1 matrix cannot be split further, so the algorithm just does one scalar multiplication."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and running time",
+      "q": "Which recurrence describes straightforward Divide and Conquer matrix multiplication?",
+      "choices": [
+        "T(n) = 8T(n/4) + Θ(n²)",
+        "T(n) = 8T(n/2) + Θ(n²)",
+        "T(n) = 4T(n/2) + Θ(n²)",
+        "T(n) = 7T(n/2) + Θ(n²)"
+      ],
+      "answer": 1,
+      "explain": "There are 8 recursive multiplications, each on (n/2) × (n/2) matrices, plus Θ(n²) work to split and to do the 4 block additions. T(1) = Θ(1)."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and running time",
+      "q": "In the recurrence T(n) = 8T(n/2) + Θ(n²) for Divide and Conquer matrix multiplication, what does the Θ(n²) term represent?",
+      "choices": [
+        "The cost of the eight recursive multiplications",
+        "The cost of the 1 × 1 base case",
+        "The number of levels of recursion",
+        "The non-recursive work: splitting the matrices and the block additions that combine the products"
+      ],
+      "answer": 3,
+      "explain": "Adding two (n/2) × (n/2) blocks touches n²/4 entries. A constant number of such additions, plus the split, is Θ(n²)."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and running time",
+      "q": "Each matrix is cut into 4 blocks. Why is each subproblem T(n/2) and not T(n/4)?",
+      "choices": [
+        "Each block has side length n/2, and n is the side length of the matrices",
+        "Because 8 subproblems divided by 4 blocks gives 2",
+        "Because only half of the blocks are used in each product",
+        "Because the base case is 2 × 2 rather than 1 × 1"
+      ],
+      "answer": 0,
+      "explain": "n measures the side length. A quarter of an n × n matrix is (n/2) × (n/2), so each subproblem has size n/2."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and running time",
+      "q": "What is the asymptotic running time of straightforward Divide and Conquer matrix multiplication (8 recursive multiplications)?",
+      "choices": [
+        "Θ(n²)",
+        "Θ(n^(log₂ 7))",
+        "Θ(n³)",
+        "Θ(n² log n)"
+      ],
+      "answer": 2,
+      "explain": "Solving T(n) = 8T(n/2) + Θ(n²) with the Master Method gives Θ(n³), the same as the triple loop. Divide and Conquer only reorganizes the same work."
+    },
+    {
+      "type": "tf",
+      "category": "Recurrence and running time",
+      "q": "Splitting a problem into smaller subproblems with Divide and Conquer always improves its asymptotic running time.",
+      "answer": false,
+      "explain": "Plain Divide and Conquer matrix multiplication splits the problem and is still Θ(n³). The improvement only comes from reducing the number of subproblems, as Strassen does."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and running time",
+      "q": "Plain Divide and Conquer reaches the 1 × 1 base case after log₂ n levels and makes 8^(log₂ n) base-case multiplications. What does 8^(log₂ n) simplify to?",
+      "choices": [
+        "n²",
+        "n³",
+        "n⁸",
+        "3n"
+      ],
+      "answer": 1,
+      "explain": "8^(log₂ n) = n^(log₂ 8) = n³. That is exactly the number of scalar multiplications the triple loop does."
+    },
+    {
+      "type": "num",
+      "category": "Recurrence and running time",
+      "q": "For n = 4, how many base-case scalar multiplications does plain Divide and Conquer (8 recursive calls per level) perform?",
+      "answer": 64,
+      "explain": "There are log₂ 4 = 2 levels, so 8² = 64 = 4³."
+    },
+    {
+      "type": "num",
+      "category": "Recurrence and running time",
+      "q": "For n = 16, how many base-case scalar multiplications does Strassen's algorithm (7 recursive calls per level) perform?",
+      "answer": 2401,
+      "explain": "There are log₂ 16 = 4 levels, so 7⁴ = 2401. Plain Divide and Conquer would do 8⁴ = 4096 = 16³."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and running time",
+      "q": "Using the same split into four (n/2) × (n/2) blocks, what has to change to beat Θ(n³)?",
+      "choices": [
+        "Make the base case 2 × 2 instead of 1 × 1",
+        "Do the block additions faster",
+        "Reduce the number of recursive multiplications",
+        "Recurse on the blocks in a different order"
+      ],
+      "answer": 2,
+      "explain": "The number of recursive calls ends up in the exponent: n^(log₂ a). Going from a = 8 to a = 7 changes n³ into about n^2.807. The base case, the order of the calls, and the Θ(n²) additions do not change the exponent."
+    },
+    {
+      "type": "num",
+      "category": "Strassen's products",
+      "q": "How many recursive matrix multiplications does Strassen's algorithm make at each level?",
+      "answer": 7,
+      "explain": "Strassen computes seven products P1 through P7, one recursive multiplication each, instead of the eight in plain Divide and Conquer."
+    },
+    {
+      "type": "mc",
+      "category": "Strassen's products",
+      "q": "Using X = [[A, B], [C, D]] and Y = [[E, F], [G, H]], which of these is Strassen's P1?",
+      "choices": [
+        "(A + B)H",
+        "A(F − H)",
+        "D(G − E)",
+        "(A − C)(E + F)"
+      ],
+      "answer": 1,
+      "explain": "P1 = A(F − H). The others are P2 = (A + B)H, P4 = D(G − E), and P7 = (A − C)(E + F)."
+    },
+    {
+      "type": "mc",
+      "category": "Strassen's products",
+      "q": "Using X = [[A, B], [C, D]] and Y = [[E, F], [G, H]], which of these is Strassen's P5?",
+      "choices": [
+        "(B − D)(G + H)",
+        "(A − C)(E + F)",
+        "(A + B)(E + G)",
+        "(A + D)(E + H)"
+      ],
+      "answer": 3,
+      "explain": "P5 = (A + D)(E + H): the diagonal of X times the diagonal of Y. P6 = (B − D)(G + H) and P7 = (A − C)(E + F). (A + B)(E + G) is not one of Strassen's products."
+    },
+    {
+      "type": "mc",
+      "category": "Strassen's products",
+      "q": "Which of these is Strassen's P4?",
+      "choices": [
+        "D(G − E)",
+        "(C + D)E",
+        "D(E − G)",
+        "(C + D)(G − E)"
+      ],
+      "answer": 0,
+      "explain": "P4 = D(G − E). (C + D)E is P3. D(E − G) has the subtraction the wrong way round, which would flip the sign of P4."
+    },
+    {
+      "type": "mc",
+      "category": "Strassen's products",
+      "q": "In Strassen's algorithm, which combination gives the top-right result block C12?",
+      "choices": [
+        "P3 + P4",
+        "P5 + P4 − P2 + P6",
+        "P1 + P2",
+        "P1 + P5 − P3 − P7"
+      ],
+      "answer": 2,
+      "explain": "C12 = P1 + P2 = (AF − AH) + (AH + BH) = AF + BH, which matches the block formula."
+    },
+    {
+      "type": "mc",
+      "category": "Strassen's products",
+      "q": "In Strassen's algorithm, which combination gives the bottom-left result block C21?",
+      "choices": [
+        "P3 + P4",
+        "P1 + P2",
+        "P5 + P3 − P4",
+        "P3 − P4"
+      ],
+      "answer": 0,
+      "explain": "C21 = P3 + P4 = (CE + DE) + (DG − DE) = CE + DG, which matches the block formula."
+    },
+    {
+      "type": "mc",
+      "category": "Strassen's products",
+      "q": "In Strassen's algorithm, which combination gives the top-left result block C11?",
+      "choices": [
+        "P5 + P4 + P2 − P6",
+        "P5 − P4 − P2 + P6",
+        "P1 + P5 − P3 − P7",
+        "P5 + P4 − P2 + P6"
+      ],
+      "answer": 3,
+      "explain": "C11 = P5 + P4 − P2 + P6. Only P2 is subtracted. Expanding it gives AE + BG. P1 + P5 − P3 − P7 is C22."
+    },
+    {
+      "type": "multi",
+      "category": "Strassen's products",
+      "q": "In Strassen's formula for the bottom-right result block C22, which products are SUBTRACTED?",
+      "choices": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ],
+      "answer": [2, 6],
+      "fixed": true,
+      "explain": "C22 = P1 + P5 − P3 − P7. P1 and P5 are added, and P3 and P7 are subtracted."
+    },
+    {
+      "type": "mc",
+      "category": "Strassen's products",
+      "q": "Expand Strassen's P2 = (A + B)H, keeping the order of the matrix factors.",
+      "choices": [
+        "HA + HB",
+        "AH + BH",
+        "AB + H",
+        "AH + BH + AB"
+      ],
+      "answer": 1,
+      "explain": "(A + B)H = AH + BH. H stays on the right because matrix multiplication is not commutative, so HA + HB is wrong."
+    },
+    {
+      "type": "mc",
+      "category": "Strassen's products",
+      "q": "In Strassen's formulas C11 = P5 + P4 − P2 + P6, etc., what does C11 refer to?",
+      "choices": [
+        "The top-left block of X",
+        "Block C of X (the bottom-left block)",
+        "The top-left entry of block C",
+        "The top-left block of the result XY"
+      ],
+      "answer": 3,
+      "explain": "C11, C12, C21, C22 are the blocks of the result. The letter C is also used for the bottom-left block of X, but those are different things."
+    },
+    {
+      "type": "tf",
+      "category": "Strassen's products",
+      "q": "Each Strassen product P_i costs exactly one recursive matrix multiplication. The sums and differences inside the parentheses are computed first and are not multiplications.",
+      "answer": true,
+      "explain": "For example, P5 = (A + D)(E + H) does two additions and then one recursive multiplication."
+    },
+    {
+      "type": "num",
+      "category": "Strassen's products",
+      "q": "Treat each entry of X = [[2, 0], [1, 3]] and Y = [[4, 1], [2, 5]] as a 1 × 1 block: A = 2, B = 0, C = 1, D = 3, E = 4, F = 1, G = 2, H = 5. What is P5 = (A + D)(E + H)?",
+      "answer": 45,
+      "explain": "(2 + 3)(4 + 5) = 5 · 9 = 45."
+    },
+    {
+      "type": "num",
+      "category": "Strassen's products",
+      "q": "With A = 2, B = 0, C = 1, D = 3, E = 4, F = 1, G = 2, H = 5, what is P6 = (B − D)(G + H)?",
+      "answer": -21,
+      "explain": "(0 − 3)(2 + 5) = −3 · 7 = −21."
+    },
+    {
+      "type": "num",
+      "category": "Strassen's products",
+      "q": "For X = [[2, 0], [1, 3]] and Y = [[4, 1], [2, 5]], Strassen's products include P2 = 10, P4 = −6, P5 = 45, P6 = −21. What is C11?",
+      "answer": 8,
+      "explain": "C11 = P5 + P4 − P2 + P6 = 45 − 6 − 10 − 21 = 8. Check: Z_11 = 2·4 + 0·2 = 8."
+    },
+    {
+      "type": "num",
+      "category": "Strassen's products",
+      "q": "For X = [[1, 2], [3, 4]] and Y = [[5, 6], [7, 8]], Strassen's products include P1 = −2, P3 = 35, P5 = 65, P7 = −22. What is C22?",
+      "answer": 50,
+      "explain": "C22 = P1 + P5 − P3 − P7 = −2 + 65 − 35 + 22 = 50. Check: Z_22 = 3·6 + 4·8 = 50."
+    },
+    {
+      "type": "mc",
+      "category": "Strassen's tradeoff and speed",
+      "q": "What is the asymptotic running time of Strassen's algorithm?",
+      "choices": [
+        "Θ(n³)",
+        "Θ(n^(log₂ 7)), about O(n^2.807)",
+        "Θ(n² log n)",
+        "Θ(n^(log₇ 2))"
+      ],
+      "answer": 1,
+      "explain": "The recurrence T(n) = 7T(n/2) + Θ(n²) solves to Θ(n^(log₂ 7)) ≈ O(n^2.807), which is asymptotically better than O(n³)."
+    },
+    {
+      "type": "num",
+      "category": "Strassen's tradeoff and speed",
+      "q": "Strassen's algorithm runs in Θ(n^x). Give x to three decimal places.",
+      "answer": 2.807,
+      "tolerance": 0.001,
+      "explain": "x = log₂ 7 ≈ 2.807."
+    },
+    {
+      "type": "tf",
+      "category": "Strassen's tradeoff and speed",
+      "q": "Compared with straightforward Divide and Conquer, Strassen's algorithm does fewer matrix additions and subtractions at each level.",
+      "answer": false,
+      "explain": "Strassen does fewer recursive MULTIPLICATIONS (7 instead of 8) but MORE additions and subtractions: 18 instead of 4."
+    },
+    {
+      "type": "num",
+      "category": "Strassen's tradeoff and speed",
+      "q": "How many matrix additions must be done before the recursive multiplication in Strassen's P5 = (A + D)(E + H)?",
+      "answer": 2,
+      "explain": "A + D and E + H. Compare P1 = A(F − H), which needs one subtraction."
+    },
+    {
+      "type": "num",
+      "category": "Strassen's tradeoff and speed",
+      "q": "Count the block additions and subtractions in one level of Strassen's algorithm: those needed to form P1 through P7, plus those needed to combine them into C11, C12, C21, C22. What is the total?",
+      "answer": 18,
+      "explain": "Forming the products takes 10 (one each for P1 to P4, two each for P5 to P7). Combining takes 8 (3 for C11, 1 for C12, 1 for C21, 3 for C22). 10 + 8 = 18."
+    },
+    {
+      "type": "mc",
+      "category": "Strassen's tradeoff and speed",
+      "q": "Strassen does many more block additions and subtractions than plain Divide and Conquer. Why doesn't this hurt its asymptotic running time?",
+      "choices": [
+        "Additions are only done at the 1 × 1 base case",
+        "The extra additions and subtractions cancel each other out",
+        "There is a constant number of them, each Θ(n²), so the non-recursive work per call is still Θ(n²)",
+        "Additions take Θ(1) time no matter how large the blocks are"
+      ],
+      "answer": 2,
+      "explain": "Each block addition is Θ(n²) work, and 18 is a constant, so the combine work is still Θ(n²), the same order as plain Divide and Conquer. Only the number of recursive calls (7 vs. 8) changes the exponent."
+    },
+    {
+      "type": "mc",
+      "category": "Strassen's tradeoff and speed",
+      "q": "Why does cutting the number of recursive multiplications from 8 to just 7 change the asymptotic running time?",
+      "choices": [
+        "The saving is repeated at every level of the recursion, so the number of calls ends up in the exponent: n^(log₂ 8) = n³ vs. n^(log₂ 7)",
+        "It saves one-eighth of the work at the top level, which is a big enough constant factor",
+        "Strassen also halves the number of matrix additions",
+        "Seven subproblems make the recursion shallower than eight"
+      ],
+      "answer": 0,
+      "explain": "Saving one multiplication at a single level would only be a constant-factor gain. Because each of the 7 subproblems also uses 7 calls, and so on, the base-case count is 7^(log₂ n) = n^(log₂ 7) instead of n³."
+    },
+    {
+      "type": "mc",
+      "category": "Strassen's tradeoff and speed",
+      "q": "Which general algorithm-design idea does Strassen's algorithm illustrate?",
+      "choices": [
+        "Always split a problem into as many subproblems as possible",
+        "Sometimes you can spend more time on one part of an algorithm to greatly reduce the cost of another part",
+        "Any recursive algorithm is faster than an iterative one",
+        "Minimizing additions is the key to fast matrix multiplication"
+      ],
+      "answer": 1,
+      "explain": "Strassen takes on extra Θ(n²) addition and subtraction work in exchange for fewer recursive multiplications, and that improves the overall exponent."
+    }
+  ]
+}

@@ -1,0 +1,483 @@
+{
+  "title": "CSC2400 Module 5: Quick Sort (Part 1)",
+  "course": "CSC2400",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Quick Sort overview",
+      "q": "Quick Sort is based on which algorithm design strategy?",
+      "choices": ["Greedy", "Dynamic Programming", "Divide and Conquer", "Brute force"],
+      "answer": 2,
+      "explain": "Quick Sort is a Divide and Conquer sort. It partitions the array around a pivot, then recursively sorts each side."
+    },
+    {
+      "type": "mc",
+      "category": "Quick Sort overview",
+      "q": "Which sequence correctly describes the steps of Quick Sort?",
+      "choices": [
+        "Split the array in half, recursively sort each half, then merge the halves",
+        "Choose a pivot, partition around it, recursively sort the left side, recursively sort the right side",
+        "Recursively sort the left side, recursively sort the right side, then partition around a pivot",
+        "Choose a pivot, recursively sort the whole array, then insert the pivot"
+      ],
+      "answer": 1,
+      "explain": "The four steps are: choose a pivot, partition around it, Quick Sort the left side, Quick Sort the right side. Splitting in half and merging describes Merge Sort."
+    },
+    {
+      "type": "tf",
+      "category": "Quick Sort overview",
+      "q": "Quick Sort needs a separate auxiliary array to combine the results of its recursive calls.",
+      "answer": false,
+      "explain": "Quick Sort rearranges the array in place and has no combine step. Merge Sort is the one that needs a separate array to merge results."
+    },
+    {
+      "type": "mc",
+      "category": "Quick Sort overview",
+      "q": "Compared with Merge Sort, when does Quick Sort do its main work?",
+      "choices": [
+        "After the recursive calls, while merging",
+        "Only in the base case",
+        "Split evenly between a partition step and a merge step",
+        "Before the recursive calls, while partitioning"
+      ],
+      "answer": 3,
+      "explain": "Quick Sort does its work before recursing, when it partitions. Merge Sort does its work after recursing, when it merges. Once Quick Sort's recursive calls return, there is nothing left to combine."
+    },
+    {
+      "type": "mc",
+      "category": "Quick Sort overview",
+      "q": "What is Quick Sort's expected (typical) running time?",
+      "choices": ["Θ(n)", "Θ(n log n)", "Θ(n²)", "Θ(log n)"],
+      "answer": 1,
+      "explain": "Quick Sort's expected/typical running time is Θ(n log n), and it uses very little extra space. Its worst case is Θ(n²)."
+    },
+    {
+      "type": "tf",
+      "category": "Quick Sort overview",
+      "q": "When PARTITION finishes, the pivot is in its final sorted position and never moves again.",
+      "answer": true,
+      "explain": "After partitioning, every element to the pivot's left is smaller and every element to its right is not smaller, so the pivot is already where it belongs. That is why the recursive calls leave it out."
+    },
+
+    {
+      "type": "multi",
+      "category": "Choosing a pivot",
+      "q": "Which of the following are common ways to choose a pivot?",
+      "choices": [
+        "The first element",
+        "The most frequently occurring value",
+        "The last element",
+        "The middle element",
+        "The median",
+        "A randomly selected element",
+        "The element whose value is closest to n"
+      ],
+      "answer": [0, 2, 3, 4, 5],
+      "explain": "The common choices are the first element, the last element, the middle element, the median, and a randomly selected element."
+    },
+    {
+      "type": "mc",
+      "category": "Choosing a pivot",
+      "q": "In the lecture's Quick Sort (\"Hoare's pivot\"), which element is the pivot when partitioning the subarray A[l..r]?",
+      "choices": ["A[r]", "A[(l + r) / 2]", "A[l]", "A randomly chosen A[k] with l ≤ k ≤ r"],
+      "answer": 2,
+      "explain": "The lecture uses the first element of the subarray as the pivot: p = A[l]."
+    },
+    {
+      "type": "mc",
+      "category": "Choosing a pivot",
+      "q": "What makes a pivot a good one for Quick Sort?",
+      "choices": [
+        "It is the smallest element in the subarray",
+        "It splits the subarray into two parts that are as balanced as possible",
+        "It is always the first element of the subarray",
+        "It splits the subarray into parts of size 0 and n - 1"
+      ],
+      "answer": 1,
+      "explain": "Quick Sort's performance depends heavily on how balanced the partitions are at each step. A good pivot gives balanced parts. A split of 0 and n - 1 is the worst case."
+    },
+    {
+      "type": "tf",
+      "category": "Choosing a pivot",
+      "q": "When the first element is always used as the pivot, how good the pivot is depends entirely on the order of the input.",
+      "answer": true,
+      "explain": "With a fixed first-element pivot, the input order decides which value becomes the pivot. Sorted input, for example, always gives the worst split. This is the motivation for random pivots."
+    },
+    {
+      "type": "mc",
+      "category": "Choosing a pivot",
+      "q": "Using the first element as the pivot, which array gives the most balanced FIRST partition?",
+      "choices": ["[1, 5, 3, 7, 9]", "[9, 7, 5, 3, 1]", "[7, 1, 3, 5, 9]", "[5, 1, 9, 3, 7]"],
+      "answer": 3,
+      "explain": "The pivots are 1, 9, 7, and 5. Pivot 5 is the median of {1, 3, 5, 7, 9}, so it splits the rest 2 / 2. Pivot 1 splits 0 / 4, pivot 9 splits 4 / 0, and pivot 7 splits 3 / 1."
+    },
+
+    {
+      "type": "mc",
+      "category": "PARTITION algorithm",
+      "q": "What does PARTITION(A, l, r) return?",
+      "choices": [
+        "The value of the pivot",
+        "The final index of the pivot",
+        "The number of swaps performed",
+        "The sorted subarray A[l..r]"
+      ],
+      "answer": 1,
+      "explain": "PARTITION returns i, the pivot's final index. QUICKSORT uses it as q to choose the ranges for the two recursive calls."
+    },
+    {
+      "type": "mc",
+      "category": "PARTITION algorithm",
+      "q": "In PARTITION(A, l, r), what is the starting value of i?",
+      "choices": ["l - 1", "l", "l + 1", "r"],
+      "answer": 1,
+      "fixed": true,
+      "explain": "i starts at l, the pivot's own index. At that point the small region A[l+1..i] is empty."
+    },
+    {
+      "type": "mc",
+      "category": "PARTITION algorithm",
+      "q": "Over which values does j range in PARTITION's loop?",
+      "choices": ["l to r", "l + 1 to r - 1", "l to r - 1", "l + 1 to r, inclusive"],
+      "answer": 3,
+      "explain": "The loop is 'for j = l + 1 to r'. It skips the pivot at A[l] and includes r."
+    },
+    {
+      "type": "mc",
+      "category": "PARTITION algorithm",
+      "q": "Inside PARTITION's loop, what happens when A[j] < p?",
+      "choices": [
+        "A[i] is swapped with A[j], then i is incremented",
+        "i is incremented, then A[i] is swapped with A[j]",
+        "A[j] is swapped with the pivot A[l]",
+        "Nothing; only elements ≥ p are moved"
+      ],
+      "answer": 1,
+      "explain": "First i = i + 1 makes room in the small region, then A[i] is swapped with A[j]. The element swapped out was the first element of the large region, so it moves to the end of the large region."
+    },
+    {
+      "type": "mc",
+      "category": "PARTITION algorithm",
+      "q": "During PARTITION's loop, what does the subarray A[i+1 .. j-1] contain?",
+      "choices": [
+        "Elements less than p",
+        "Elements not yet examined",
+        "Elements already examined that are not less than p (the large side)",
+        "Only the pivot"
+      ],
+      "answer": 2,
+      "explain": "The regions are [p] [< p] [large side] [unexamined], which is A[l], A[l+1..i], A[i+1..j-1], A[j..r]. Because the test is strict A[j] < p, elements equal to p also stay in the large region."
+    },
+    {
+      "type": "tf",
+      "category": "PARTITION algorithm",
+      "q": "In the lecture's PARTITION, an element equal to the pivot is placed in the small (left) region.",
+      "answer": false,
+      "explain": "The test is strict: 'if A[j] < p'. An element equal to p fails the test, so it stays in the large (right) region."
+    },
+    {
+      "type": "num",
+      "category": "PARTITION algorithm",
+      "q": "How many A[j] < p comparisons does one call to PARTITION make on a subarray of 10 elements?",
+      "answer": 9,
+      "explain": "j runs from l + 1 to r, which is n - 1 values for a subarray of n elements. 10 - 1 = 9. This is the Θ(n) partition cost."
+    },
+    {
+      "type": "mc",
+      "category": "PARTITION algorithm",
+      "q": "What does PARTITION do after its loop ends?",
+      "choices": [
+        "Swaps A[l] with A[r]",
+        "Swaps A[l] with A[i], putting the pivot between the two regions",
+        "Swaps A[i] with A[j]",
+        "Nothing; the pivot is already in place"
+      ],
+      "answer": 1,
+      "explain": "After the loop, A[i] is the last element smaller than p. Swapping A[l] with A[i] moves the pivot to index i, between the small and large regions, which is its final position."
+    },
+
+    {
+      "type": "mc",
+      "category": "Tracing PARTITION",
+      "q": "What is the array after PARTITION(A, 0, 7) on A = [3, 8, 2, 5, 1, 4, 7, 6]?",
+      "choices": [
+        "[2, 1, 3, 6, 7, 4, 5, 8]",
+        "[3, 2, 1, 5, 8, 4, 7, 6]",
+        "[1, 2, 3, 5, 8, 4, 7, 6]",
+        "[1, 2, 3, 4, 5, 6, 7, 8]"
+      ],
+      "answer": 2,
+      "explain": "p = 3. j = 2 (value 2): i becomes 1, swap A[1] and A[2], giving [3, 2, 8, 5, 1, 4, 7, 6]. j = 4 (value 1): i becomes 2, swap A[2] and A[4], giving [3, 2, 1, 5, 8, 4, 7, 6]. Final swap of A[0] and A[2] gives [1, 2, 3, 5, 8, 4, 7, 6], and the call returns 2. [2, 1, 3, 6, 7, 4, 5, 8] is a valid partition, but it is not what this algorithm produces."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing PARTITION",
+      "q": "In PARTITION(A, 0, 7) on A = [3, 8, 2, 5, 1, 4, 7, 6], what are the array and i right after the j = 4 step?",
+      "choices": [
+        "[3, 2, 8, 5, 1, 4, 7, 6] with i = 1",
+        "[3, 2, 1, 5, 8, 4, 7, 6] with i = 2",
+        "[1, 2, 3, 5, 8, 4, 7, 6] with i = 2",
+        "[3, 2, 1, 5, 8, 4, 7, 6] with i = 4"
+      ],
+      "answer": 1,
+      "explain": "At j = 4, A[4] = 1 < 3, so i goes from 1 to 2 and A[2] is swapped with A[4], giving [3, 2, 1, 5, 8, 4, 7, 6]. The regions are now [3] [2, 1] [5, 8] [4, 7, 6]. The pivot hasn't moved yet because the final swap comes after the loop."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing PARTITION",
+      "q": "What is the array after PARTITION(A, 0, 6) on A = [5, 9, 3, 7, 2, 8, 4]?",
+      "choices": [
+        "[5, 3, 2, 4, 9, 8, 7]",
+        "[2, 3, 4, 5, 7, 8, 9]",
+        "[3, 2, 4, 5, 9, 8, 7]",
+        "[4, 3, 2, 5, 9, 8, 7]"
+      ],
+      "answer": 3,
+      "explain": "p = 5, i = 0. j=1 (9): no. j=2 (3): i=1, swap A[1] and A[2], giving [5, 3, 9, 7, 2, 8, 4]. j=3 (7): no. j=4 (2): i=2, swap A[2] and A[4], giving [5, 3, 2, 7, 9, 8, 4]. j=5 (8): no. j=6 (4): i=3, swap A[3] and A[6], giving [5, 3, 2, 4, 9, 8, 7]. Final swap of A[0] and A[3] gives [4, 3, 2, 5, 9, 8, 7]."
+    },
+    {
+      "type": "num",
+      "category": "Tracing PARTITION",
+      "q": "What index does PARTITION(A, 0, 6) return on A = [5, 9, 3, 7, 2, 8, 4]?",
+      "answer": 3,
+      "explain": "Three elements (3, 2, 4) are less than 5, so i is incremented three times, from 0 to 3. The pivot 5 ends at index 3 and the call returns 3."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing PARTITION",
+      "q": "QUICKSORT(A, 0, 4) is called on A = [7, 3, 9, 1, 5]. After its PARTITION call, which two recursive QUICKSORT calls come next?",
+      "choices": [
+        "QUICKSORT(A, 0, 3) and QUICKSORT(A, 3, 4)",
+        "QUICKSORT(A, 0, 1) and QUICKSORT(A, 3, 4)",
+        "QUICKSORT(A, 0, 2) and QUICKSORT(A, 4, 4)",
+        "QUICKSORT(A, 0, 3) and QUICKSORT(A, 4, 4)"
+      ],
+      "answer": 2,
+      "explain": "p = 7. j=1 (3): i=1, a self-swap. j=2 (9): no. j=3 (1): i=2, swap, giving [7, 3, 1, 9, 5]. j=4 (5): i=3, swap, giving [7, 3, 1, 5, 9]. Final swap of A[0] and A[3] gives [5, 3, 1, 7, 9], so q = 3. The next calls are QUICKSORT(A, 0, 2) and QUICKSORT(A, 4, 4)."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing PARTITION",
+      "q": "What is the result of PARTITION(A, 0, 4) on A = [5, 4, 3, 2, 1]?",
+      "choices": [
+        "[1, 2, 3, 4, 5], returns 4",
+        "[5, 4, 3, 2, 1], returns 0",
+        "[1, 4, 3, 2, 5], returns 4",
+        "[4, 3, 2, 1, 5], returns 4"
+      ],
+      "answer": 2,
+      "explain": "Every element is less than 5, so i moves forward with j (1, 2, 3, 4) and every swap is a self-swap. The final swap of A[0] and A[4] gives [1, 4, 3, 2, 5], and the call returns 4. The split is 4 / 0, a worst-case split."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing PARTITION",
+      "q": "What is the result of PARTITION(A, 0, 5) on A = [4, 4, 2, 6, 4, 1]?",
+      "choices": [
+        "[1, 2, 4, 4, 4, 6], returns 2",
+        "[4, 2, 1, 6, 4, 4], returns 2",
+        "[1, 4, 2, 4, 6, 4], returns 3",
+        "[1, 2, 4, 6, 4, 4], returns 2"
+      ],
+      "answer": 3,
+      "explain": "p = 4. j=1 (4): 4 < 4 is false, no change. j=2 (2): i=1, swap, giving [4, 2, 4, 6, 4, 1]. j=3 (6): no. j=4 (4): no. j=5 (1): i=2, swap A[2] and A[5], giving [4, 2, 1, 6, 4, 4]. Final swap of A[0] and A[2] gives [1, 2, 4, 6, 4, 4], and the call returns 2. The values equal to the pivot stay on the right side."
+    },
+
+    {
+      "type": "mc",
+      "category": "QUICKSORT recursion",
+      "q": "Which call sorts an entire array A of size n?",
+      "choices": ["QUICKSORT(A, 1, n)", "QUICKSORT(A, 0, n)", "QUICKSORT(A, 0, n - 1)", "QUICKSORT(A, n - 1, 0)"],
+      "answer": 2,
+      "explain": "l and r are inclusive bounds, so the whole array is indices 0 through n - 1: QUICKSORT(A, 0, n - 1)."
+    },
+    {
+      "type": "mc",
+      "category": "QUICKSORT recursion",
+      "q": "What is the base case of QUICKSORT(A, l, r)?",
+      "choices": [
+        "When l equals 0",
+        "When the subarray has exactly 2 elements",
+        "When PARTITION returns l",
+        "When l < r is false, meaning the subarray has 0 or 1 elements"
+      ],
+      "answer": 3,
+      "explain": "The body only runs 'if l < r'. A subarray with 0 or 1 elements is already sorted, so the call does nothing."
+    },
+    {
+      "type": "mc",
+      "category": "QUICKSORT recursion",
+      "q": "Why does QUICKSORT recurse on A[l..q-1] and A[q+1..r] rather than ranges that include q?",
+      "choices": [
+        "Index q always holds the smallest element of the subarray",
+        "The pivot at index q is already in its final sorted position",
+        "Including q would go out of the array's bounds",
+        "PARTITION has already sorted A[q-1] and A[q+1]"
+      ],
+      "answer": 1,
+      "explain": "PARTITION places the pivot at q, its final sorted position, so neither side needs to include it."
+    },
+    {
+      "type": "mc",
+      "category": "QUICKSORT recursion",
+      "q": "Inside QUICKSORT(A, 3, 9), PARTITION(A, 3, 9) returns q = 6. What are the two recursive calls?",
+      "choices": [
+        "QUICKSORT(A, 3, 6) and QUICKSORT(A, 6, 9)",
+        "QUICKSORT(A, 0, 5) and QUICKSORT(A, 7, 9)",
+        "QUICKSORT(A, 3, 5) and QUICKSORT(A, 7, 9)",
+        "QUICKSORT(A, 3, 6) and QUICKSORT(A, 7, 9)"
+      ],
+      "answer": 2,
+      "explain": "The calls are QUICKSORT(A, l, q - 1) = QUICKSORT(A, 3, 5) and QUICKSORT(A, q + 1, r) = QUICKSORT(A, 7, 9). The left bound stays at l = 3, not 0."
+    },
+    {
+      "type": "tf",
+      "category": "QUICKSORT recursion",
+      "q": "A call such as QUICKSORT(A, 5, 4) is a normal call that simply does nothing.",
+      "answer": true,
+      "explain": "When q = l or q = r, one recursive call gets an empty range such as (5, 4). Then l < r is false, so the call returns right away."
+    },
+    {
+      "type": "num",
+      "category": "QUICKSORT recursion",
+      "q": "QUICKSORT(A, 0, 7) is run on A = [3, 8, 2, 5, 1, 4, 7, 6]. How many times is PARTITION called in total?",
+      "answer": 5,
+      "explain": "PARTITION is called only when l < r: (0,7) with q=2, then (0,1) with q=0, then (3,7) with q=4, then (5,7) with q=7, then (5,6) with q=5. That is 5 calls. Calls such as (0,-1), (1,1), (3,3), (8,7), (5,4), and (6,6) stop immediately."
+    },
+
+    {
+      "type": "multi",
+      "category": "Worst case",
+      "q": "With the first element as the pivot, which inputs cause Quick Sort's worst case?",
+      "choices": [
+        "An array already sorted in ascending order",
+        "An array of distinct values in random order",
+        "An array already sorted in descending order",
+        "An array whose elements are all identical",
+        "An array whose first element is the median"
+      ],
+      "answer": [0, 2, 3],
+      "explain": "Sorted ascending makes the pivot the minimum (split 0 / n-1). Sorted descending makes it the maximum (split n-1 / 0). All-identical input fails the strict A[j] < p test every time (split 0 / n-1). A median first element gives a balanced first split."
+    },
+    {
+      "type": "mc",
+      "category": "Worst case",
+      "q": "In Quick Sort's worst case, how does each PARTITION split a subarray of n elements?",
+      "choices": ["n/2 and n/2", "n/4 and 3n/4", "0 and n - 1", "log n and n - log n"],
+      "answer": 2,
+      "explain": "The worst case happens when every partition leaves 0 elements on one side and n - 1 on the other."
+    },
+    {
+      "type": "mc",
+      "category": "Worst case",
+      "q": "Which recurrence describes Quick Sort's worst-case running time?",
+      "choices": [
+        "T(n) = 2T(n/2) + Θ(n)",
+        "T(n) = T(n - 1) + Θ(n)",
+        "T(n) = T(n/2) + Θ(1)",
+        "T(n) = 2T(n - 1) + Θ(1)"
+      ],
+      "answer": 1,
+      "explain": "Each call does Θ(n) partition work, then recurses on sizes 0 and n - 1: T(n) = T(0) + T(n - 1) + Θ(n) = T(n - 1) + Θ(n)."
+    },
+    {
+      "type": "mc",
+      "category": "Worst case",
+      "q": "Expanding T(n) = T(n - 1) + cn gives which result?",
+      "choices": [
+        "c · n log n = Θ(n log n)",
+        "c · 2ⁿ = Θ(2ⁿ)",
+        "c · n = Θ(n)",
+        "c · n(n + 1)/2 = Θ(n²)"
+      ],
+      "answer": 3,
+      "explain": "T(n) = cn + c(n - 1) + ... + c · 1 = c · Σk for k = 1..n = c · n(n + 1)/2, which is Θ(n²)."
+    },
+    {
+      "type": "mc",
+      "category": "Worst case",
+      "q": "What is Quick Sort's worst-case space usage, and why?",
+      "choices": [
+        "O(1), because Quick Sort sorts in place",
+        "O(n) stack frames, because the recursion can go n levels deep",
+        "O(n) for an auxiliary merge array",
+        "O(log n) stack frames, because each call halves the array"
+      ],
+      "answer": 1,
+      "explain": "Quick Sort needs no extra array, but recursion still uses memory. In the worst case the recursion tree is n deep, so there are O(n) stack frames waiting to return at once."
+    },
+    {
+      "type": "num",
+      "category": "Worst case",
+      "q": "QUICKSORT runs on the already-sorted array [1, 2, 3, 4, 5, 6] with the first element as pivot. How many A[j] < p comparisons are made in total?",
+      "answer": 15,
+      "explain": "Each pivot is the minimum, so the partitions are on sizes 6, 5, 4, 3, 2, with 5 + 4 + 3 + 2 + 1 = 15 comparisons. In general that is n(n - 1)/2, which is Θ(n²)."
+    },
+    {
+      "type": "mc",
+      "category": "Worst case",
+      "q": "Why is an array of all identical values, such as [2, 2, 2, 2, 2], a worst case for the lecture's Quick Sort?",
+      "choices": [
+        "Swapping two equal elements is undefined, so PARTITION stops early",
+        "The test A[j] < p is strict, so no element counts as smaller, i never moves, and the split is 0 / n-1",
+        "Equal elements are all moved to the left, so the split is n-1 / 0 and the pivot is lost",
+        "The loop skips equal elements, so j never reaches r"
+      ],
+      "answer": 1,
+      "explain": "No element is strictly less than the pivot, so i stays at l and the final swap leaves the pivot at l. Every level splits 0 / n-1, giving T(n) = T(n - 1) + Θ(n) = Θ(n²)."
+    },
+
+    {
+      "type": "mc",
+      "category": "Randomized Quick Sort",
+      "q": "What is the expected running time of Randomized Quick Sort?",
+      "choices": [
+        "Θ(n log n), but only for input in random order",
+        "Θ(n²), regardless of input order",
+        "Θ(n log n), regardless of input order",
+        "Θ(n), regardless of input order"
+      ],
+      "answer": 2,
+      "explain": "E[T(n)] = Θ(n log n) regardless of input order. Because the pivot is random, the input order no longer decides how good the pivot is."
+    },
+    {
+      "type": "tf",
+      "category": "Randomized Quick Sort",
+      "q": "Choosing the pivot at random makes an O(n²) run of Quick Sort impossible.",
+      "answer": false,
+      "explain": "The guarantee is about expected time: no static input can systematically trigger the O(n²) worst case. A single run can still be unlucky. What changes is that no fixed input is reliably bad."
+    },
+    {
+      "type": "mc",
+      "category": "Randomized Quick Sort",
+      "q": "What does the advantage \"No Single Bad Input\" of Randomized Quick Sort mean?",
+      "choices": [
+        "Every input runs in exactly Θ(n log n) time",
+        "Sorted input is detected and handled separately",
+        "Duplicate values are removed before sorting",
+        "No fixed input sequence can systematically trigger the O(n²) worst case"
+      ],
+      "answer": 3,
+      "explain": "With a first-element pivot, sorted input is bad every time. With a random pivot, no static input is bad every time, so nobody can build an input that always triggers the worst case."
+    },
+    {
+      "type": "tf",
+      "category": "Randomized Quick Sort",
+      "q": "With a randomly chosen pivot, an already-sorted input still causes Θ(n²) time on every run.",
+      "answer": false,
+      "explain": "Sorted input is reliably bad only with a fixed choice like the first element. A random pivot usually splits sorted input reasonably well, and the expected time is Θ(n log n) for any input order."
+    },
+    {
+      "type": "mc",
+      "category": "Randomized Quick Sort",
+      "q": "In the statement E[T(n)] = Θ(n log n) for Randomized Quick Sort, what is the expectation taken over?",
+      "choices": [
+        "All possible input arrays of size n",
+        "The algorithm's own random pivot choices",
+        "The number of duplicate values in the input",
+        "The depth of the recursion tree"
+      ],
+      "answer": 1,
+      "explain": "The expectation is an average over the algorithm's random choices of pivot, for any fixed input. That is why it holds regardless of input order."
+    }
+  ]
+}

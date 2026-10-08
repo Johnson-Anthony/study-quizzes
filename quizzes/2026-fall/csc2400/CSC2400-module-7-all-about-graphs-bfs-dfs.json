@@ -1,0 +1,439 @@
+{
+  "title": "CSC2400 Module 7: All About Graphs (BFS, DFS)",
+  "course": "CSC2400",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "BFS layers and tracing",
+      "q": "During a graph search, what is the boundary between the explored vertices and the unexplored vertices called?",
+      "choices": ["The frontier", "The cut set", "Layer 0", "The connected component"],
+      "answer": 0,
+      "explain": "As the search runs, vertices move from the unexplored region into the explored region. The frontier is the boundary between the two."
+    },
+    {
+      "type": "text",
+      "category": "BFS layers and tracing",
+      "q": "Which data structure does BFS use to hold vertices that have been discovered but whose edges still need to be examined? (one word)",
+      "answer": ["queue", "Queue", "a queue", "FIFO queue", "fifo queue"],
+      "explain": "BFS uses a first-in, first-out queue. Vertices are processed in the order they were discovered, so BFS finishes a whole layer before it starts the next."
+    },
+    {
+      "type": "num",
+      "category": "BFS layers and tracing",
+      "q": "A connected graph has n = 12 vertices. What is the maximum possible number of non-empty BFS layers (layers numbered from 0)?",
+      "answer": 12,
+      "explain": "The maximum comes from a path graph with BFS started at one endpoint. That gives layers L0 through L11, one vertex each, which is 12 layers (not 11)."
+    },
+    {
+      "type": "num",
+      "category": "BFS layers and tracing",
+      "q": "A path graph has 7 vertices v1–v2–v3–v4–v5–v6–v7. BFS starts at the middle vertex v4. How many non-empty layers are there?",
+      "answer": 4,
+      "explain": "L0 = {v4}, L1 = {v3, v5}, L2 = {v2, v6}, L3 = {v1, v7}. A path only gives n layers when BFS starts at an endpoint."
+    },
+    {
+      "type": "num",
+      "category": "BFS layers and tracing",
+      "q": "A star graph has a center x and 8 leaves. BFS starts at one of the leaves. How many non-empty layers are there?",
+      "answer": 3,
+      "explain": "L0 = {the starting leaf}, L1 = {x}, L2 = {the other 7 leaves}. A star gives the minimum of 2 layers only when BFS starts at the center."
+    },
+    {
+      "type": "multi",
+      "category": "BFS layers and tracing",
+      "q": "Undirected graph G has edges s–a, s–b, a–c, b–c, b–e, c–d, d–e. Run BFS from s. Which vertices are in layer L2?",
+      "choices": ["a", "b", "c", "d", "e"],
+      "fixed": true,
+      "answer": [2, 4],
+      "explain": "L0 = {s}, L1 = {a, b}, L2 = {c, e} (c via a or b, e via b), L3 = {d}. Every path from s to d uses at least 3 edges."
+    },
+    {
+      "type": "mc",
+      "category": "BFS layers and tracing",
+      "q": "Undirected graph G has edges s–a, s–b, a–c, b–c, b–e, c–d, d–e, and every adjacency list is in alphabetical order. In what order does BFS from s mark the vertices explored?",
+      "choices": ["s, a, b, c, e, d", "s, a, c, b, e, d", "s, a, b, c, d, e", "s, b, e, d, c, a"],
+      "answer": 0,
+      "explain": "Queue: [s] → remove s, discover a, b → remove a, discover c → remove b, c is already explored, discover e → remove c, discover d → remove e and d, nothing new. So the order is s, a, b, c, e, d."
+    },
+    {
+      "type": "num",
+      "category": "BFS layers and tracing",
+      "q": "Undirected graph G has edges s–a, s–b, a–c, b–c, b–e, c–d, d–e. After BFS from s, what is ℓ(d), the BFS layer number of d?",
+      "answer": 3,
+      "explain": "d is first discovered while c (layer 2) is being processed, so ℓ(d) = ℓ(c) + 1 = 3. That equals dist(s, d), for example s–a–c–d."
+    },
+    {
+      "type": "tf",
+      "category": "BFS layers and tracing",
+      "q": "In BFS, a vertex is marked explored at the moment it is removed from the front of the queue.",
+      "answer": false,
+      "explain": "BFS marks w explored when it is discovered, just before adding it to the queue. Because of this, no vertex can enter the queue twice."
+    },
+    {
+      "type": "mc",
+      "category": "BFS correctness, runtime, shortest paths",
+      "q": "In the proof that \"if BFS marks v explored, then v is reachable from s\", what is the key fact?",
+      "choices": [
+        "A vertex other than s is marked explored only when BFS scans an edge (u, v) from an already-explored vertex u. Since u is reachable, adding (u, v) to the path s ⇝ u gives a path s ⇝ v.",
+        "BFS eventually examines every edge in the graph, so every vertex gets marked.",
+        "The queue always holds exactly one layer at a time.",
+        "Every vertex in the graph has at least one neighbor."
+      ],
+      "answer": 0,
+      "explain": "This direction (explored ⇒ reachable) works by extending the path to the already-explored vertex u by the edge (u, v)."
+    },
+    {
+      "type": "mc",
+      "category": "BFS correctness, runtime, shortest paths",
+      "q": "Which argument proves the direction \"if there is a path from s to v, then BFS marks v explored\"?",
+      "choices": [
+        "Take a path s = v0, v1, ..., vk = v. v0 is explored first. Processing each vi discovers vi+1 (or finds it already explored), so following the path step by step, vk = v ends up explored.",
+        "v is marked only through an edge from an explored vertex, so it must be reachable.",
+        "BFS runs in O(m + n) time, so it must reach every vertex.",
+        "Each vertex enters the queue at most once."
+      ],
+      "answer": 0,
+      "explain": "The reachable ⇒ explored direction walks along the path from s to v. The \"marked only via an edge from an explored vertex\" argument proves the other direction."
+    },
+    {
+      "type": "mc",
+      "category": "BFS correctness, runtime, shortest paths",
+      "q": "With the graph stored as adjacency lists, where n = |V| and m = |E|, what is the running time of BFS?",
+      "choices": ["O(n + m)", "O(n · m)", "O(n²)", "O(m log n)"],
+      "answer": 0,
+      "explain": "Each vertex is marked explored and enqueued at most once, which is O(n). Each adjacency-list entry is examined at most once, which is O(m)."
+    },
+    {
+      "type": "mc",
+      "category": "BFS correctness, runtime, shortest paths",
+      "q": "A graph has n = 500 vertices and m = 2000 edges. The connected component containing s has 20 vertices and 25 edges. Which bound describes the search work of BFS from s more precisely?",
+      "choices": ["O(20 + 25)", "O(500 + 2000)", "O(20 · 25)", "O(500 · 2000)"],
+      "answer": 0,
+      "explain": "When BFS explores only the component of s, the search costs O(n_s + m_s), where n_s and m_s are the vertices and edges in the reachable part."
+    },
+    {
+      "type": "mc",
+      "category": "BFS correctness, runtime, shortest paths",
+      "q": "In an undirected graph, each edge appears in two adjacency lists. How does this affect BFS's running time bound?",
+      "choices": [
+        "It only changes the constant factor, so BFS is still O(n + m).",
+        "It makes BFS O(n + m²).",
+        "It makes BFS O(n · m).",
+        "It means BFS must be run twice to be correct."
+      ],
+      "answer": 0,
+      "explain": "BFS may look at up to 2m list entries, and 2m is still O(m)."
+    },
+    {
+      "type": "tf",
+      "category": "BFS correctness, runtime, shortest paths",
+      "q": "In an unweighted graph, if BFS discovers vertex v in layer 3, then some path from s to v uses only 2 edges.",
+      "answer": false,
+      "explain": "ℓ(v) = dist(s, v). Being in layer 3 means every path from s to v has at least 3 edges, and BFS found one with exactly 3."
+    },
+    {
+      "type": "mc",
+      "category": "BFS correctness, runtime, shortest paths",
+      "q": "For which kind of graph does BFS compute shortest-path distances dist(s, v) directly from its layer numbers?",
+      "choices": [
+        "Unweighted graphs, where distance is the number of edges on the path",
+        "Graphs with arbitrary positive edge weights",
+        "Only directed acyclic graphs",
+        "Only trees"
+      ],
+      "answer": 0,
+      "explain": "BFS discovers vertices layer by layer, so ℓ(v) = dist(s, v) when distance means the minimum number of edges, which is the unweighted case."
+    },
+    {
+      "type": "mc",
+      "category": "BFS correctness, runtime, shortest paths",
+      "q": "In the shortest-path problem, what is dist(s, v) when there is no path from s to v?",
+      "choices": ["Undefined, or represented as +∞", "0", "-1", "n, the number of vertices"],
+      "answer": 0,
+      "explain": "If no path exists, the distance is undefined or written as +∞. BFS never marks such a vertex explored."
+    },
+    {
+      "type": "mc",
+      "category": "BFS correctness, runtime, shortest paths",
+      "q": "To make BFS also compute layer numbers, ℓ(s) = 0 is set at the start. When a vertex v is removed from the queue and an unexplored neighbor w is discovered, what should be set?",
+      "choices": ["ℓ(w) = ℓ(v) + 1", "ℓ(w) = ℓ(v)", "ℓ(w) = ℓ(v) − 1", "ℓ(w) = number of vertices currently in the queue"],
+      "answer": 0,
+      "explain": "w is one edge farther from s than v, so it belongs to the next layer."
+    },
+    {
+      "type": "mc",
+      "category": "DFS",
+      "q": "Which of the following are the two common ways to implement DFS?",
+      "choices": [
+        "Recursion, or an explicit stack",
+        "A queue, or a priority queue",
+        "An adjacency matrix, or an adjacency list",
+        "A queue, or recursion"
+      ],
+      "answer": 0,
+      "explain": "DFS goes as deep as possible before backtracking. The recursive call stack provides the backtracking, and an explicit stack gives the same last-in, first-out behavior."
+    },
+    {
+      "type": "mc",
+      "category": "DFS",
+      "q": "Undirected graph G has edges s–a, s–b, a–c, b–c, b–e, c–d, d–e, and every adjacency list is in alphabetical order. Run recursive DFS from s. In what order are the vertices marked explored?",
+      "choices": ["s, a, c, b, e, d", "s, a, b, c, e, d", "s, b, e, d, c, a", "s, a, c, d, e, b"],
+      "answer": 0,
+      "explain": "DFS(s) → a → c (c's first unexplored neighbor is b) → b (next unexplored is e) → e → d. Then d, e, b, c, a, s finish in turn."
+    },
+    {
+      "type": "mc",
+      "category": "DFS",
+      "q": "Same graph: edges s–a, s–b, a–c, b–c, b–e, c–d, d–e, alphabetical adjacency lists, recursive DFS from s. In what order do the recursive calls finish?",
+      "choices": ["d, e, b, c, a, s", "s, a, c, b, e, d", "d, e, c, b, a, s", "s, a, b, c, e, d"],
+      "answer": 0,
+      "explain": "The chain is s → a → c → b → e → d. d has no unexplored neighbors, so it finishes first. Then e, b, and c finish (c's edge to d is skipped), then a, then s."
+    },
+    {
+      "type": "num",
+      "category": "DFS",
+      "q": "Same graph: edges s–a, s–b, a–c, b–c, b–e, c–d, d–e, alphabetical adjacency lists, recursive DFS from s. How many edges are on the path DFS followed to first reach d? (Compare this with dist(s, d) = 3.)",
+      "answer": 5,
+      "explain": "DFS reached d along s → a → c → b → e → d, which is 5 edges, but the shortest path has 3. DFS does not compute shortest paths."
+    },
+    {
+      "type": "mc",
+      "category": "DFS",
+      "q": "Same graph: edges s–a, s–b, a–c, b–c, b–e, c–d, d–e, alphabetical adjacency lists. Run the iterative stack DFS from s: pop v; if v is unexplored, mark it and push all its neighbors in adjacency-list order. In what order are vertices marked explored?",
+      "choices": ["s, b, e, d, c, a", "s, a, c, b, e, d", "s, a, b, c, e, d", "s, b, c, a, e, d"],
+      "answer": 0,
+      "explain": "Pop s, push a, b. Pop b (last in), push c, e, s. Pop s (skip). Pop e, push b, d. Pop d, push c, e. Pop e (skip). Pop c, push a, b, d. Pop d and b (skip). Pop a. The stack pops the last neighbor pushed first."
+    },
+    {
+      "type": "tf",
+      "category": "DFS",
+      "q": "In the iterative stack-based DFS (mark on pop, push every neighbor), the same vertex can be on the stack more than once.",
+      "answer": true,
+      "explain": "It pushes every neighbor without checking, so duplicates happen. The \"if v is unexplored\" check after popping makes them harmless."
+    },
+    {
+      "type": "tf",
+      "category": "DFS",
+      "q": "Recursive DFS and iterative stack DFS started from the same vertex always mark the vertices explored in the same order.",
+      "answer": false,
+      "explain": "The stack pops the most recently pushed neighbor first, which usually reverses the neighbor order. Both orders are valid DFS orders because each goes deep before backtracking."
+    },
+    {
+      "type": "multi",
+      "category": "DFS",
+      "q": "DFS is particularly important in algorithms for which of the following?",
+      "choices": [
+        "Topological ordering",
+        "Strongly connected components",
+        "Shortest-path distances in unweighted graphs",
+        "Finding the minimum number of BFS layers"
+      ],
+      "answer": [0, 1],
+      "explain": "DFS's main uses are topological ordering and strongly connected components. Shortest paths in unweighted graphs come from BFS's layer structure."
+    },
+    {
+      "type": "mc",
+      "category": "Connected components",
+      "q": "What is a connected component of an undirected graph?",
+      "choices": [
+        "A maximal subset S of V such that there is a path between any two vertices in S",
+        "Any subset of vertices that are all adjacent to one common vertex",
+        "The set of vertices in a single BFS layer",
+        "A subset of vertices with no edges between them"
+      ],
+      "answer": 0,
+      "explain": "\"Maximal\" means you cannot add another vertex and keep the property. No path connects vertices in different components."
+    },
+    {
+      "type": "num",
+      "category": "Connected components",
+      "q": "An undirected graph has vertices 1 through 10 and edges 1–2, 2–3, 4–5, 6–7, 7–8, 8–6. How many connected components does it have?",
+      "answer": 5,
+      "explain": "{1, 2, 3}, {4, 5}, {6, 7, 8}, {9}, {10}. Each isolated vertex is a component by itself."
+    },
+    {
+      "type": "multi",
+      "category": "Connected components",
+      "q": "ConnectedComponents scans vertices 1 through 8 in increasing order on an undirected graph with edges 1–5, 2–6, 5–8, 3–4. At which scanned vertices does it find an unexplored vertex, increment numCC, and start a new BFS?",
+      "choices": ["1", "2", "3", "4", "5", "6", "7", "8"],
+      "fixed": true,
+      "answer": [0, 1, 2, 6],
+      "explain": "BFS(1) labels {1, 5, 8}, BFS(2) labels {2, 6}, BFS(3) labels {3, 4}, and 7 is isolated, so BFS(7). Vertices 4, 5, 6, and 8 are already explored when scanned. That is 4 BFS calls for 4 components."
+    },
+    {
+      "type": "num",
+      "category": "Connected components",
+      "q": "What is the maximum number of connected components a graph with n = 15 vertices can have?",
+      "answer": 15,
+      "explain": "If the graph has no edges, every vertex is its own component, so 1 ≤ #CC ≤ n."
+    },
+    {
+      "type": "mc",
+      "category": "Connected components",
+      "q": "A graph with n ≥ 1 vertices has exactly 1 connected component when:",
+      "choices": [
+        "The graph is connected",
+        "The graph has no edges",
+        "The graph has exactly n edges",
+        "The graph is directed"
+      ],
+      "answer": 0,
+      "explain": "If the graph is connected, every vertex is in the same component. That is the minimum, 1. The no-edges case gives the maximum, n."
+    },
+    {
+      "type": "mc",
+      "category": "Connected components",
+      "q": "ConnectedComponents may call BFS many times. What is its total running time on a graph with n vertices and m edges, and why?",
+      "choices": [
+        "O(m + n), because each vertex is explored only once overall and each edge is examined a constant number of times overall",
+        "O(n · (m + n)), because BFS may be called once per vertex",
+        "O(n²), because every pair of vertices must be checked",
+        "O(m · n), because each BFS call scans every edge"
+      ],
+      "answer": 0,
+      "explain": "Explored marks are set once at the top and never reset, so the BFS calls together touch each vertex once and each edge a constant number of times. The total is linear time."
+    },
+    {
+      "type": "tf",
+      "category": "Connected components",
+      "q": "The connected-components algorithm calls BFS exactly once for every vertex in the graph.",
+      "answer": false,
+      "explain": "It calls BFS only when the scan finds an unexplored vertex, which happens once per component. The number of BFS calls equals the number of connected components."
+    },
+    {
+      "type": "multi",
+      "category": "Connected components",
+      "q": "Which of these are uses of connected components?",
+      "choices": [
+        "Network failure analysis",
+        "Data visualization",
+        "Clustering (for example articles, genomes, or related listings)",
+        "Ordering tasks so that every prerequisite comes first"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Connected components identify groups of related or reachable objects. Ordering tasks by prerequisites is topological sorting."
+    },
+    {
+      "type": "mc",
+      "category": "Topological sorting",
+      "q": "What is a topological ordering of a directed graph?",
+      "choices": [
+        "An ordering of the vertices such that for every edge u → v, u appears before v",
+        "An ordering of the vertices by increasing BFS layer number",
+        "An ordering of the vertices by the order DFS discovers them",
+        "An ordering such that for every edge u → v, v appears before u"
+      ],
+      "answer": 0,
+      "explain": "Each directed edge is a precedence constraint, and a topological ordering respects all of them."
+    },
+    {
+      "type": "multi",
+      "category": "Topological sorting",
+      "q": "Which of these graphs can be topologically sorted?",
+      "choices": [
+        "Directed graph with edges a → b, b → c, a → c",
+        "Directed graph with edges a → b, b → c, c → a",
+        "Undirected graph with edges a–b, b–c",
+        "Directed graph with edges a → b, c → b"
+      ],
+      "answer": [0, 3],
+      "explain": "Topological sorting is defined for DAGs (directed and acyclic). The second graph has a directed cycle, and the undirected graph has no directed precedence constraints."
+    },
+    {
+      "type": "mc",
+      "category": "Topological sorting",
+      "q": "Why can't a directed graph with edges 1 → 2, 2 → 3, 3 → 4, 4 → 1 be topologically sorted?",
+      "choices": [
+        "The constraints would require 1 < 2 < 3 < 4 < 1, which is impossible",
+        "It has too few edges",
+        "DFS cannot be run on directed graphs",
+        "Vertex 1 has no incoming edges"
+      ],
+      "answer": 0,
+      "explain": "A directed cycle creates contradictory precedence requirements, so topological sorting requires a DAG."
+    },
+    {
+      "type": "text",
+      "category": "Topological sorting",
+      "q": "Topological sorting requires a graph that is directed and has no directed cycle. What is the three-letter abbreviation for such a graph?",
+      "answer": ["DAG", "dag", "Dag"],
+      "explain": "DAG = directed acyclic graph."
+    },
+    {
+      "type": "num",
+      "category": "Topological sorting",
+      "q": "DAG H has vertices a, b, c, d, e and edges a → c, b → c, b → d, c → e, d → e. Run TopologicalSort with main-loop order a, b, c, d, e and alphabetical adjacency lists (curLabel starts at 5). What is f(a)?",
+      "answer": 3,
+      "explain": "DFS-Topo(a) → c → e. e finishes first: f(e) = 5. Then f(c) = 4 and f(a) = 3. The main loop then calls DFS-Topo(b). b → c is already explored, b → d gives f(d) = 2, and finally f(b) = 1."
+    },
+    {
+      "type": "mc",
+      "category": "Topological sorting",
+      "q": "Same DAG H (edges a → c, b → c, b → d, c → e, d → e), main-loop order a, b, c, d, e, alphabetical adjacency lists. What topological ordering does TopologicalSort produce (listing vertices by increasing f)?",
+      "choices": ["b, d, a, c, e", "e, c, a, d, b", "a, c, e, b, d", "a, b, c, d, e"],
+      "answer": 0,
+      "explain": "f(b) = 1, f(d) = 2, f(a) = 3, f(c) = 4, f(e) = 5. Check: a → c (3 < 4), b → c (1 < 4), b → d (1 < 2), c → e (4 < 5), d → e (2 < 5). \"e, c, a, d, b\" is the finish order, which is the reverse."
+    },
+    {
+      "type": "num",
+      "category": "Topological sorting",
+      "q": "Same DAG H (edges a → c, b → c, b → d, c → e, d → e), but now the main loop goes in order e, d, c, b, a. What is f(b)?",
+      "answer": 2,
+      "explain": "DFS-Topo(e) gives f(e) = 5. d's only out-neighbor e is explored, so f(d) = 4. Likewise f(c) = 3. Then f(b) = 2 and f(a) = 1. The ordering a, b, c, d, e is also valid, so a DAG can have more than one topological ordering."
+    },
+    {
+      "type": "mc",
+      "category": "Topological sorting",
+      "q": "Why does DFS-Topo assign f(s) = curLabel at the END of the call, after the loop over outgoing edges?",
+      "choices": [
+        "So that every vertex reachable from s has already finished and received a larger label, which places s before all of them",
+        "So that s receives the largest label, |V|",
+        "Because labels must be assigned in discovery order",
+        "To make the algorithm run in O(m + n) instead of O(n²)"
+      ],
+      "answer": 0,
+      "explain": "Labels count down, so vertices that finish earlier get larger labels (later positions). Labeling at the start would assign labels in discovery order and can break constraints, for example placing s after one of its descendants."
+    },
+    {
+      "type": "mc",
+      "category": "Topological sorting",
+      "q": "On a DAG, a student runs DFS-Topo but hands out labels 1, 2, 3, ... in the order vertices finish (counting up instead of down). Reading vertices by increasing label gives:",
+      "choices": [
+        "The reverse of a topological ordering",
+        "A valid topological ordering",
+        "The BFS layer order",
+        "The DFS discovery order"
+      ],
+      "answer": 0,
+      "explain": "For an edge u → v, v finishes before u. Counting up gives v the smaller label, so every edge points backward."
+    },
+    {
+      "type": "tf",
+      "category": "Topological sorting",
+      "q": "In TopologicalSort, the first vertex to finish its DFS-Topo call receives label |V|, the last position in the ordering.",
+      "answer": true,
+      "explain": "curLabel starts at |V| and decreases by one each time a vertex finishes, so the labels handed out are |V|, |V| − 1, ..., 1."
+    },
+    {
+      "type": "mc",
+      "category": "Topological sorting",
+      "q": "TopologicalSort runs on a directed graph with edges 1 → 2, 2 → 3, 3 → 1, main-loop order 1, 2, 3. It assigns f(1) = 1, f(2) = 2, f(3) = 3. Which edge does the resulting order 1, 2, 3 violate?",
+      "choices": ["3 → 1", "1 → 2", "2 → 3", "None. The order is valid."],
+      "answer": 0,
+      "explain": "3 → 1 requires 3 before 1, but f(3) = 3 > f(1) = 1. The graph has a cycle, so no valid ordering exists. The algorithm only guarantees a correct result on a DAG."
+    },
+    {
+      "type": "mc",
+      "category": "Topological sorting",
+      "q": "In a DAG, DFS-Topo at vertex u examines an edge u → v and finds v already explored. What must be true?",
+      "choices": [
+        "v's DFS-Topo call has already finished, so f(v) is already assigned and is larger than the label u will get",
+        "v's DFS-Topo call is still running higher up in the recursion",
+        "v has no incoming edges",
+        "curLabel must be reset to |V|"
+      ],
+      "answer": 0,
+      "explain": "If v's call were still running, DFS would have reached u from v, so there would be a path v ⇝ u. Together with u → v, that makes a cycle, which a DAG cannot have. So v already holds a larger label, and u still comes before v."
+    }
+  ]
+}
