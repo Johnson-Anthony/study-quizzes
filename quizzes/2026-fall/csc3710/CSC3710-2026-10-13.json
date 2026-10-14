@@ -1,0 +1,436 @@
+{
+ "title": "CSC3710 2026-10-13: DFA Configurations, Regular Languages via Configurations, Intro to Context-Free Grammars",
+ "course": "CSC3710",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "Languages and regularity",
+   "q": "Which set is the set of ALL languages over an alphabet Σ?",
+   "choices": ["P(Σ*), the power set of Σ*", "Σ*", "Σ⁺", "The set of regular languages over Σ"],
+   "answer": 0,
+   "explain": "Every subset of Σ* is a language, and the set of all subsets of Σ* is its power set P(Σ*). The regular languages are only a subset of it."
+  },
+  {
+   "type": "mc",
+   "category": "Languages and regularity",
+   "q": "Which statement correctly relates regular expressions, DFAs, and regular languages?",
+   "choices": ["Regular expressions describe regular languages; DFAs accept regular languages", "Regular expressions accept regular languages; DFAs describe them", "DFAs accept every language in P(Σ*)", "Regular expressions describe context-free languages; DFAs accept regular languages"],
+   "answer": 0,
+   "explain": "Regular expressions describe regular languages and DFAs accept them. Regular languages are a proper subset of all languages."
+  },
+  {
+   "type": "text",
+   "category": "Languages and regularity",
+   "q": "What is the shortest string in L = { a^i b^j | i ≥ 0, j > i }?",
+   "answer": ["b"],
+   "explain": "Take the smallest i, which is 0. Then j > 0, so the smallest j is 1, which gives the string b."
+  },
+  {
+   "type": "multi",
+   "category": "Languages and regularity",
+   "q": "Which strings belong to L = { a^i b^j | i ≥ 0, j > i }?",
+   "choices": ["bb", "abb", "aabb", "aaabbbb", "ab", "λ"],
+   "answer": [0, 1, 3],
+   "explain": "bb (i=0, j=2), abb (i=1, j=2), and aaabbbb (i=3, j=4) all have j > i. aabb (2,2), ab (1,1), and λ (0,0) have j = i, which is not strictly greater."
+  },
+  {
+   "type": "num",
+   "category": "Languages and regularity",
+   "q": "A string in L = { a^i b^j | i ≥ 0, j > i } starts with exactly 5 a's. What is the smallest number of b's it can have?",
+   "answer": 6,
+   "explain": "j must be strictly greater than i = 5, so the smallest j is 6, which gives a^5 b^6."
+  },
+  {
+   "type": "mc",
+   "category": "Languages and regularity",
+   "q": "Which string shows that the regular expression a*b* does NOT describe { a^i b^i | i ≥ 0 }?",
+   "choices": ["abb", "aabb", "λ", "ab"],
+   "answer": 0,
+   "explain": "abb is in L(a*b*), because the a's come before the b's, but it is not in { a^i b^i }, because the counts differ. aabb, λ, and ab are in both sets, so none of them shows a difference."
+  },
+  {
+   "type": "mc",
+   "category": "Languages and regularity",
+   "q": "What is the intuition for why { a^i b^j | i ≥ 0, j > i } has no regular expression?",
+   "choices": ["The number of b's depends on the number of a's, and a Kleene star cannot keep count", "The language is infinite", "The language contains λ", "The language uses two different symbols"],
+   "answer": 0,
+   "explain": "Putting a star over something loses the count, so a regular expression cannot tie the number of b's to the number of a's. Being infinite or using two symbols does not stop a language from being regular (a*b* is both). This language does not contain λ."
+  },
+  {
+   "type": "tf",
+   "category": "Languages and regularity",
+   "q": "True or false: noticing that \"the number of b's depends on the number of a's\" is by itself a formal proof that a language is not regular.",
+   "answer": false,
+   "explain": "That observation is only the intuition. Showing that a language is not regular takes a formal proof (the book's proof for a^i b^i uses DFAs), and examples can differ in subtle ways."
+  },
+  {
+   "type": "mc",
+   "category": "Languages and regularity",
+   "q": "Since { a^i b^i | i ≥ 0 } is not regular, which of the following is true?",
+   "choices": ["No regular expression and no DFA exists for it", "A DFA exists for it, but no regular expression does", "A regular expression exists for it, but no DFA does", "A regular expression exists, but it is extremely long"],
+   "answer": 0,
+   "explain": "Regular expressions and DFAs both capture exactly the regular languages. If a language is not regular, neither one exists for it, however hard you try."
+  },
+  {
+   "type": "mc",
+   "category": "Languages and regularity",
+   "q": "Which regular expression describes { a^i b^(2j) c^(3k+1) | i, j, k ≥ 0 }?",
+   "choices": ["a*(bb)*c(ccc)*", "a*b*c(ccc)*", "a*(bb)*(ccc)*", "a*(bb)*c*"],
+   "answer": 0,
+   "explain": "Any number of a's: a*. An even number of b's: (bb)*. One c plus a multiple of 3 more c's: c(ccc)*. The three exponents are independent of each other, so no counting is needed and the language is regular."
+  },
+  {
+   "type": "mc",
+   "category": "DFA configurations and yields",
+   "q": "What does a DFA configuration [q_i, w] consist of?",
+   "choices": ["The current state and the unprocessed (remaining) string", "The current state and the string already read", "The previous state and the current state", "The current state and only the next input symbol"],
+   "answer": 0,
+   "explain": "In a DFA, what happens next depends only on the current state and what is left to process. That pair is the configuration. w is in Σ* and may be λ."
+  },
+  {
+   "type": "mc",
+   "category": "DFA configurations and yields",
+   "q": "In the rule [q_i, aw] ⊢_M [q_j, w], where q_j = δ(q_i, a), what is a?",
+   "choices": ["A variable holding one symbol of Σ (it could be b, 0, 1, ...)", "Always the literal letter a", "The entire remaining input string", "The empty string λ"],
+   "answer": 0,
+   "explain": "a is a variable standing for whichever single symbol is consumed next. The book also uses a and b as alphabet symbols, which makes this easy to misread."
+  },
+  {
+   "type": "mc",
+   "category": "DFA configurations and yields",
+   "q": "Match the step [q1, bbb] ⊢_M [q0, bb] to the pattern [q_i, aw] ⊢_M [q_j, w]. Which is correct?",
+   "choices": ["The variable a holds b, w = bb, and the step is justified by δ(q1, b) = q0", "The variable a holds a, w = bbb, and the step is justified by δ(q1, a) = q0", "The variable a holds bb, w = b, and the step is justified by δ(q1, bb) = q0", "The variable a holds b, w = bb, and the step is justified by δ(q0, b) = q1"],
+   "answer": 0,
+   "explain": "One symbol (b) is consumed, so the variable a holds b and w = bb is what's left. The new state is δ(current state, consumed symbol) = δ(q1, b) = q0."
+  },
+  {
+   "type": "mc",
+   "category": "DFA configurations and yields",
+   "q": "For a DFA with δ(q1, a) = q2, which configuration does [q1, aaba] yield in one step?",
+   "choices": ["[q2, aba]", "[q2, aaba]", "[q1, aba]", "[q2, aab]"],
+   "answer": 0,
+   "explain": "The machine is in q1 and the next symbol is a, so it moves to δ(q1, a) = q2 and consumes that leftmost a, leaving aba."
+  },
+  {
+   "type": "mc",
+   "category": "DFA configurations and yields",
+   "q": "What are the domain and codomain of the yields relation ⊢_M of a DFA?",
+   "choices": ["Q × Σ⁺ → Q × Σ*", "Q × Σ* → Q × Σ*", "Q × Σ* → Q × Σ⁺", "Q × Σ → Q"],
+   "answer": 0,
+   "explain": "The left side uses Σ⁺ (non-empty strings) because there is no step from [q, λ]. The right side uses Σ* because a step can consume the last symbol and leave λ. (Q × Σ → Q is the type of δ, not of ⊢_M.)"
+  },
+  {
+   "type": "tf",
+   "category": "DFA configurations and yields",
+   "q": "True or false: the yields relation ⊢_M is defined for configurations of the form [q, λ].",
+   "answer": false,
+   "explain": "Its domain is Q × Σ⁺, which excludes λ. With nothing left to process the machine stops. It does not keep stepping in [q, λ] forever."
+  },
+  {
+   "type": "mc",
+   "category": "DFA configurations and yields",
+   "q": "For a DFA M = (Q, Σ, δ, q0, F), which is the form of an ACCEPTING configuration?",
+   "choices": ["[q_f, λ] with q_f ∈ F", "[q_f, w] with q_f ∈ F", "[q0, λ]", "[q_r, λ] with q_r ∈ Q − F"],
+   "answer": 0,
+   "explain": "Accepting means the input is fully consumed (λ left) and the machine is in a final state. [q_r, λ] with q_r ∈ Q − F is a rejecting configuration, and [q0, w] is the starting configuration."
+  },
+  {
+   "type": "tf",
+   "category": "DFA configurations and yields",
+   "q": "True or false: if q_f ∈ F, then [q_f, ab] is an accepting configuration.",
+   "answer": false,
+   "explain": "Input is still left. Acceptance needs [q_f, λ]. Passing through a final state halfway through the input means nothing."
+  },
+  {
+   "type": "mc",
+   "category": "DFA configurations and yields",
+   "q": "Why is the yields symbol written with a subscript, as in ⊢_M?",
+   "choices": ["To name which machine the step belongs to (e.g. ⊢_M1 vs. ⊢_M2)", "To show the number of steps taken", "To mark that the step ends in a final state", "To show that the string is in the language"],
+   "answer": 0,
+   "explain": "The subscript identifies the machine. If several machines are being discussed, each one gets its own yields relation."
+  },
+  {
+   "type": "mc",
+   "category": "Computations and ⊢*",
+   "q": "DFA M over {a, b}: initial state q2, only accepting state q1, transitions δ(q2,a)=q2, δ(q2,b)=q0, δ(q0,a)=q0, δ(q0,b)=q1, δ(q1,a)=q2, δ(q1,b)=q0. Which is the computation of M on abab?",
+   "choices": ["[q2, abab] ⊢ [q2, bab] ⊢ [q0, ab] ⊢ [q0, b] ⊢ [q1, λ]", "[q2, abab] ⊢ [q0, bab] ⊢ [q1, ab] ⊢ [q2, b] ⊢ [q0, λ]", "[q2, abab] ⊢ [q2, aba] ⊢ [q0, ab] ⊢ [q0, a] ⊢ [q1, λ]", "[q2, abab] ⊢ [q2, bab] ⊢ [q0, ab] ⊢ [q0, b] ⊢ [q1, b]"],
+   "answer": 0,
+   "explain": "Each step consumes the leftmost symbol: a keeps q2 in q2, b takes q2 to q0, a keeps q0 in q0, and b takes q0 to q1. The input is used up in q1, which is accepting."
+  },
+  {
+   "type": "mc",
+   "category": "Computations and ⊢*",
+   "q": "Same DFA M (initial q2, only accepting state q1; δ(q2,a)=q2, δ(q2,b)=q0, δ(q0,a)=q0, δ(q0,b)=q1, δ(q1,a)=q2, δ(q1,b)=q0). Starting from [q2, abba], which configuration does the computation end in, and is abba accepted?",
+   "choices": ["[q2, λ]; rejected", "[q1, λ]; accepted", "[q1, a]; accepted", "[q0, λ]; rejected"],
+   "answer": 0,
+   "explain": "[q2, abba] ⊢ [q2, bba] ⊢ [q0, ba] ⊢ [q1, a] ⊢ [q2, λ]. The machine passes through q1 but finishes in q2 ∉ F with all input consumed, so abba is rejected."
+  },
+  {
+   "type": "multi",
+   "category": "Computations and ⊢*",
+   "q": "Same DFA M (initial q2, only accepting state q1; δ(q2,a)=q2, δ(q2,b)=q0, δ(q0,a)=q0, δ(q0,b)=q1, δ(q1,a)=q2, δ(q1,b)=q0). Which statements are true?",
+   "choices": ["[q2, abab] ⊢* [q2, abab]", "[q2, abab] ⊢* [q0, b]", "[q2, abab] ⊢* [q1, λ]", "[q2, abab] ⊢* [q0, bab]", "[q2, abab] ⊢* [q1, ab]", "[q2, abab] ⊢* [q2, λ]"],
+   "answer": [0, 1, 2],
+   "explain": "The computation is [q2, abab] ⊢ [q2, bab] ⊢ [q0, ab] ⊢ [q0, b] ⊢ [q1, λ]. ⊢* can stop at any of these, including the start (zero steps). [q0, bab], [q1, ab], and [q2, λ] never appear."
+  },
+  {
+   "type": "mc",
+   "category": "Computations and ⊢*",
+   "q": "What does [q_i, u] ⊢*_M [q_j, v] mean?",
+   "choices": ["[q_i, u] yields [q_j, v] in zero or more transitions", "[q_i, u] yields [q_j, v] in exactly one transition", "[q_i, u] yields [q_j, v] in one or more transitions", "[q_j, v] is an accepting configuration"],
+   "answer": 0,
+   "explain": "The star means zero or more transitions. Because zero steps is allowed, u and v may both be λ, and any configuration yields itself."
+  },
+  {
+   "type": "tf",
+   "category": "Computations and ⊢*",
+   "q": "True or false: [q1, λ] ⊢*_M [q1, λ] is a correct statement.",
+   "answer": true,
+   "explain": "⊢* allows zero transitions, so every configuration, including one with λ left, yields itself."
+  },
+  {
+   "type": "text",
+   "category": "Computations and ⊢*",
+   "q": "What is the name for the entire chain of configurations a machine goes through while processing an input (for example, [q2, abab] ⊢ ... ⊢ [q1, λ])?",
+   "answer": ["computation", "a computation"],
+   "explain": "Each pair is a configuration, ⊢ is read \"yields\", and the whole sequence is a computation."
+  },
+  {
+   "type": "num",
+   "category": "Computations and ⊢*",
+   "q": "A DFA processes a string of length 7, starting from its starting configuration and continuing until the input is fully consumed. How many single ⊢_M steps does the computation contain?",
+   "answer": 7,
+   "explain": "Each DFA step consumes exactly one symbol, and there is no step from [q, λ], so a string of length n takes exactly n steps."
+  },
+  {
+   "type": "mc",
+   "category": "Computations and ⊢*",
+   "q": "What is the main practical benefit of the ⊢* notation?",
+   "choices": ["It shortens the description of long computations by skipping intermediate steps", "It lets a DFA take more than one transition on the same symbol", "It lets a machine continue after the input is consumed", "It turns a DFA into a pushdown automaton"],
+   "answer": 0,
+   "explain": "⊢* lets you say \"after some number of steps the machine reaches this configuration\". This matters most for machines with very long computations, such as a Turing machine shuttling back and forth on its tape."
+  },
+  {
+   "type": "mc",
+   "category": "Accepted and rejected languages",
+   "q": "For a DFA M = (Q, Σ, δ, q0, F), which set is L(M), the language accepted by M?",
+   "choices": ["{ w ∈ Σ* | [q0, w] ⊢*_M [q_f, λ], q_f ∈ F }", "{ w ∈ Σ* | [q0, w] ⊢*_M [q_f, w], q_f ∈ F }", "{ w ∈ Σ* | [q0, w] ⊢_M [q_f, λ], q_f ∈ F }", "{ w ∈ Σ* | [q0, w] ⊢*_M [q_r, λ], q_r ∈ Q − F }"],
+   "answer": 0,
+   "explain": "Start in the starting configuration [q0, w]. If zero or more transitions reach a final state with nothing left (λ), w is accepted. A single ⊢ would only cover strings of length 1. The last choice is the rejected language."
+  },
+  {
+   "type": "mc",
+   "category": "Accepted and rejected languages",
+   "q": "Which set is the language REJECTED by a DFA M = (Q, Σ, δ, q0, F), i.e. the complement of L(M)?",
+   "choices": ["{ w ∈ Σ* | [q0, w] ⊢*_M [q_r, λ], q_r ∈ Q − F }", "{ w ∈ Σ* | [q0, w] ⊢*_M [q_r, w], q_r ∈ Q − F }", "{ w ∈ Σ* | [q0, w] ⊢*_M [q_trap, λ], where q_trap is a trap state }", "{ w ∈ Σ* | [q0, w] ⊢*_M [q_f, λ], q_f ∈ F }"],
+   "answer": 0,
+   "explain": "A string is rejected when it is fully processed (λ left) and the machine finishes in any non-accepting state, that is, any state in Q − F."
+  },
+  {
+   "type": "mc",
+   "category": "Accepted and rejected languages",
+   "q": "In the definition of the rejected language, what does Q − F denote?",
+   "choices": ["Set difference: the states in Q that are not in F", "The number of states minus the number of final states", "The trap states of the DFA", "The states reachable from q0 that are not final"],
+   "answer": 0,
+   "explain": "Q − F (also written Q \\ F) is set difference. Its elements are the non-accepting (rejecting) states."
+  },
+  {
+   "type": "tf",
+   "category": "Accepted and rejected languages",
+   "q": "True or false: a DFA rejects a string only when the computation ends in a trap state.",
+   "answer": false,
+   "explain": "Rejection means ending, with all input consumed, in ANY state of Q − F. A trap state is just one possible non-accepting state."
+  },
+  {
+   "type": "mc",
+   "category": "Accepted and rejected languages",
+   "q": "Why does the definition of L(M) use ⊢* (zero or more transitions) instead of one or more?",
+   "choices": ["So that the input λ is handled correctly: on λ the DFA makes no moves", "So that the DFA can make extra moves after consuming the input", "Because a DFA always needs at least one transition to accept", "To allow nondeterministic choices"],
+   "answer": 0,
+   "explain": "On input λ, [q0, λ] ⊢* [q0, λ] in zero steps, and λ is accepted exactly when q0 ∈ F. Requiring one or more transitions would leave no computation for λ."
+  },
+  {
+   "type": "mc",
+   "category": "Accepted and rejected languages",
+   "q": "In a DFA M, the initial state q0 is also a final state (q0 ∈ F). What follows?",
+   "choices": ["λ ∈ L(M)", "λ ∉ L(M)", "L(M) = Σ*", "M has no rejecting configurations"],
+   "answer": 0,
+   "explain": "[q0, λ] ⊢* [q0, λ] in zero transitions, and since q0 ∈ F this is an accepting configuration, so λ is accepted. Nothing follows about other strings."
+  },
+  {
+   "type": "mc",
+   "category": "Accepted and rejected languages",
+   "q": "DFA M: initial state q2, only accepting state q1 (δ(q2,a)=q2, δ(q2,b)=q0, δ(q0,a)=q0, δ(q0,b)=q1, δ(q1,a)=q2, δ(q1,b)=q0). Is λ accepted?",
+   "choices": ["No: [q2, λ] ⊢* [q2, λ] in zero steps, and q2 ∉ F", "Yes: every DFA accepts λ", "Yes: [q2, λ] ⊢* [q1, λ]", "The question has no answer, because ⊢ is not defined on λ"],
+   "answer": 0,
+   "explain": "With λ as input the machine makes no moves and stays in the initial state q2. q2 is not accepting, so λ is rejected. ⊢ is undefined on [q, λ], but ⊢* still covers the zero-step case."
+  },
+  {
+   "type": "tf",
+   "category": "Accepted and rejected languages",
+   "q": "True or false: in \"L is regular if and only if there exists a DFA M with L = L(M)\", the \"if and only if\" must be proved in both directions before it can be used.",
+   "answer": false,
+   "explain": "This is a definition, not a theorem. A definition is taken as given, so there is nothing to prove."
+  },
+  {
+   "type": "num",
+   "category": "Accepted and rejected languages",
+   "q": "How many components does a DFA M = (Q, Σ, δ, q0, F) have?",
+   "answer": 5,
+   "explain": "States Q, alphabet Σ, transition function δ, initial state q0, and set of final states F."
+  },
+  {
+   "type": "mc",
+   "category": "Context-free grammar definition",
+   "q": "In a context-free grammar G = (N, Σ, P, S), what are the four components?",
+   "choices": ["N = non-terminals (variables), Σ = terminals (alphabet), P = rules, S = start symbol", "N = states, Σ = alphabet, P = transitions, S = final states", "N = terminals, Σ = non-terminals, P = rules, S = start symbol", "N = rules, Σ = alphabet, P = parse trees, S = sentences"],
+   "answer": 0,
+   "explain": "A CFG is a quadruple: a finite set of non-terminals N, a finite set of terminals Σ, a set of rules P, and a start symbol S ∈ N."
+  },
+  {
+   "type": "num",
+   "category": "Context-free grammar definition",
+   "q": "How many components does a context-free grammar have?",
+   "answer": 4,
+   "explain": "(N, Σ, P, S) is a quadruple. Compare a DFA, which has 5 components."
+  },
+  {
+   "type": "mc",
+   "category": "Context-free grammar definition",
+   "q": "In a CFG (N, Σ, P, S), what must be true of N and Σ?",
+   "choices": ["N ∩ Σ = ∅ (they are disjoint)", "N ⊆ Σ", "Σ ⊆ N", "N ∪ Σ = ∅"],
+   "answer": 0,
+   "explain": "No symbol can be both a non-terminal and a terminal. Also, S ∈ N."
+  },
+  {
+   "type": "mc",
+   "category": "Context-free grammar definition",
+   "q": "A CFG rule has the form U → w. What does the definition require?",
+   "choices": ["U ∈ N and w ∈ (N ∪ Σ)*", "U ∈ Σ and w ∈ (N ∪ Σ)*", "U ∈ (N ∪ Σ)* and w ∈ N", "U ∈ N and w ∈ Σ⁺"],
+   "answer": 0,
+   "explain": "The left side is exactly one non-terminal. The right side is any string of terminals and non-terminals in any order, including λ."
+  },
+  {
+   "type": "multi",
+   "category": "Context-free grammar definition",
+   "q": "Let N = {S} and Σ = {a, b}. Which of these are valid rules according to the definition of a CFG?",
+   "choices": ["S → λ", "S → S", "S → aSbS", "b → S", "SS → ab", "S → abc"],
+   "answer": [0, 1, 2],
+   "explain": "S → λ, S → S, and S → aSbS each have a single non-terminal on the left and a string in (N ∪ Σ)* on the right. (S → S is valid, whether or not it is useful.) b → S has a terminal on the left, SS → ab has more than one symbol on the left, and c ∉ N ∪ Σ."
+  },
+  {
+   "type": "mc",
+   "category": "Context-free grammar definition",
+   "q": "With N = {S} and Σ = {a, b}, how many different valid rules are possible?",
+   "choices": ["Infinitely many", "Exactly 3", "Exactly 4", "Exactly 2^3 = 8"],
+   "answer": 0,
+   "explain": "The right side can be any string in (N ∪ Σ)*, which is infinite because N ∪ Σ is non-empty."
+  },
+  {
+   "type": "tf",
+   "category": "Context-free grammar definition",
+   "q": "True or false: in a derivation, a terminal symbol can be replaced by applying a rule.",
+   "answer": false,
+   "explain": "Only non-terminals (variables) can be replaced. Once a terminal such as \"jumps\" or b is in the string, nothing can be substituted for it."
+  },
+  {
+   "type": "mc",
+   "category": "Context-free grammar definition",
+   "q": "You are given only the rules S → aSb and S → a. What can you infer about the rest of the grammar?",
+   "choices": ["N = {S}, Σ = {a, b}, and S is the start symbol", "N = {a, b}, Σ = {S}, and a is the start symbol", "N = {S, a}, Σ = {b}, and S is the start symbol", "Nothing: a grammar must list all four components explicitly"],
+   "answer": 0,
+   "explain": "S is the only non-terminal, so it must be the start symbol. The lowercase letters a and b are the terminals."
+  },
+  {
+   "type": "mc",
+   "category": "Context-free grammar definition",
+   "q": "Which machine model goes with context-free languages, the way DFAs go with regular languages?",
+   "choices": ["Pushdown automata", "DFAs", "Regular expressions", "Power sets"],
+   "answer": 0,
+   "explain": "Context-free grammars generate context-free languages, and pushdown automata are the matching machines."
+  },
+  {
+   "type": "mc",
+   "category": "Rule application and generated languages",
+   "q": "A string has the form uAv, where A ∈ N, and the grammar has the rule A → w. What does applying the rule produce?",
+   "choices": ["uwv", "uAwv", "wuv", "uv"],
+   "answer": 0,
+   "explain": "Applying a rule replaces the non-terminal A with the rule's right-hand side w and leaves the rest of the string unchanged."
+  },
+  {
+   "type": "text",
+   "category": "Rule application and generated languages",
+   "q": "Apply the rule S → aSb once to the string aaSbb. What string results?",
+   "answer": ["aaaSbbb"],
+   "explain": "Replace S with aSb: aa(aSb)bb = aaaSbbb."
+  },
+  {
+   "type": "num",
+   "category": "Rule application and generated languages",
+   "q": "Grammar with rule 1: S → aSb and rule 2: S → a. Start with aaaSbbb, apply rule 1, then apply rule 2. How many a's does the resulting string contain?",
+   "answer": 5,
+   "explain": "aaaSbbb ⇒ aaaaSbbbb (rule 1) ⇒ aaaaabbbb (rule 2): 5 a's followed by 4 b's. Only terminals remain, so the derivation is finished."
+  },
+  {
+   "type": "text",
+   "category": "Rule application and generated languages",
+   "q": "What is the shortest string generated by the grammar S → aSb | a?",
+   "answer": ["a"],
+   "explain": "Starting from S, apply S → a right away: S ⇒ a."
+  },
+  {
+   "type": "multi",
+   "category": "Rule application and generated languages",
+   "q": "Which strings are generated by the grammar S → aSb | a?",
+   "choices": ["a", "aab", "aaabb", "ab", "aabb", "aaab"],
+   "answer": [0, 1, 2],
+   "explain": "Every generated string has exactly one more a than b's, with all a's first: a, aab, aaabb, .... ab and aabb have equal counts, and aaab has two more a's than b's."
+  },
+  {
+   "type": "mc",
+   "category": "Rule application and generated languages",
+   "q": "What language does the grammar S → aSb | a generate?",
+   "choices": ["{ a^(n+1) b^n | n ≥ 0 }", "{ a^n b^n | n ≥ 0 }", "{ a^n b^(n+1) | n ≥ 0 }", "{ a^i b^j | i, j ≥ 0 }"],
+   "answer": 0,
+   "explain": "Each use of rule 1 adds one a and one b around S. The final rule 2 adds one extra a, so the result is n+1 a's followed by n b's."
+  },
+  {
+   "type": "mc",
+   "category": "Rule application and generated languages",
+   "q": "When generating strings with S → aSb | a, what happens as soon as you apply S → a?",
+   "choices": ["The derivation ends, because only terminals remain", "You must apply S → aSb again", "The string becomes λ", "The S is kept and the a is appended"],
+   "answer": 0,
+   "explain": "S → a removes the only non-terminal. Nothing replaceable is left, so the string is finished. To get a longer string, keep applying S → aSb first."
+  },
+  {
+   "type": "num",
+   "category": "Rule application and generated languages",
+   "q": "Grammar: N = {sentence, noun, verb}, Σ = {it, Bob, eats, jumps}, start symbol sentence, rules sentence → noun verb, noun → it, noun → Bob, verb → eats, verb → jumps. How many strings are in the language it generates?",
+   "answer": 4,
+   "explain": "Two choices of noun times two choices of verb: it eats, it jumps, Bob eats, Bob jumps."
+  },
+  {
+   "type": "mc",
+   "category": "Rule application and generated languages",
+   "q": "In the grammar with Σ = {it, Bob, eats, jumps} and rules sentence → noun verb, noun → it | Bob, verb → eats | jumps, which statement is correct?",
+   "choices": ["Each whole word (such as \"jumps\") is a single terminal symbol", "Each letter of each word is a separate non-terminal", "\"noun\" and \"verb\" are terminal symbols", "\"jumps Bob\" is in the language"],
+   "answer": 0,
+   "explain": "In this grammar the alphabet symbols are whole words. noun and verb are non-terminals, and a sentence is a noun followed by a verb, so \"jumps Bob\" is not generated."
+  },
+  {
+   "type": "mc",
+   "category": "Rule application and generated languages",
+   "q": "What role does a grammar play when source code is compiled?",
+   "choices": ["A parser built on the grammar first checks that the code is in the language; then compilation continues", "The grammar is used only after compilation, to optimize the code", "The grammar replaces the compiler entirely", "The grammar checks only the spacing and punctuation of the code"],
+   "answer": 0,
+   "explain": "Parsers are based on grammars. The parser checks that the program belongs to the language before the compiler continues. Recursive rules (like S → aSb) can express nesting such as an if statement inside an if statement."
+  },
+  {
+   "type": "tf",
+   "category": "Rule application and generated languages",
+   "q": "True or false: a context-free grammar can generate a language in which the count of one symbol is tied to the count of another, such as { a^(n+1) b^n | n ≥ 0 }.",
+   "answer": true,
+   "explain": "S → aSb | a generates exactly this language. The recursive rule adds one a and one b at a time, which is the kind of counting a Kleene star cannot do."
+  }
+ ]
+}

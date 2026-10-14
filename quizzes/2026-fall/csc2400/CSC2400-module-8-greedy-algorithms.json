@@ -1,0 +1,373 @@
+{
+  "title": "CSC2400 Module 8: Greedy Algorithms",
+  "course": "CSC2400",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Greedy paradigm",
+      "q": "Which description best fits the greedy algorithm design paradigm?",
+      "choices": [
+        "Build a solution step by step, making the choice that looks best at each step",
+        "Split the problem into subproblems, solve them, and combine their answers",
+        "Check every possible solution and keep the best one",
+        "Start from any solution and keep improving it until nothing gets better"
+      ],
+      "answer": 0,
+      "explain": "A greedy algorithm builds a solution iteratively through a sequence of locally appealing decisions. Splitting, solving, and combining is divide and conquer."
+    },
+    {
+      "type": "tf",
+      "category": "Greedy paradigm",
+      "q": "Greedy decisions are called myopic because each one picks whatever looks best right now without explicitly considering all of its later consequences.",
+      "answer": true,
+      "explain": "Myopic means short-sighted. Each greedy choice optimizes the current step only."
+    },
+    {
+      "type": "mc",
+      "category": "Greedy paradigm",
+      "q": "For a typical greedy algorithm, which part is usually the hardest?",
+      "choices": [
+        "Proving that the local rule always gives a globally optimal solution",
+        "Coming up with a plausible local rule",
+        "Analyzing the running time",
+        "Writing the pseudocode"
+      ],
+      "answer": 0,
+      "explain": "Greedy rules are usually easy to propose, and their running time is usually easy to analyze. Correctness is the hard part."
+    },
+    {
+      "type": "tf",
+      "category": "Greedy paradigm",
+      "q": "If a greedy algorithm runs in O(n log n) time, it must produce an optimal solution.",
+      "answer": false,
+      "explain": "Running time and correctness are separate questions. The difference rule sorts just as fast as the ratio rule, but it can return a suboptimal schedule."
+    },
+    {
+      "type": "multi",
+      "category": "Greedy paradigm",
+      "q": "Which statements about evaluating a proposed greedy rule are true?",
+      "choices": [
+        "A single counterexample is enough to show the rule is incorrect",
+        "Many examples where the rule works prove that it is correct",
+        "A proof such as an exchange argument can show the rule is correct",
+        "Most plausible greedy rules are guaranteed to be correct"
+      ],
+      "answer": [0, 2],
+      "explain": "One counterexample disproves a rule, but no number of successful examples proves it. Correctness needs a proof. Most plausible greedy rules are not correct."
+    },
+    {
+      "type": "mc",
+      "category": "Greedy paradigm",
+      "q": "Which of these describes divide and conquer rather than greedy?",
+      "choices": [
+        "Split the problem into smaller subproblems, solve them, and combine their answers",
+        "Make one locally best decision after another",
+        "Give each item a priority, sort by it, and process items in that order",
+        "Commit to each choice without considering all of its later consequences"
+      ],
+      "answer": 0,
+      "explain": "Divide, conquer, combine is the divide-and-conquer pattern. The other three describe greedy algorithms."
+    },
+    {
+      "type": "num",
+      "category": "Scheduling model",
+      "q": "How many different schedules (orderings) are there for 7 distinct jobs on one machine?",
+      "answer": 5040,
+      "explain": "There are n! orderings of n jobs. 7! = 7·6·5·4·3·2·1 = 5040."
+    },
+    {
+      "type": "mc",
+      "category": "Scheduling model",
+      "q": "What is the completion time C_j(σ) of job j in schedule σ?",
+      "choices": [
+        "Its own length plus the lengths of all jobs scheduled before it",
+        "The total length of all jobs scheduled before it",
+        "Its own length times its weight",
+        "Its own length plus the lengths of all jobs scheduled after it"
+      ],
+      "answer": 0,
+      "explain": "C_j(σ) = ℓ_j + (sum of ℓ_i for every i before j). It is the time job j finishes, not when it starts."
+    },
+    {
+      "type": "num",
+      "category": "Scheduling model",
+      "q": "Jobs (length ℓ, weight w): J1 = (2, 5), J2 = (4, 1), J3 = (3, 2). The schedule is (J2, J1, J3). What is the completion time of J1?",
+      "answer": 6,
+      "explain": "J2 runs first and finishes at 4. J1 runs next and finishes at 4 + 2 = 6."
+    },
+    {
+      "type": "num",
+      "category": "Scheduling model",
+      "q": "Jobs (length ℓ, weight w): J1 = (2, 5), J2 = (4, 1), J3 = (3, 2). What is the sum of weighted completion times Σ w_j·C_j for the schedule (J2, J1, J3)?",
+      "answer": 52,
+      "explain": "Completion times are C2 = 4, C1 = 6, C3 = 9. The sum is 1·4 + 5·6 + 2·9 = 4 + 30 + 18 = 52."
+    },
+    {
+      "type": "mc",
+      "category": "Scheduling model",
+      "q": "In the single-machine weighted scheduling problem, what is the objective?",
+      "choices": [
+        "Minimize the sum over all jobs of w_j·C_j(σ)",
+        "Minimize the sum over all jobs of C_j(σ), ignoring weights",
+        "Minimize the largest completion time",
+        "Maximize the sum over all jobs of w_j·C_j(σ)"
+      ],
+      "answer": 0,
+      "explain": "We want the ordering σ that minimizes the sum of weighted completion times. A heavier job costs more for each unit of time it waits."
+    },
+    {
+      "type": "multi",
+      "category": "Scheduling model",
+      "q": "Which assumptions belong to the scheduling model for which the ratio rule is proved optimal?",
+      "choices": [
+        "One machine processes one job at a time",
+        "All jobs are available from the start",
+        "Once a job starts, it runs to completion without interruption",
+        "All lengths and weights are positive",
+        "Jobs may be paused and resumed later",
+        "Jobs arrive at different release times"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The model has one machine, all jobs available at time 0, no interruption, and positive lengths and weights. Pausing jobs or staggered arrivals fall outside it."
+    },
+    {
+      "type": "num",
+      "category": "Scheduling model",
+      "q": "Jobs (length ℓ, weight w): J1 = (1, 3), J2 = (2, 2), J3 = (3, 1). What is Σ w_j·C_j for the schedule (J3, J2, J1)?",
+      "answer": 31,
+      "explain": "C3 = 3, C2 = 3 + 2 = 5, C1 = 5 + 1 = 6. The sum is 1·3 + 2·5 + 3·6 = 3 + 10 + 18 = 31. The order (J1, J2, J3) costs only 15."
+    },
+    {
+      "type": "num",
+      "category": "Candidate greedy rules",
+      "q": "Jobs (length ℓ, weight w): J1 = (1, 2), J2 = (3, 9). What is Σ w_j·C_j for the schedule that shortest job first produces?",
+      "answer": 38,
+      "explain": "Shortest first runs J1 then J2: C1 = 1, C2 = 4, so the cost is 2·1 + 9·4 = 38. Running J2 first gives 9·3 + 2·4 = 35, so shortest job first is not optimal here."
+    },
+    {
+      "type": "mc",
+      "category": "Candidate greedy rules",
+      "q": "Jobs (length ℓ, weight w): J1 = (8, 3), J2 = (2, 2). Which statement is true?",
+      "choices": [
+        "Highest weight first costs 44, but running J2 first costs 34",
+        "Highest weight first costs 34 and is optimal",
+        "Both orders cost the same",
+        "Highest weight first costs 44 and is optimal"
+      ],
+      "answer": 0,
+      "explain": "Highest weight first runs J1 then J2: 3·8 + 2·10 = 44. Running J2 first gives 2·2 + 3·10 = 34. Weight alone is not enough. Length matters too."
+    },
+    {
+      "type": "mc",
+      "category": "Candidate greedy rules",
+      "q": "Jobs (length ℓ, weight w): J1 = (10, 8), J2 = (2, 1). Which order does the difference rule (sort by w − ℓ, descending) choose, and what does it cost?",
+      "choices": [
+        "J2 then J1, cost 98",
+        "J1 then J2, cost 92",
+        "J2 then J1, cost 92",
+        "J1 then J2, cost 98"
+      ],
+      "answer": 0,
+      "explain": "The differences are J1: −2 and J2: −1, so J2 goes first. C2 = 2, C1 = 12, and the cost is 1·2 + 8·12 = 98. The ratio rule (0.8 > 0.5) puts J1 first and costs 8·10 + 1·12 = 92, which is better."
+    },
+    {
+      "type": "num",
+      "category": "Candidate greedy rules",
+      "q": "Jobs (length ℓ, weight w): J1 = (5, 3), J2 = (2, 1). What is Σ w_j·C_j for the schedule the difference rule (w − ℓ, descending) produces?",
+      "answer": 23,
+      "explain": "The differences are −2 for J1 and −1 for J2, so J2 goes first: C2 = 2, C1 = 7, and the cost is 1·2 + 3·7 = 23. The ratio rule puts J1 first and costs 3·5 + 1·7 = 22."
+    },
+    {
+      "type": "tf",
+      "category": "Candidate greedy rules",
+      "q": "If the ratio rule gives a lower cost than the difference rule on one instance, that proves the ratio rule is always optimal.",
+      "answer": false,
+      "explain": "One instance can only disprove the difference rule. The ratio rule is proved optimal by the exchange argument."
+    },
+    {
+      "type": "mc",
+      "category": "Candidate greedy rules",
+      "q": "Sorting jobs in descending order of w_j/ℓ_j is equivalent to sorting them by:",
+      "choices": [
+        "ℓ_j/w_j in ascending order",
+        "ℓ_j/w_j in descending order",
+        "w_j/ℓ_j in ascending order",
+        "w_j − ℓ_j in descending order"
+      ],
+      "answer": 0,
+      "explain": "With positive values, a larger w/ℓ means a smaller ℓ/w. So descending w/ℓ is the same order as ascending ℓ/w."
+    },
+    {
+      "type": "mc",
+      "category": "Exchange argument",
+      "q": "Consecutive jobs i and j start after T units of earlier work. Let A be the pair's cost with i first and B the cost with j first. What is A − B?",
+      "choices": [
+        "w_j·ℓ_i − w_i·ℓ_j",
+        "w_i·ℓ_j − w_j·ℓ_i",
+        "w_i·ℓ_i − w_j·ℓ_j",
+        "T·(w_i − w_j) + w_j·ℓ_i − w_i·ℓ_j"
+      ],
+      "answer": 0,
+      "explain": "A = w_i(T + ℓ_i) + w_j(T + ℓ_i + ℓ_j) and B = w_j(T + ℓ_j) + w_i(T + ℓ_j + ℓ_i). Everything cancels except w_j·ℓ_i − w_i·ℓ_j."
+    },
+    {
+      "type": "tf",
+      "category": "Exchange argument",
+      "q": "In the exchange argument, how much work T comes before the pair can change whether i should go before j.",
+      "answer": false,
+      "explain": "T appears as w_i·T + w_j·T in both A and B, so it cancels. The best order of two adjacent jobs depends only on their own lengths and weights."
+    },
+    {
+      "type": "mc",
+      "category": "Exchange argument",
+      "q": "Why does swapping two adjacent jobs i and j leave the completion times of all later jobs unchanged?",
+      "choices": [
+        "The pair finishes at T + ℓ_i + ℓ_j in either order",
+        "Later jobs always have smaller weights",
+        "A job's completion time depends only on its own length",
+        "Later jobs are already sorted by ratio"
+      ],
+      "answer": 0,
+      "explain": "Both orders use the same total time, so every job after the pair starts and finishes at the same time either way."
+    },
+    {
+      "type": "mc",
+      "category": "Exchange argument",
+      "q": "Putting adjacent job i before job j is at least as good as the reverse exactly when:",
+      "choices": [
+        "w_i/ℓ_i ≥ w_j/ℓ_j",
+        "w_i/ℓ_i ≤ w_j/ℓ_j",
+        "w_i − ℓ_i ≥ w_j − ℓ_j",
+        "ℓ_i ≤ ℓ_j"
+      ],
+      "answer": 0,
+      "explain": "A ≤ B iff w_j·ℓ_i ≤ w_i·ℓ_j iff w_i/ℓ_i ≥ w_j/ℓ_j."
+    },
+    {
+      "type": "num",
+      "category": "Exchange argument",
+      "q": "Adjacent jobs i = (ℓ = 3, w = 2) and j = (ℓ = 1, w = 4) start after T = 5 units of earlier work. With A = cost of the pair when i goes first and B = cost when j goes first, what is A − B?",
+      "answer": 10,
+      "explain": "A − B = w_j·ℓ_i − w_i·ℓ_j = 4·3 − 2·1 = 10. Directly: A = 2·8 + 4·9 = 52 and B = 4·6 + 2·9 = 42. Putting j first saves 10."
+    },
+    {
+      "type": "tf",
+      "category": "Exchange argument",
+      "q": "If two adjacent jobs have equal ratios w/ℓ, swapping them leaves the total weighted completion time unchanged.",
+      "answer": true,
+      "explain": "Equal ratios mean w_j·ℓ_i = w_i·ℓ_j, so A − B = 0. Ties can go in either order."
+    },
+    {
+      "type": "mc",
+      "category": "Exchange argument",
+      "q": "The proof divides w_j·ℓ_i ≤ w_i·ℓ_j by ℓ_i·ℓ_j to get w_i/ℓ_i ≥ w_j/ℓ_j. Why doesn't this flip the inequality?",
+      "choices": [
+        "Lengths are positive, so ℓ_i·ℓ_j > 0",
+        "Weights are integers",
+        "T cancels out of the difference",
+        "The two jobs are adjacent"
+      ],
+      "answer": 0,
+      "explain": "Dividing by a positive number keeps the inequality's direction. This is one reason the model requires positive lengths."
+    },
+    {
+      "type": "mc",
+      "category": "Exchange argument",
+      "q": "How does the exchange argument conclude that the ratio-sorted schedule is optimal?",
+      "choices": [
+        "Swapping out-of-order adjacent pairs turns any schedule, even an optimal one, into the ratio-sorted schedule without ever raising the cost",
+        "It shows the ratio rule beats the difference rule on a counterexample",
+        "It checks all n! schedules and finds the sorted one is cheapest",
+        "It shows that every swap of two adjacent jobs strictly lowers the cost"
+      ],
+      "answer": 0,
+      "explain": "Swapping an adjacent pair that is out of ratio order never increases the cost. Repeating this, as in bubble sort, turns an optimal schedule into the sorted one with no increase, so the sorted schedule is also optimal."
+    },
+    {
+      "type": "mc",
+      "category": "Ratio rule in practice",
+      "q": "Jobs (length ℓ, weight w): P = (2, 6), Q = (6, 9), R = (3, 12), S = (4, 2). In what order does the ratio rule schedule them?",
+      "choices": [
+        "R, P, Q, S",
+        "R, Q, P, S",
+        "P, R, S, Q",
+        "S, Q, P, R"
+      ],
+      "answer": 0,
+      "explain": "The ratios w/ℓ are P = 3, Q = 1.5, R = 4, S = 0.5. Descending order is R, P, Q, S. (R, Q, P, S is highest weight first, P, R, S, Q is shortest first, and S, Q, P, R sorts the ratios the wrong way.)"
+    },
+    {
+      "type": "num",
+      "category": "Ratio rule in practice",
+      "q": "Jobs (length ℓ, weight w): P = (2, 6), Q = (6, 9), R = (3, 12), S = (4, 2). What is the minimum possible Σ w_j·C_j?",
+      "answer": 195,
+      "explain": "The ratio order is R, P, Q, S with completion times 3, 5, 11, 15. The cost is 12·3 + 6·5 + 9·11 + 2·15 = 36 + 30 + 99 + 30 = 195."
+    },
+    {
+      "type": "mc",
+      "category": "Ratio rule in practice",
+      "q": "What is the overall running time of the greedy ratio-rule scheduling algorithm on n jobs?",
+      "choices": [
+        "O(n log n)",
+        "O(n)",
+        "O(n²)",
+        "O(n!)"
+      ],
+      "answer": 0,
+      "explain": "Computing ratios is O(n), sorting is O(n log n), and computing completion times is O(n). Sorting dominates. Brute force over all n! orders would be far slower."
+    },
+    {
+      "type": "mc",
+      "category": "Ratio rule in practice",
+      "q": "Using integer cross-multiplication, which job has the higher ratio-rule priority: J_a = (ℓ = 5, w = 8) or J_b = (ℓ = 3, w = 5)?",
+      "choices": [
+        "J_b, because w_b·ℓ_a = 25 > w_a·ℓ_b = 24",
+        "J_a, because w_a·ℓ_a = 40 > w_b·ℓ_b = 15",
+        "J_a, because its weight is larger",
+        "They tie"
+      ],
+      "answer": 0,
+      "explain": "To compare w_a/ℓ_a with w_b/ℓ_b, compare w_a·ℓ_b = 8·3 = 24 with w_b·ℓ_a = 5·5 = 25. Since 24 < 25, 8/5 < 5/3, so J_b goes first."
+    },
+    {
+      "type": "mc",
+      "category": "Ratio rule in practice",
+      "q": "With integer lengths and weights, why compare w_i·ℓ_j with w_j·ℓ_i instead of computing w_i/ℓ_i and w_j/ℓ_j directly?",
+      "choices": [
+        "It avoids floating-point rounding, as long as the integer type is wide enough not to overflow",
+        "It changes the asymptotic running time from O(n log n) to O(n)",
+        "It gives a different and better schedule than the ratio rule",
+        "Division by a length is undefined for integers"
+      ],
+      "answer": 0,
+      "explain": "Cross-multiplication gives the same comparison using exact integer math. The products must fit in the integer type."
+    },
+    {
+      "type": "multi",
+      "category": "Ratio rule in practice",
+      "q": "Jobs (length ℓ, weight w): X = (2, 4), Y = (3, 6), Z = (1, 5). Which schedules are optimal?",
+      "choices": [
+        "Z, X, Y",
+        "Z, Y, X",
+        "X, Z, Y",
+        "X, Y, Z"
+      ],
+      "answer": [0, 1],
+      "explain": "The ratios are X = 2, Y = 2, Z = 5. Z goes first, and X and Y tie, so either order works. Both cost 53. X, Z, Y costs 59 and X, Y, Z costs 68."
+    },
+    {
+      "type": "num",
+      "category": "Ratio rule in practice",
+      "q": "Jobs (length ℓ, weight w): X = (2, 4), Y = (3, 6), Z = (1, 5). What is the minimum possible Σ w_j·C_j?",
+      "answer": 53,
+      "explain": "Using Z, X, Y: C = 1, 3, 6, so the cost is 5·1 + 4·3 + 6·6 = 5 + 12 + 36 = 53. Z, Y, X gives 5 + 24 + 24 = 53 as well."
+    },
+    {
+      "type": "text",
+      "category": "Ratio rule in practice",
+      "q": "Scheduling jobs in descending order of w_j/ℓ_j to minimize the sum of weighted completion times is commonly known as whose rule?",
+      "answer": ["Smith's rule", "Smiths rule", "Smith rule", "Smith", "Smith's"],
+      "explain": "Sorting by descending weight-to-length ratio is called Smith's rule."
+    }
+  ]
+}

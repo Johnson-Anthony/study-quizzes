@@ -1,0 +1,626 @@
+{
+  "title": "CSC2770 Module 4: Operating Systems",
+  "course": "CSC2770",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "OS Basics & History",
+      "q": "What is an operating system?",
+      "choices": [
+        "Software that acts as an intermediary between users and the computer's hardware",
+        "A hardware unit inside the CPU that decodes and schedules instructions",
+        "An application that runs on top of user programs to draw their windows",
+        "A firmware chip that only stores the machine's startup instructions"
+      ],
+      "answer": 0,
+      "explain": "The OS is software that sits between users/applications and the hardware. It manages the machine's resources and lets the user interact with it. It is not a hardware unit, and it is more than startup firmware."
+    },
+    {
+      "type": "multi",
+      "category": "OS Basics & History",
+      "q": "Almost all modern operating systems can be defined by their management of which of the following?",
+      "choices": ["Processes", "Memory", "File systems", "Devices", "Compilers", "Spreadsheets"],
+      "answer": [0, 1, 2, 3],
+      "explain": "The four core areas are processes, memory, file systems, and devices. OSes also handle user accounts, performance monitoring, networking, and most other functions the machine needs. Compilers and spreadsheets are applications."
+    },
+    {
+      "type": "tf",
+      "category": "OS Basics & History",
+      "q": "There is a single, widely agreed-upon 'first' operating system.",
+      "answer": false,
+      "explain": "There is no agreed-upon first OS. The OS grew gradually out of batch processing as machines took over keeping job lists, scheduling, switching between jobs, and allocating memory."
+    },
+    {
+      "type": "mc",
+      "category": "OS Basics & History",
+      "q": "As computers got faster, what problem did batch processing address?",
+      "choices": [
+        "The time spent manually changing and feeding punch cards between programs",
+        "The inability of early CPUs to perform arithmetic on binary data",
+        "Programs overwriting each other's physical memory addresses",
+        "Each printer model requiring its own data and command format"
+      ],
+      "answer": 0,
+      "explain": "Creating, transporting, and reading punch cards had become the bottleneck. Batch processing let programmers run multiple programs in sequence without swapping cards by hand."
+    },
+    {
+      "type": "text",
+      "category": "OS Basics & History",
+      "q": "On early computers, what device read the punched holes in punch cards and converted them into instructions for the machine?",
+      "answer": ["card reader", "a card reader", "punch card reader", "punched card reader"],
+      "explain": "The card reader interpreted the holes. The punch machine, which worked like a typewriter, created the cards, and each card held one line of code."
+    },
+    {
+      "type": "multi",
+      "category": "OS Basics & History",
+      "q": "As machines began managing more of their own operation, which tasks did they take on, eventually becoming what we call an operating system?",
+      "choices": [
+        "Maintaining a list of jobs to complete",
+        "Scheduling and prioritizing those jobs",
+        "Switching between jobs",
+        "Allocating memory to jobs",
+        "Punching new cards for the programmer",
+        "Writing assembly code for the programmer"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Keeping a job list, scheduling/prioritizing jobs, switching between them, and allocating memory to them are what grew into the operating system."
+    },
+    {
+      "type": "mc",
+      "category": "OS Basics & History",
+      "q": "Which statement describes Windows compared with the other two of the 'big three' desktop OSes?",
+      "choices": [
+        "It has the largest hardware and software support but is the most common target for attacks",
+        "It integrates easily with an ecosystem of devices but has less widespread support",
+        "It has hundreds of distributions, each built for specific needs",
+        "It is generally the most secure but supports the fewest hardware devices"
+      ],
+      "answer": 0,
+      "explain": "Windows is the most popular of the big three. It has the widest support, and it is also the most common attack target. The ecosystem, less support, and more security profile describes macOS. Hundreds of distributions describes Linux."
+    },
+    {
+      "type": "tf",
+      "category": "OS Basics & History",
+      "q": "Names like Windows, macOS, and Linux each refer to a whole family of operating systems rather than a single OS.",
+      "answer": true,
+      "explain": "Windows has had more than thirty versions since Windows 1.0 in 1985, and macOS has a similar number. Linux has hundreds of distributions."
+    },
+    {
+      "type": "text",
+      "category": "Processes & the PCB",
+      "q": "Complete the definition: a process is a program in ________.",
+      "answer": ["execution", "in execution"],
+      "explain": "A process is a program in execution. Early computers ran one process at a time, so they didn't need process management. A typical modern workstation runs roughly 50-300 processes."
+    },
+    {
+      "type": "mc",
+      "category": "Processes & the PCB",
+      "q": "A process has been loaded into main memory and could execute right now, but the OS has not yet given it CPU time. What state is it in?",
+      "choices": ["Created", "Ready", "Running", "Waiting", "Terminated"],
+      "fixed": true,
+      "answer": 1,
+      "explain": "Ready means the process is loaded and runnable and is only waiting for its turn on the CPU. A Waiting process needs an external event before it can continue."
+    },
+    {
+      "type": "mc",
+      "category": "Processes & the PCB",
+      "q": "A running process requests data from disk and cannot continue until the data arrives. What state does it move to?",
+      "choices": ["Created", "Ready", "Running", "Waiting", "Terminated"],
+      "fixed": true,
+      "answer": 3,
+      "explain": "Waiting means the process has begun executing but needs an event, such as a disk read or a database connection, before it can continue. Giving it CPU time would not help."
+    },
+    {
+      "type": "mc",
+      "category": "Processes & the PCB",
+      "q": "In which state has a process been initiated while the OS is still allocating its memory and creating its control block?",
+      "choices": ["Created", "Ready", "Running", "Waiting", "Terminated"],
+      "fixed": true,
+      "answer": 0,
+      "explain": "Created means the process has been started but is not yet ready to execute. The OS first allocates memory and builds the PCB, and then the process moves to Ready."
+    },
+    {
+      "type": "tf",
+      "category": "Processes & the PCB",
+      "q": "If the OS gave a process in the Waiting state a CPU time slice, the process could make useful progress immediately.",
+      "answer": false,
+      "explain": "A Waiting process needs an external event (I/O, a database connection, etc.) before it can continue. That is why the OS moves it to a blocked queue instead of giving it CPU time."
+    },
+    {
+      "type": "multi",
+      "category": "Processes & the PCB",
+      "q": "Which of these are fields of the process control block (PCB)?",
+      "choices": [
+        "Process ID",
+        "Program / Process Counter",
+        "Memory Limit",
+        "I/O Information",
+        "Contents of the instruction cache",
+        "The monitor's device driver",
+        "The program's source code"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The six PCB fields are Process ID, Process State, Program/Process Counter, CPU Registers, Memory Limit, and I/O Information. A PCB may also hold process priority and accounting information."
+    },
+    {
+      "type": "tf",
+      "category": "Processes & the PCB",
+      "q": "The Program/Process Counter stored in a process's PCB is the same thing as the CPU's Program Counter register.",
+      "answer": false,
+      "explain": "The CPU's PC is a single hardware register used by whatever is currently running. The PCB field is stored separately for each process and holds the address of that process's next instruction, so the OS knows where to resume it."
+    },
+    {
+      "type": "mc",
+      "category": "Processes & the PCB",
+      "q": "Which PCB field would record the list of files a process currently has open?",
+      "choices": ["I/O Information", "Memory Limit", "Process State", "CPU Registers"],
+      "answer": 0,
+      "explain": "I/O Information holds open files and other resources. Memory Limit describes the address space and pointers, and CPU Registers records which registers the process is using."
+    },
+    {
+      "type": "mc",
+      "category": "Processes & the PCB",
+      "q": "A PCB may optionally store a value representing how important the process is relative to others, which the OS can factor into scheduling. What is it called?",
+      "choices": ["Process priority", "Accounting information", "Process ID", "Memory Limit"],
+      "answer": 0,
+      "explain": "That value is process priority. Accounting information, the other optional item, tracks CPU time used, time spent on I/O devices, and how much allocated memory is in use."
+    },
+    {
+      "type": "tf",
+      "category": "Processes & the PCB",
+      "q": "In a Task Manager listing, an entry such as 'Firefox (23)' shows that a single application can be made up of many processes.",
+      "answer": true,
+      "explain": "One app can be many processes. The Task Manager example showed 10 apps but 110 background processes, and Firefox alone accounted for 23 processes."
+    },
+    {
+      "type": "tf",
+      "category": "Time Sharing & Context Switching",
+      "q": "A single CPU core truly executes many processes at the same instant, and that is how a machine runs hundreds of processes.",
+      "answer": false,
+      "explain": "Each processor does one task at a time (one fetch, one decode, or one execution). The OS switches between processes so quickly that they only look simultaneous."
+    },
+    {
+      "type": "text",
+      "category": "Time Sharing & Context Switching",
+      "q": "What is the name of the method by which multiple processes share the CPU because the OS rapidly switches between them?",
+      "answer": ["time sharing", "time-sharing", "timesharing"],
+      "explain": "Time sharing: each process gets a small slice of CPU time, then the OS context-switches to the next one."
+    },
+    {
+      "type": "mc",
+      "category": "Time Sharing & Context Switching",
+      "q": "What is the OS's job queue?",
+      "choices": [
+        "A list of all processes currently on the system",
+        "A list of only the processes waiting on I/O",
+        "The set of instructions waiting in the CPU's cache",
+        "A queue of print jobs waiting for a device driver"
+      ],
+      "answer": 0,
+      "explain": "The job queue lists every process on the system. Processes stalled on external events are put in the blocked queue."
+    },
+    {
+      "type": "mc",
+      "category": "Time Sharing & Context Switching",
+      "q": "Which sequence correctly describes a context switch?",
+      "choices": [
+        "Save the current process's context, load the next process in the queue, run it from its last saved state",
+        "Load the next process, run it from its first instruction, discard the previous process's context",
+        "Terminate the current process, create a new process, allocate it fresh memory",
+        "Run the next process, save its context afterward, restart the previous process from the beginning"
+      ],
+      "answer": 0,
+      "explain": "The OS saves the running process's context (state, register values, etc.), loads the next process, and resumes it from where it last stopped. This repeats for as long as the machine runs."
+    },
+    {
+      "type": "mc",
+      "category": "Time Sharing & Context Switching",
+      "q": "Roughly how long is a typical time slice before the OS switches to another process?",
+      "choices": ["1-10 milliseconds", "1-10 nanoseconds", "1-10 seconds", "1-10 minutes"],
+      "answer": 0,
+      "explain": "Time slices are usually 1-10 ms. That is short enough for every process to seem to progress and long enough to amortize the cost of switching."
+    },
+    {
+      "type": "mc",
+      "category": "Time Sharing & Context Switching",
+      "q": "A process is stalled waiting for a database connection. To avoid wasting CPU time on it, where does the OS put it?",
+      "choices": ["The blocked queue", "The front of the job queue", "The Terminated state", "The instruction cache"],
+      "answer": 0,
+      "explain": "Letting a process that is waiting on external action keep running wastes time, so the OS puts it in the blocked queue until the operation completes."
+    },
+    {
+      "type": "mc",
+      "category": "Time Sharing & Context Switching",
+      "q": "Why should time slices be reasonably large rather than as small as possible?",
+      "choices": [
+        "Each context switch has overhead, and longer slices amortize that cost over more useful work",
+        "Short slices prevent processes from ever entering the Waiting state",
+        "Longer slices let several processes run on one core at the same instant",
+        "Short slices cause fragmentation of physical memory"
+      ],
+      "answer": 0,
+      "explain": "Stopping a process, saving its context, loading another, and starting it all take time away from useful work. With tiny slices, much of the CPU's time would go to switching."
+    },
+    {
+      "type": "mc",
+      "category": "Time Sharing & Context Switching",
+      "q": "An OS keeps scheduling a particular process on the same core because that core's cache already holds the process's recently used data. What is this called?",
+      "choices": ["Processor affinity", "Time sharing", "Amortization", "Batch processing"],
+      "answer": 0,
+      "explain": "Processor affinity means pairing specific processes with specific cores so they get the most benefit from cache locality."
+    },
+    {
+      "type": "multi",
+      "category": "Time Sharing & Context Switching",
+      "q": "Which of these are saved as part of a process's context during a context switch?",
+      "choices": [
+        "The process's state",
+        "The values in its registers",
+        "The full contents of the hard drive",
+        "The OS's library of device drivers"
+      ],
+      "answer": [0, 1],
+      "explain": "Context means the process's state, register values, etc., which is enough to resume it exactly where it left off. Disk contents and drivers are not per-process context."
+    },
+    {
+      "type": "multi",
+      "category": "Memory Management Problems",
+      "q": "The amount of memory the OS allocates to a process depends on which of these factors?",
+      "choices": [
+        "The size of the executable (machine code)",
+        "The amount of global variables the program declares",
+        "Memory management policies such as page size and growth limits",
+        "Current system usage / available memory",
+        "Process priority",
+        "The number of files in the user's home folder",
+        "The monitor's screen resolution"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "The five factors are executable size, global variables, memory management policies, system usage/available memory, and process priority."
+    },
+    {
+      "type": "mc",
+      "category": "Memory Management Problems",
+      "q": "Memory is assigned in 1000-address blocks: 0-999 to Process 001, 1000-1999 to Process 002, 2000-2999 to Process 003. Process 001 then needs 1,000 more addresses and receives 3000-3999. If processes manage physical addresses directly, what problem does this create?",
+      "choices": [
+        "Process 001's address space is now split across non-contiguous ranges",
+        "Process 001 must be moved to the Terminated state",
+        "Processes 002 and 003 lose their memory to Process 001",
+        "The system immediately runs out of physical memory"
+      ],
+      "answer": 0,
+      "explain": "Process 001 now uses 0-999 and 3000-3999 but nothing in between (1000-2999), so its memory is no longer one contiguous block."
+    },
+    {
+      "type": "multi",
+      "category": "Memory Management Problems",
+      "q": "Why might a running process need additional memory?",
+      "choices": [
+        "It called malloc() to request more memory",
+        "It went into a deep recursive call",
+        "It needed more space for variables",
+        "Its Process ID changed",
+        "It was moved into the blocked queue"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A process may request memory explicitly (malloc), use more stack in deep recursion, or need more room for variables. A change of ID or queue does not require more memory."
+    },
+    {
+      "type": "num",
+      "category": "Memory Management Problems",
+      "q": "Instructions are a fixed 4 bytes each, memory is contiguous, and the first instruction is at address 0x0000. At what address does the fifth instruction start? Give your answer in decimal.",
+      "answer": 16,
+      "explain": "The instructions start at 0x0000, 0x0004, 0x0008, 0x000C, 0x0010, and 0x0010 = 16. With fixed-length instructions in contiguous memory, the next instruction is always a simple constant offset away."
+    },
+    {
+      "type": "mc",
+      "category": "Memory Management Problems",
+      "q": "With variable-length instructions in contiguous memory, how does the CPU determine where the next instruction begins?",
+      "choices": [
+        "It decodes the current instruction to learn its length, then updates the Program Counter",
+        "It always adds 4 bytes to the Program Counter",
+        "It reads the next address from the I/O Information field of the PCB",
+        "It asks the OS to search memory for the next instruction"
+      ],
+      "answer": 0,
+      "explain": "The PC points to the instruction, the CPU fetches a block from the instruction cache, and decoding reveals the operation type and the instruction's length. The next instruction starts where this one ends."
+    },
+    {
+      "type": "multi",
+      "category": "Memory Management Problems",
+      "q": "Which statements about variable-length instructions, compared with fixed-length instructions, are true?",
+      "choices": [
+        "They require more overhead",
+        "Small instructions don't waste space",
+        "They allow larger instructions to exist",
+        "They remove the need for contiguous memory",
+        "The next instruction is always a constant offset away"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Variable-length instructions cost more overhead, but they save space and allow larger instructions. Both schemes still assume memory is contiguous."
+    },
+    {
+      "type": "multi",
+      "category": "Memory Management Problems",
+      "q": "If processes routinely had to manage non-contiguous physical memory, which consequences would follow?",
+      "choices": [
+        "Processes would need to know explicitly every scattered memory location they can access",
+        "Pointer arithmetic would break",
+        "Keeping memory accesses in-bounds would become more complex",
+        "Context switches would no longer have any overhead",
+        "Memory fragmentation would be eliminated"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The root cause is that the CPU can no longer find the next instruction with simple offsets. Forbidding non-contiguous memory instead causes fragmentation."
+    },
+    {
+      "type": "mc",
+      "category": "Memory Management Problems",
+      "q": "Memory has four 1 GB blocks. Process B occupies blocks 2 and 3, and blocks 1 and 4 are free. Process D needs 2 GB, and non-contiguous allocation is not allowed. What happens?",
+      "choices": [
+        "D cannot be allocated, even though 2 GB of memory is free",
+        "D is allocated blocks 1 and 4",
+        "B is terminated so that D can use blocks 2 and 3",
+        "D is allocated 1 GB now and waits for the rest"
+      ],
+      "answer": 0,
+      "explain": "The 2 GB of free memory is split into two separate pieces that are not adjacent. A request failing even though enough total memory is free is called memory fragmentation."
+    },
+    {
+      "type": "num",
+      "category": "Memory Management Problems",
+      "q": "Memory is divided into eight 1 GB blocks, laid out in order as: A, free, B, free, free, C, free, D. If every allocation must be contiguous, what is the largest single request, in GB, that can succeed?",
+      "answer": 2,
+      "explain": "4 GB is free in total, but the longest run of adjacent free blocks is blocks 4-5, which is 2 GB. The gap between total free memory and usable contiguous memory is fragmentation."
+    },
+    {
+      "type": "tf",
+      "category": "Memory Management Problems",
+      "q": "Memory fragmentation means the system does not have enough total free memory to satisfy a request.",
+      "answer": false,
+      "explain": "With fragmentation there is enough total free memory, but it is not contiguous, so a request that needs a contiguous block fails."
+    },
+    {
+      "type": "mc",
+      "category": "Memory Management Problems",
+      "q": "Setting aside non-contiguous memory and fragmentation, why is it a problem to let processes reference physical addresses directly?",
+      "choices": [
+        "Buggy code could overwrite other processes' memory, and malware could modify any physical address it wants",
+        "Physical addresses are too large to store in CPU registers",
+        "The OS would have to perform a context switch on every memory access",
+        "Physical addresses cannot be used with fixed-length instructions"
+      ],
+      "answer": 0,
+      "explain": "The problem is security. Poorly written code could accidentally modify memory used by other processes, and malware would have unrestricted access to physical memory."
+    },
+    {
+      "type": "mc",
+      "category": "Virtual Memory",
+      "q": "What is virtual memory addressing?",
+      "choices": [
+        "The OS manages physical addresses, while processes use virtual addresses that map to them",
+        "Processes manage physical addresses, while the OS uses virtual addresses",
+        "Each process stores its memory addresses in its file system metadata",
+        "Each process is given a unique range of physical addresses that it controls"
+      ],
+      "answer": 0,
+      "explain": "Processes work only with virtual addresses. The OS maps them to real physical addresses, and processes neither know nor control which physical addresses they use."
+    },
+    {
+      "type": "tf",
+      "category": "Virtual Memory",
+      "q": "Under virtual memory addressing, a process knows and controls which physical addresses its virtual addresses map to.",
+      "answer": false,
+      "explain": "Only the OS knows and manages the physical side of the mapping. Processes engage entirely with virtual addresses."
+    },
+    {
+      "type": "mc",
+      "category": "Virtual Memory",
+      "q": "Process 001 occupies physical addresses 0-999 and 3000-3999. With virtual memory addressing, what address range does Process 001 see?",
+      "choices": [
+        "Virtual 0-1999, one contiguous range",
+        "Virtual 0-999 and 3000-3999, two separate ranges",
+        "Virtual 3000-3999 only",
+        "Virtual 1000-2999"
+      ],
+      "answer": 0,
+      "explain": "Virtual 0-999 maps to physical 0-999, and virtual 1000-1999 maps to physical 3000-3999. The process sees one contiguous block, so offsets and pointer arithmetic work again."
+    },
+    {
+      "type": "num",
+      "category": "Virtual Memory",
+      "q": "Process 001's virtual addresses 0-999 map to physical 0-999, and its virtual addresses 1000-1999 map to physical 3000-3999. Which physical address does Process 001's virtual address 1500 correspond to?",
+      "answer": 3500,
+      "explain": "Virtual 1500 is 500 addresses into the 1000-1999 block. That block maps to physical 3000-3999, so the physical address is 3000 + 500 = 3500. Only the OS sees this physical side."
+    },
+    {
+      "type": "tf",
+      "category": "Virtual Memory",
+      "q": "Process 001's virtual 0-999 maps to physical 0-999, Process 002's to physical 1000-1999, and Process 003's to physical 2000-2999. All three processes can use virtual address 500 at the same time without conflicting.",
+      "answer": true,
+      "explain": "Every process's virtual addresses start at 0, and the OS maps each one to a different physical block. Virtual addresses do not have to be unique across processes."
+    },
+    {
+      "type": "mc",
+      "category": "Virtual Memory",
+      "q": "Which benefit of virtual memory is this: because programs don't depend on physical addresses, they can be moved to another machine without becoming unusable or needing significant modification?",
+      "choices": ["Process simplicity", "Program portability", "Memory security", "Processor affinity"],
+      "fixed": true,
+      "answer": 1,
+      "explain": "This is program portability. Process simplicity means processes can assume a clean, contiguous block. Memory security means processes are confined to their own sections."
+    },
+    {
+      "type": "mc",
+      "category": "Virtual Memory",
+      "q": "Which benefit of virtual memory is this: each process 'believes' it has unrestricted access to sequential memory, but it is confined to its allocated sections and cannot read or corrupt other processes' memory?",
+      "choices": ["Process simplicity", "Program portability", "Memory security", "Processor affinity"],
+      "fixed": true,
+      "answer": 2,
+      "explain": "This is memory security. Because processes never touch physical addresses directly, they are isolated from one another. This solves the security problem of direct physical addressing."
+    },
+    {
+      "type": "mc",
+      "category": "Virtual Memory",
+      "q": "How does virtual memory addressing deal with the fragmentation problem?",
+      "choices": [
+        "Physically separate free blocks can be presented to a process as one contiguous virtual range",
+        "It moves every process to the start of physical memory after each context switch",
+        "It forbids processes from requesting more memory after they start",
+        "It increases the size of each physical memory block"
+      ],
+      "answer": 0,
+      "explain": "The OS can map scattered physical blocks into a single contiguous virtual range. A request can then succeed whenever enough total memory is free, and the process still gets simple offsets."
+    },
+    {
+      "type": "multi",
+      "category": "Virtual Memory",
+      "q": "Which of these are benefits of virtualizing memory?",
+      "choices": [
+        "Process simplicity",
+        "Program portability",
+        "Memory security",
+        "Eliminating context-switch overhead",
+        "Removing the need for device drivers",
+        "Larger CPU caches"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The three benefits are process simplicity (a clean, contiguous view of memory), program portability (no dependence on physical addresses), and memory security (processes are isolated from one another)."
+    },
+    {
+      "type": "mc",
+      "category": "File Systems",
+      "q": "What is a file system?",
+      "choices": [
+        "A layer of OS software that manages the storage and retrieval of data",
+        "The physical disk platters or flash chips where data is stored",
+        "A data structure the OS uses to track each running process",
+        "Software that translates general commands into device-specific commands"
+      ],
+      "answer": 0,
+      "explain": "The file system is the OS layer that turns raw stored bits into named, organized files. The other choices describe the storage hardware, the PCB, and a device driver."
+    },
+    {
+      "type": "multi",
+      "category": "File Systems",
+      "q": "On a machine with no file system, which of these would be true?",
+      "choices": [
+        "There would be no file names or folders",
+        "There would be no metadata such as timestamps or file size",
+        "You would have to track manually where each file begins and ends",
+        "Data access would be low-level, using direct references to memory blocks",
+        "Stored data would no longer be binary",
+        "The CPU would be unable to execute any process"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Without a file system you would reference physical storage locations and offsets by hand. The data is binary either way; the file system is the interface on top of it. The CPU could still run processes."
+    },
+    {
+      "type": "multi",
+      "category": "File Systems",
+      "q": "Which of the following does a file system provide?",
+      "choices": [
+        "Dividing stored data into files",
+        "Names for files",
+        "A hierarchy of directories (folders, subfolders)",
+        "Metadata such as creation and last-modified times",
+        "Access control such as permissions",
+        "Translating 'print this page' into printer-specific commands",
+        "Mapping virtual addresses to physical addresses"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "Files, names, directories, metadata, and access control each fix something missing on a machine without a file system. Translating print commands is a device driver's job, and address mapping is virtual memory."
+    },
+    {
+      "type": "mc",
+      "category": "File Systems",
+      "q": "Specifying permissions and assigning files to users is an example of which file system feature?",
+      "choices": ["Access control", "Metadata", "Directory hierarchy", "Processor affinity"],
+      "answer": 0,
+      "explain": "Access control covers permissions and which users own or can use which files."
+    },
+    {
+      "type": "mc",
+      "category": "File Systems",
+      "q": "Which of these is an example of file metadata?",
+      "choices": [
+        "The date and time the file was last modified",
+        "The text written inside the file",
+        "The register values of the process that opened it",
+        "The driver of the printer that printed it"
+      ],
+      "answer": 0,
+      "explain": "Metadata is data about a file, such as when it was created, last opened, or last modified, plus its size and other properties. It is not the file's contents."
+    },
+    {
+      "type": "tf",
+      "category": "File Systems",
+      "q": "Everything in secondary (permanent) storage is ultimately binary data, and the file system turns that raw data into an interface people can use.",
+      "answer": true,
+      "explain": "Raw 1s and 0s are useless to a user. The OS's file system makes them understandable and easy to manipulate."
+    },
+    {
+      "type": "multi",
+      "category": "Devices & Drivers",
+      "q": "Which of the following count as devices that an operating system manages?",
+      "choices": [
+        "A keyboard",
+        "An SSD",
+        "A GPU",
+        "A sound card",
+        "A USB drive",
+        "A process control block",
+        "The job queue"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "Devices include input and output hardware like keyboards, mice, monitors, and printers, and also storage hardware (HDDs, SSDs, USB drives), GPUs, and sound cards. The PCB and job queue are OS data structures."
+    },
+    {
+      "type": "mc",
+      "category": "Devices & Drivers",
+      "q": "Before device communication was standardized, what was the major limitation for programmers?",
+      "choices": [
+        "They had to learn each specific device, so programs for widespread use were almost impossible",
+        "Only one device could be connected at a time, and all devices shared a single driver",
+        "Every device had to be controlled through the file system's directory hierarchy",
+        "Devices could only produce output and could not accept any input"
+      ],
+      "answer": 0,
+      "explain": "For example, printing required knowing the exact data and command format for that printer model and handling mechanical timings like the printer drum. A program written for one printer would not work with a different one."
+    },
+    {
+      "type": "mc",
+      "category": "Devices & Drivers",
+      "q": "An application asks the OS to 'print this page'. What translates that general command into the specific commands a particular printer model needs?",
+      "choices": ["The printer's device driver", "The file system", "The process control block", "The job queue"],
+      "answer": 0,
+      "explain": "A device driver mediates communication between applications and hardware. The OS issues a general command, and the driver translates it for that exact device. Examples include the HP Universal Print Driver, the NVIDIA GeForce Driver, and the Realtek HD Audio Driver."
+    },
+    {
+      "type": "tf",
+      "category": "Devices & Drivers",
+      "q": "Operating systems generally come with a library of common device drivers, so basic peripherals like mice and keyboards work without installing anything extra.",
+      "answer": true,
+      "explain": "Built-in driver libraries cover common peripherals. Less common or specialized devices may need a downloaded driver."
+    },
+    {
+      "type": "mc",
+      "category": "Devices & Drivers",
+      "q": "In which situation are you most likely to need to download a device driver?",
+      "choices": [
+        "You connect a specialized device that is newer than your operating system",
+        "You plug in a standard keyboard",
+        "You create a new folder in the file system",
+        "A process moves from the Ready state to the Running state"
+      ],
+      "answer": 0,
+      "explain": "Specialized devices, especially ones newer than the OS, may not be in the built-in driver library. The OS may fetch the driver automatically by checking an online database, or you may install it manually from a disc or USB drive."
+    },
+    {
+      "type": "tf",
+      "category": "Devices & Drivers",
+      "q": "A computer with no input or output devices could still run processes and store data, but it would be of minimal use to a user.",
+      "answer": true,
+      "explain": "Without input and output, the user couldn't choose which processes to run or see any stored data. For practical purposes there would be no user at all."
+    }
+  ]
+}

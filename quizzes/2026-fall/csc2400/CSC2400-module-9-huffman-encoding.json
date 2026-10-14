@@ -1,0 +1,523 @@
+{
+  "title": "CSC2400 Module 9: Huffman Encoding",
+  "course": "CSC2400",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Alphabets and fixed-length codes",
+      "q": "For an alphabet Σ, what does |Σ| denote?",
+      "choices": [
+        "The number of symbols in Σ",
+        "The number of bits needed per symbol",
+        "The sum of the symbol frequencies",
+        "The length of the longest codeword"
+      ],
+      "answer": 0,
+      "explain": "Σ is the set of possible symbols, and |Σ| is its size. For example, Σ = {A, B, C, D} has |Σ| = 4."
+    },
+    {
+      "type": "num",
+      "category": "Alphabets and fixed-length codes",
+      "q": "How many bits per symbol does a fixed-length binary code need for an alphabet of 20 symbols?",
+      "answer": 5,
+      "explain": "⌈log₂ 20⌉ = 5, because 2^4 = 16 < 20 ≤ 32 = 2^5. Four bits give only 16 distinct codewords."
+    },
+    {
+      "type": "mc",
+      "category": "Alphabets and fixed-length codes",
+      "q": "Which expression gives the minimum number of bits per symbol for a fixed-length binary code over n symbols?",
+      "choices": [
+        "⌈log₂ n⌉",
+        "⌊log₂ n⌋",
+        "log₂ n, rounded to the nearest integer",
+        "n − 1"
+      ],
+      "answer": 0,
+      "explain": "k bits give 2^k distinct codewords, so you need the smallest integer k with 2^k ≥ n. That is the ceiling ⌈log₂ n⌉. The floor would give too few codewords whenever n is not a power of 2."
+    },
+    {
+      "type": "num",
+      "category": "Alphabets and fixed-length codes",
+      "q": "How many bits per symbol does a fixed-length binary code need for an alphabet of 64 symbols?",
+      "answer": 6,
+      "explain": "2^6 = 64 exactly, so ⌈log₂ 64⌉ = 6 bits."
+    },
+    {
+      "type": "tf",
+      "category": "Alphabets and fixed-length codes",
+      "q": "A fixed-length binary code with 4 bits per symbol can encode an alphabet of 17 symbols.",
+      "answer": false,
+      "explain": "4 bits give only 2^4 = 16 distinct codewords. 17 symbols need ⌈log₂ 17⌉ = 5 bits."
+    },
+    {
+      "type": "num",
+      "category": "Alphabets and fixed-length codes",
+      "q": "How many bits per symbol does a fixed-length binary code need for an alphabet of 5 symbols?",
+      "answer": 3,
+      "explain": "2^2 = 4 < 5 ≤ 8 = 2^3, so ⌈log₂ 5⌉ = 3 bits."
+    },
+    {
+      "type": "tf",
+      "category": "Prefix-free codes",
+      "q": "The code A = 0, B = 01 is prefix-free.",
+      "answer": false,
+      "explain": "The codeword for A (0) is a prefix of the codeword for B (01). After reading a 0, a decoder cannot tell whether it has finished an A or started a B."
+    },
+    {
+      "type": "multi",
+      "category": "Prefix-free codes",
+      "q": "Which of the following codes are prefix-free?",
+      "choices": [
+        "A = 0, B = 10, C = 11",
+        "A = 1, B = 10, C = 00",
+        "A = 00, B = 01, C = 10, D = 11",
+        "A = 0, B = 1, C = 01",
+        "A = 11, B = 10, C = 0"
+      ],
+      "answer": [0, 2, 4],
+      "explain": "A = 1, B = 10 fails because 1 is a prefix of 10. A = 0, C = 01 fails because 0 is a prefix of 01. The others have no complete codeword that begins another. Any fixed-length code with distinct codewords is prefix-free."
+    },
+    {
+      "type": "text",
+      "category": "Prefix-free codes",
+      "q": "Using the code A = 0, B = 10, C = 110, D = 111, decode the bit string 010111. Give the letters only (for example, ABC).",
+      "answer": ["ABD", "abd"],
+      "explain": "Read left to right, stopping as soon as the bits match a codeword: 0 | 10 | 111 gives A, B, D."
+    },
+    {
+      "type": "text",
+      "category": "Prefix-free codes",
+      "q": "Using the code A = 0, B = 10, C = 110, D = 111, decode the bit string 1100111100. Give the letters only.",
+      "answer": ["CADBA", "cadba"],
+      "explain": "110 | 0 | 111 | 10 | 0 gives C, A, D, B, A."
+    },
+    {
+      "type": "text",
+      "category": "Prefix-free codes",
+      "q": "Using the code A = 0, B = 10, C = 110, D = 111, encode the message DAB as a bit string.",
+      "answer": "111010",
+      "explain": "D = 111, A = 0, B = 10, so DAB becomes 111 0 10 = 111010 (6 bits)."
+    },
+    {
+      "type": "tf",
+      "category": "Prefix-free codes",
+      "q": "The code A = 0, B = 10, C = 110, D = 111 is not prefix-free, because 10 and 110 both begin with 1.",
+      "answer": false,
+      "explain": "Prefix-free does not mean codewords share no leading bits. It only means no complete codeword is the start of another. 10 is not a prefix of 110 (110 starts with 11), so the code is prefix-free."
+    },
+    {
+      "type": "mc",
+      "category": "Prefix-free codes",
+      "q": "What is the main practical advantage of a prefix-free code?",
+      "choices": [
+        "A bit string can be decoded left to right without separators, because a symbol is decided as soon as the bits read match a codeword",
+        "Every codeword has the same length",
+        "Every message uses fewer bits than it would with a fixed-length code",
+        "No two codewords share any leading bits"
+      ],
+      "answer": 0,
+      "explain": "Since no codeword is a prefix of another, the first match is always the right one, so no separators are needed. Codewords may still share leading bits and differ in length, and savings over fixed-length codes are only on average."
+    },
+    {
+      "type": "mc",
+      "category": "Prefix-free codes",
+      "q": "Consider the non-prefix-free code A = 0, B = 01, C = 1. How can the bit string 01 be decoded?",
+      "choices": [
+        "As either B or AC",
+        "Only as B",
+        "Only as AC",
+        "It cannot be decoded at all"
+      ],
+      "answer": 0,
+      "explain": "01 matches B directly, and it also splits as 0 | 1 = A, C. This ambiguity is exactly what a prefix-free code rules out."
+    },
+    {
+      "type": "mc",
+      "category": "Average code length",
+      "q": "Symbol a has probability p_a and codeword length ℓ(a). Which expression gives the average code length L?",
+      "choices": [
+        "L = Σ p_a · ℓ(a)",
+        "L = (Σ ℓ(a)) / |Σ|",
+        "L = max over a of ℓ(a)",
+        "L = Σ p_a / ℓ(a)"
+      ],
+      "answer": 0,
+      "explain": "The average is weighted by how often each symbol occurs: L = Σ p_a ℓ(a), where the p_a sum to 1. The plain mean of the lengths ignores frequencies."
+    },
+    {
+      "type": "num",
+      "category": "Average code length",
+      "q": "Symbols A, B, C, D have probabilities 0.60, 0.25, 0.10, 0.05 and codes 0, 10, 110, 111. What is the average code length in bits per symbol?",
+      "answer": 1.55,
+      "tolerance": 0.001,
+      "explain": "L = 0.60(1) + 0.25(2) + 0.10(3) + 0.05(3) = 0.60 + 0.50 + 0.30 + 0.15 = 1.55 bits/symbol."
+    },
+    {
+      "type": "num",
+      "category": "Average code length",
+      "q": "With probabilities 0.60, 0.25, 0.10, 0.05 and codes 0, 10, 110, 111 (average 1.55 bits/symbol), what percentage of bits is saved compared with a 2-bit fixed-length code, ignoring overhead? Enter the percentage as a number (for example, 12.5).",
+      "answer": 22.5,
+      "tolerance": 0.1,
+      "explain": "Savings per symbol: 2 − 1.55 = 0.45 bits. As a fraction of the fixed-length cost: 0.45 / 2 = 22.5%."
+    },
+    {
+      "type": "num",
+      "category": "Average code length",
+      "q": "A message has 50 A's, 30 B's, and 20 C's, encoded with A = 0, B = 10, C = 11. What is the average code length in bits per symbol?",
+      "answer": 1.5,
+      "tolerance": 0.001,
+      "explain": "Total bits = 50(1) + 30(2) + 20(2) = 150. Divide by the 100 symbols: 1.5 bits/symbol."
+    },
+    {
+      "type": "num",
+      "category": "Average code length",
+      "q": "Symbols with frequencies 8, 4, 2, 1, 1 get codeword lengths 1, 2, 3, 4, 4. What is the average code length in bits per symbol?",
+      "answer": 1.875,
+      "tolerance": 0.001,
+      "explain": "Total bits = 8(1) + 4(2) + 2(3) + 1(4) + 1(4) = 30. The total frequency is 16, so L = 30/16 = 1.875 bits/symbol."
+    },
+    {
+      "type": "tf",
+      "category": "Average code length",
+      "q": "With the code A = 0, B = 10, C = 110, D = 111, the message DAB takes fewer bits than it would with a 2-bit fixed-length code.",
+      "answer": false,
+      "explain": "DAB encodes as 111010, which is 6 bits, the same as 3 × 2 bits fixed-length. This short message is heavy on rare symbols. Variable-length codes save bits on average over messages that follow the assumed frequencies, not on every message."
+    },
+    {
+      "type": "mc",
+      "category": "Average code length",
+      "q": "You are given raw symbol counts instead of probabilities. How do you compute the average code length L?",
+      "choices": [
+        "Compute Σ (count × ℓ(a)) and divide by the total count",
+        "Compute Σ (count × ℓ(a)) and use that value directly",
+        "Average the codeword lengths without weighting",
+        "Divide each count by |Σ| and multiply by ℓ(a)"
+      ],
+      "answer": 0,
+      "explain": "L uses probabilities. Either convert counts to probabilities first, or compute the total bits Σ count × ℓ(a) and divide by the total count."
+    },
+    {
+      "type": "mc",
+      "category": "Code trees",
+      "q": "In a Σ-tree representing a prefix-free code, where do the symbols of Σ appear?",
+      "choices": [
+        "Only at leaves, one leaf per symbol",
+        "At every node, including the root",
+        "Only at internal nodes",
+        "At leaves or internal nodes, as long as each symbol appears once"
+      ],
+      "answer": 0,
+      "explain": "A Σ-tree is a binary tree whose leaves correspond one-to-one with the symbols. Keeping symbols at leaves is what makes the code prefix-free."
+    },
+    {
+      "type": "tf",
+      "category": "Code trees",
+      "q": "In a code tree, a symbol's codeword length equals the number of edges from the root to its leaf.",
+      "answer": true,
+      "explain": "Each edge on the root-to-leaf path contributes one bit, so ℓ(a) = depth_T(a), measured in edges. The root has depth 0."
+    },
+    {
+      "type": "text",
+      "category": "Code trees",
+      "q": "In a code tree, left branches are labeled 0 and right branches 1. The path from the root to the leaf for symbol X goes right, right, left. What is X's codeword?",
+      "answer": "110",
+      "explain": "Read the branch labels from root to leaf: right = 1, right = 1, left = 0, giving 110."
+    },
+    {
+      "type": "mc",
+      "category": "Code trees",
+      "q": "Why does placing symbols only at leaves of a binary tree guarantee a prefix-free code?",
+      "choices": [
+        "Every prefix of a codeword is the path to an ancestor of its leaf, and no symbol sits at an ancestor (internal) node",
+        "All leaves of a binary tree are at the same depth",
+        "Left and right children always have different weights",
+        "The tree satisfies the min-heap property"
+      ],
+      "answer": 0,
+      "explain": "If a symbol sat at an internal node, its codeword would be a prefix of every codeword below it. With symbols only at leaves, no codeword lies on the path to another."
+    },
+    {
+      "type": "mc",
+      "category": "Code trees",
+      "q": "Viewed as a tree problem, finding an optimal prefix-free code means finding a binary tree that:",
+      "choices": [
+        "Minimizes the weighted average leaf depth Σ p_a · depth_T(a)",
+        "Has the minimum possible height",
+        "Is a balanced binary search tree on the symbols",
+        "Has the fewest internal nodes"
+      ],
+      "answer": 0,
+      "explain": "Since ℓ(a) = depth_T(a), minimizing L = Σ p_a ℓ(a) is the same as minimizing Σ p_a depth_T(a). Frequent symbols should be near the root and rare ones deep."
+    },
+    {
+      "type": "num",
+      "category": "Code trees",
+      "q": "A Huffman tree is built for an alphabet of 8 symbols. How many nodes does it have in total (leaves plus internal nodes)?",
+      "answer": 15,
+      "explain": "There are n = 8 leaves and one internal node per merge, so n − 1 = 7 internal nodes. Total 2n − 1 = 15."
+    },
+    {
+      "type": "tf",
+      "category": "Code trees",
+      "q": "The root of a code tree has depth 1.",
+      "answer": false,
+      "explain": "Depth counts edges from the root, so the root has depth 0. A child of the root has depth 1 and a 1-bit codeword."
+    },
+    {
+      "type": "mc",
+      "category": "Huffman's algorithm",
+      "q": "At each step, which two trees does Huffman's algorithm merge?",
+      "choices": [
+        "The two trees with the smallest weights in the forest",
+        "The two trees with the largest weights in the forest",
+        "The most recently merged tree and the smallest remaining leaf",
+        "The two trees with the fewest leaves"
+      ],
+      "answer": 0,
+      "explain": "Huffman always merges the two smallest-weight trees from the whole forest, which contains original leaves and merged trees. A tree's weight is the sum of its leaves' frequencies."
+    },
+    {
+      "type": "mc",
+      "category": "Huffman's algorithm",
+      "q": "Frequencies are A = 5, B = 6, C = 7, D = 8. Huffman's algorithm first merges A and B into a tree of weight 11. Which two trees are merged next?",
+      "choices": [
+        "C(7) and D(8)",
+        "AB(11) and C(7)",
+        "AB(11) and D(8)",
+        "AB(11), C(7), and D(8) all at once"
+      ],
+      "answer": 0,
+      "explain": "The forest is now C(7), D(8), AB(11). The two smallest are C and D, giving CD(15). Then AB(11) and CD(15) merge into the root (26). Don't just keep merging the newest tree with the next leaf."
+    },
+    {
+      "type": "num",
+      "category": "Huffman's algorithm",
+      "q": "How many merges does Huffman's algorithm perform on an alphabet of 10 symbols?",
+      "answer": 9,
+      "explain": "The forest starts with n = 10 trees and each merge reduces the count by one, ending with one tree. That takes n − 1 = 9 merges."
+    },
+    {
+      "type": "mc",
+      "category": "Huffman's algorithm",
+      "q": "Frequencies are P(A) = 60, P(B) = 25, P(C) = 10, P(D) = 5. Which trees does Huffman's algorithm merge in its second step?",
+      "choices": [
+        "T_CD(15) and B(25)",
+        "C(10) and D(5)",
+        "B(25) and A(60)",
+        "T_CD(15) and A(60)"
+      ],
+      "answer": 0,
+      "explain": "Step 1 merges D(5) and C(10) into T_CD(15). The forest is then T_CD(15), B(25), A(60), so step 2 merges T_CD and B into T_BCD(40). Step 3 merges T_BCD(40) and A(60)."
+    },
+    {
+      "type": "num",
+      "category": "Huffman's algorithm",
+      "q": "Run Huffman's algorithm on frequencies A = 8, B = 4, C = 2, D = 1, E = 1. What is the codeword length of D?",
+      "answer": 4,
+      "explain": "Merges: D+E = 2; C+DE = 4; B+CDE = 8; A+BCDE = 16. D is under four merged nodes, so its depth (code length) is 4. The lengths are A 1, B 2, C 3, D 4, E 4."
+    },
+    {
+      "type": "num",
+      "category": "Huffman's algorithm",
+      "q": "Frequencies are A = 45, B = 13, C = 12, D = 16, E = 9, F = 5 (total 100). What is the average code length, in bits per symbol, of a Huffman code for these frequencies?",
+      "answer": 2.24,
+      "tolerance": 0.001,
+      "explain": "Merges: F+E = 14; C+B = 25; 14+D = 30; 25+30 = 55; A+55 = 100. Lengths: A 1; B, C, D 3; E, F 4. Total bits = 45 + 39 + 36 + 48 + 36 + 20 = 224, so L = 2.24. Check: internal weights 14 + 25 + 30 + 55 + 100 = 224."
+    },
+    {
+      "type": "num",
+      "category": "Huffman's algorithm",
+      "q": "Frequencies are A = 40, B = 20, C = 20, D = 10, E = 10 (total 100). After D and E are merged, there is a three-way tie at weight 20. What is the average code length of a Huffman code, in bits per symbol?",
+      "answer": 2.2,
+      "tolerance": 0.001,
+      "explain": "Merging B+C gives depths A 1, B/C/D/E 3: L = 0.4 + 0.6 + 0.6 + 0.3 + 0.3 = 2.2. Merging B+DE instead gives depths A 1, C 2, B 3, D/E 4: L = 0.4 + 0.4 + 0.6 + 0.4 + 0.4 = 2.2. Different trees, same optimal L. Check: 20 + 40 + 60 + 100 = 220."
+    },
+    {
+      "type": "tf",
+      "category": "Huffman's algorithm",
+      "q": "For a given set of symbol frequencies, there is exactly one correct Huffman code.",
+      "answer": false,
+      "explain": "Tie-breaking choices and swapping which branch is 0 or 1 can produce different codes. All of them have the same, optimal average length L."
+    },
+    {
+      "type": "tf",
+      "category": "Huffman's algorithm",
+      "q": "Swapping the 0 and 1 labels on every branch of a Huffman tree gives a code that is still optimal.",
+      "answer": true,
+      "explain": "Relabeling changes the bits but not any codeword's length, so L = Σ p_a ℓ(a) is unchanged."
+    },
+    {
+      "type": "mc",
+      "category": "Huffman's algorithm",
+      "q": "In the HUFFMAN pseudocode, the main loop (two extractMin calls, merge, insert) repeats while:",
+      "choices": [
+        "F.size > 1",
+        "F.size > 0",
+        "F.size > 2",
+        "F contains at least one single-leaf tree"
+      ],
+      "answer": 0,
+      "explain": "Each iteration needs two trees to merge. The loop stops when one tree, the root of the code tree, remains, and that tree is returned with a final extractMin."
+    },
+    {
+      "type": "mc",
+      "category": "Correctness",
+      "q": "Which structural fact about optimal prefix-free trees justifies Huffman's greedy choice?",
+      "choices": [
+        "Some optimal tree has the two least frequent symbols as sibling leaves at maximum depth",
+        "Every optimal tree is perfectly balanced",
+        "The most frequent symbol is always at depth 1",
+        "The two most frequent symbols are always siblings"
+      ],
+      "answer": 0,
+      "explain": "Placing rare symbols deep costs less than placing frequent symbols deep, so some optimal tree puts the two rarest symbols together at the bottom. That is exactly the pair Huffman merges first."
+    },
+    {
+      "type": "mc",
+      "category": "Correctness",
+      "q": "Symbol x has frequency p_x at depth d_x and symbol y has frequency p_y at depth d_y, with p_x ≤ p_y and d_x ≤ d_y. Swapping x and y changes the weighted path length by:",
+      "choices": [
+        "(p_x − p_y)(d_y − d_x), which is ≤ 0",
+        "(p_y − p_x)(d_y − d_x), which is ≥ 0",
+        "p_x + p_y",
+        "0, always"
+      ],
+      "answer": 0,
+      "explain": "After − before = (p_x d_y + p_y d_x) − (p_x d_x + p_y d_y) = (p_x − p_y)(d_y − d_x). The first factor is ≤ 0 and the second ≥ 0, so moving the rarer symbol deeper never hurts."
+    },
+    {
+      "type": "num",
+      "category": "Correctness",
+      "q": "In a code tree, symbol x (probability 0.1) is at depth 1 and symbol y (probability 0.4) is at depth 3. If x and y swap positions, by how much does the average code length L change? (Use a negative number for a decrease.)",
+      "answer": -0.6,
+      "tolerance": 0.001,
+      "explain": "Change = (p_x − p_y)(d_y − d_x) = (0.1 − 0.4)(3 − 1) = −0.6. Before: 0.1 + 1.2 = 1.3. After: 0.3 + 0.4 = 0.7."
+    },
+    {
+      "type": "mc",
+      "category": "Correctness",
+      "q": "Sibling leaves x and y are replaced by a single symbol z with p_z = p_x + p_y, placed at their parent. How are the average lengths of the original tree and the merged tree related?",
+      "choices": [
+        "L(original) = L(merged) + p_x + p_y",
+        "L(original) = L(merged)",
+        "L(original) = L(merged) + 1",
+        "L(original) = 2 · L(merged)"
+      ],
+      "answer": 0,
+      "explain": "x and y are one level deeper than z: p_x(d+1) + p_y(d+1) = (p_x + p_y)d + (p_x + p_y). The extra p_x + p_y is a constant, so minimizing the merged problem also minimizes the original."
+    },
+    {
+      "type": "num",
+      "category": "Correctness",
+      "q": "Merging C (0.10) and D (0.05) gives a reduced instance A = 0.60, B = 0.25, CD = 0.15 whose optimal average length is 1.4. Using the merge relationship, what is the optimal average length for the original instance A, B, C, D?",
+      "answer": 1.55,
+      "tolerance": 0.001,
+      "explain": "L(original) = L(merged) + p_C + p_D = 1.4 + 0.15 = 1.55 bits/symbol."
+    },
+    {
+      "type": "mc",
+      "category": "Correctness",
+      "q": "The exchange argument shows that some optimal tree has the two least frequent symbols as deepest siblings. Which property does this establish?",
+      "choices": [
+        "Greedy-choice property",
+        "Optimal substructure",
+        "Overlapping subproblems",
+        "Amortized constant time per merge"
+      ],
+      "answer": 0,
+      "explain": "Showing that the greedy first move (merging the two rarest symbols) is consistent with some optimal solution is the greedy-choice property."
+    },
+    {
+      "type": "mc",
+      "category": "Correctness",
+      "q": "The argument that an optimal tree for the smaller, merged instance can be expanded into an optimal tree for the original instance establishes which property?",
+      "choices": [
+        "Optimal substructure",
+        "Greedy-choice property",
+        "Overlapping subproblems",
+        "The min-heap property"
+      ],
+      "answer": 0,
+      "explain": "Because L(original) = L(merged) + p_x + p_y, solving the reduced problem optimally yields an optimal solution to the original. That is optimal substructure."
+    },
+    {
+      "type": "tf",
+      "category": "Correctness",
+      "q": "Moving a less frequent symbol deeper in the tree, in exchange for a more frequent symbol moving shallower, can increase the weighted average depth.",
+      "answer": false,
+      "explain": "The change is (p_x − p_y)(d_y − d_x) ≤ 0 when p_x ≤ p_y and d_x ≤ d_y. Such a swap never increases the cost."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime",
+      "q": "What is the running time of Huffman's algorithm on n = |Σ| symbols using a binary min-heap?",
+      "choices": [
+        "O(n log n)",
+        "O(n)",
+        "O(n²)",
+        "O(log n)"
+      ],
+      "answer": 0,
+      "explain": "O(n) to build the heap, plus n − 1 merges at O(log n) each: O(n) + (n − 1)·O(log n) = O(n log n)."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime",
+      "q": "Which heap operations does each merge step of Huffman's algorithm perform?",
+      "choices": [
+        "Two extractMin operations and one insert",
+        "One extractMin and one insert",
+        "One extractMin and two inserts",
+        "Two inserts and no extractMin"
+      ],
+      "answer": 0,
+      "explain": "Remove the two smallest trees (2 extractMin), then insert their merged parent (1 insert). Each is O(log n) in a binary heap."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime",
+      "q": "How much space do the tree and heap use in Huffman's algorithm on n symbols?",
+      "choices": [
+        "O(n)",
+        "O(n log n)",
+        "O(n²)",
+        "O(1)"
+      ],
+      "answer": 0,
+      "explain": "The final tree has n leaves and n − 1 internal nodes (2n − 1 total), and the heap never holds more than n trees, so space is O(n)."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime",
+      "q": "How long does it take to build the initial binary min-heap of n single-leaf trees?",
+      "choices": [
+        "O(n)",
+        "O(log n)",
+        "O(n log n)",
+        "O(n²)"
+      ],
+      "answer": 0,
+      "explain": "Heap construction can be done in O(n). The O(n log n) total comes from the n − 1 merges, not from building the heap."
+    },
+    {
+      "type": "tf",
+      "category": "Runtime",
+      "q": "The O(n log n) bound for Huffman's algorithm comes from performing n − 1 merges, each costing O(log n) with a binary min-heap.",
+      "answer": true,
+      "explain": "The n − 1 merges at O(log n) each dominate the O(n) heap construction."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime",
+      "q": "What role does the min-priority queue play in Huffman's algorithm?",
+      "choices": [
+        "It makes repeatedly finding and removing the two smallest-weight trees efficient",
+        "It stores the final codeword for each symbol",
+        "It sorts the symbols alphabetically before encoding",
+        "It decodes bit strings back into symbols"
+      ],
+      "answer": 0,
+      "explain": "Each step needs the two minimum-weight trees from a changing forest. A min-heap supplies them in O(log n) per operation."
+    }
+  ]
+}

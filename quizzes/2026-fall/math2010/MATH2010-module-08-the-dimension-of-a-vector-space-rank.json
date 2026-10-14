@@ -1,0 +1,614 @@
+{
+  "title": "MATH2010 Module 08: The Dimension of a Vector Space & Rank",
+  "course": "MATH2010",
+  "questions": [
+    {
+      "type": "multi",
+      "category": "Subspaces and vector spaces",
+      "q": "A subset H of a vector space V is a subspace exactly when which conditions hold?",
+      "choices": [
+        "The zero vector of V is in H",
+        "If u and v are in H, then u + v is in H",
+        "If u is in H and c is any scalar, then cu is in H",
+        "H contains at least one nonzero vector",
+        "H spans V",
+        "H has finitely many vectors"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "These three conditions are the definition of a subspace. {0} is a subspace, so H does not need a nonzero vector. A subspace of V does not have to span V. Every subspace other than {0} has infinitely many vectors, because it contains every multiple cu."
+    },
+    {
+      "type": "mc",
+      "category": "Subspaces and vector spaces",
+      "q": "Let W = {(a, b, a + b + c, -a, d) : a + b + c + d = 1, with a, b, c, d in R}, a set of vectors in R^5. Which statement is correct?",
+      "choices": [
+        "W is not a vector space, because the zero vector is not in W",
+        "W is a vector space of dimension 4",
+        "W is a vector space of dimension 3",
+        "W is a vector space of dimension 5"
+      ],
+      "answer": 0,
+      "explain": "Suppose (a, b, a + b + c, -a, d) = 0. Entry 1 gives a = 0, entry 2 gives b = 0, entry 3 then gives c = 0, and entry 5 gives d = 0. But then a + b + c + d = 0, not 1, so these parameters are not allowed. No allowed choice produces 0, so W is not a subspace of R^5 and has no dimension. The warning sign is the non-homogeneous condition (= 1)."
+    },
+    {
+      "type": "multi",
+      "category": "Subspaces and vector spaces",
+      "q": "Let W = {(a, b, a + b + c, -a, d) : a + b + c + d = 1}. Which of these are complete, valid arguments that W is NOT a vector space?",
+      "choices": [
+        "For the zero vector, the entries force a = b = c = d = 0. But then a + b + c + d = 0 ≠ 1, so 0 is not in W",
+        "u = (0, 0, 0, 0, 1) is in W (a = b = c = 0, d = 1). But 2u = (0, 0, 0, 0, 2) would need a = b = c = 0 and d = 2, and 0 + 0 + 0 + 2 ≠ 1, so W is not closed under scalar multiplication",
+        "u = (1, 0, 1, -1, 0) is in W (a = 1, b = c = d = 0). But u + u = (2, 0, 2, -2, 0) would need a = 2 and b = c = d = 0, which sum to 2 ≠ 1, so W is not closed under addition",
+        "The condition a + b + c + d = 1 is not homogeneous, so W cannot be a vector space",
+        "W uses 4 parameters but lives in R^5, so it cannot be a vector space"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A valid argument either shows that 0 is not in W or gives a specific closure failure. The closure counterexamples work because a vector of this form determines its parameters uniquely: a from entry 1, b from entry 2, c from entry 3 minus (a + b), and d from entry 5. So no other choice of parameters can produce the same vector. A non-homogeneous condition is a strong hint, but it is not a proof. Having fewer parameters than entries is normal for a subspace; a plane in R^3 is described by 2 parameters."
+    },
+    {
+      "type": "multi",
+      "category": "Subspaces and vector spaces",
+      "q": "Let W = {(a, b, a + b + c, -a, d) : a + b + c + d = 1}. Which vectors are in W?",
+      "choices": [
+        "(0, 0, 1, 0, 0)",
+        "(1, 1, 1, -1, 0)",
+        "(0, 0, 0, 0, 0)",
+        "(0, 1, 1, 0, 1)",
+        "(1, 0, 1, 1, 0)"
+      ],
+      "answer": [0, 1],
+      "explain": "Read off a = entry 1, b = entry 2, c = entry 3 - a - b, and d = entry 5. Check that entry 4 equals -a, then check that a + b + c + d = 1. (0, 0, 1, 0, 0): a = b = 0, c = 1, d = 0, sum 1, so it is in W. (1, 1, 1, -1, 0): a = b = 1, c = -1, d = 0, sum 1, so it is in W. (0, 0, 0, 0, 0): the sum is 0, so it is not in W. (0, 1, 1, 0, 1): a = 0, b = 1, c = 0, d = 1, sum 2, so it is not in W. (1, 0, 1, 1, 0): entry 4 should be -a = -1, not 1, so it does not have the right form."
+    },
+    {
+      "type": "num",
+      "category": "Subspaces and vector spaces",
+      "q": "Change the condition so that it reads a + b + c + d = 0, giving W = {(a, b, a + b + c, -a, d) : a + b + c + d = 0}. This W is a vector space. What is dim W?",
+      "answer": 3,
+      "explain": "Solve for d = -a - b - c. The general vector becomes (a, b, a + b + c, -a, -a - b - c) = a(1, 0, 1, -1, -1) + b(0, 1, 1, 0, -1) + c(0, 0, 1, 0, -1), with a, b, c free. So W is a span, which makes it a subspace. The three vectors are independent: if the combination is 0, entry 1 gives a = 0, entry 2 gives b = 0, and entry 3 then gives c = 0. So dim W = 3."
+    },
+    {
+      "type": "mc",
+      "category": "Subspaces and vector spaces",
+      "q": "Let W = {(a + b, b - c, a + c, d - a, c + d) : a + b = c + d, with a, b, c, d in R}. Solving the condition for d gives d = a + b - c. After you substitute this, what is the general vector of W?",
+      "choices": [
+        "(a + b, b - c, a + c, b - c, a + b)",
+        "(a + b, b - c, a + c, a + b - c, a + b)",
+        "(a + b, b - c, a + c, b - c, a + b - c)",
+        "(a + b, b - c, a + c, b + c, a + b + 2c)"
+      ],
+      "answer": 0,
+      "explain": "Entry 4: d - a = (a + b - c) - a = b - c. Entry 5: c + d = c + (a + b - c) = a + b. Entries 1-3 do not involve d. So every vector of W has the form (a + b, b - c, a + c, b - c, a + b), and a, b, c are now completely free. The second choice forgets to subtract a in entry 4, the third forgets to add c in entry 5, and the last uses d = a + b + c."
+    },
+    {
+      "type": "num",
+      "category": "Subspaces and vector spaces",
+      "q": "Let W = {(a + b, b - c, a + c, d - a, c + d) : a + b = c + d}. W is a vector space. What is dim W?",
+      "answer": 2,
+      "explain": "Substituting d = a + b - c gives a(1, 0, 1, 0, 1) + b(1, 1, 0, 1, 1) + c(0, -1, 1, -1, 0). The third vector equals the first minus the second, so you can remove it (Spanning Set Theorem). The other two are not multiples of each other, so they are independent and form a basis. dim W = 2, even though W is described with 4 letters."
+    },
+    {
+      "type": "multi",
+      "category": "Subspaces and vector spaces",
+      "q": "Let W = {(a + b, b - c, a + c, d - a, c + d) : a + b = c + d}. Which vectors are in W?",
+      "choices": [
+        "(3, 1, 2, 1, 3)",
+        "(2, 5, -3, 5, 2)",
+        "(0, 0, 0, 0, 0)",
+        "(1, 1, 1, 1, 1)",
+        "(1, 2, -1, 2, 3)"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "After substituting d = a + b - c, every vector of W is (a + b, b - c, a + c, b - c, a + b). So entry 5 = entry 1, entry 4 = entry 2, and entry 3 = entry 1 - entry 2. (3, 1, 2, 1, 3) and (2, 5, -3, 5, 2) satisfy all three; for example, a = 2, b = 1, c = 0, d = 3 gives the first one. 0 is in W because a = b = c = d = 0 is allowed. (1, 1, 1, 1, 1) has entry 3 equal to 1, not 1 - 1 = 0. (1, 2, -1, 2, 3) has entry 5 different from entry 1."
+    },
+    {
+      "type": "multi",
+      "category": "Subspaces and vector spaces",
+      "q": "Which of these sets are subspaces of R^3?",
+      "choices": [
+        "{(a, b, c) : a + 2b - c = 0}",
+        "{(a, b, c) : a - b + c = 3}",
+        "{(2s + t, s - t, 3t) : s, t in R}",
+        "{(a, b, ab) : a, b in R}",
+        "{(a, a + b, b + 1) : a, b in R}",
+        "{(0, 0, 0)}"
+      ],
+      "answer": [0, 2, 5],
+      "explain": "{a + 2b - c = 0} is Nul([1 2 -1]), and a null space is a subspace. {(2s + t, s - t, 3t)} = Span{(2, 1, 0), (1, -1, 3)}, and a span is a subspace. {0} is the zero subspace. {a - b + c = 3} does not contain 0. In {(a, a + b, b + 1)}, entries 1 and 2 force a = b = 0 for the zero vector, but then entry 3 is 1, so 0 is missing. {(a, b, ab)} contains 0 but is not closed: (1, 1, 1) is in it, but 2(1, 1, 1) = (2, 2, 2) would need 2·2 = 2."
+    },
+    {
+      "type": "tf",
+      "category": "Subspaces and vector spaces",
+      "q": "True or false: if a subset of R^n contains the zero vector, then it is a subspace.",
+      "answer": false,
+      "explain": "Containing 0 is necessary but not sufficient. The set must also be closed under addition and scalar multiplication. For example, S = {(x, y) : x ≥ 0 and y ≥ 0} contains (0, 0) and (1, 1), but (-1)(1, 1) = (-1, -1) is not in S. The zero-vector test can only prove that a set is NOT a subspace."
+    },
+    {
+      "type": "tf",
+      "category": "Subspaces and vector spaces",
+      "q": "True or false: if b is a nonzero vector, the solution set of Ax = b is never a subspace.",
+      "answer": true,
+      "explain": "A0 = 0 ≠ b, so the zero vector is never a solution, and every subspace must contain 0. If the system is inconsistent, the solution set is empty, which also fails. In contrast, the solution set of the homogeneous system Ax = 0 is Nul(A), which is always a subspace."
+    },
+    {
+      "type": "mc",
+      "category": "Subspaces and vector spaces",
+      "q": "You have shown that W = {(a + b, b - c, a + c, b - c, a + b) : a, b, c in R} equals Span{(1, 0, 1, 0, 1), (1, 1, 0, 1, 1), (0, -1, 1, -1, 0)}. Which fact finishes the proof that W is a vector space?",
+      "choices": [
+        "The span of any vectors in R^5 is a subspace of R^5, and every subspace is a vector space",
+        "W contains the zero vector, so W is a subspace",
+        "W has three spanning vectors, so W = R^3",
+        "The three spanning vectors are linearly independent"
+      ],
+      "answer": 0,
+      "explain": "Span{v1, ..., vp} is always a subspace of the space that contains the vi, and a subspace is a vector space. Containing 0 is not enough on its own. W lives in R^5, not R^3. Independence is not needed for W to be a vector space, and these three vectors are actually dependent: the third is the first minus the second."
+    },
+    {
+      "type": "mc",
+      "category": "Basis and dimension",
+      "q": "Which of these is the definition of a basis for a subspace H?",
+      "choices": [
+        "A linearly independent set of vectors in H that spans H",
+        "Any set of vectors in H that spans H",
+        "Any linearly independent set of vectors in H",
+        "The pivot columns of an echelon form of a matrix whose columns span H"
+      ],
+      "answer": 0,
+      "explain": "A basis must be linearly independent AND span H. A spanning set can include redundant vectors, and an independent set may be too small to span. In general the pivot columns of an echelon form are not even in H. The pivot columns of the original matrix are the ones that form a basis."
+    },
+    {
+      "type": "mc",
+      "category": "Basis and dimension",
+      "q": "What are a basis and the dimension of the zero subspace {0}?",
+      "choices": [
+        "The empty set; dimension 0",
+        "{0}; dimension 1",
+        "{0}; dimension 0",
+        "It has no basis, so its dimension is undefined"
+      ],
+      "answer": 0,
+      "explain": "{0} cannot be a basis, because any set that contains the zero vector is linearly dependent (1·0 = 0 is a nontrivial combination). The basis of the zero space is the empty set, so dim {0} = 0."
+    },
+    {
+      "type": "tf",
+      "category": "Basis and dimension",
+      "q": "True or false: two different bases for the same subspace H can contain different numbers of vectors.",
+      "answer": false,
+      "explain": "Every basis of H has the same number of vectors, and that number is dim H. This is why dimension is well defined. R^3 has many different bases, but every one of them has exactly 3 vectors."
+    },
+    {
+      "type": "tf",
+      "category": "Basis and dimension",
+      "q": "True or false: if H is a subspace with dim H = 3, then any 3 linearly independent vectors in H form a basis for H.",
+      "answer": true,
+      "explain": "This is the Basis Theorem. In a p-dimensional space, any p linearly independent vectors form a basis, and so do any p vectors that span the space. When the number of vectors already equals the dimension, you only need to check one of the two basis conditions."
+    },
+    {
+      "type": "tf",
+      "category": "Basis and dimension",
+      "q": "True or false: if one vector in a spanning set {v1, ..., vp} for H is a linear combination of the others, then removing it leaves a set that still spans H.",
+      "answer": true,
+      "explain": "This is the Spanning Set Theorem. Any combination that used the removed vector can be rewritten in terms of the remaining ones. If you repeat this until the set is independent, what remains is a basis. For example, in Span{(1, 0, 1, 0, 1), (1, 1, 0, 1, 1), (0, -1, 1, -1, 0)}, the third vector is the first minus the second, so you can drop it."
+    },
+    {
+      "type": "num",
+      "category": "Basis and dimension",
+      "q": "What is the dimension of W = {(a + b, a + b + c, c) : a, b, c in R}?",
+      "answer": 2,
+      "explain": "The general vector is a(1, 1, 0) + b(1, 1, 0) + c(0, 1, 1). The first two vectors are the same, so remove one. (1, 1, 0) and (0, 1, 1) are not multiples of each other, so they form a basis and dim W = 2. Having 3 parameters does not automatically mean dimension 3."
+    },
+    {
+      "type": "num",
+      "category": "Basis and dimension",
+      "q": "Let U = {(a + b, b - c, a + c, d - a, c + d) : a, b, c, d in R}, where a, b, c, d are completely free (there is no condition). What is dim U?",
+      "answer": 3,
+      "explain": "U = Span{u1, u2, u3, u4} with u1 = (1, 0, 1, -1, 0), u2 = (1, 1, 0, 0, 0), u3 = (0, -1, 1, 0, 1), u4 = (0, 0, 0, 1, 1). The choice a = 1, b = -1, c = -1, d = 1 gives the zero vector, so u1 - u2 - u3 + u4 = 0 and you can remove u4. u1, u2, u3 are independent: if au1 + bu2 + cu3 = 0, entry 4 gives a = 0, entry 1 then gives b = 0, and entry 2 gives c = 0. So dim U = 3, even though there are 4 free parameters."
+    },
+    {
+      "type": "multi",
+      "category": "Basis and dimension",
+      "q": "W = Span{v1, v2, v3}, where v1 = (1, 0, 1, 0, 1), v2 = (1, 1, 0, 1, 1), v3 = (0, -1, 1, -1, 0), and v3 = v1 - v2. Which sets are bases for W?",
+      "choices": [
+        "{v1, v2}",
+        "{v1, v3}",
+        "{v2, v3}",
+        "{v1, v2, v3}",
+        "{v1}",
+        "{(1, 0, 0, 0, 0), (0, 1, 0, 0, 0)}"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "dim W = 2, so by the Basis Theorem any 2 independent vectors in W form a basis. In each pair taken from v1, v2, v3, neither vector is a multiple of the other, so every pair works. (For example, v1 = v2 + v3, so {v2, v3} spans W.) {v1, v2, v3} spans W but is dependent. {v1} is too small. (1, 0, 0, 0, 0) is not in W, because in every vector of W entry 5 equals entry 1."
+    },
+    {
+      "type": "multi",
+      "category": "Basis and dimension",
+      "q": "Which of these sets are bases for R^3?",
+      "choices": [
+        "{(1, -1, 1), (0, 1, 2), (1, -2, 3)}",
+        "{(1, 1, 2), (0, -1, 4), (2, -1, 7)}",
+        "{(1, -1, 1), (0, 1, 2), (2, -1, 4)}",
+        "{(1, 0, 0), (0, 1, 0)}",
+        "{(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 1)}"
+      ],
+      "answer": [0, 1],
+      "explain": "dim R^3 = 3, so every basis has exactly 3 vectors, which rules out the sets with 2 and 4 vectors. For 3 vectors, check independence: put them in a matrix as columns and row reduce to see if there are 3 pivots. The first two sets each give 3 pivots. In the third set, (2, -1, 4) = 2(1, -1, 1) + (0, 1, 2), so the set is dependent."
+    },
+    {
+      "type": "mc",
+      "category": "Column space and null space",
+      "q": "A = [1 0 2 3 1; -1 1 -1 -1 -2; 1 2 4 7 3] (rows separated by semicolons). Which columns of A are pivot columns?",
+      "choices": [
+        "Columns 1, 2, and 5",
+        "Columns 1, 2, and 3",
+        "Columns 1, 2, and 4",
+        "Columns 1, 3, and 5"
+      ],
+      "answer": 0,
+      "explain": "R2 + R1 and R3 - R1 give rows [0 1 1 2 -1] and [0 2 2 4 2]. Then R3 - 2R2 gives [0 0 0 0 4]. The echelon form [1 0 2 3 1; 0 1 1 2 -1; 0 0 0 0 4] has leading entries in columns 1, 2, and 5. Columns 3 and 4 are combinations of columns 1 and 2: col 3 = 2·col 1 + col 2 and col 4 = 3·col 1 + 2·col 2."
+    },
+    {
+      "type": "mc",
+      "category": "Column space and null space",
+      "q": "A = [1 0 2 3 1; -1 1 -1 -1 -2; 1 2 4 7 3] has pivot columns 1, 2, and 5. Which set is a basis for Col(A)?",
+      "choices": [
+        "{(1, -1, 1), (0, 1, 2), (1, -2, 3)}",
+        "{(1, -1, 1), (0, 1, 2)}",
+        "{(1, -1, 1), (0, 1, 2), (2, -1, 4)}",
+        "All five columns of A",
+        "{(-2, -1, 1, 0, 0), (-3, -2, 0, 1, 0)}"
+      ],
+      "answer": 0,
+      "explain": "Take the pivot columns of the original A, which are columns 1, 2, and 5, so dim Col(A) = 3. Two vectors cannot span a 3-dimensional space. Columns 1, 2, 3 are dependent (col 3 = 2·col 1 + col 2). All five columns span Col(A), but they are dependent. The vectors in R^5 are a basis for Nul(A), not Col(A). A has 3 pivots and 3 rows, so Col(A) is all of R^3."
+    },
+    {
+      "type": "mc",
+      "category": "Column space and null space",
+      "q": "A = [1 0 2 3 1; -1 1 -1 -1 -2; 1 2 4 7 3] has reduced echelon form [1 0 2 3 0; 0 1 1 2 0; 0 0 0 0 1]. Which set is a basis for Nul(A)?",
+      "choices": [
+        "{(-2, -1, 1, 0, 0), (-3, -2, 0, 1, 0)}",
+        "{(2, 1, 1, 0, 0), (3, 2, 0, 1, 0)}",
+        "{(-2, -1, 1, 0, 0), (-3, -2, 0, 1, 0), (0, 0, 0, 0, 1)}",
+        "{(-2, -1, 1), (-3, -2, 0)}"
+      ],
+      "answer": 0,
+      "explain": "Columns 3 and 4 have no pivot, so x3 and x4 are free. The RREF says x1 = -2x3 - 3x4, x2 = -x3 - 2x4, and x5 = 0. So x = x3(-2, -1, 1, 0, 0) + x4(-3, -2, 0, 1, 0). Moving terms to the right side flips their signs, and the second choice forgets this. x5 is a basic variable equal to 0, not a free variable. Nul(A) lives in R^5, so its vectors need 5 entries."
+    },
+    {
+      "type": "mc",
+      "category": "Column space and null space",
+      "q": "A = [1 0 2 3; 1 -1 -1 -2; 2 4 7 3]. For which m and n is Col(A) a subspace of R^m and Nul(A) a subspace of R^n?",
+      "choices": [
+        "m = 3, n = 4",
+        "m = 4, n = 3",
+        "m = 3, n = 3",
+        "m = 4, n = 4"
+      ],
+      "fixed": true,
+      "answer": 0,
+      "explain": "A is 3 x 4. Each column has 3 entries, so Col(A) is in R^3. Nul(A) consists of the vectors x with Ax = 0. To multiply a matrix with 4 columns, x needs 4 entries, so Nul(A) is in R^4."
+    },
+    {
+      "type": "multi",
+      "category": "Column space and null space",
+      "q": "A = [1 0 2 3; 1 -1 -1 -2; 2 4 7 3]. Which vectors are in Nul(A)?",
+      "choices": [
+        "(19, 24, -23, 9)",
+        "(-38, -48, 46, -18)",
+        "(0, 0, 0, 0)",
+        "(1, 1, 2)",
+        "(19, 24, -23, 0)"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Check whether Ax = 0. For (19, 24, -23, 9): row 1 gives 19 - 46 + 27 = 0, row 2 gives 19 - 24 + 23 - 18 = 0, and row 3 gives 38 + 96 - 161 + 27 = 0. Nul(A) is a subspace, so the multiple -2(19, 24, -23, 9) and the zero vector are also in it. (1, 1, 2) is column 1 of A, so it is in Col(A), a subspace of R^3, and is the wrong size for Nul(A), which is in R^4. (19, 24, -23, 0) gives 19 - 46 = -27 in row 1."
+    },
+    {
+      "type": "num",
+      "category": "Column space and null space",
+      "q": "A = [1 0 2 3; 1 -1 -1 -2; 2 4 7 3] has echelon form [1 0 2 3; 0 -1 -3 -5; 0 0 -9 -23]. What is dim Nul(A)?",
+      "answer": 1,
+      "explain": "The pivots are in columns 1, 2, and 3, so x4 is the only free variable. dim Nul(A) = 4 - 3 = 1, so Nul(A) is a line in R^4, spanned by (19, 24, -23, 9). Also, rank A = 3 = the number of rows, so Col(A) = R^3."
+    },
+    {
+      "type": "mc",
+      "category": "Column space and null space",
+      "q": "For a nonzero matrix A, which method always gives a non-zero vector in Col(A) without any computation?",
+      "choices": [
+        "Take any non-zero column of A",
+        "Take a non-zero solution of Ax = 0",
+        "Take a column of an echelon form of A",
+        "Take any non-zero row of A"
+      ],
+      "answer": 0,
+      "explain": "Col(A) is the span of the columns of A, so every column of A is in Col(A). More generally, Ax is in Col(A) for every x. Solutions of Ax = 0 lie in Nul(A), which lives in R^n, not R^m. Row operations can change the column space, so columns of an echelon form need not be in Col(A). A row has n entries, while Col(A) lives in R^m."
+    },
+    {
+      "type": "multi",
+      "category": "Column space and null space",
+      "q": "A = [1 -2 3 1; -2 3 5 -3]. Which vectors are in Nul(A)?",
+      "choices": [
+        "(16, 10, 1, 1)",
+        "(3, 1, 0, -1)",
+        "(0, 0, 0, 0)",
+        "(1, -2, 3, 1)",
+        "(19, 11, 0, 1)"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Multiply each vector by A. (16, 10, 1, 1): 16 - 20 + 3 + 1 = 0 and -32 + 30 + 5 - 3 = 0. (3, 1, 0, -1): 3 - 2 - 1 = 0 and -6 + 3 + 3 = 0. The zero vector is in every null space. (1, -2, 3, 1) is row 1 of A, and row 1 times it is 1 + 4 + 9 + 1 = 15. (19, 11, 0, 1): row 1 gives 19 - 22 + 1 = -2. In fact Nul(A) = Span{(19, 11, 1, 0), (-3, -1, 0, 1)}. (16, 10, 1, 1) is the sum of these two basis vectors, and (3, 1, 0, -1) is the negative of the second one."
+    },
+    {
+      "type": "mc",
+      "category": "Column space and null space",
+      "q": "A = [1 2 0 4; 2 4 1 9; -1 -2 3 -1] has echelon form [1 2 0 4; 0 0 1 1; 0 0 0 0]. Which set is a basis for Col(A)?",
+      "choices": [
+        "{(1, 2, -1), (0, 1, 3)}",
+        "{(1, 0, 0), (0, 1, 0)}",
+        "{(1, 2, -1), (2, 4, -2)}",
+        "{(1, 2, 0, 4), (0, 0, 1, 1)}"
+      ],
+      "answer": 0,
+      "explain": "The pivots are in columns 1 and 3, so take columns 1 and 3 of the ORIGINAL A: (1, 2, -1) and (0, 1, 3). The echelon columns are not a basis here, because (1, 0, 0) is not in Col(A): a(1, 2, -1) + b(0, 1, 3) = (1, 0, 0) needs a = 1, then b = -2, but then the third entry is -1 - 6 = -7, not 0. Columns 1 and 2 are dependent (col 2 = 2·col 1). The vectors in R^4 are a basis for Row(A)."
+    },
+    {
+      "type": "mc",
+      "category": "Column space and null space",
+      "q": "A = [1 2 0 4; 2 4 1 9; -1 -2 3 -1] has reduced echelon form [1 2 0 4; 0 0 1 1; 0 0 0 0]. Which set is a basis for Nul(A)?",
+      "choices": [
+        "{(-2, 1, 0, 0), (-4, 0, -1, 1)}",
+        "{(2, 1, 0, 0), (4, 0, 1, 1)}",
+        "{(-2, 1, 0, 0)}",
+        "{(-4, 0, -1, 1), (0, 0, 0, 0)}"
+      ],
+      "answer": 0,
+      "explain": "The pivots are in columns 1 and 3, so x2 and x4 are free. The RREF gives x1 = -2x2 - 4x4 and x3 = -x4, so x = x2(-2, 1, 0, 0) + x4(-4, 0, -1, 1). Check: A(-2, 1, 0, 0) = (-2 + 2, -4 + 4, 2 - 2) = 0, and A(-4, 0, -1, 1) = (-4 + 4, -8 - 1 + 9, 4 - 3 - 1) = 0. With 2 free variables, one vector is not enough, and a set that contains 0 is never independent."
+    },
+    {
+      "type": "tf",
+      "category": "Column space and null space",
+      "q": "True or false: row operations never change the column space of a matrix.",
+      "answer": false,
+      "explain": "Row operations keep the row space and the solution set of Ax = 0 the same, but they can change Col(A). For A = [1 3 -2 1; -1 8 1 -2; -2 5 3 -3], an echelon form has a zero third row, so every column of the echelon form has third entry 0. Column 1 of A, (1, -1, -2), does not. This is why a basis for Col(A) uses the pivot columns of the original A."
+    },
+    {
+      "type": "tf",
+      "category": "Column space and null space",
+      "q": "True or false: for A = [1 -2 3 1; -2 3 5 -3], Col(A) is all of R^2.",
+      "answer": true,
+      "explain": "R2 + 2R1 gives [0 -1 11 -1], so both rows have a pivot. Col(A) is a 2-dimensional subspace of R^2, so by the Basis Theorem it is all of R^2. Columns 1 and 2, (1, -2) and (-2, 3), form a basis."
+    },
+    {
+      "type": "mc",
+      "category": "Row space and Nul(A^T)",
+      "q": "A = [1 3 -2 1; -1 8 1 -2; -2 5 3 -3] has echelon form [1 3 -2 1; 0 11 -1 -1; 0 0 0 0]. Which set is a basis for Row(A)?",
+      "choices": [
+        "{(1, 3, -2, 1), (0, 11, -1, -1)}",
+        "{(1, -1, -2), (3, 8, 5)}",
+        "{(1, 3, -2, 1), (-1, 8, 1, -2), (-2, 5, 3, -3)}",
+        "{(1, 3, -2, 1), (0, 11, -1, -1), (0, 0, 0, 0)}"
+      ],
+      "answer": 0,
+      "explain": "Row operations do not change the row space, so the nonzero rows of an echelon form are a basis for Row(A). The vectors in R^3 form a basis for Col(A). The three original rows are dependent, because row 3 = row 2 - row 1. Any set that contains the zero vector is dependent."
+    },
+    {
+      "type": "multi",
+      "category": "Row space and Nul(A^T)",
+      "q": "A = [1 -2 3 1; -2 3 5 -3] has rank 2. Which sets are bases for Row(A)?",
+      "choices": [
+        "{(1, -2, 3, 1), (0, -1, 11, -1)}",
+        "{(1, 0, -19, 3), (0, 1, -11, 1)}",
+        "{(1, -2, 3, 1), (-2, 3, 5, -3)}",
+        "{(1, -2), (-2, 3)}",
+        "{(1, -2, 3, 1)}"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Row(A) is a 2-dimensional subspace of R^4. Row operations do not change the row space, so the nonzero rows of the echelon form (after R2 + 2R1) and the rows of the RREF are both bases. The two original rows also work here: neither is a multiple of the other, so they are 2 independent vectors in a 2-dimensional space, and the Basis Theorem applies. (1, -2) and (-2, 3) are in R^2; they form a basis for Col(A). One vector cannot span a 2-dimensional space."
+    },
+    {
+      "type": "mc",
+      "category": "Row space and Nul(A^T)",
+      "q": "A = [1 -2 3 1; -2 3 5 -3] has rank 2. What is Nul(A^T)?",
+      "choices": [
+        "{0}; its basis is the empty set and its dimension is 0",
+        "Span{(2, 1)}; dimension 1",
+        "Span{(19, 11, 1, 0), (-3, -1, 0, 1)}; dimension 2",
+        "All of R^2; dimension 2"
+      ],
+      "answer": 0,
+      "explain": "Nul(A^T) is in R^m = R^2, and its dimension is m - rank A = 2 - 2 = 0. Row reducing A^T = [1 -2; -2 3; 3 5; 1 -3] gives a pivot in both columns, so A^Ty = 0 has only the trivial solution. Span{(19, 11, 1, 0), (-3, -1, 0, 1)} is Nul(A), which lives in R^4."
+    },
+    {
+      "type": "mc",
+      "category": "Row space and Nul(A^T)",
+      "q": "A = [1 3 -2 1; -1 8 1 -2; -2 5 3 -3] has rank 2. Which vector spans Nul(A^T)?",
+      "choices": [
+        "(1, -1, 1)",
+        "(1, 1, 1)",
+        "(1, -1, -1)",
+        "(19, 1, 11, 0)"
+      ],
+      "answer": 0,
+      "explain": "dim Nul(A^T) = 3 - 2 = 1. A^Ty = 0 is the same as y^TA = 0^T, which says y1(row 1) + y2(row 2) + y3(row 3) = 0. Row 1 - row 2 + row 3 = (1 + 1 - 2, 3 - 8 + 5, -2 - 1 + 3, 1 + 2 - 3) = 0, so y = (1, -1, 1). (1, 1, 1) gives a first entry of 1 - 1 - 2 = -2, and (1, -1, -1) gives 1 + 1 + 2 = 4. (19, 1, 11, 0) is in Nul(A), which lives in R^4."
+    },
+    {
+      "type": "mc",
+      "category": "Row space and Nul(A^T)",
+      "q": "While row reducing A = [1 3 -2 1; -1 8 1 -2; -2 5 3 -3], the third row becomes zero: (R3 + 2R1) - (R2 + R1) = R1 - R2 + R3 = 0. What does this tell you?",
+      "choices": [
+        "(1, -1, 1) is in Nul(A^T)",
+        "(1, -1, 1) is in Nul(A)",
+        "Nul(A^T) = {0}",
+        "Col(A) = R^3"
+      ],
+      "answer": 0,
+      "explain": "R1 - R2 + R3 = 0 says that y^TA = 0^T for y = (1, -1, 1), which is the same as A^Ty = 0. Each zero row you produce while row reducing A gives a vector in Nul(A^T) in this way. It says nothing about Nul(A), whose vectors have 4 entries. A zero row means rank A ≤ 2 < 3, so Col(A) is not R^3, and Nul(A^T) contains the non-zero vector (1, -1, 1)."
+    },
+    {
+      "type": "mc",
+      "category": "Row space and Nul(A^T)",
+      "q": "A = [1 2 0 4; 2 4 1 9; -1 -2 3 -1]. The row operations R2 - 2R1, R3 + R1, and then R3 - 3R2 produce a zero third row. Which vector spans Nul(A^T)?",
+      "choices": [
+        "(7, -3, 1)",
+        "(1, -3, 7)",
+        "(7, 3, 1)",
+        "(-2, 1, 0, 0)"
+      ],
+      "answer": 0,
+      "explain": "Write the zero row in terms of the original rows: (R3 + R1) - 3(R2 - 2R1) = 7R1 - 3R2 + R3 = 0. So y = (7, -3, 1) satisfies y^TA = 0^T, which means A^Ty = 0. Check it against each column of A: 7 - 6 - 1 = 0, 14 - 12 - 2 = 0, 0 - 3 + 3 = 0, and 28 - 27 - 1 = 0. dim Nul(A^T) = 3 - 2 = 1, so this one vector is a basis. (-2, 1, 0, 0) is in Nul(A), which lives in R^4."
+    },
+    {
+      "type": "tf",
+      "category": "Row space and Nul(A^T)",
+      "q": "True or false: for an m x n matrix A, Row(A) and Nul(A) are both subspaces of R^n.",
+      "answer": true,
+      "explain": "Each row of A has n entries, so Row(A) is in R^n. The vectors x with Ax = 0 also have n entries. The two subspaces that live in R^m are Col(A) and Nul(A^T)."
+    },
+    {
+      "type": "mc",
+      "category": "Row space and Nul(A^T)",
+      "q": "A = [1 -3 2; -2 6 -4]. Which set is a basis for Nul(A^T)?",
+      "choices": [
+        "{(2, 1)}",
+        "{(1, 2)}",
+        "{(3, 1, 0), (-2, 0, 1)}",
+        "The empty set, because Nul(A^T) = {0}"
+      ],
+      "answer": 0,
+      "explain": "Row 2 = -2·row 1, so rank A = 1 and dim Nul(A^T) = 2 - 1 = 1. The relation 2·row 1 + row 2 = 0 gives y = (2, 1). Check: A^T(2, 1) = (2 - 2, -6 + 6, 4 - 4) = 0. (1, 2) gives 1 - 4 = -3 in the first entry. (3, 1, 0) and (-2, 0, 1) form a basis for Nul(A), which lives in R^3."
+    },
+    {
+      "type": "tf",
+      "category": "Row space and Nul(A^T)",
+      "q": "True or false: for every matrix A, dim Row(A) = dim Col(A), even when A is not square.",
+      "answer": true,
+      "explain": "Both equal the number of pivots, rank A. The nonzero rows of an echelon form (one for each pivot) are a basis for Row(A), and the pivot columns of A (one for each pivot) are a basis for Col(A). For A = [1 -2 3 1; -2 3 5 -3], both dimensions are 2, even though Row(A) is in R^4 and Col(A) is in R^2."
+    },
+    {
+      "type": "mc",
+      "category": "Row space and Nul(A^T)",
+      "q": "Which procedure gives a basis for Nul(A^T)?",
+      "choices": [
+        "Row reduce A^T, solve A^Ty = 0, and write the solution in parametric vector form",
+        "Take the nonzero rows of an echelon form of A^T",
+        "Transpose each vector in a basis for Nul(A)",
+        "Take the zero rows of an echelon form of A"
+      ],
+      "answer": 0,
+      "explain": "Nul(A^T) is the null space of A^T, so you find it the same way as any null space: row reduce A^T, write the basic variables in terms of the free ones, and read off the vectors. Before you start, the dimension should be m - rank A. The nonzero rows of an echelon form of A^T give a basis for Row(A^T) = Col(A), not Nul(A^T). Nul(A) lives in R^n while Nul(A^T) lives in R^m, so transposing does not help. The zero rows themselves are just zero vectors; what helps is the combination of original rows that produced each one."
+    },
+    {
+      "type": "multi",
+      "category": "Rank and the Rank Theorem",
+      "q": "Which of these always equal rank A?",
+      "choices": [
+        "dim Col(A)",
+        "The number of pivot positions in A",
+        "dim Row(A)",
+        "The number of free variables in Ax = 0",
+        "The number of nonzero rows of A itself",
+        "dim Nul(A^T)"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "rank A = dim Col(A) = the number of pivots = dim Row(A). The number of free variables is dim Nul(A) = n - rank A, and dim Nul(A^T) = m - rank A. The original rows can be dependent: A = [1 3 -2 1; -1 8 1 -2; -2 5 3 -3] has 3 nonzero rows but rank 2."
+    },
+    {
+      "type": "num",
+      "category": "Rank and the Rank Theorem",
+      "q": "A is a 4 x 6 matrix with rank A = 4. What is dim Nul(A)?",
+      "answer": 2,
+      "explain": "Rank Theorem: rank A + dim Nul(A) = n = 6 (the number of columns), so dim Nul(A) = 6 - 4 = 2. Also, rank A = 4 = m, so Col(A) = R^4 and Nul(A^T) = {0}."
+    },
+    {
+      "type": "num",
+      "category": "Rank and the Rank Theorem",
+      "q": "A is a 7 x 5 matrix with dim Nul(A) = 2. What is dim Nul(A^T)?",
+      "answer": 4,
+      "explain": "First, rank A = n - dim Nul(A) = 5 - 2 = 3. Then dim Nul(A^T) = m - rank A = 7 - 3 = 4. A^T is 5 x 7, so Nul(A^T) is a subspace of R^7."
+    },
+    {
+      "type": "num",
+      "category": "Rank and the Rank Theorem",
+      "q": "A is a 3 x 8 matrix. What is the smallest possible value of dim Nul(A)?",
+      "answer": 5,
+      "explain": "Each pivot needs its own row, so rank A ≤ min(3, 8) = 3. Therefore dim Nul(A) = 8 - rank A ≥ 8 - 3 = 5. It equals 5 exactly when A has a pivot in every row."
+    },
+    {
+      "type": "tf",
+      "category": "Rank and the Rank Theorem",
+      "q": "True or false: some 6 x 4 matrix A has Col(A) = R^6.",
+      "answer": false,
+      "explain": "dim Col(A) = rank A ≤ min(6, 4) = 4 < 6. Four columns can span at most a 4-dimensional subspace of R^6."
+    },
+    {
+      "type": "num",
+      "category": "Rank and the Rank Theorem",
+      "q": "A is a 5 x 5 matrix with dim Nul(A^T) = 1. What is dim Nul(A)?",
+      "answer": 1,
+      "explain": "rank A = m - dim Nul(A^T) = 5 - 1 = 4, so dim Nul(A) = n - rank A = 5 - 4 = 1. For a square matrix, Nul(A) and Nul(A^T) always have the same dimension."
+    },
+    {
+      "type": "multi",
+      "category": "Rank and the Rank Theorem",
+      "q": "A is an m x n matrix with m > n and a pivot in every column (rank A = n). Which statements must be true?",
+      "choices": [
+        "Nul(A) = {0}",
+        "Row(A) = R^n",
+        "Col(A) = R^m",
+        "Nul(A^T) = {0}",
+        "dim Nul(A^T) = m - n"
+      ],
+      "answer": [0, 1, 4],
+      "explain": "There are no free variables, so Nul(A) = {0}. Row(A) is an n-dimensional subspace of R^n, so it is all of R^n. But Col(A) has dimension n < m, so it is not all of R^m, and Nul(A^T) has dimension m - rank A = m - n > 0."
+    },
+    {
+      "type": "mc",
+      "category": "Rank and the Rank Theorem",
+      "q": "A = [1 3 -2 1; -1 8 1 -2; -2 5 3 -3] has echelon form [1 3 -2 1; 0 11 -1 -1; 0 0 0 0]. What are dim Col(A), dim Row(A), dim Nul(A), and dim Nul(A^T), in that order?",
+      "choices": [
+        "2, 2, 2, 1",
+        "2, 3, 2, 1",
+        "3, 3, 1, 0",
+        "2, 2, 2, 0"
+      ],
+      "answer": 0,
+      "explain": "There are two pivots, so rank A = 2 = dim Col(A) = dim Row(A). dim Nul(A) = n - 2 = 4 - 2 = 2, and dim Nul(A^T) = m - 2 = 3 - 2 = 1. Check: 2 + 2 = 4 = n and 2 + 1 = 3 = m. Row(A) is not 3-dimensional, because row 3 = row 2 - row 1."
+    },
+    {
+      "type": "num",
+      "category": "Rank and the Rank Theorem",
+      "q": "What is the rank of A = [1 2 0 4; 2 4 1 9; -1 -2 3 -1]?",
+      "answer": 2,
+      "explain": "R2 - 2R1 gives [0 0 1 1], and R3 + R1 gives [0 0 3 3]. Then R3 - 3R2 gives a zero row. The echelon form [1 2 0 4; 0 0 1 1; 0 0 0 0] has 2 pivots (in columns 1 and 3), so rank A = 2."
+    },
+    {
+      "type": "mc",
+      "category": "Rank and the Rank Theorem",
+      "q": "A is a 5 x 3 matrix. In which spaces do Col(A), Row(A), Nul(A), and Nul(A^T) live, in that order?",
+      "choices": [
+        "R^5, R^3, R^3, R^5",
+        "R^3, R^5, R^5, R^3",
+        "R^5, R^3, R^5, R^3",
+        "R^3, R^3, R^5, R^5"
+      ],
+      "answer": 0,
+      "explain": "Columns have m = 5 entries, so Col(A) is in R^5. Rows have n = 3 entries, so Row(A) is in R^3. Ax needs x in R^3, so Nul(A) is in R^3. A^Ty needs y in R^5, so Nul(A^T) is in R^5."
+    },
+    {
+      "type": "tf",
+      "category": "Rank and the Rank Theorem",
+      "q": "True or false: the Rank Theorem says that rank A + dim Nul(A) equals the number of rows of A.",
+      "answer": false,
+      "explain": "The sum equals the number of COLUMNS, n. Each column is either a pivot column (counted by rank A) or matches a free variable (counted by dim Nul(A)). The version for rows is rank A + dim Nul(A^T) = m."
+    },
+    {
+      "type": "num",
+      "category": "Rank and the Rank Theorem",
+      "q": "A = [1 -3 2; -2 6 -4]. What is dim Nul(A)?",
+      "answer": 2,
+      "explain": "R2 + 2R1 gives a zero row, so the only pivot is in column 1 and rank A = 1. x2 and x3 are free, so dim Nul(A) = 3 - 1 = 2. From x1 = 3x2 - 2x3, a basis is {(3, 1, 0), (-2, 0, 1)}."
+    },
+    {
+      "type": "text",
+      "category": "Rank and the Rank Theorem",
+      "q": "What is the name of the theorem stating that rank A + dim Nul(A) = n for an m x n matrix A?",
+      "answer": ["Rank Theorem", "the Rank Theorem", "rank theorem", "Rank-Nullity Theorem", "rank-nullity theorem", "rank nullity theorem", "rank-nullity", "rank nullity"],
+      "explain": "This is the Rank Theorem, also called the Rank-Nullity Theorem. Applied to A^T, which has the same rank, it gives rank A + dim Nul(A^T) = m."
+    }
+  ]
+}
