@@ -1,0 +1,391 @@
+{
+  "title": "X86ASM 04: Using Memory (the Data Segment)",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Data segment and labels",
+      "q": "What does the .data directive tell the assembler and linker?",
+      "choices": [
+        "Everything after it is executable code for the text segment",
+        "Everything after it is data to be placed in the data segment of memory",
+        "Everything after it is allocated on the stack at runtime",
+        "Everything after it is ignored, like a comment"
+      ],
+      "answer": 1,
+      "explain": ".text marks executable code for the text/code segment. .data marks data that goes into the data segment."
+    },
+    {
+      "type": "tf",
+      "category": "Data segment and labels",
+      "q": "A program with only a .text section is still using RAM, because its code is loaded into the text (code) segment of memory.",
+      "answer": true,
+      "explain": "The code itself lives in RAM. In the emulator the text segment starts at 0x401000 and the data segment at 0x402000."
+    },
+    {
+      "type": "mc",
+      "category": "Data segment and labels",
+      "q": "In the data section, what does a name followed by a colon (for example r16:) do?",
+      "choices": [
+        "Declares a new CPU register named r16",
+        "Creates a label that refers to the memory address where the data after it begins",
+        "Reserves exactly 16 bytes of memory",
+        "Marks the program's entry point"
+      ],
+      "answer": 1,
+      "explain": "Like _start:, a label is a name for an address. The name r16 is just a name. It is not a register, and it does not set a size."
+    },
+    {
+      "type": "tf",
+      "category": "Data segment and labels",
+      "q": "Each memory address refers to a single byte.",
+      "answer": true,
+      "explain": "An 8-byte value starting at 0x402000 takes up addresses 0x402000 through 0x402007."
+    },
+    {
+      "type": "tf",
+      "category": "Data segment and labels",
+      "q": "To read the data stored right after the r17 label, you have to use the name r17. There is no other way to reach those bytes.",
+      "answer": false,
+      "explain": "Labels are just a convenience. If r16 is at 0x402000 and holds an 8-byte quad, the next data starts at 0x402008. You can get there by adding 8 to r16's address."
+    },
+    {
+      "type": "num",
+      "category": "Data sizes and directives",
+      "q": "How many bytes are in a quadword?",
+      "answer": 8,
+      "explain": "A word is 2 bytes. A double word is 2 words (4 bytes). A quadword is 4 words (8 bytes)."
+    },
+    {
+      "type": "mc",
+      "category": "Data sizes and directives",
+      "q": "On x86-64, how many bytes are in a 'word'?",
+      "choices": ["1", "2", "4", "8"],
+      "answer": 1,
+      "fixed": true,
+      "explain": "On x86-64 a word is 16 bits, which is 2 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Data sizes and directives",
+      "q": "In the GNU assembler, which directive declares a 4-byte (double word, 32-bit) value?",
+      "choices": [".byte", ".word", ".long", ".quad"],
+      "answer": 2,
+      "fixed": true,
+      "explain": "In the GNU assembler a 4-byte double word is written as .long."
+    },
+    {
+      "type": "mc",
+      "category": "Data sizes and directives",
+      "q": "Which list gives the sizes in bytes of .byte, .word, .long, and .quad, in that order?",
+      "choices": ["1, 2, 4, 8", "1, 4, 8, 16", "2, 4, 8, 16", "1, 2, 8, 16"],
+      "answer": 0,
+      "fixed": true,
+      "explain": ".byte = 1, .word = 2, .long = 4 (double word), .quad = 8 (quadword)."
+    },
+    {
+      "type": "num",
+      "category": "Data sizes and directives",
+      "q": "How many hexadecimal digits does it take to write out a full 8-byte value?",
+      "answer": 16,
+      "explain": "Two hex digits make one byte, so 8 bytes need 16 hex digits."
+    },
+    {
+      "type": "mc",
+      "category": "Loading from memory: mov vs lea",
+      "q": "The label r16 is at address 0x402000 and holds .quad 0xAAAAAAAAAAAAAAAA. One instruction does a mov from the memory operand r16 (label in parentheses) into RAX. Another does lea of r16 into RBX. What do RAX and RBX hold afterward?",
+      "choices": [
+        "RAX = 0xAAAAAAAAAAAAAAAA, RBX = 0x402000",
+        "RAX = 0x402000, RBX = 0xAAAAAAAAAAAAAAAA",
+        "Both hold 0x402000",
+        "Both hold 0xAAAAAAAAAAAAAAAA"
+      ],
+      "answer": 0,
+      "explain": "mov with a memory operand copies the data stored at the address. lea (load effective address) copies the address itself."
+    },
+    {
+      "type": "mc",
+      "category": "Loading from memory: mov vs lea",
+      "q": "What do parentheses (brackets) around a label or register in a mov operand mean?",
+      "choices": [
+        "Use the value as a literal number to copy",
+        "Use the value as a memory address and access the data stored there",
+        "Compute the address but don't access memory",
+        "Mark the operand as a 4-byte value"
+      ],
+      "answer": 1,
+      "explain": "The brackets turn the operand into a memory access: go to that address and read (or write) the data there."
+    },
+    {
+      "type": "text",
+      "category": "Loading from memory: mov vs lea",
+      "q": "What is the mnemonic of the 'load effective address' instruction?",
+      "answer": ["lea", "LEA"],
+      "explain": "lea puts an address into a register without reading the memory at that address."
+    },
+    {
+      "type": "mc",
+      "category": "Loading from memory: mov vs lea",
+      "q": "A label was declared with .quad. You mov from that address into a register. What decides how many bytes are read?",
+      "choices": [
+        "The directive used to declare the data (.quad means 8 bytes are always read)",
+        "The size of the destination register",
+        "The distance to the next label",
+        "Nothing: it is always exactly 1 byte, because one address holds one byte"
+      ],
+      "answer": 1,
+      "explain": "The register doesn't know how the data was declared. RAX asks for 8 bytes, EAX for 4, AX for 2, and AL for 1."
+    },
+    {
+      "type": "tf",
+      "category": "Loading from memory: mov vs lea",
+      "q": "Loading from a .quad label into AL reads all 8 bytes, because the data was declared as a quadword.",
+      "answer": false,
+      "explain": "AL is a 1-byte register, so it reads only the single byte at that address (the least significant byte of the quad)."
+    },
+    {
+      "type": "multi",
+      "category": "Register subsets",
+      "q": "Which of these are parts (subsets) of the RAX register?",
+      "choices": ["EAX", "AX", "AH", "AL", "RBX"],
+      "answer": [0, 1, 2, 3],
+      "explain": "EAX is the low 4 bytes of RAX. AX is the low 2 bytes of EAX. AH and AL are the high and low bytes of AX. RBX is a separate register."
+    },
+    {
+      "type": "mc",
+      "category": "Register subsets",
+      "q": "Which register is the 2-byte subset of RAX?",
+      "choices": ["EAX", "AX", "AH", "AL"],
+      "answer": 1,
+      "explain": "RAX = 8 bytes, EAX = 4, AX = 2, and AH/AL = 1 each."
+    },
+    {
+      "type": "mc",
+      "category": "Register subsets",
+      "q": "RAX holds 0x1122334455667788. What value is in AH?",
+      "choices": ["0x11", "0x77", "0x88", "0x7788"],
+      "answer": 1,
+      "explain": "AX is the low 2 bytes (0x7788). AH is the high byte of AX (0x77) and AL is the low byte (0x88)."
+    },
+    {
+      "type": "text",
+      "category": "Register subsets",
+      "q": "RAX holds 0x1122334455667788. What value is in EAX? (hex)",
+      "answer": ["0x55667788", "55667788", "0X55667788"],
+      "explain": "EAX is the lower 4 bytes of RAX."
+    },
+    {
+      "type": "text",
+      "category": "Byte order (little-endian)",
+      "q": ".quad 0x0123456789ABCDEF is stored starting at address 0x402000. Which byte is at 0x402000? (hex)",
+      "answer": ["EF", "0xEF", "ef", "0xef", "0XEF"],
+      "explain": "Multi-byte values are stored least significant byte first, so memory holds EF CD AB 89 67 45 23 01."
+    },
+    {
+      "type": "text",
+      "category": "Byte order (little-endian)",
+      "q": "Same data: .quad 0x0123456789ABCDEF at 0x402000. Which byte is at 0x402007? (hex)",
+      "answer": ["01", "0x01", "1", "0x1"],
+      "explain": "The most significant byte goes at the highest address of the 8."
+    },
+    {
+      "type": "mc",
+      "category": "Byte order (little-endian)",
+      "q": ".quad 0x0123456789ABCDEF is at 0x402000. You load from 0x402000 into EAX. What does EAX hold?",
+      "choices": ["0x01234567", "0x89ABCDEF", "0xEFCDAB89", "0x67452301"],
+      "answer": 1,
+      "explain": "EAX reads 4 bytes (EF CD AB 89) and puts them back together least significant first, giving the lower half of the value."
+    },
+    {
+      "type": "mc",
+      "category": "Byte order (little-endian)",
+      "q": "Same data, but this time you load from 0x402000 into AX. What does AX hold?",
+      "choices": ["0x0123", "0xCDEF", "0xEFCD", "0x2301"],
+      "answer": 1,
+      "explain": "AX reads the 2 bytes EF CD, which make the value 0xCDEF."
+    },
+    {
+      "type": "mc",
+      "category": "Byte order (little-endian)",
+      "q": "A label is followed by .word 0xABCD. In what order are the two bytes stored, from lower address to higher?",
+      "choices": ["AB, then CD", "CD, then AB", "Only CD is stored", "DC, then BA"],
+      "answer": 1,
+      "explain": "The least significant byte (CD) is written first, then AB. Each byte stays the same; only the byte order is reversed."
+    },
+    {
+      "type": "mc",
+      "category": "Byte order (little-endian)",
+      "q": "memory: .byte 0x01, 0x02, 0x03, 0x04. You load from the address of memory into EAX. What does EAX hold?",
+      "choices": ["0x01020304", "0x04030201", "0x00000001", "0x10203040"],
+      "answer": 1,
+      "explain": "The byte at the lowest address (01) becomes the least significant byte, so the four bytes make 0x04030201. It works like a type cast."
+    },
+    {
+      "type": "mc",
+      "category": "Byte order (little-endian)",
+      "q": "Same data (.byte 0x01, 0x02, 0x03, 0x04), but loaded into AX. What does AX hold?",
+      "choices": ["0x0102", "0x0201", "0x0304", "0x0403"],
+      "answer": 1,
+      "explain": "AX reads only the first two bytes (01 02), which make 0x0201."
+    },
+    {
+      "type": "mc",
+      "category": "Pointer arithmetic",
+      "q": "RAX holds the address 0x402000. How do you make it point to the next 8 bytes?",
+      "choices": ["Add 1 to RAX", "Add 8 to RAX", "Add 64 to RAX", "Multiply RAX by 8"],
+      "answer": 1,
+      "explain": "Each address is one byte, so moving 8 bytes forward means adding 8 (0x402000 becomes 0x402008)."
+    },
+    {
+      "type": "mc",
+      "category": "Pointer arithmetic",
+      "q": "Starting at 0x402000, memory holds r16: .quad 0x0123456789ABCDEF, followed by r17: .quad 0xBBBBBBBBBBBBBBBB. You put the address of r16 in RAX, add 4, then load 8 bytes from the address in RAX into RBX. What is in RBX?",
+      "choices": ["0xBBBBBBBB01234567", "0x01234567BBBBBBBB", "0x67452301BBBBBBBB", "0x0123456789ABCDEF"],
+      "answer": 0,
+      "explain": "The bytes from 0x402004 are 67 45 23 01 BB BB BB BB. Read least significant first, they make 0xBBBBBBBB01234567. RBX takes 8 bytes no matter where the labels are."
+    },
+    {
+      "type": "tf",
+      "category": "Pointer arithmetic",
+      "q": "Adding 8 to a register that holds a memory address, then reading through it, is like incrementing a pointer in C.",
+      "answer": true,
+      "explain": "The register works as a memory pointer. Changing it changes which memory you access."
+    },
+    {
+      "type": "num",
+      "category": "Pointer arithmetic",
+      "q": "A memory layout covers every byte from 0x402000 through 0x40201A, inclusive. How many bytes is that?",
+      "answer": 27,
+      "explain": "0x1A = 26, and counting both ends gives 27 bytes: three 8-byte quads (24) plus 3 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Writing to memory",
+      "q": "RAX = 0x123456 and RBX = 0x402000 (the memory there is zeroed). You store RAX to the memory address in RBX. Which bytes end up at 0x402000 through 0x402007?",
+      "choices": [
+        "56 34 12 00 00 00 00 00",
+        "12 34 56 00 00 00 00 00",
+        "00 00 00 00 00 12 34 56",
+        "56 34 12 (only three bytes are written)"
+      ],
+      "answer": 0,
+      "explain": "RAX always writes 8 bytes, least significant first. The upper bytes of the value are zero, so zeros are written too."
+    },
+    {
+      "type": "tf",
+      "category": "Writing to memory",
+      "q": "Storing a small value such as 0x123456 from RAX to memory still writes 8 bytes, and the upper bytes are written as zeros.",
+      "answer": true,
+      "explain": "The size of the write is the size of the register. RAX writes 8 bytes even when most of them are zero."
+    },
+    {
+      "type": "num",
+      "category": "Writing to memory",
+      "q": "How many bytes are written to memory when you store EAX to an address?",
+      "answer": 4,
+      "explain": "EAX is a 4-byte (double word) register."
+    },
+    {
+      "type": "mc",
+      "category": "Writing to memory",
+      "q": "Memory at 0x402000..0x402007 must hold exactly these bytes: 13 D7 C0 FF 02 5A 37 00. Which .quad value produces this layout?",
+      "choices": ["0x13D7C0FF025A3700", "0x00375A02FFC0D713", "0xD713C0FF5A020037", "0x0037FF5A02C0D713"],
+      "answer": 1,
+      "explain": "Read the bytes from the highest address down to the lowest: 00 37 5A 02 FF C0 D7 13. The leading 00 can be left out."
+    },
+    {
+      "type": "text",
+      "category": "Writing to memory",
+      "q": ".quad 0xA4CDCE6BE1935500 is stored at 0x402008. Which byte is at 0x402009? (hex)",
+      "answer": ["55", "0x55"],
+      "explain": "The bytes stored are 00 55 93 E1 6B CE CD A4, so 0x402008 holds 00 and 0x402009 holds 55."
+    },
+    {
+      "type": "mc",
+      "category": "Writing to memory",
+      "q": "The last part of a layout must be the bytes 1A 1A 1A. If you write .long 0x1A1A1A, what ends up in memory?",
+      "choices": [
+        "1A 1A 1A (three bytes)",
+        "1A 1A 1A 00 (four bytes)",
+        "00 1A 1A 1A (four bytes)",
+        "1A 1A 1A 00 00 00 00 00 (eight bytes)"
+      ],
+      "answer": 1,
+      "explain": "There is no 3-byte size, so a 4-byte .long is used. The value's top byte is 00, and it is stored last."
+    },
+    {
+      "type": "mc",
+      "category": "Writing to memory",
+      "q": "RSI points to where you want to write single bytes from AL, one after another. What do you do between byte writes?",
+      "choices": ["Add 8 to RSI", "Increment RSI by 1", "Decrement RSI by 1", "Nothing, because RSI advances automatically"],
+      "answer": 1,
+      "explain": "Each byte has its own address, so the pointer moves forward by 1 for each byte (for example with inc)."
+    },
+    {
+      "type": "tf",
+      "category": "Partial register writes",
+      "q": "Moving a value into AL also clears the rest of RAX to zero.",
+      "answer": false,
+      "explain": "Writing to AL, AH, or AX changes only those bytes. The rest of RAX keeps its old contents."
+    },
+    {
+      "type": "tf",
+      "category": "Partial register writes",
+      "q": "Moving a value into EAX zeroes the upper 4 bytes of RAX.",
+      "answer": true,
+      "explain": "Writing EAX is the exception: it automatically zeroes the upper half of RAX."
+    },
+    {
+      "type": "mc",
+      "category": "Partial register writes",
+      "q": "RAX holds 0xFFFFFFFFFFFFFFFF. You move 0x1A into AL. What does RAX hold now?",
+      "choices": ["0x000000000000001A", "0xFFFFFFFFFFFFFF1A", "0x1AFFFFFFFFFFFFFF", "0xFFFFFFFF0000001A"],
+      "answer": 1,
+      "explain": "Only the lowest byte (AL) changes. The other 7 bytes keep their old value."
+    },
+    {
+      "type": "multi",
+      "category": "Partial register writes",
+      "q": "Which of these writes leave the other bytes of RAX unchanged?",
+      "choices": ["Writing to AL", "Writing to AH", "Writing to AX", "Writing to EAX"],
+      "answer": [0, 1, 2],
+      "explain": "AL, AH, and AX change only their own bytes. A write to EAX zeroes the upper 4 bytes of RAX."
+    },
+    {
+      "type": "multi",
+      "category": "Partial register writes",
+      "q": "Which of these set all of RAX to zero?",
+      "choices": ["Move the immediate value 0 into RAX", "XOR RAX with itself", "Move 0 into AL", "Move 0 into AX"],
+      "answer": [0, 1],
+      "explain": "Moving 0 into RAX works, and XOR-ing RAX with itself is the more efficient way. Writing 0 to AL or AX clears only those bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Allocating space",
+      "q": "What does .skip 1024, 0xFF do in the data section?",
+      "choices": [
+        "Skips the next 1024 instructions",
+        "Allocates 1024 bytes, each set to 0xFF",
+        "Allocates 0xFF bytes, each set to 1024",
+        "Allocates 1024 quadwords, each set to 0xFF"
+      ],
+      "answer": 1,
+      "explain": ".skip (or .space) takes a byte count and an optional fill value for every byte."
+    },
+    {
+      "type": "multi",
+      "category": "Allocating space",
+      "q": "Which GNU assembler directives allocate a given number of bytes (optionally filled with a value) without listing each value?",
+      "choices": [".space", ".skip", ".byte", ".text"],
+      "answer": [0, 1],
+      "explain": ".space and .skip reserve a block of a given size. .byte needs every value written out, and .text starts the code section."
+    },
+    {
+      "type": "tf",
+      "category": "Allocating space",
+      "q": "Data-segment space allocated without a fill value starts out as zeros.",
+      "answer": true,
+      "explain": "Memory is zeroed by default. That is why the leftover bytes after a write show up as 00 unless you choose a fill such as 0xFF."
+    }
+  ]
+}

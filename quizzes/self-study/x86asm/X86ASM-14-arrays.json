@@ -1,0 +1,306 @@
+{
+  "title": "X86ASM 14: Arrays in Assembly",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "tf",
+      "category": "Memory and byte arrays",
+      "q": "Each memory address holds one byte, so a string stored in memory is really an array of bytes.",
+      "answer": true,
+      "explain": "Consecutive addresses each hold one byte. A string's characters sit at increasing addresses, which makes it an array of bytes."
+    },
+    {
+      "type": "tf",
+      "category": "Memory and byte arrays",
+      "q": "Memory has a built-in 'array' type. A region of memory counts as an array only if it was declared as one.",
+      "answer": false,
+      "explain": "Memory is just bytes. A region is an array only because the program treats it as one, by writing and reading elements at regular offsets."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and byte arrays",
+      "q": "What does `buff: .skip 4096` do in the data section?",
+      "choices": [
+        "Reserves 4096 bytes (4K) of memory starting at the label buff",
+        "Skips over the next 4096 instructions when execution reaches buff",
+        "Defines an array of 4096 32-bit integers at buff",
+        "Moves the stack pointer forward by 4096 bytes"
+      ],
+      "answer": 0,
+      "explain": ".skip reserves the given number of bytes. Here it sets aside a 4K buffer that the label buff points to, which the program can then use as an array."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and byte arrays",
+      "q": "You are writing values into an array of single bytes. Which register should hold each value so the write matches the element size?",
+      "choices": [
+        "RAX",
+        "EAX",
+        "AL",
+        "RSI"
+      ],
+      "answer": 2,
+      "explain": "AL is the lowest byte of RAX. Writing AL stores exactly one byte. Writing RAX would store 8 bytes and EAX would store 4."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and byte arrays",
+      "q": "RSI holds the address of a buffer. An instruction moves AL into RSI written in brackets/parentheses, so it is a memory operand. What happens?",
+      "choices": [
+        "The value of AL is copied into the RSI register",
+        "The byte in AL is written to the memory location whose address is in RSI. RSI itself is unchanged",
+        "RSI is increased by the value in AL",
+        "The byte at the memory location in RSI is loaded into AL"
+      ],
+      "answer": 1,
+      "explain": "Brackets make the register act as a pointer. The CPU reads the address in RSI and stores AL at that location. RSI keeps the same address."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and byte arrays",
+      "q": "When moving a pointer to the next array element, why might you use an add instruction with an immediate value instead of an increment instruction?",
+      "choices": [
+        "Increment instructions cannot be used on address registers",
+        "Add runs faster than increment for pointers",
+        "Increment always adds 1, while add can be set to the element size (for example 4 for 32-bit integers)",
+        "Add automatically detects the size of the array element"
+      ],
+      "answer": 2,
+      "explain": "Increment only adds 1, which works only for byte arrays. Adding an explicit amount works for any element size: just change the 1 to 4, 8, and so on."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and byte arrays",
+      "q": "A loop that fills an array has no exit condition. Why add an int3 instruction inside it?",
+      "choices": [
+        "It ends the program cleanly after one iteration",
+        "It acts as a breakpoint, pausing execution each time it is reached so you can continue one iteration at a time",
+        "It resets the loop counter to zero",
+        "It converts the stored values to ASCII"
+      ],
+      "answer": 1,
+      "explain": "int3 is the breakpoint interrupt. Each time execution hits it, execution pauses, so you can step through the loop instead of letting it run forever."
+    },
+    {
+      "type": "tf",
+      "category": "Memory and byte arrays",
+      "q": "A loop stores 1, 2, 3, ... into a byte array. Once the values reach the printable ASCII range, a memory viewer may show them as letters, but they are still just numeric byte values.",
+      "answer": true,
+      "explain": "A viewer may render bytes as ASCII for convenience. The memory holds plain numbers either way. Whether they are characters depends only on how they are interpreted."
+    },
+    {
+      "type": "mc",
+      "category": "Integer arrays",
+      "q": "You switch from a byte array to an array of 32-bit integers. Which register should now hold each value being stored?",
+      "choices": [
+        "AL",
+        "AX",
+        "EAX",
+        "RAX"
+      ],
+      "answer": 2,
+      "explain": "EAX is the 4-byte version of RAX. It matches a 32-bit (4-byte) element, so each write fills exactly one element."
+    },
+    {
+      "type": "num",
+      "category": "Integer arrays",
+      "q": "When stepping a pointer through an array of 32-bit integers, how many bytes do you add to the pointer to reach the next element?",
+      "answer": 4,
+      "explain": "Each 32-bit integer takes 4 bytes. Adding 4 skips the element just written without overwriting any of its bytes."
+    },
+    {
+      "type": "tf",
+      "category": "Integer arrays",
+      "q": "In the GNU assembler, the .long directive defines 8-byte values.",
+      "answer": false,
+      "explain": "In GNU as, .long defines 4-byte (32-bit) values, even though the name might suggest 8 bytes."
+    },
+    {
+      "type": "text",
+      "category": "Integer arrays",
+      "q": "An array of 32-bit integers starts at address 0x402000. At what address does index 1 start? (Answer in hex.)",
+      "answer": ["0x402004", "402004", "0x00402004", "0X402004"],
+      "explain": "Index 1 starts one element (4 bytes) past the base: 0x402000 + 4 = 0x402004."
+    },
+    {
+      "type": "mc",
+      "category": "Little-endian byte order",
+      "q": "On x86-64, the 32-bit value 0x12345678 is stored at address 0x402000. Which byte is at address 0x402000?",
+      "choices": [
+        "0x12",
+        "0x34",
+        "0x56",
+        "0x78"
+      ],
+      "answer": 3,
+      "explain": "x86-64 is little-endian, so the lowest (least significant) byte, 0x78, is stored first at the lowest address."
+    },
+    {
+      "type": "mc",
+      "category": "Little-endian byte order",
+      "q": "A memory viewer shows the bytes of 0x12345678 from lowest address to highest. What does it show?",
+      "choices": [
+        "12 34 56 78",
+        "78 56 34 12",
+        "56 78 12 34",
+        "87 65 43 21"
+      ],
+      "answer": 1,
+      "explain": "Little-endian puts the least significant byte first. That is why the value looks 'backwards' in a memory dump: 78 56 34 12. The bytes are reversed, but the hex digits inside each byte are not."
+    },
+    {
+      "type": "tf",
+      "category": "Little-endian byte order",
+      "q": "Little-endian means the most significant byte of a multi-byte value is stored at the lowest address.",
+      "answer": false,
+      "explain": "Little-endian stores the least significant byte at the lowest address. Storing the most significant byte first is big-endian."
+    },
+    {
+      "type": "mc",
+      "category": "Little-endian byte order",
+      "q": "The pointer 0x402000 is stored in an 8-byte slot on x86-64. Which byte sequence appears in memory, from lowest address to highest?",
+      "choices": [
+        "40 20 00 00 00 00 00 00",
+        "00 00 00 00 00 40 20 00",
+        "00 20 40 00 00 00 00 00",
+        "00 00 00 00 00 00 20 40"
+      ],
+      "answer": 2,
+      "explain": "As a 64-bit value, 0x402000 is 0x0000000000402000. In little-endian order the bytes are 00 20 40 followed by five zero bytes. The address needs only 3 significant bytes, which is why most of the slot looks empty."
+    },
+    {
+      "type": "mc",
+      "category": "Indexing",
+      "q": "What is the general formula for the address of element i in an array?",
+      "choices": [
+        "base address + i",
+        "base address + i * element size",
+        "base address * i + element size",
+        "base address + element size"
+      ],
+      "answer": 1,
+      "explain": "Indexes count elements, not bytes. To find element i, multiply the index by the element size and add the result to the start of the array."
+    },
+    {
+      "type": "text",
+      "category": "Indexing",
+      "q": "An array of 4-byte integers starts at 0x402000. What is the address of index 3? (Answer in hex.)",
+      "answer": ["0x40200C", "0x40200c", "40200C", "40200c", "0x0040200C", "0x0040200c"],
+      "explain": "0x402000 + 3 * 4 = 0x402000 + 12 = 0x402000 + 0xC = 0x40200C."
+    },
+    {
+      "type": "mc",
+      "category": "Indexing",
+      "q": "To read index 3 of a 4-byte integer array, a programmer uses the address base + 3, with no scaling. What goes wrong?",
+      "choices": [
+        "Nothing. The CPU scales the offset automatically",
+        "The address points to the fourth byte of element 0, so the 4-byte read straddles elements 0 and 1 instead of reading element 3",
+        "It reads element 2 instead of element 3",
+        "It causes the array to be overwritten"
+      ],
+      "answer": 1,
+      "explain": "base + 3 is a byte offset, not an element offset. It lands on the last byte of index 0. The offset must be multiplied by the element size (3 * 4 = 12) to reach index 3."
+    },
+    {
+      "type": "tf",
+      "category": "Indexing",
+      "q": "In indexed addressing, the index can come from a register such as RBX. The element accessed is then chosen at runtime, while the element-size scale stays a constant.",
+      "answer": true,
+      "explain": "Putting the index in a register makes the access dynamic. The element size can stay hard-coded because it is fixed for the array's element type."
+    },
+    {
+      "type": "mc",
+      "category": "Indexing",
+      "q": "RSI holds the start of a 4-byte integer array and RBX holds 0. Indexed addressing reads from RSI + RBX * 4. Which element is read?",
+      "choices": [
+        "Nothing. An index of 0 is invalid",
+        "The first element, at the start of the array",
+        "The last element of the array",
+        "The fourth element"
+      ],
+      "answer": 1,
+      "explain": "0 * 4 = 0, so the address is the array's start, which is index 0, the first element."
+    },
+    {
+      "type": "mc",
+      "category": "String arrays and pointers",
+      "q": "Why can't the characters of several strings be stored directly as fixed-size elements of a single array?",
+      "choices": [
+        "Strings cannot be stored in the data section",
+        "The strings have different lengths, so they don't fit into equal-sized slots",
+        "Characters are larger than 8 bytes",
+        "Arrays can only hold integers"
+      ],
+      "answer": 1,
+      "explain": "Array indexing needs every element to be the same size. Strings vary in length, so instead the array stores fixed-size references to them."
+    },
+    {
+      "type": "mc",
+      "category": "String arrays and pointers",
+      "q": "At the machine level, what is an array of strings?",
+      "choices": [
+        "One long string with spaces between the words",
+        "An array of character pointers, each holding the address of a string's first character",
+        "An array of string lengths",
+        "A two-dimensional array of 4-byte integers"
+      ],
+      "answer": 1,
+      "explain": "Each element is a pointer to the first character of a string. A string is referred to by the address of its first character."
+    },
+    {
+      "type": "num",
+      "category": "String arrays and pointers",
+      "q": "On a 64-bit system, how many bytes does each element of an array of string pointers take?",
+      "answer": 8,
+      "explain": "Pointers on a 64-bit system are 64 bits (8 bytes) wide, so you step through a pointer array 8 bytes at a time."
+    },
+    {
+      "type": "text",
+      "category": "String arrays and pointers",
+      "q": "An array of string pointers starts at 0x402030. At what address does the entry for index 2 start? (Answer in hex.)",
+      "answer": ["0x402040", "402040", "0x00402040", "0X402040"],
+      "explain": "Each pointer is 8 bytes: 0x402030 + 2 * 8 = 0x402030 + 0x10 = 0x402040. The entries are at 0x402030, 0x402038 and 0x402040."
+    },
+    {
+      "type": "tf",
+      "category": "String arrays and pointers",
+      "q": "Strings defined one after another with .asciz are placed back to back in memory, each followed by a null terminator byte.",
+      "answer": true,
+      "explain": ".asciz appends a zero byte to each string, and consecutive definitions are laid out one after the other. That makes the whole region one contiguous array of bytes."
+    },
+    {
+      "type": "text",
+      "category": "String arrays and pointers",
+      "q": "A 13-character string defined with .asciz starts at 0x402000, and another .asciz string is defined right after it. At what address does the second string start? (Answer in hex.)",
+      "answer": ["0x40200E", "0x40200e", "40200E", "40200e", "0x0040200E", "0x0040200e"],
+      "explain": "13 characters plus 1 null terminator = 14 bytes = 0xE. The next string starts at 0x402000 + 0xE = 0x40200E."
+    },
+    {
+      "type": "mc",
+      "category": "String arrays and pointers",
+      "q": "A programmer wants the pointer array to start 0x30 bytes after the strings, but writes the offset as 30 (no hex prefix). What offset do they get, and why does it matter?",
+      "choices": [
+        "0x30. The assembler assumes hex for addresses",
+        "0x1E (decimal 30), which is closer to the strings, so the pointer array could overwrite part of them",
+        "0x300, which wastes memory",
+        "An assembler error, because offsets must be in hex"
+      ],
+      "answer": 1,
+      "explain": "Without a hex prefix, 30 is decimal, which is 0x1E. That is 18 bytes short of 0x30, so the array could land on top of string data."
+    },
+    {
+      "type": "multi",
+      "category": "String arrays and pointers",
+      "q": "Which statements about building an array of string pointers are true?",
+      "choices": [
+        "Each entry holds the address of a string's first character",
+        "After writing an entry, the destination pointer is advanced by 8 to reach the next slot",
+        "Each entry holds a copy of the full string's characters",
+        "The strings themselves can stay wherever they were originally defined in memory",
+        "Each entry must be 1 byte because characters are 1 byte"
+      ],
+      "answer": [0, 1, 3],
+      "explain": "The array holds only 8-byte addresses pointing to each string's first character. The string data stays where it is. Entries are pointer-sized (8 bytes), not character-sized."
+    }
+  ]
+}

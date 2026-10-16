@@ -1,0 +1,305 @@
+{
+  "title": "X86ASM 11: Multiply and Divide",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "mul (unsigned multiply)",
+      "topic": "implicit RAX operand",
+      "q": "`mul rdx` multiplies RDX by which register, even though that register is not written in the instruction?",
+      "choices": ["RAX", "RBX", "RCX", "RDX itself (it squares RDX)"],
+      "answer": 0,
+      "explain": "mul always uses RAX as an implicit operand. You name only the other factor."
+    },
+    {
+      "type": "tf",
+      "category": "mul (unsigned multiply)",
+      "topic": "operand count",
+      "q": "`mul rbx, rdx` is a valid way to multiply RBX by RDX.",
+      "answer": false,
+      "explain": "mul takes exactly one operand, and the other factor is always RAX. Giving it two operands is an assembler error (too many operands)."
+    },
+    {
+      "type": "num",
+      "category": "mul (unsigned multiply)",
+      "topic": "result location",
+      "q": "After `mov rax, 2`, `mov rdx, 3`, `mul rdx`, what decimal value is in RAX?",
+      "answer": 6,
+      "explain": "mul multiplies RDX by the implicit RAX: 2 * 3 = 6, and the result goes in RAX."
+    },
+    {
+      "type": "mc",
+      "category": "mul (unsigned multiply)",
+      "topic": "no immediates",
+      "q": "`mov rax, 5` followed by `mul 2` gives an assembler error. Which change fixes it?",
+      "choices": [
+        "Put 2 in another register (e.g. `mov rbx, 2`) and use `mul rbx`",
+        "Write `mul rax, 2` instead",
+        "Clear RDX before the mul",
+        "Run `cqo` before the mul"
+      ],
+      "answer": 0,
+      "explain": "mul cannot take an immediate. The factor has to be in a register, and RAX is used implicitly. `mul rax, 2` is also invalid because mul takes only one operand."
+    },
+    {
+      "type": "mc",
+      "category": "mul (unsigned multiply)",
+      "topic": "unsigned only",
+      "q": "Which kind of numbers is `mul` meant for?",
+      "choices": [
+        "Unsigned (non-negative) values only",
+        "Signed values only",
+        "Signed and unsigned values, giving identical results for both",
+        "Floating-point values"
+      ],
+      "answer": 0,
+      "explain": "mul is the unsigned multiply. Use imul when the values can be negative."
+    },
+    {
+      "type": "text",
+      "category": "mul (unsigned multiply)",
+      "topic": "hex results",
+      "q": "After `mov rax, 5`, `mov rbx, 2`, `mul rbx`, a debugger that shows registers in hex displays RAX as what hex value?",
+      "answer": ["A", "a", "0xA", "0xa"],
+      "explain": "5 * 2 = 10, which is A in hex."
+    },
+    {
+      "type": "mc",
+      "category": "imul (signed multiply)",
+      "topic": "two-operand form",
+      "q": "RAX = 3, RDX = 2, RBX = 4. After `imul rdx, rbx`, what are RAX and RDX?",
+      "choices": [
+        "RAX = 3, RDX = 8",
+        "RAX = 8, RDX = 2",
+        "RAX = 24, RDX = 0",
+        "RAX = 6, RDX = 4"
+      ],
+      "answer": 0,
+      "explain": "The two-operand form multiplies the first operand by the second and stores the product in the first operand. RAX is not involved, so it stays 3."
+    },
+    {
+      "type": "tf",
+      "category": "imul (signed multiply)",
+      "topic": "immediate form",
+      "q": "`imul rbx, 2` is valid and multiplies RBX by the immediate value 2.",
+      "answer": true,
+      "explain": "Of mul, imul, div and idiv, only imul accepts an immediate value."
+    },
+    {
+      "type": "mc",
+      "category": "imul (signed multiply)",
+      "topic": "negative products",
+      "q": "After `mov rax, -2`, `mov rdx, 3`, `imul rdx`, the product -6 is stored as a 128-bit two's complement value across RDX:RAX. What is in RDX?",
+      "choices": [
+        "0xFFFFFFFFFFFFFFFF",
+        "0x0000000000000000",
+        "0xFFFFFFFFFFFFFFFA",
+        "0x0000000000000006"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "In 128-bit two's complement, -6 is all F's followed by ...FFFA. The upper 64 bits (RDX) are all F's, and the lower 64 bits (RAX) are 0xFFFFFFFFFFFFFFFA."
+    },
+    {
+      "type": "tf",
+      "category": "imul (signed multiply)",
+      "topic": "positive operands",
+      "q": "When both operands are positive, `imul` gives the same result as `mul`.",
+      "answer": true,
+      "explain": "imul is the signed version and works fine with positive numbers. Only negative values look different, because they are in two's complement."
+    },
+    {
+      "type": "multi",
+      "category": "imul (signed multiply)",
+      "topic": "valid forms",
+      "q": "Which of these instructions are valid?",
+      "choices": ["`imul rbx, 2`", "`imul rdx, rbx`", "`imul rdx`", "`mul rbx, rdx`", "`mul 2`", "`div 4`"],
+      "answer": [0, 1, 2],
+      "explain": "imul accepts one operand (implicit RAX), two registers, or a register and an immediate. mul takes exactly one register operand. Only imul accepts immediates, so `mul 2` and `div 4` are invalid."
+    },
+    {
+      "type": "mc",
+      "category": "RDX:RAX register pair",
+      "topic": "128-bit product",
+      "q": "How is the 128-bit result of a one-operand multiply stored?",
+      "choices": [
+        "Upper 64 bits in RDX, lower 64 bits in RAX",
+        "Upper 64 bits in RAX, lower 64 bits in RDX",
+        "Lower 64 bits in RAX, with the upper bits discarded",
+        "Upper 64 bits in RBX, lower 64 bits in RAX"
+      ],
+      "answer": 0,
+      "explain": "Multiplying two 64-bit values can produce up to 128 bits, so the result is split in half: the top half goes in RDX and the bottom half in RAX."
+    },
+    {
+      "type": "tf",
+      "category": "RDX:RAX register pair",
+      "topic": "overflow",
+      "q": "If multiplying two large 64-bit values with `mul` gives a product too big for 64 bits, the overflowing part ends up in RDX.",
+      "answer": true,
+      "explain": "RDX holds the upper 64 bits of the product, so anything past 64 bits is there."
+    },
+    {
+      "type": "num",
+      "category": "RDX:RAX register pair",
+      "topic": "bit numbering",
+      "q": "RDX:RAX is treated as one 128-bit dividend, with bits numbered from 0. If RDX = 1, which bit of the dividend does RDX set?",
+      "answer": 64,
+      "explain": "RAX holds bits 0-63, so the lowest bit of RDX is bit 64 (the 65th bit)."
+    },
+    {
+      "type": "mc",
+      "category": "RDX:RAX register pair",
+      "topic": "forgetting to clear RDX",
+      "q": "RAX = 6 and RBX = 4, but RDX was left holding 1. What happens on `div rbx`?",
+      "choices": [
+        "The dividend is treated as the huge 128-bit number 2^64 + 6, so the quotient is a strange, very large value",
+        "RDX is ignored, and the result is 1 remainder 2",
+        "The CPU clears RDX automatically before dividing",
+        "The assembler refuses to assemble the div"
+      ],
+      "answer": 0,
+      "explain": "div always divides the combined RDX:RAX value. Any leftover bits in RDX make the dividend enormous, so you have to clear RDX for simple unsigned division."
+    },
+    {
+      "type": "mc",
+      "category": "RDX:RAX register pair",
+      "topic": "RDX as divisor",
+      "q": "With RAX = 15, why does `mov rdx, 7` followed by `div rdx` fail?",
+      "choices": [
+        "RDX is the upper half of the dividend, so it can't also be the divisor. The run crashes with a floating-point exception",
+        "div requires the divisor to be an immediate value",
+        "div only accepts RCX as the divisor",
+        "7 does not divide 15 evenly"
+      ],
+      "answer": 0,
+      "explain": "Putting 7 in RDX makes the dividend 7 * 2^64 + 15 instead of 15, and the division then faults (reported as a floating-point exception). Put the divisor in a register other than RDX or RAX."
+    },
+    {
+      "type": "mc",
+      "category": "div (unsigned divide)",
+      "topic": "setup",
+      "q": "The unsigned dividend fits in RAX. What must you do before `div rbx`?",
+      "choices": [
+        "Zero RDX",
+        "Zero RAX",
+        "Sign-extend RBX with cqo",
+        "Copy the dividend into RDX"
+      ],
+      "answer": 0,
+      "explain": "div divides the 128-bit value RDX:RAX, so the upper 64 bits in RDX must be zero for the dividend to equal what is in RAX."
+    },
+    {
+      "type": "mc",
+      "category": "div (unsigned divide)",
+      "topic": "quotient and remainder",
+      "q": "After `div rbx`, where are the quotient and remainder?",
+      "choices": [
+        "Quotient in RAX, remainder in RDX",
+        "Quotient in RDX, remainder in RAX",
+        "Quotient in RBX, remainder in RAX",
+        "Quotient in RAX, remainder discarded"
+      ],
+      "answer": 0,
+      "explain": "The quotient goes in RAX and the remainder in RDX, so one instruction gives you both."
+    },
+    {
+      "type": "num",
+      "category": "div (unsigned divide)",
+      "topic": "quotient",
+      "q": "RDX = 0, RAX = 25 (shown in hex as 0x19), RBX = 7. After `div rbx`, what decimal value is in RAX?",
+      "answer": 3,
+      "explain": "25 / 7 = 3 remainder 4. The quotient 3 goes in RAX."
+    },
+    {
+      "type": "num",
+      "category": "div (unsigned divide)",
+      "topic": "remainder",
+      "q": "RDX = 0, RAX = 25, RBX = 7. After `div rbx`, what decimal value is in RDX?",
+      "answer": 4,
+      "explain": "3 * 7 = 21, and 21 + 4 = 25, so the remainder 4 goes in RDX."
+    },
+    {
+      "type": "num",
+      "category": "div (unsigned divide)",
+      "topic": "remainder",
+      "q": "RDX = 0, RAX = 15, RCX = 7. After `div rcx`, what decimal value is in RDX?",
+      "answer": 1,
+      "explain": "15 / 7 = 2 remainder 1 (2 * 7 = 14, and 14 + 1 = 15). RAX gets 2 and RDX gets 1."
+    },
+    {
+      "type": "tf",
+      "category": "div (unsigned divide)",
+      "topic": "division plus modulo",
+      "q": "`div` works like division and modulo combined, giving both the quotient and the remainder in one instruction.",
+      "answer": true,
+      "explain": "The quotient goes in RAX and the remainder (the modulo result) in RDX."
+    },
+    {
+      "type": "text",
+      "category": "idiv and cqo (signed divide)",
+      "topic": "cqo",
+      "q": "Which instruction sign-extends RAX into RDX to set up a 128-bit signed dividend for `idiv`?",
+      "answer": ["cqo", "CQO"],
+      "explain": "cqo fills RDX with copies of RAX's sign bit, so RDX:RAX has the same signed value as RAX."
+    },
+    {
+      "type": "mc",
+      "category": "idiv and cqo (signed divide)",
+      "topic": "cqo",
+      "q": "What does the name `cqo` describe?",
+      "choices": [
+        "Converting a quad word (64 bits) to an octo word (128 bits)",
+        "Clearing the quotient output register",
+        "Copying a quad word into the other operand",
+        "Comparing quad words for overflow"
+      ],
+      "answer": 0,
+      "explain": "cqo converts a quad word in RAX into an octo word in RDX:RAX by sign-extending it."
+    },
+    {
+      "type": "mc",
+      "category": "idiv and cqo (signed divide)",
+      "topic": "cqo result",
+      "q": "RAX = -7. After `cqo`, what does RDX contain?",
+      "choices": [
+        "0xFFFFFFFFFFFFFFFF (all bits set)",
+        "0",
+        "0xFFFFFFFFFFFFFFF9",
+        "7"
+      ],
+      "answer": 0,
+      "explain": "-7 is negative, so cqo sets every bit of RDX. That extends the F's upward so the 128-bit dividend is still -7."
+    },
+    {
+      "type": "mc",
+      "category": "idiv and cqo (signed divide)",
+      "topic": "why not zero RDX",
+      "q": "Why is zeroing RDX the wrong setup for `idiv` when RAX holds a negative dividend?",
+      "choices": [
+        "With RDX = 0, RDX:RAX is a large positive number, not a negative one. RDX has to be filled with copies of the sign bit (e.g. with cqo)",
+        "idiv requires RDX to hold the divisor",
+        "Zeroing RDX also zeroes RAX",
+        "idiv ignores RDX, so zeroing it is a wasted instruction"
+      ],
+      "answer": 0,
+      "explain": "In two's complement a negative 128-bit value needs its upper half to be all 1s. cqo sets RDX correctly for both positive and negative dividends."
+    },
+    {
+      "type": "num",
+      "category": "idiv and cqo (signed divide)",
+      "topic": "negative quotient",
+      "q": "RAX = -7 and RSI = 4. After `cqo` and `idiv rsi`, what signed decimal value is in RAX (the quotient)?",
+      "answer": -1,
+      "explain": "4 goes into -7 -1 times, so the quotient is -1, with remainder -3."
+    },
+    {
+      "type": "num",
+      "category": "idiv and cqo (signed divide)",
+      "topic": "negative remainder",
+      "q": "RAX = -7 and RSI = 4. After `cqo` and `idiv rsi`, what signed decimal value is in RDX (the remainder)?",
+      "answer": -3,
+      "explain": "-1 * 4 = -4, and -4 + (-3) = -7, so the remainder is -3."
+    }
+  ]
+}

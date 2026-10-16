@@ -1,0 +1,287 @@
+{
+  "title": "X86ASM 01: Introduction to Assembly",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Registers and data storage",
+      "q": "What are registers?",
+      "choices": [
+        "Small pieces of physical memory located inside the CPU",
+        "Sections of RAM reserved for the operating system",
+        "Variables declared in a high-level language",
+        "Lookup tables the CPU uses to convert hex to binary"
+      ],
+      "answer": 0,
+      "explain": "Registers are tiny storage locations built into the CPU itself. In assembly they replace the named variables (the 'boxes') of a high-level language."
+    },
+    {
+      "type": "num",
+      "category": "Registers and data storage",
+      "q": "On an x86-64 system, how many bytes does each general-purpose register (such as RAX) hold?",
+      "answer": 8,
+      "explain": "Each general-purpose register on x86-64 is 8 bytes, which is 64 bits."
+    },
+    {
+      "type": "tf",
+      "category": "Registers and data storage",
+      "q": "The CPU prefers to do arithmetic directly on values in main memory rather than on values in registers.",
+      "answer": false,
+      "explain": "The CPU can use memory, but it prefers to do arithmetic on values held in its registers."
+    },
+    {
+      "type": "tf",
+      "category": "Registers and data storage",
+      "q": "Compared with the number of variables a high-level program can declare, the CPU has only a small, fixed set of registers.",
+      "answer": true,
+      "explain": "There are only a limited number of registers, so you have to choose carefully which values live in them."
+    },
+    {
+      "type": "mc",
+      "category": "Registers and data storage",
+      "q": "In the lesson's example of adding 3 and 4, which two registers stand in for the two 'boxes' that hold the values?",
+      "choices": [
+        "RAX and RBX",
+        "RSI and RDI",
+        "RCX and RDX",
+        "RSP and RBP"
+      ],
+      "answer": 0,
+      "explain": "3 is placed in RAX and 4 in RBX, and then the two are added together."
+    },
+    {
+      "type": "mc",
+      "category": "Registers and data storage",
+      "q": "Besides the registers built on the letters A, B, C and D, two registers have names that come from the words 'destination' and 'source'. Which pair is it?",
+      "choices": [
+        "RDI (destination) and RSI (source)",
+        "RDX (destination) and RSX (source)",
+        "RBP (destination) and RSP (source)",
+        "R8 (destination) and R9 (source)"
+      ],
+      "answer": 0,
+      "explain": "RDI is the destination index register and RSI is the source index register."
+    },
+    {
+      "type": "mc",
+      "category": "Registers and data storage",
+      "q": "In a typical high-level language such as C, which set of sizes is most likely for int, long and char?",
+      "choices": [
+        "int = 4 bytes, long = 8 bytes, char = 1 byte",
+        "int = 8 bytes, long = 4 bytes, char = 2 bytes",
+        "int = 2 bytes, long = 4 bytes, char = 4 bytes",
+        "int = 1 byte, long = 2 bytes, char = 8 bytes"
+      ],
+      "answer": 0,
+      "explain": "An int is usually 4 bytes, a long is often 8 bytes on 64-bit systems, and a char is 1 byte. A 64-bit register is the same size as an 8-byte long."
+    },
+    {
+      "type": "mc",
+      "category": "Machine code and encoding",
+      "q": "What form of instructions does the CPU actually execute?",
+      "choices": [
+        "Binary machine code",
+        "Assembly mnemonics such as mov and add",
+        "Hexadecimal text",
+        "High-level source code"
+      ],
+      "answer": 0,
+      "explain": "The CPU executes binary machine code. Hex is only a shorter way for people to write those bits, and assembly is a readable notation that has to be translated into them."
+    },
+    {
+      "type": "tf",
+      "category": "Machine code and encoding",
+      "q": "Hexadecimal machine code is a separate instruction format that the CPU can run instead of binary.",
+      "answer": false,
+      "explain": "Hex is just a more readable way to write the same binary bits. The instruction is identical whether you show it in hex or in binary."
+    },
+    {
+      "type": "num",
+      "category": "Machine code and encoding",
+      "q": "The instruction mov rax, 3 is encoded as the hex bytes 48 C7 C0 03 00 00 00. Each memory address holds one byte. How many bytes of memory does this instruction take up?",
+      "answer": 7,
+      "explain": "There are seven hex byte pairs (48, C7, C0, 03, 00, 00, 00), so the instruction fills seven consecutive one-byte memory addresses."
+    },
+    {
+      "type": "mc",
+      "category": "Machine code and encoding",
+      "q": "Why is the machine code for add rax, rbx shorter than the machine code for mov rax, 3?",
+      "choices": [
+        "add rax, rbx has no constant value (immediate) encoded inside the instruction",
+        "Addition is a simpler operation, so the CPU always uses fewer bits for it",
+        "RBX is a smaller register than RAX",
+        "add instructions are stored in hex while mov instructions are stored in binary"
+      ],
+      "answer": 0,
+      "explain": "mov rax, 3 has to carry the value 3 inside the instruction bytes. add rax, rbx only names two registers, so its encoding is much shorter (3 bytes compared with 7)."
+    },
+    {
+      "type": "mc",
+      "category": "Machine code and encoding",
+      "q": "How does the CPU work out what a machine-code instruction means?",
+      "choices": [
+        "Decoders check each bit of the instruction (0 or 1), and the result drives a matching set of control lines",
+        "It translates the instruction back into assembly text and reads the mnemonic",
+        "It looks up the instruction in a dictionary stored in RAM",
+        "It converts the bytes to decimal and compares them against a table"
+      ],
+      "answer": 0,
+      "explain": "Instructions go through hardware decoders that check the bit pattern. The decoded pattern drives the control lines that make the CPU carry out the operation."
+    },
+    {
+      "type": "tf",
+      "category": "Machine code and encoding",
+      "q": "mov rax, 3 and mov rbx, 4 assemble to identical machine code, because both are mov instructions.",
+      "answer": false,
+      "explain": "Both are moves, but their encodings differ because the destination register and the constant value are encoded in the instruction bits."
+    },
+    {
+      "type": "mc",
+      "category": "Assembly language",
+      "q": "Which statement best describes assembly language?",
+      "choices": [
+        "A human-readable notation that maps closely onto individual machine-code instructions",
+        "A high-level language that is compiled into C",
+        "The hexadecimal representation of binary",
+        "A language the CPU runs directly without any translation"
+      ],
+      "answer": 0,
+      "explain": "Assembly uses short mnemonics such as mov and add to stand for machine instructions. It is much easier to read than binary but stays very close to it."
+    },
+    {
+      "type": "tf",
+      "category": "Assembly language",
+      "q": "Assembly language grew out of the notes early programmers wrote to describe binary instructions in more readable terms.",
+      "answer": true,
+      "explain": "Shorthand notes such as 'move into A the value 3' were shortened to forms like 'mov a, 3', and that became assembly language."
+    },
+    {
+      "type": "mc",
+      "category": "Assembly language",
+      "q": "Where does assembly sit compared with machine code and high-level languages?",
+      "choices": [
+        "In between: more readable than machine code, but much closer to the hardware than high-level languages",
+        "Below machine code: it is what the CPU's decoders produce",
+        "Above high-level languages: it is the most English-like form",
+        "It is the same as machine code, just shown in hex"
+      ],
+      "answer": 0,
+      "explain": "Machine code is the bits the CPU runs. Assembly brings those bits back as close to English as is practical, and high-level languages go much further toward English."
+    },
+    {
+      "type": "multi",
+      "category": "Assembly language",
+      "q": "After these instructions run, which statements are true?\n\nmov rax, 3\nmov rbx, 4\nadd rax, rbx",
+      "choices": [
+        "RAX holds 7",
+        "RBX holds 4",
+        "RBX holds 7",
+        "RAX holds 3"
+      ],
+      "answer": [0, 1],
+      "explain": "add rax, rbx adds the value in RBX into RAX, so RAX becomes 3 + 4 = 7. RBX is only read, so it still holds 4."
+    },
+    {
+      "type": "text",
+      "category": "Assembly language",
+      "q": "Write the assembly instruction, in the form used in the lesson, that puts the value 3 into register RAX.",
+      "answer": ["mov rax, 3", "mov rax,3", "mov rax 3", "MOV RAX, 3"],
+      "explain": "mov rax, 3 means 'move into RAX the value 3'. The destination comes first and the source second."
+    },
+    {
+      "type": "text",
+      "category": "Assembly language",
+      "q": "Write the assembly instruction, in the form used in the lesson, that adds the value in RBX into RAX and keeps the result in RAX.",
+      "answer": ["add rax, rbx", "add rax,rbx", "add rax rbx", "ADD RAX, RBX"],
+      "explain": "add rax, rbx means 'add into RAX the value of RBX'. The result goes in the first operand, RAX."
+    },
+    {
+      "type": "mc",
+      "category": "Assembly language",
+      "q": "What does an assembler, such as FASM (the flat assembler) or the GNU assembler, do?",
+      "choices": [
+        "Converts assembly instructions into binary machine code",
+        "Runs high-level programs line by line",
+        "Translates binary machine code into English sentences",
+        "Chooses which registers a C compiler should use"
+      ],
+      "answer": 0,
+      "explain": "An assembler is a program that turns your assembly instructions into the binary the CPU executes."
+    },
+    {
+      "type": "tf",
+      "category": "Assembly language",
+      "q": "Different assemblers, such as FASM and the GNU assembler, can use different directives and options, even though both turn instructions into binary.",
+      "answer": true,
+      "explain": "They are just two programs that do the same basic job. Each has its own metadata/directive conventions and options."
+    },
+    {
+      "type": "num",
+      "category": "Hexadecimal",
+      "q": "How many bits does a single hexadecimal digit represent?",
+      "answer": 4,
+      "explain": "One hex digit covers exactly one 4-bit group (0000 to 1111)."
+    },
+    {
+      "type": "mc",
+      "category": "Hexadecimal",
+      "q": "Why does hexadecimal fit binary better than decimal does?",
+      "choices": [
+        "4 bits have 16 possible combinations, and hex has exactly 16 single digits (0-9, A-F), so every combination gets its own digit; decimal's 10 digits leave 6 combinations unused",
+        "Hex uses fewer bits than binary to store the same value in memory",
+        "Decimal cannot represent numbers greater than 9",
+        "The CPU executes hex digits faster than decimal digits"
+      ],
+      "answer": 0,
+      "explain": "Decimal stops at 9 even though 4 bits can go up to 15. Hex adds the six digits A-F (10-15), so every 4-bit pattern is a single digit."
+    },
+    {
+      "type": "num",
+      "category": "Hexadecimal",
+      "q": "What decimal value does the hex digit F represent?",
+      "answer": 15,
+      "explain": "A=10, B=11, C=12, D=13, E=14, F=15. F is 1111, the largest 4-bit value."
+    },
+    {
+      "type": "text",
+      "category": "Hexadecimal",
+      "q": "Convert hex 5B to 8-bit binary.",
+      "answer": ["01011011", "0101 1011"],
+      "explain": "5 = 0101 and B = 1011. Put them together to get 0101 1011."
+    },
+    {
+      "type": "text",
+      "category": "Hexadecimal",
+      "q": "Convert binary 0100 1000 to hex. (This is the first byte of the encoding of mov rax, 3.)",
+      "answer": ["48", "0x48", "48h"],
+      "explain": "0100 = 4 and 1000 = 8, so the byte is 48 in hex."
+    },
+    {
+      "type": "text",
+      "category": "Hexadecimal",
+      "q": "Convert hex C7 to 8-bit binary.",
+      "answer": ["11000111", "1100 0111"],
+      "explain": "C = 1100 and 7 = 0111, so C7 = 1100 0111."
+    },
+    {
+      "type": "mc",
+      "category": "Hexadecimal",
+      "q": "Which 4-bit binary pattern is the hex digit D?",
+      "choices": [
+        "1010",
+        "1011",
+        "1100",
+        "1101"
+      ],
+      "answer": 3,
+      "explain": "D = 13 = 8 + 4 + 1 = 1101. For comparison, 1010 = A, 1011 = B and 1100 = C."
+    },
+    {
+      "type": "tf",
+      "category": "Hexadecimal",
+      "q": "To turn a long binary value into hex, split it into 4-bit groups and replace each group with one hex digit.",
+      "answer": true,
+      "explain": "Each hex digit stands for exactly 4 bits, so the conversion works one group at a time in either direction, with no arithmetic on the whole number."
+    }
+  ]
+}

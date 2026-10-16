@@ -1,0 +1,688 @@
+{
+  "title": "Chapter 1: Boolean Logic",
+  "course": "NAND2TETRIS",
+  "questions": [
+    {
+      "type": "num",
+      "category": "Boolean algebra",
+      "q": "A truth table lists every possible combination of a function's input values. How many rows does the truth table of a Boolean function with 5 input variables have?",
+      "answer": 32,
+      "explain": "N binary variables can take 2^N different states, so 5 variables give 2^5 = 32 input combinations, one row each."
+    },
+    {
+      "type": "num",
+      "category": "Boolean algebra",
+      "q": "Evaluate Not(x Or (y And z)) for x = 0, y = 1, z = 1. Enter 0 or 1.",
+      "answer": 0,
+      "explain": "y And z = 1 And 1 = 1; x Or 1 = 0 Or 1 = 1; Not(1) = 0."
+    },
+    {
+      "type": "num",
+      "category": "Boolean algebra",
+      "q": "Let f(x, y, z) = (x Or y) And Not(z). What is f(1, 1, 0)? Enter 0 or 1.",
+      "answer": 1,
+      "explain": "x Or y = 1 Or 1 = 1, and Not(z) = Not(0) = 1, so f = 1 And 1 = 1."
+    },
+    {
+      "type": "mc",
+      "category": "Boolean algebra",
+      "q": "You are building the canonical representation of f(x, y, z) from its truth table. In the row x = 1, y = 0, z = 1, the function's value is 1. Which term does that row contribute?",
+      "choices": [
+        "x And Not(y) And z",
+        "Not(x) And y And Not(z)",
+        "x Or Not(y) Or z",
+        "x And z"
+      ],
+      "answer": 0,
+      "explain": "Each 1-row contributes an And of literals (variables or their negations) that pins down every input of that row: x = 1 gives x, y = 0 gives Not(y), z = 1 gives z. 'x And z' leaves y unconstrained, so it would also cover the row x = 1, y = 1, z = 1."
+    },
+    {
+      "type": "mc",
+      "category": "Boolean algebra",
+      "q": "When you derive a function's canonical representation from its truth table, which rows do you use?",
+      "choices": [
+        "Only the rows where the function's value is 1",
+        "Only the rows where the function's value is 0",
+        "Every row in the table",
+        "Only the rows where all inputs are 1"
+      ],
+      "answer": 0,
+      "explain": "You build one And-term for each row where the function is 1, then Or all those terms together. The result is 1 exactly on those rows and 0 everywhere else."
+    },
+    {
+      "type": "tf",
+      "category": "Boolean algebra",
+      "q": "Every Boolean function can be expressed using only the three operators And, Or, and Not.",
+      "answer": true,
+      "explain": "Every function has a truth table, and the canonical representation turns any truth table into an Or of And-terms over literals. That uses only And, Or, and Not."
+    },
+    {
+      "type": "text",
+      "category": "Boolean algebra",
+      "q": "The canonical Or-of-And-terms form built from a truth table is also called a DNF. What does DNF stand for?",
+      "answer": ["Disjunctive Normal Form", "disjunctive normal form", "Disjunctive normal form"],
+      "explain": "Disjunctive Normal Form: a disjunction (Or) of conjunctions (Ands) of literals."
+    },
+    {
+      "type": "num",
+      "category": "Two-variable functions",
+      "q": "How many distinct Boolean functions can be defined over 2 binary variables?",
+      "answer": 16,
+      "explain": "Two variables give 4 input rows, and each row's output can be 0 or 1, so there are 2^4 = 16 possible output columns. In general n variables span 2^(2^n) functions."
+    },
+    {
+      "type": "num",
+      "category": "Two-variable functions",
+      "q": "How many distinct Boolean functions can be defined over 3 binary variables?",
+      "answer": 256,
+      "explain": "n variables span 2^(2^n) functions. With n = 3 there are 2^3 = 8 rows, so 2^8 = 256 possible output columns."
+    },
+    {
+      "type": "mc",
+      "category": "Two-variable functions",
+      "q": "Outputs are listed for the inputs (x, y) = 00, 01, 10, 11, in that order. Which output column belongs to Nor?",
+      "choices": ["1 0 0 0", "0 1 1 1", "1 1 1 0", "1 0 0 1"],
+      "answer": 0,
+      "explain": "Nor is Not-Or: compute x Or y (0 1 1 1), then negate it (1 0 0 0). The column 1 1 1 0 is Nand and 1 0 0 1 is Equivalence."
+    },
+    {
+      "type": "mc",
+      "category": "Two-variable functions",
+      "q": "The function 'If x then y' (x → y, 'x implies y') is equivalent to which expression?",
+      "choices": [
+        "Not(x) Or y",
+        "x Or Not(y)",
+        "x And Not(y)",
+        "Not(x) And y"
+      ],
+      "answer": 0,
+      "explain": "x → y is 1 when x is 0, or when both x and y are 1. It is 0 only for x = 1, y = 0, which matches Not(x) Or y. The expression x Or Not(y) is 'If y then x'."
+    },
+    {
+      "type": "tf",
+      "category": "Two-variable functions",
+      "q": "'If x then y' (x → y) evaluates to 0 when x = 0 and y = 1.",
+      "answer": false,
+      "explain": "Whenever x is 0, x → y is 1. Its only 0 is at x = 1, y = 0."
+    },
+    {
+      "type": "multi",
+      "category": "Two-variable functions",
+      "q": "Which pairs of functions are exact negations of each other (one outputs 1 exactly where the other outputs 0)?",
+      "choices": [
+        "And / Nand",
+        "Or / Nor",
+        "Xor / Equivalence",
+        "And / Or",
+        "Xor / Nand"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "And = 0001 and Nand = 1110; Or = 0111 and Nor = 1000; Xor = 0110 and Equivalence = 1001. And (0001) vs Or (0111) and Xor (0110) vs Nand (1110) agree on some rows, so they are not negations."
+    },
+    {
+      "type": "mc",
+      "category": "Two-variable functions",
+      "q": "Which expression defines Xor(x, y)?",
+      "choices": [
+        "(x And Not(y)) Or (Not(x) And y)",
+        "(x And y) Or (Not(x) And Not(y))",
+        "Not(x And y)",
+        "(x Or y) And Not(x)"
+      ],
+      "answer": 0,
+      "explain": "Xor is 1 exactly when the inputs differ: x = 1 and y = 0, or x = 0 and y = 1. The second choice is Equivalence, the third is Nand, and the fourth simplifies to Not(x) And y."
+    },
+    {
+      "type": "tf",
+      "category": "Nand universality",
+      "q": "Nand(a, b) outputs 0 only when both a and b are 1.",
+      "answer": true,
+      "explain": "Nand is Not-And. Its truth table is 1, 1, 1, 0 for ab = 00, 01, 10, 11."
+    },
+    {
+      "type": "mc",
+      "category": "Nand universality",
+      "q": "Which expression implements Not(x) with a single Nand gate?",
+      "choices": [
+        "x Nand x",
+        "Not(x Nand x)",
+        "(x Nand x) Nand (x Nand x)",
+        "x And x"
+      ],
+      "answer": 0,
+      "explain": "x Nand x = Not(x And x) = Not(x). The third choice negates twice and gives back x; the fourth is just x and isn't a Nand."
+    },
+    {
+      "type": "mc",
+      "category": "Nand universality",
+      "q": "Which expression equals x And y?",
+      "choices": [
+        "Not(x Nand y)",
+        "Not(x) Nand Not(y)",
+        "(x Nand x) Nand y",
+        "x Nand Not(y)"
+      ],
+      "answer": 0,
+      "explain": "Nand is And followed by Not, so negating it gives back And. Not(x) Nand Not(y) is actually x Or y (by De Morgan); the other two give x Or Not(y) and Not(x) Or y."
+    },
+    {
+      "type": "num",
+      "category": "Nand universality",
+      "q": "How many Nand gates does the identity x Or y = (x Nand x) Nand (y Nand y) use?",
+      "answer": 3,
+      "explain": "One Nand makes Not(x), one makes Not(y), and a third combines them: Not(x) Nand Not(y) = Not(Not(x) And Not(y)) = x Or y."
+    },
+    {
+      "type": "mc",
+      "category": "Nand universality",
+      "q": "The identity x Or y = Not(Not(x) And Not(y)) is an instance of which law?",
+      "choices": [
+        "De Morgan's law",
+        "The distributive law",
+        "The commutative law",
+        "The idempotent law"
+      ],
+      "answer": 0,
+      "explain": "De Morgan's law relates Or and And through negation. It is what lets you build Or from Not and And, and therefore from Nand."
+    },
+    {
+      "type": "mc",
+      "category": "Nand universality",
+      "q": "Which argument proves that any Boolean function can be built from Nand gates alone?",
+      "choices": [
+        "Any function has a truth table; any truth table can be written using only And, Or, and Not; and And, Or, and Not can each be built from Nand.",
+        "Nand has more input combinations than any other two-input gate, so it can encode any function.",
+        "Nand is the only gate that can be built from transistors.",
+        "Every truth table contains exactly one 0, just like Nand's."
+      ],
+      "answer": 0,
+      "explain": "The canonical representation reduces any function to And, Or, and Not, and each of those can be built from Nand: Not(x) = x Nand x, And = Not(Nand), and Or follows from De Morgan. So Nand alone is enough."
+    },
+    {
+      "type": "multi",
+      "category": "Nand universality",
+      "q": "Which of these gate sets can, on their own, implement any Boolean function?",
+      "choices": ["{Nand}", "{Nor}", "{And, Or, Not}", "{Not}"],
+      "answer": [0, 1, 2],
+      "explain": "Nand alone and Nor alone are each enough, and so is {And, Or, Not} (via the canonical representation). Not has a single input, so chaining Nots only ever gives x or Not(x). It can never combine two variables into something like And."
+    },
+    {
+      "type": "mc",
+      "category": "Logic gates",
+      "q": "In a conceptual circuit with a power supply and a light bulb (the output), how are switches a and b arranged to implement Or?",
+      "choices": [
+        "In parallel, so closing either switch completes the circuit",
+        "In series, so both switches must be closed",
+        "One switch in series with the bulb and the other across the power supply",
+        "Cross-wired, so closing one switch opens the other"
+      ],
+      "answer": 0,
+      "explain": "Parallel switches light the bulb if a or b (or both) is closed, which is Or. Series switches need both closed, which is And."
+    },
+    {
+      "type": "mc",
+      "category": "Logic gates",
+      "q": "Which composition of 2-input gates implements the 3-way function And(a, b, c)?",
+      "choices": [
+        "And(And(a, b), c)",
+        "Or(And(a, b), c)",
+        "And(Or(a, b), c)",
+        "And(a, Or(b, c))"
+      ],
+      "answer": 0,
+      "explain": "a · b · c = (a · b) · c. Feed a and b into one And gate, then And its output with c."
+    },
+    {
+      "type": "tf",
+      "category": "Logic gates",
+      "q": "A logic gate has exactly one interface but can have many different implementations.",
+      "answer": true,
+      "explain": "The interface (what the gate computes, given by a truth table, expression, or verbal spec) is unique. Many internal designs can realize it, and some are better than others in cost, speed, and simplicity."
+    },
+    {
+      "type": "mc",
+      "category": "Logic gates",
+      "q": "Which of these belongs to a gate's interface rather than its implementation?",
+      "choices": [
+        "The names of its input and output pins",
+        "The lower-level gates it is built from",
+        "The internal pins that connect those gates",
+        "The number of gates its design uses"
+      ],
+      "answer": 0,
+      "explain": "The interface is what the gate shows the outside world: its input and output pins and the function it computes. Its parts, internal wiring, and gate count are implementation details that only the gate's designer needs."
+    },
+    {
+      "type": "tf",
+      "category": "Logic gates",
+      "q": "Boolean gates can only be built from electrical transistors; Boolean algebra cannot describe other switching technologies.",
+      "answer": false,
+      "explain": "Any technology that can switch and conduct will work. Magnetic, optical, biological, hydraulic, and pneumatic gates have all been built, and Boolean algebra abstracts the behavior of any of them. Transistors in silicon are just the most common today."
+    },
+    {
+      "type": "mc",
+      "category": "Logic gates",
+      "q": "What distinguishes a primitive gate from a composite gate?",
+      "choices": [
+        "A primitive gate is taken as a given black box; a composite gate is built by interconnecting other gates",
+        "A primitive gate has one input; a composite gate has two or more",
+        "Primitive gates compute only And; composite gates compute other functions",
+        "A composite gate's interface looks fundamentally different from a primitive gate's"
+      ],
+      "answer": 0,
+      "explain": "A primitive gate (Nand in this platform) is used without caring how it works inside. Composite gates are built by wiring simpler gates together. From the outside, a composite gate looks just like a primitive one: it has input pins, output pins, and a function."
+    },
+    {
+      "type": "mc",
+      "category": "HDL",
+      "q": "An HDL chip definition consists of which two sections?",
+      "choices": [
+        "A header (chip name and its input and output pins) and a parts section (the lower-level chips and how they connect)",
+        "A truth table and a test script",
+        "A declarations section and a main loop",
+        "An input file and an output file"
+      ],
+      "answer": 0,
+      "explain": "The header (CHIP name, IN, OUT) declares the chip's interface. The PARTS section lists the lower-level parts, one statement each, and how they are wired together."
+    },
+    {
+      "type": "mc",
+      "category": "HDL",
+      "q": "This Xor implementation is missing its last line:\n\nCHIP Xor {\n  IN a, b;\n  OUT out;\n  PARTS:\n  Not (in=a, out=nota);\n  Not (in=b, out=notb);\n  And (a=a, b=notb, out=aAndNotb);\n  And (a=nota, b=b, out=notaAndb);\n  ???\n}\n\nWhich line completes it?",
+      "choices": [
+        "Or (a=aAndNotb, b=notaAndb, out=out);",
+        "And (a=aAndNotb, b=notaAndb, out=out);",
+        "Or (a=nota, b=notb, out=out);",
+        "Or (a=a, b=b, out=out);"
+      ],
+      "answer": 0,
+      "explain": "Xor(a, b) = (a And Not(b)) Or (Not(a) And b). The two And outputs are already on internal pins, so an Or of those two pins drives the chip's out."
+    },
+    {
+      "type": "tf",
+      "category": "HDL",
+      "q": "In HDL, the order of the statements in the PARTS section matters, just as statement order matters in an imperative program.",
+      "answer": false,
+      "explain": "HDL is a functional, declarative language. A program is a textual description of a chip diagram, so statement order doesn't matter."
+    },
+    {
+      "type": "mc",
+      "category": "HDL",
+      "q": "In the statement Not (in=a, out=nota);, what is nota?",
+      "choices": [
+        "An internal pin created by this statement that carries the Not gate's output",
+        "An input pin of the chip being defined",
+        "The name of a built-in chip",
+        "A label that the simulator ignores"
+      ],
+      "answer": 0,
+      "explain": "Writing out=nota creates an internal pin (an outbound wire) named nota. Other statements can then use it as an input, e.g. And(a=nota, ...)."
+    },
+    {
+      "type": "tf",
+      "category": "HDL",
+      "q": "In HDL, one pin can feed the inputs of several different parts.",
+      "answer": true,
+      "explain": "Pins can have unlimited fan-out. In the Xor design, each input feeds both a Not gate and an And gate. The forks you'd draw in a gate diagram are implied by the HDL code."
+    },
+    {
+      "type": "mc",
+      "category": "HDL",
+      "q": "The Not chip's interface has input pin in and output pin out. Which line correctly uses Not as a part?",
+      "choices": [
+        "Not (in=x, out=y);",
+        "Not (a=x, out=y);",
+        "Not (x, y);",
+        "y = Not(x);"
+      ],
+      "answer": 0,
+      "explain": "Each part statement connects the part's own pin names (left of =) to pins in the current chip (right of =). So you must know each part's interface, such as in/out for Not and a/b/out for And and Or."
+    },
+    {
+      "type": "num",
+      "category": "HDL",
+      "q": "Consider:\n\nCHIP AndMuxOr {\n  IN a, b, sel;\n  OUT out;\n  PARTS:\n  And (a=a, b=b, out=andOut);\n  Or (a=a, b=b, out=orOut);\n  Mux (a=andOut, b=orOut, sel=sel, out=out);\n}\n\nWhat is out when a = 1, b = 0, sel = 1? Enter 0 or 1.",
+      "answer": 1,
+      "explain": "With sel = 1 the Mux passes its b input, which is orOut = 1 Or 0 = 1. With sel = 0 the chip would act as an And gate and output 0."
+    },
+    {
+      "type": "mc",
+      "category": "Simulation and testing",
+      "q": "In a test script, what does the eval command do?",
+      "choices": [
+        "Computes the chip's outputs from the current input values",
+        "Writes the current pin values to the output file",
+        "Loads the chip's HDL file",
+        "Compares the output file with the compare file"
+      ],
+      "answer": 0,
+      "explain": "A typical test step is set (inputs), eval (run the chip logic), output (write the listed pins to the output file). Loading is done by load, and output writes the file."
+    },
+    {
+      "type": "mc",
+      "category": "Simulation and testing",
+      "q": "In script-based testing, which file states how the chip is supposed to behave?",
+      "choices": [
+        ".cmp (compare file)",
+        ".tst (test script)",
+        ".hdl (HDL file)",
+        ".out (output file)"
+      ],
+      "answer": 0,
+      "explain": "The .hdl file specifies the chip (interface and implementation), the .tst file says how to test it, and the .cmp file holds the expected results. The .out file is generated as a side effect of running the script."
+    },
+    {
+      "type": "mc",
+      "category": "Simulation and testing",
+      "q": "A test script includes compare-to Xor.cmp. What happens each time an output command executes?",
+      "choices": [
+        "The line just written to the output file is compared with the matching line of the compare file, and any mismatch raises a comparison error",
+        "The simulator rewrites the compare file to match the new output",
+        "Values from the compare file are loaded into the chip's input pins",
+        "Nothing; the files are compared only after the whole script finishes"
+      ],
+      "answer": 0,
+      "explain": "Comparison is line by line as the output is produced. If an output line differs from the corresponding compare-file line, the simulator reports a comparison error."
+    },
+    {
+      "type": "num",
+      "category": "Simulation and testing",
+      "q": "An exhaustive test script runs one set/eval/output step for each input combination. How many steps does an exhaustive test of the 3-input Mux chip (inputs a, b, sel) need?",
+      "answer": 8,
+      "explain": "3 binary inputs give 2^3 = 8 combinations. (The 2-input Xor test needs 4.)"
+    },
+    {
+      "type": "tf",
+      "category": "Simulation and testing",
+      "q": "Exhaustively testing every input combination is as practical for complex chips as it is for simple gates like Xor.",
+      "answer": false,
+      "explain": "For Xor, 4 test cases amount to a complete empirical proof of correctness. The number of combinations grows as 2^(number of input bits), though: a chip with two 16-bit inputs has 2^32 of them. Exhaustive certainty isn't feasible for complex chips."
+    },
+    {
+      "type": "multi",
+      "category": "Simulation and testing",
+      "q": "Which are benefits of script-based simulation over interactive simulation?",
+      "choices": [
+        "Testing is automatic",
+        "Testing is replicable",
+        "It removes the need to write an HDL implementation",
+        "It proves chips of any size correct"
+      ],
+      "answer": [0, 1],
+      "explain": "A test script is a fixed sequence of simulator commands, so it runs automatically and gives the same results every time. You still need the HDL, and for large chips a script only tests selected cases."
+    },
+    {
+      "type": "tf",
+      "category": "Simulation and testing",
+      "q": "A built-in chip has the same interface as the HDL-defined chip of the same name, but a different implementation (e.g., written in Java).",
+      "answer": true,
+      "explain": "A built-in chip declares BUILTIN instead of a PARTS section. Its interface and function are the same, but the logic runs in the simulator's own code, so you can use the chip as a part before building it yourself."
+    },
+    {
+      "type": "mc",
+      "category": "Simulation and testing",
+      "q": "What is behavioral simulation useful for?",
+      "choices": [
+        "Writing the chip's logic in a high-level language so you can experiment with and test its abstraction before building it in HDL",
+        "Counting the transistors a chip will need in silicon",
+        "Generating the compare file from the HDL implementation",
+        "Translating HDL into machine language"
+      ],
+      "answer": 0,
+      "explain": "Behavioral simulation lets designers try out a chip's abstraction, and plan and test whole hardware architectures, before any gate-level HDL exists."
+    },
+    {
+      "type": "num",
+      "category": "Mux and DMux",
+      "q": "A Mux has a = 1, b = 0, sel = 1. What is out? Enter 0 or 1.",
+      "answer": 0,
+      "explain": "If sel = 0 then out = a, else out = b. Here sel = 1, so out = b = 0."
+    },
+    {
+      "type": "mc",
+      "category": "Mux and DMux",
+      "q": "Which expression implements Mux(a, b, sel)?",
+      "choices": [
+        "(a And Not(sel)) Or (b And sel)",
+        "(a And sel) Or (b And Not(sel))",
+        "(a Or b) And sel",
+        "(a And b) Or sel"
+      ],
+      "answer": 0,
+      "explain": "When sel = 0, Not(sel) = 1 lets a through and b And 0 = 0, so out = a. When sel = 1 the roles swap and out = b. The second choice selects backwards."
+    },
+    {
+      "type": "mc",
+      "category": "Mux and DMux",
+      "q": "A DMux has in = 1 and sel = 1. What are its outputs?",
+      "choices": ["a = 0, b = 1", "a = 1, b = 0", "a = 1, b = 1", "a = 0, b = 0"],
+      "answer": 0,
+      "explain": "If sel = 0 then {a, b} = {in, 0}, else {a, b} = {0, in}. With sel = 1, in goes to b and a is 0."
+    },
+    {
+      "type": "mc",
+      "category": "Mux and DMux",
+      "q": "Which pair of expressions implements DMux(in, sel)?",
+      "choices": [
+        "a = in And Not(sel); b = in And sel",
+        "a = in And sel; b = in And Not(sel)",
+        "a = in Or sel; b = in Or Not(sel)",
+        "a = Not(in); b = in"
+      ],
+      "answer": 0,
+      "explain": "Output a should equal in only when sel = 0, and b only when sel = 1. Anding in with Not(sel) and with sel does exactly that."
+    },
+    {
+      "type": "mc",
+      "category": "Mux and DMux",
+      "q": "Where does the name 'multiplexor' come from?",
+      "choices": [
+        "Communications systems, where similar devices serialize (multiplex) several input signals over one output wire",
+        "Arithmetic, because the gate multiplies its two data inputs",
+        "The gate's multiple output pins",
+        "Its use of multiple selection bits in every version"
+      ],
+      "answer": 0,
+      "explain": "In communications, a Mux at the source and a DMux at the destination, with sel driven by alternating 0/1 signals, let several messages share one line. Functionally the device just selects one input, so the book suggests 'selector' would have been a better name."
+    },
+    {
+      "type": "tf",
+      "category": "Mux and DMux",
+      "q": "If a Mux's a and b inputs carry the same value, its output equals that value whatever sel is.",
+      "answer": true,
+      "explain": "sel only chooses which data input to pass on. If both carry the same value, either choice outputs that value."
+    },
+    {
+      "type": "mc",
+      "category": "Mux and DMux",
+      "q": "Which description fits a demultiplexor?",
+      "choices": [
+        "The inverse of a multiplexor: it routes a single input to one of two outputs chosen by sel, and the other output is 0",
+        "A gate that merges two inputs into one output",
+        "A multiplexor with its sel input negated",
+        "A gate that outputs 1 when sel equals in"
+      ],
+      "answer": 0,
+      "explain": "A Mux picks one of two inputs to pass to a single output. A DMux does the opposite: it sends its single input to output a (sel = 0) or b (sel = 1), and the unselected output is 0."
+    },
+    {
+      "type": "mc",
+      "category": "Buses and multi-way chips",
+      "q": "A 16-bit bus is indexed data[0] through data[15]. Which bit is the most significant bit (MSB)?",
+      "choices": ["data[15]", "data[0]", "data[8]", "data[16]"],
+      "answer": 0,
+      "explain": "Bits are indexed from 0 (the least significant bit, LSB, on the right) to 15 (the MSB, on the left). data[16] doesn't exist on a 16-bit bus."
+    },
+    {
+      "type": "mc",
+      "category": "Buses and multi-way chips",
+      "q": "And4 computes the bit-wise And of two 4-bit inputs. With a = 0101 and b = 0011 (bits written from 3 down to 0), what is out?",
+      "choices": ["0001", "0111", "0110", "1000"],
+      "answer": 0,
+      "explain": "Each bit pair is Anded separately: 0&0 = 0, 1&0 = 0, 0&1 = 0, 1&1 = 1, giving 0001. 0111 would be bit-wise Or and 0110 bit-wise Xor."
+    },
+    {
+      "type": "mc",
+      "category": "Buses and multi-way chips",
+      "q": "Mux4Way16 receives sel = 10 (sel[1] = 1, sel[0] = 0). Which input appears on out?",
+      "choices": ["a", "b", "c", "d"],
+      "fixed": true,
+      "answer": 2,
+      "explain": "sel = 00 selects a, 01 selects b, 10 selects c, and 11 selects d."
+    },
+    {
+      "type": "mc",
+      "category": "Buses and multi-way chips",
+      "q": "Mux8Way16 receives sel = 101. Which of its inputs a through h appears on out?",
+      "choices": ["e", "f", "g", "d"],
+      "answer": 1,
+      "explain": "The inputs a through h map to sel = 000 through 111. Binary 101 = 5, which is the sixth input counting from a = 0: f."
+    },
+    {
+      "type": "num",
+      "category": "Buses and multi-way chips",
+      "q": "An m-way multiplexor uses k = log2(m) selection bits. How many selection bits does a 32-way multiplexor need?",
+      "answer": 5,
+      "explain": "log2(32) = 5, because 5 bits can name 2^5 = 32 different inputs. For example, Mux4Way16 has sel[2] and Mux8Way16 has sel[3]."
+    },
+    {
+      "type": "mc",
+      "category": "Buses and multi-way chips",
+      "q": "DMux4Way receives in = 1 and sel = 11. What are its outputs?",
+      "choices": [
+        "a = 0, b = 0, c = 0, d = 1",
+        "a = 1, b = 0, c = 0, d = 0",
+        "a = 1, b = 1, c = 1, d = 1",
+        "a = 0, b = 0, c = 1, d = 0"
+      ],
+      "answer": 0,
+      "explain": "sel = 11 routes in to d, and all the other outputs are 0. sel = 00, 01, and 10 would route it to a, b, and c."
+    },
+    {
+      "type": "mc",
+      "category": "Buses and multi-way chips",
+      "q": "How is Mux16 built from 1-bit Mux gates?",
+      "choices": [
+        "16 Mux gates, one per bit position, all fed the same sel bit",
+        "16 Mux gates, each with its own selection bit sel[i]",
+        "4 Mux gates arranged in a tree",
+        "A single Mux gate whose output is copied to all 16 output bits"
+      ],
+      "answer": 0,
+      "explain": "Mux16 has a single sel bit that chooses all of a or all of b. Feeding that same sel to 16 binary Muxes, with Mux i handling a[i] and b[i], does this."
+    },
+    {
+      "type": "num",
+      "category": "Buses and multi-way chips",
+      "q": "What is the fewest Mux16 parts needed to build Mux4Way16?",
+      "answer": 3,
+      "explain": "Two Mux16s use sel[0] to choose between a/b and between c/d. A third Mux16 uses sel[1] to choose between those two results. Each 2-way Mux eliminates only one candidate, so narrowing 4 inputs to 1 takes at least 3."
+    },
+    {
+      "type": "num",
+      "category": "Buses and multi-way chips",
+      "q": "Or8Way is built by chaining 2-input Or gates: Or(in[0], in[1]), then Or that result with in[2], and so on. How many Or gates does this take?",
+      "answer": 7,
+      "explain": "Each 2-input gate combines one more input into the running result, so 8 inputs need 8 − 1 = 7 gates. Similarly, And4Way chains 3 And gates."
+    },
+    {
+      "type": "mc",
+      "category": "Buses and multi-way chips",
+      "q": "Adder3Way adds three 16-bit inputs with two Adder parts:\n\nAdder (a=a, b=b, out=ab);\nAdder (a=ab, b=c, out=out);\n\nWhat is ab?",
+      "choices": [
+        "An internal 16-bit bus pin holding the sum of a and b",
+        "A 1-bit internal pin",
+        "An input pin of Adder3Way",
+        "A syntax error, since whole buses cannot be connected this way"
+      ],
+      "answer": 0,
+      "explain": "An n-bit bus can be treated as a single entity, so out=ab creates an internal bus pin with the same width as the Adder's 16-bit output. The second Adder then reads it."
+    },
+    {
+      "type": "mc",
+      "category": "Abstraction and modular design",
+      "q": "In systems design, what does a module's abstraction describe?",
+      "choices": [
+        "What the module does, i.e., its interface",
+        "How the module's functionality is realized",
+        "Which lower-level parts the module is built from",
+        "The physical technology used to build it"
+      ],
+      "answer": 0,
+      "explain": "The abstraction is the 'what': the interface. The implementation is the 'how': the arrangement of lower-level building blocks that delivers it."
+    },
+    {
+      "type": "mc",
+      "category": "Abstraction and modular design",
+      "q": "Under the abstraction-implementation principle, when you use a module as a building block you should:",
+      "choices": [
+        "Focus only on what it does and ignore how it is implemented",
+        "Study its implementation so you can design around its internals",
+        "Re-implement it to be sure it works",
+        "Use it only if you built it yourself"
+      ],
+      "answer": 0,
+      "explain": "Treat lower-level modules as off-the-shelf black boxes. All you need is the documentation of their interface. This keeps complexity manageable and keeps error detection local."
+    },
+    {
+      "type": "mc",
+      "category": "Abstraction and modular design",
+      "q": "A RAM is implemented from lower-level chips. In that implementation, registers provide ___ and multiplexors provide ___.",
+      "choices": [
+        "storage; direct access",
+        "direct access; storage",
+        "arithmetic; storage",
+        "storage; arithmetic"
+      ],
+      "fixed": true,
+      "answer": 0,
+      "explain": "The RAM's storage comes from registers, and its ability to reach any register directly comes from multiplexors (with demultiplexors as well). The RAM's user ignores all of this and just uses the direct-access abstraction."
+    },
+    {
+      "type": "mc",
+      "category": "Abstraction and modular design",
+      "q": "In the hierarchy from high-level code down to hardware, which program translates VM code into machine language?",
+      "choices": [
+        "The VM translator",
+        "The compiler",
+        "The assembler",
+        "The operating system"
+      ],
+      "answer": 0,
+      "explain": "The compiler turns high-level code into VM code, the VM translator turns VM code into machine language, and the assembler turns symbolic machine language into binary code that the hardware runs."
+    },
+    {
+      "type": "mc",
+      "category": "Abstraction and modular design",
+      "q": "Which ordering lists the hardware abstraction levels from lowest to highest?",
+      "choices": [
+        "Nand → elementary logic gates → ALU, RAM, registers → computer architecture",
+        "Elementary logic gates → Nand → computer architecture → ALU, RAM, registers",
+        "Computer architecture → ALU, RAM, registers → elementary logic gates → Nand",
+        "Nand → ALU, RAM, registers → elementary logic gates → computer architecture"
+      ],
+      "answer": 0,
+      "explain": "Nand gates make the elementary logic gates, those gates make chips like the ALU, RAM, and registers, and those chips make the computer architecture. Each level is built from abstract building blocks of the level below."
+    },
+    {
+      "type": "text",
+      "category": "Abstraction and modular design",
+      "q": "Which conjecture holds that, at bottom, all computers are essentially equivalent?",
+      "answer": ["Church-Turing", "Church-Turing conjecture", "the Church-Turing conjecture", "Church Turing", "Church-Turing thesis", "church-turing", "church-turing conjecture"],
+      "explain": "The Church-Turing conjecture. It is why it doesn't matter much which general-purpose platform you build: all of them rest on the same ideas, from logic gates up to a software hierarchy."
+    },
+    {
+      "type": "mc",
+      "category": "Abstraction and modular design",
+      "q": "What makes a sub-system a 'module' in the sense used by modular design?",
+      "choices": [
+        "It is well specified and can be implemented and unit-tested independently of other modules",
+        "It is the largest component in the system",
+        "It is implemented directly in silicon",
+        "It relies on the internal details of the modules it uses"
+      ],
+      "answer": 0,
+      "explain": "A module has a clear interface and is a self-contained chunk of implementation work that can be tested on its own. Modular design means breaking a complex system into a good set of such modules."
+    }
+  ]
+}

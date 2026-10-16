@@ -1,0 +1,367 @@
+{
+  "title": "X86ASM 20: Stack Frames and Local Variables",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Memory layout and stack growth",
+      "q": "In a typical process address space, what is the order of these regions from LOWEST to HIGHEST address?",
+      "choices": [
+        "stack, heap, data, text",
+        "text, data, heap, stack",
+        "data, text, stack, heap",
+        "heap, text, data, stack"
+      ],
+      "answer": 1,
+      "explain": "Code (text) sits lowest, the data segment sits just above it, then the heap. The stack is placed up near the top of the address space."
+    },
+    {
+      "type": "tf",
+      "category": "Memory layout and stack growth",
+      "q": "Pushing a value onto the x86-64 stack moves RSP toward higher memory addresses.",
+      "answer": false,
+      "explain": "The stack grows downward. Each push subtracts from RSP, so it moves toward lower addresses, toward the heap."
+    },
+    {
+      "type": "mc",
+      "category": "Memory layout and stack growth",
+      "q": "Why are the heap and the stack put at opposite ends of memory and made to grow toward each other?",
+      "choices": [
+        "So that the heap can be read-only and the stack writable",
+        "Because the CPU can only address the stack at high addresses",
+        "Both grow by amounts that aren't known in advance, so no fixed boundary has to be picked that would cap either one",
+        "So that the stack can be freed automatically by the operating system"
+      ],
+      "answer": 2,
+      "explain": "If the stack started at some fixed spot in the middle, the heap would have an artificial ceiling and the stack would have its own limit. When they sit at opposite ends, each can use whatever free space lies between them."
+    },
+    {
+      "type": "num",
+      "category": "Memory layout and stack growth",
+      "q": "Starting from some value of RSP, you push three 64-bit values. By how many bytes has RSP decreased?",
+      "answer": 24,
+      "explain": "Each 64-bit push is 8 bytes, so 3 x 8 = 24."
+    },
+    {
+      "type": "mc",
+      "category": "Allocating local variables",
+      "q": "Which instruction reserves 4 bytes on the stack for a local int (ignoring alignment for now)?",
+      "choices": [
+        "add rsp, 4",
+        "sub rsp, 4",
+        "push 4",
+        "mov rsp, 4"
+      ],
+      "answer": 1,
+      "explain": "The stack grows down, so you allocate by subtracting from RSP. The newly reserved bytes then start at [rsp]."
+    },
+    {
+      "type": "mc",
+      "category": "Allocating local variables",
+      "q": "The instruction `mov [rsp], 1` is rejected by the assembler. Why?",
+      "choices": [
+        "RSP cannot be used inside brackets",
+        "Immediate values cannot be written to memory",
+        "The assembler cannot tell how many bytes to write, because neither operand gives a size",
+        "The stack is read-only until a frame is set up"
+      ],
+      "answer": 2,
+      "explain": "A memory operand and an immediate both leave the size open (it could be 1, 2, 4 or 8 bytes). You have to state the size, either with a size keyword or by using a register of known width."
+    },
+    {
+      "type": "multi",
+      "category": "Allocating local variables",
+      "q": "Which of these write exactly 4 bytes to the location at RSP?",
+      "choices": [
+        "mov dword ptr [rsp], 1",
+        "mov eax, 1  then  mov [rsp], eax",
+        "mov qword ptr [rsp], 1",
+        "mov byte ptr [rsp], 1",
+        "mov rax, 1  then  mov [rsp], rax"
+      ],
+      "answer": [0, 1],
+      "explain": "`dword ptr` sets the size to 4 bytes directly. Storing from EAX, a 32-bit register, also implies 4 bytes. qword and RAX write 8 bytes, and byte writes 1."
+    },
+    {
+      "type": "num",
+      "category": "Allocating local variables",
+      "q": "A 'word' is 16 bits. How many BYTES is a dword (double word)?",
+      "answer": 4,
+      "explain": "A double word is 2 x 16 = 32 bits, which is 4 bytes."
+    },
+    {
+      "type": "text",
+      "category": "Allocating local variables",
+      "q": "Name the 32-bit register that is the lower half of RAX.",
+      "answer": ["EAX", "eax"],
+      "explain": "EAX is the low 32 bits of RAX, so writing a value to EAX makes it show up in RAX."
+    },
+    {
+      "type": "mc",
+      "category": "Allocating local variables",
+      "q": "Using only RSP (no base pointer), you run `sub rsp, 4` three times, once each for x, then y, then z. What is x's address now?",
+      "choices": [
+        "[rsp]",
+        "[rsp+4]",
+        "[rsp+8]",
+        "[rsp-8]"
+      ],
+      "answer": 2,
+      "explain": "z is at [rsp], y at [rsp+4] and x at [rsp+8]. Every new allocation moves RSP, which changes every older variable's offset. That bookkeeping is the reason to use a base pointer."
+    },
+    {
+      "type": "mc",
+      "category": "Base pointer and stack frames",
+      "q": "What is the main reason to address local variables through RBP instead of RSP?",
+      "choices": [
+        "RBP accesses are faster than RSP accesses",
+        "RBP stays fixed for the whole function, so each local keeps the same offset even as RSP moves",
+        "RSP cannot be used in memory operands",
+        "RBP automatically keeps the stack 16-byte aligned"
+      ],
+      "answer": 1,
+      "explain": "RBP anchors the stack frame. Once it is set, x is always [rbp-4] no matter how often RSP changes afterward."
+    },
+    {
+      "type": "mc",
+      "category": "Base pointer and stack frames",
+      "q": "After `mov rbp, rsp`, then `sub rsp, 4` (for x), then `sub rsp, 4` (for y), how do you address y?",
+      "choices": [
+        "[rbp+8]",
+        "[rbp-4]",
+        "[rbp-8]",
+        "[rsp+8]"
+      ],
+      "answer": 2,
+      "explain": "x is at [rbp-4] and y is at [rbp-8]. RBP did not move, so these offsets stay valid for the rest of the function."
+    },
+    {
+      "type": "tf",
+      "category": "Base pointer and stack frames",
+      "q": "Locals are reached with NEGATIVE offsets from RBP because RBP points above (at a higher address than) the space allocated for them.",
+      "answer": true,
+      "explain": "The locals are carved out below RBP as RSP is decreased, so you subtract from RBP to reach them, for example [rbp-4]."
+    },
+    {
+      "type": "mc",
+      "category": "Base pointer and stack frames",
+      "q": "A called function does `mov rbp, rsp` without saving the old RBP first, and later restores RSP and returns. What goes wrong in the caller?",
+      "choices": [
+        "Nothing, because ret restores RBP automatically",
+        "The return address is lost, so ret jumps to garbage",
+        "The caller's RBP still points into the callee's old frame, so the caller's [rbp-4] no longer refers to its own variable",
+        "The caller's locals are deleted from memory"
+      ],
+      "answer": 2,
+      "explain": "The caller's frame pointer was overwritten and never restored. Its data is still in memory, but it can no longer find it through RBP. That is why the callee must push RBP on entry and pop it before returning."
+    },
+    {
+      "type": "mc",
+      "category": "Calls, prologue and epilogue",
+      "q": "What does the `call` instruction push onto the stack?",
+      "choices": [
+        "The address of the call instruction itself",
+        "The address of the instruction right after the call (the return address), 8 bytes",
+        "The caller's RBP",
+        "The first function argument"
+      ],
+      "answer": 1,
+      "explain": "call pushes the address of the next instruction and then jumps. If it returned to the call instruction itself, the program would loop forever."
+    },
+    {
+      "type": "tf",
+      "category": "Calls, prologue and epilogue",
+      "q": "`call` can be thought of as a compound of pushing the return address and jumping to the target.",
+      "answer": true,
+      "explain": "Yes. Pushing the return address is what lets `ret` find its way back."
+    },
+    {
+      "type": "mc",
+      "category": "Calls, prologue and epilogue",
+      "q": "A function runs `sub rsp, 16`, stores a local, and then executes `ret` without restoring RSP. What happens?",
+      "choices": [
+        "It returns normally; ret always finds the return address",
+        "ret pops the local variable data as if it were the return address and jumps there, typically causing a segmentation fault",
+        "The assembler refuses to assemble the function",
+        "The OS automatically frees the 16 bytes before returning"
+      ],
+      "answer": 1,
+      "explain": "ret pops whatever is at [rsp]. The local data now sits on top of the return address, so execution jumps to a garbage address."
+    },
+    {
+      "type": "mc",
+      "category": "Calls, prologue and epilogue",
+      "q": "Which sequence is a correct function prologue that allocates 16 bytes of locals?",
+      "choices": [
+        "mov rbp, rsp / push rbp / sub rsp, 16",
+        "push rbp / mov rbp, rsp / sub rsp, 16",
+        "sub rsp, 16 / push rbp / mov rbp, rsp",
+        "push rbp / mov rsp, rbp / add rsp, 16"
+      ],
+      "answer": 1,
+      "fixed": true,
+      "explain": "First save the caller's RBP (push rbp). Then anchor the new frame at the current top of stack (mov rbp, rsp). Then allocate locals (sub rsp, 16)."
+    },
+    {
+      "type": "mc",
+      "category": "Calls, prologue and epilogue",
+      "q": "Which sequence is a correct function epilogue?",
+      "choices": [
+        "pop rbp / mov rsp, rbp / ret",
+        "mov rbp, rsp / pop rbp / ret",
+        "mov rsp, rbp / pop rbp / ret",
+        "add rsp, 8 / ret"
+      ],
+      "answer": 2,
+      "fixed": true,
+      "explain": "Reset RSP to the frame base, which discards the locals. Then pop the saved caller RBP. That leaves the return address on top for ret."
+    },
+    {
+      "type": "text",
+      "category": "Calls, prologue and epilogue",
+      "q": "Which single instruction does the same thing as `mov rsp, rbp` followed by `pop rbp`?",
+      "answer": ["leave", "LEAVE"],
+      "explain": "`leave` combines those two steps into one instruction, so a common epilogue is just `leave` / `ret`."
+    },
+    {
+      "type": "mc",
+      "category": "Calls, prologue and epilogue",
+      "q": "Inside a callee that has just finished its prologue and allocated locals, what is the stack layout from HIGHER to LOWER addresses?",
+      "choices": [
+        "caller's locals, return address, saved caller RBP, callee's locals",
+        "callee's locals, saved caller RBP, return address, caller's locals",
+        "caller's locals, saved caller RBP, return address, callee's locals",
+        "return address, caller's locals, callee's locals, saved caller RBP"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "The caller's locals come first. call then pushes the return address, the prologue pushes the caller's RBP, and finally sub rsp carves out the callee's locals at the lowest addresses."
+    },
+    {
+      "type": "mc",
+      "category": "Calls, prologue and epilogue",
+      "q": "In a memory viewer, a return address of 0x40101E shows up with its bytes in reverse order (1E 10 40 ...). Why?",
+      "choices": [
+        "The stack stores values in reverse because it grows downward",
+        "x86 is little-endian, so the least significant byte is stored at the lowest address",
+        "call encrypts the return address",
+        "The viewer displays addresses in decimal"
+      ],
+      "answer": 1,
+      "explain": "x86 stores multi-byte values little-endian, least significant byte first, so they look backwards when read byte by byte."
+    },
+    {
+      "type": "num",
+      "category": "Stack alignment",
+      "q": "To what byte boundary should the stack be aligned, especially before a `call`?",
+      "answer": 16,
+      "explain": "The stack should be 16-byte aligned, which means RSP is a multiple of 16."
+    },
+    {
+      "type": "tf",
+      "category": "Stack alignment",
+      "q": "An address is 16-byte aligned exactly when its last hexadecimal digit is 0.",
+      "answer": true,
+      "explain": "16 is 0x10, so multiples of 16 are 0x10, 0x20, 0x30 and so on. They all end in hex 0."
+    },
+    {
+      "type": "mc",
+      "category": "Stack alignment",
+      "q": "A function needs two 4-byte ints (8 bytes total) and wants to keep the stack 16-byte aligned. How much should it subtract from RSP?",
+      "choices": [
+        "4, twice",
+        "8",
+        "16",
+        "32"
+      ],
+      "answer": 2,
+      "explain": "Round the local space up to a multiple of 16. The 8 bytes needed become 16."
+    },
+    {
+      "type": "mc",
+      "category": "Stack alignment",
+      "q": "The caller's RSP is 16-byte aligned when it executes `call`. Right after the call, RSP is misaligned by 8. Which instruction in the callee's prologue brings it back into alignment?",
+      "choices": [
+        "mov rbp, rsp",
+        "push rbp",
+        "ret",
+        "sub rsp, 8 is always required"
+      ],
+      "answer": 1,
+      "explain": "call pushes an 8-byte return address, which misaligns RSP. push rbp adds another 8 bytes, so the total is 16 and RSP is aligned again. After that, allocating in multiples of 16 keeps it aligned."
+    },
+    {
+      "type": "mc",
+      "category": "Stack alignment",
+      "q": "Why 16 bytes specifically, rather than the 8-byte size of general-purpose registers?",
+      "choices": [
+        "Because return addresses are 16 bytes",
+        "Because SIMD vector instructions load 16-byte chunks in a single memory fetch and need them aligned",
+        "Because the heap is aligned to 16 bytes",
+        "Because the OS page size is 16 bytes"
+      ],
+      "answer": 1,
+      "explain": "SIMD (single instruction, multiple data) operations, such as a vectorized strlen that scans 16 bytes at a time, read 16-byte chunks and need the stack aligned for them. Wider vector registers exist, but 16 is a compromise that doesn't waste too much space."
+    },
+    {
+      "type": "num",
+      "category": "Stack alignment",
+      "q": "You need a local array of 10 longs (8 bytes each). What is the smallest number of bytes you can subtract from RSP that holds the array and keeps 16-byte alignment?",
+      "answer": 80,
+      "explain": "10 x 8 = 80, and 80 = 5 x 16 is already a multiple of 16, so no rounding is needed. (Something like 85 bytes would need rounding up to 96.)"
+    },
+    {
+      "type": "tf",
+      "category": "Stack alignment",
+      "q": "If a function only needs a single 1-byte char local, it should still subtract 16 from RSP to keep the stack aligned.",
+      "answer": true,
+      "explain": "Even very small allocations are rounded up to a multiple of 16. That wastes some space, but RSP stays aligned."
+    },
+    {
+      "type": "tf",
+      "category": "Recursion and passing pointers",
+      "q": "In a recursive function that uses a proper prologue/epilogue, each invocation gets its own stack frame, so the value it saved in [rbp-4] survives the deeper calls.",
+      "answer": true,
+      "explain": "Every call pushes a return address and the saved RBP, then carves out new locals. Each level's values (for example 5, 4, 3, 2, 1) sit in their own frames."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion and passing pointers",
+      "q": "A function recursively calls itself from one call site. Looking at the return addresses on the stack, what do you see?",
+      "choices": [
+        "Every return address is different",
+        "All are the same (the instruction after the recursive call), except the oldest, which returns to the original caller",
+        "There is only one return address no matter how deep the recursion",
+        "All of them point to the start of the function"
+      ],
+      "answer": 1,
+      "explain": "Every recursive call comes from the same instruction, so they all return to the same place. Only the frames differ. The first return address on the stack belongs to the original outside call."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion and passing pointers",
+      "q": "A recursive function decrements its argument and calls itself, but has no check that stops at zero. What happens?",
+      "choices": [
+        "It stops automatically when the argument reaches zero",
+        "Infinite recursion: frames keep piling up until the stack runs out (stack overflow)",
+        "The assembler reports an error",
+        "Each call reuses the same frame, so nothing bad happens"
+      ],
+      "answer": 1,
+      "explain": "Without a base case (for example `cmp edi, 0` then return if equal), every call adds another frame until the stack is exhausted."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion and passing pointers",
+      "q": "A caller reserves a 96-byte buffer, runs `lea rdi, [rbp-96]`, and calls a function that writes `mov qword ptr [rdi], ...`. Which statement is true?",
+      "choices": [
+        "The write fails because the callee's frame now lies on top of the buffer",
+        "The callee writes directly into the caller's buffer through the pointer, even though its own frame sits at lower addresses",
+        "lea copies the 96 bytes into RDI",
+        "The callee must pop the buffer off the stack before it can use it"
+      ],
+      "answer": 1,
+      "explain": "lea loads the address, not the contents. The caller's buffer stays valid while the callee runs, so the callee can fill it through the pointer."
+    }
+  ]
+}

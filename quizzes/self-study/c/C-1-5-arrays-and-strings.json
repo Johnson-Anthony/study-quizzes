@@ -1,0 +1,340 @@
+{
+  "title": "1.5 Arrays and Strings",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Array basics",
+      "topic": "Definition of an array",
+      "q": "A C array is described as an *ordered* collection of elements. What does \"ordered\" mean here?",
+      "choices": [
+        "Each element is at a specific position (position 0, position 1, and so on)",
+        "The values are always kept sorted in ascending order",
+        "Elements are stored in the order they were most recently accessed",
+        "The values must be inserted from smallest to largest"
+      ],
+      "answer": 0,
+      "explain": "Ordered means each element has a specific position in the collection. It does not mean the values are sorted."
+    },
+    {
+      "type": "tf",
+      "category": "Array basics",
+      "topic": "Element types",
+      "q": "True or false: A single C array can hold a mix of `int` and `char` values.",
+      "answer": false,
+      "explain": "Every element of a C array has the same type, which you give when you declare the array."
+    },
+    {
+      "type": "multi",
+      "category": "Array basics",
+      "topic": "Declaring arrays",
+      "q": "Which of the following must you specify when you declare a statically declared array variable in C?",
+      "choices": [
+        "The type of each element",
+        "The total capacity (maximum number of elements)",
+        "The initial value of every element",
+        "The number of elements currently in use"
+      ],
+      "answer": [0, 1],
+      "explain": "A declaration like `int arr[10];` gives the element type (int) and the capacity (10). The program has to track how many elements are in use itself, for example with a separate size variable."
+    },
+    {
+      "type": "mc",
+      "category": "Array basics",
+      "topic": "Memory layout",
+      "q": "How are the elements of a C array laid out in the program's memory?",
+      "choices": [
+        "In consecutive memory locations, so each element comes immediately after the previous one",
+        "At scattered locations, linked together by pointers",
+        "In reverse order, with the last element at the lowest address",
+        "Wherever the compiler finds free space, in no defined order"
+      ],
+      "answer": 0,
+      "explain": "C defines the array layout: elements are stored in consecutive locations. For example, the third position comes right after the second and right before the fourth."
+    },
+    {
+      "type": "tf",
+      "category": "Array basics",
+      "topic": "Arrays vs. Python lists",
+      "q": "True or false: Like Python lists, C arrays have built-in operations such as `len`, `append`, and `insert`.",
+      "answer": false,
+      "explain": "C arrays only provide low-level storage. The programmer has to implement higher-level features, such as keeping track of the number of elements."
+    },
+    {
+      "type": "num",
+      "category": "Indexing and bounds",
+      "topic": "Valid index range",
+      "q": "Given the declaration `int arr[25];`, what is the largest valid index into `arr`?",
+      "answer": 24,
+      "explain": "Valid indices run from 0 to capacity minus 1, so here they are 0 through 24."
+    },
+    {
+      "type": "mc",
+      "category": "Indexing and bounds",
+      "topic": "Out-of-bounds access",
+      "q": "Consider:\n\n```c\nint array[10];\narray[10] = 100;\n```\n\nWhat happens?",
+      "choices": [
+        "It compiles, and its runtime behavior is undefined",
+        "The compiler reports an error and refuses to compile it",
+        "The program raises an IndexError at runtime",
+        "The array automatically grows to hold 11 elements"
+      ],
+      "answer": 0,
+      "explain": "10 is not a valid index for an array of capacity 10. The compiler accepts the code and nothing checks bounds at runtime, so the behavior is undefined."
+    },
+    {
+      "type": "multi",
+      "category": "Indexing and bounds",
+      "topic": "Out-of-bounds access",
+      "q": "A C program writes to an index past the end of an array. Which of the following could happen?",
+      "choices": [
+        "The program crashes",
+        "Another variable's value changes",
+        "Nothing visibly changes in the program's behavior",
+        "The compiler refuses to compile the program"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The behavior is undefined. The program might crash, corrupt another variable, or seem to work, and the result can differ from run to run. The compiler still compiles the code."
+    },
+    {
+      "type": "tf",
+      "category": "Indexing and bounds",
+      "topic": "Bounds checking",
+      "q": "True or false: C checks array bounds at runtime, so an invalid index always stops the program with an error.",
+      "answer": false,
+      "explain": "C does no bounds checking, either at compile time or at runtime. It is up to the programmer to use only valid indices."
+    },
+    {
+      "type": "num",
+      "category": "Indexing and bounds",
+      "topic": "Indexing",
+      "q": "After this code runs, what value is stored in `arr[4]`?\n\n```c\nint i, num;\nint arr[10];\nnum = 6;\nfor (i = 0; i < 5; i++) {\n    arr[i] = i * 2;\n}\narr[5] = 100;\n```",
+      "answer": 8,
+      "explain": "The loop sets `arr[i] = i * 2` for i = 0 to 4, so `arr[4]` is 4 * 2 = 8. The line `arr[5] = 100` sets the next element."
+    },
+    {
+      "type": "mc",
+      "category": "Indexing and bounds",
+      "topic": "Access methods",
+      "q": "How can you access the elements of a C array?",
+      "choices": [
+        "Only by indexing (e.g., `arr[i]`)",
+        "By indexing and by slicing (e.g., `arr[2:5]`)",
+        "By indexing, including negative indices that count from the end",
+        "Only through built-in iterator functions"
+      ],
+      "answer": 0,
+      "explain": "Python has several ways to access list elements, but C supports only indexing."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays and functions",
+      "topic": "Passing arrays",
+      "q": "When you pass an array as an argument to a C function, what does the array parameter receive?",
+      "choices": [
+        "A copy of the array's base address",
+        "A separate copy of every element in the array",
+        "The number of elements in the array",
+        "Only the value of the element at index 0"
+      ],
+      "answer": 0,
+      "explain": "C passes arguments by value, and the value of an array name is its base address. The parameter gets a copy of that address, so it refers to the same storage as the argument."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays and functions",
+      "topic": "Base address",
+      "q": "In C, the name of an array variable (for example, `arr`) is equivalent to which of the following?",
+      "choices": [
+        "The memory location of its 0th element (its base address)",
+        "The value stored in its 0th element",
+        "The number of elements in the array",
+        "A copy of all of the array's elements"
+      ],
+      "answer": 0,
+      "explain": "An array's name is equivalent to its base address, which is the memory location of element 0."
+    },
+    {
+      "type": "num",
+      "category": "Arrays and functions",
+      "topic": "Modifying array parameters",
+      "q": "What is the value of `nums[1]` when the `printf` runs?\n\n```c\nvoid change(int a[], int size) {\n    a[1] = 50;\n    size = 0;\n}\n\nint main(void) {\n    int nums[4], n = 4, i;\n    for (i = 0; i < n; i++) {\n        nums[i] = i * 10;\n    }\n    change(nums, n);\n    printf(\"%d %d\\n\", nums[1], n);\n    return 0;\n}\n```",
+      "answer": 50,
+      "explain": "Parameter `a` holds the base address of `nums`, so both names refer to the same storage. Setting `a[1] = 50` changes `nums[1]`, and the change remains after the function returns."
+    },
+    {
+      "type": "num",
+      "category": "Arrays and functions",
+      "topic": "Pass by value",
+      "q": "In the same program (`change` sets `a[1] = 50` and `size = 0`, then `main` prints `nums[1]` and `n`), what is the value of `n` when the `printf` runs?",
+      "answer": 4,
+      "explain": "`size` is a copy of `n`. Setting `size = 0` changes only the parameter, so `n` stays 4."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays and functions",
+      "topic": "Size parameters",
+      "q": "Why do C functions that take an array parameter almost always take a separate size parameter too?",
+      "choices": [
+        "You can't get an array's size or capacity from the array variable alone",
+        "C requires every function to have at least two parameters",
+        "The size parameter tells the compiler how much memory to copy",
+        "Without it, the function can't modify the array's elements"
+      ],
+      "answer": 0,
+      "explain": "The array parameter is just the base address. It carries no size or capacity information, so the caller passes the size separately."
+    },
+    {
+      "type": "tf",
+      "category": "Arrays and functions",
+      "topic": "Array parameter syntax",
+      "q": "True or false: A function declared as `void print_array(int arr[], int size)` can be called with an `int` array of any capacity.",
+      "answer": true,
+      "explain": "The `[]` without a capacity means the parameter is an array of int of any capacity."
+    },
+    {
+      "type": "num",
+      "category": "Arrays and functions",
+      "topic": "Tracing array code",
+      "q": "After this code runs, what is the value of `more[5]`?\n\n```c\nint some[5], more[10], i;\nfor (i = 0; i < 5; i++) {\n    some[i] = i * i;\n    more[i] = some[i];\n}\nfor (i = 5; i < 10; i++) {\n    more[i] = more[i-1] + more[i-2];\n}\n```",
+      "answer": 25,
+      "explain": "The first loop sets more[0..4] to 0, 1, 4, 9, 16. Then more[5] = more[4] + more[3] = 16 + 9 = 25."
+    },
+    {
+      "type": "text",
+      "category": "C strings",
+      "topic": "Null terminator",
+      "q": "What is the name of the special character `'\\0'` that marks the end of a C string?",
+      "answer": ["null character", "the null character", "null", "null char", "null terminator", "NUL"],
+      "explain": "C strings must end with the null character `'\\0'`. Strings that end this way are called null-terminated."
+    },
+    {
+      "type": "num",
+      "category": "C strings",
+      "topic": "Array capacity for strings",
+      "q": "What is the minimum number of `char` elements an array needs to store the string `\"hello\"`?",
+      "answer": 6,
+      "explain": "The array needs 5 elements for the characters h, e, l, l, o and 1 more for the terminating `'\\0'`."
+    },
+    {
+      "type": "tf",
+      "category": "C strings",
+      "topic": "Strings vs. char arrays",
+      "q": "True or false: Every character array in C is a C string.",
+      "answer": false,
+      "explain": "Every C string is a character array, but not every character array is used as a string."
+    },
+    {
+      "type": "mc",
+      "category": "C strings",
+      "topic": "Null terminator",
+      "q": "Why must C strings end with a null character?",
+      "choices": [
+        "The array holding a string may be bigger than the string, so you can't use the array's size as the string's length",
+        "The null character tells the compiler to allocate more memory for the string",
+        "C requires every array, of any type, to end with a null value",
+        "The null character makes the string read-only"
+      ],
+      "answer": 0,
+      "explain": "Arrays are often declared larger than the data they hold. The `'\\0'` marks where the string actually ends."
+    },
+    {
+      "type": "text",
+      "category": "C strings",
+      "topic": "Printing strings",
+      "q": "Which `printf` format placeholder prints a string?",
+      "answer": ["%s"],
+      "explain": "`%s` prints the characters of the array argument up to the `'\\0'`."
+    },
+    {
+      "type": "tf",
+      "category": "C strings",
+      "topic": "String type",
+      "q": "True or false: Like Python, C has a built-in string type that is separate from arrays.",
+      "answer": false,
+      "explain": "C has no string type. Strings are arrays of `char` values ending with `'\\0'`."
+    },
+    {
+      "type": "mc",
+      "category": "C strings",
+      "topic": "Printing strings",
+      "q": "When `printf` prints a string with `%s`, how does it know where to stop?",
+      "choices": [
+        "It stops when it reaches the `'\\0'` character",
+        "It always prints the full capacity of the array",
+        "It stops at the first space character",
+        "It reads a hidden length field stored with the array"
+      ],
+      "answer": 0,
+      "explain": "`printf` prints characters until it reaches the null character."
+    },
+    {
+      "type": "text",
+      "category": "String library",
+      "topic": "string.h",
+      "q": "Which header file must a program include to use C string library functions such as `strlen` and `strcpy`?",
+      "answer": ["string.h", "<string.h>", "#include <string.h>"],
+      "explain": "The string library functions are declared in `string.h`."
+    },
+    {
+      "type": "mc",
+      "category": "String library",
+      "topic": "strlen",
+      "q": "What does `strlen(s)` return after this code runs?\n\n```c\nchar s[12];\ns[0] = 'c';\ns[1] = 'a';\ns[2] = 't';\ns[3] = '\\0';\n```",
+      "choices": ["3", "4", "11", "12"],
+      "fixed": true,
+      "answer": 0,
+      "explain": "`strlen` counts the characters before the null character. The `'\\0'` is not counted, and neither is the array's capacity, so the result is 3."
+    },
+    {
+      "type": "tf",
+      "category": "String library",
+      "topic": "strlen",
+      "q": "True or false: The value returned by `strlen` includes the string's terminating null character.",
+      "answer": false,
+      "explain": "The terminating `'\\0'` is not part of the string's length. For example, `strlen` of \"hi\" is 2."
+    },
+    {
+      "type": "mc",
+      "category": "String library",
+      "topic": "strcpy",
+      "q": "In the call `strcpy(dest, src)`, what happens?",
+      "choices": [
+        "Characters are copied from `src` into `dest`, one at a time, until the null character in `src` is reached",
+        "Characters are copied from `dest` into `src` until `dest`'s null character is reached",
+        "`dest` is made to refer to the same storage as `src`",
+        "`src` is appended to the end of the string already in `dest`"
+      ],
+      "answer": 0,
+      "explain": "The first parameter is the destination and the second is the source. `strcpy` copies characters from the source until it reaches the source's `'\\0'`."
+    },
+    {
+      "type": "multi",
+      "category": "String library",
+      "topic": "strcpy pitfalls",
+      "q": "Which of these situations can cause undefined behavior when calling `strcpy(dest, src)`?",
+      "choices": [
+        "`dest` is too small to hold the string in `src`",
+        "`src` has no terminating `'\\0'` character",
+        "`dest` has much more capacity than `src` needs",
+        "`src` is a string literal such as `\"hello\"`"
+      ],
+      "answer": [0, 1],
+      "explain": "If the destination is too small, `strcpy` writes past its end. If the source is missing its `'\\0'`, `strcpy` keeps reading past the end of the source array. A large destination and a literal source are both fine."
+    },
+    {
+      "type": "mc",
+      "category": "String library",
+      "topic": "strcpy pitfalls",
+      "q": "Why is `strcpy` considered a security risk?",
+      "choices": [
+        "It assumes the destination is large enough for the whole source string, which may not be true (for example, with user input)",
+        "It sends the copied string over the network",
+        "It removes the null character from the destination string",
+        "It always leaks the memory of the source string"
+      ],
+      "answer": 0,
+      "explain": "`strcpy` does not check the destination's capacity. If the source is longer than expected, as can happen with user input, the copy writes past the end of the destination."
+    }
+  ]
+}

@@ -1,0 +1,316 @@
+{
+  "title": "X86ASM 10: Write Your Own Print Function",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Write syscall",
+      "q": "Before executing `syscall`, which register tells the kernel which kernel function you want (for example, write vs. exit)?",
+      "choices": ["RDI", "RSI", "RAX", "RDX"],
+      "answer": 2,
+      "explain": "The syscall number goes in RAX, and it is set before `syscall` runs, because arguments are always filled in before a function executes."
+    },
+    {
+      "type": "num",
+      "category": "Write syscall",
+      "q": "What value is moved into RAX to request the write system call on Linux x86-64?",
+      "answer": 1,
+      "explain": "RAX = 1 selects write."
+    },
+    {
+      "type": "mc",
+      "category": "Write syscall",
+      "q": "For the write syscall, which register holds the number of bytes to print?",
+      "choices": ["RCX", "RDX", "RSI", "RAX"],
+      "answer": 1,
+      "explain": "write takes the file descriptor in RDI, the buffer address in RSI, and the length in RDX."
+    },
+    {
+      "type": "multi",
+      "category": "Write syscall",
+      "q": "In the print function's write call, which statements are correct?",
+      "choices": [
+        "RDI is set to 1 to write to standard output (the terminal)",
+        "RSI holds the address of the first byte of the string",
+        "RDX holds the length of the string",
+        "RCX holds the file descriptor",
+        "RSI holds the full contents of the string"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "RDI = 1 (stdout), RSI = start address, RDX = length. A register holds only the address of the string, not the whole string."
+    },
+    {
+      "type": "mc",
+      "category": "Write syscall",
+      "q": "Why does write need both a starting address and a length instead of just \"the string\"?",
+      "choices": [
+        "Because write can only print one character per call",
+        "Because the kernel always prints exactly 64 bytes unless told otherwise",
+        "Because strings in the data segment are stored in reverse order",
+        "Because no addressing mode can refer to the whole string; you only have the address of its first byte, so the length says how many bytes to read from there"
+      ],
+      "answer": 3,
+      "explain": "A label like s1 marks only the first byte. The kernel starts reading there and uses the length to know when to stop."
+    },
+    {
+      "type": "mc",
+      "category": "Write syscall",
+      "q": "What does `lea rsi, [s1]` do?",
+      "choices": [
+        "Loads the address of label s1 (the string's first byte) into RSI",
+        "Loads the first 8 bytes of the string into RSI",
+        "Copies the whole string into the RSI register",
+        "Stores the value of RSI into memory at s1"
+      ],
+      "answer": 0,
+      "explain": "LEA (load effective address) puts the computed address itself into the register. It does not read the memory there."
+    },
+    {
+      "type": "tf",
+      "category": "Write syscall",
+      "q": "To pass print's string argument on to write, both `mov rsi, rdi` and `lea rsi, [rdi]` work: each puts the string's address into RSI.",
+      "answer": true,
+      "explain": "mov copies the register value. lea with [rdi] computes the address RDI + 0, which is the same value."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "Which list gives the six System V integer argument registers in the correct order?",
+      "choices": [
+        "RAX, RBX, RCX, RDX, RSI, RDI",
+        "RSI, RDI, RDX, RCX, R8, R9",
+        "RDI, RSI, RDX, RCX, R8, R9",
+        "RDI, RSI, RCX, RDX, R8, R9"
+      ],
+      "answer": 2,
+      "explain": "The order is RDI, RSI, RDX, RCX, R8, R9. That is why write's arguments land in RDI, RSI, RDX."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "Under the System V convention, where does a function's 7th integer argument go?",
+      "choices": [
+        "R10",
+        "On the stack",
+        "RAX",
+        "It cannot be passed; functions are limited to six arguments"
+      ],
+      "answer": 1,
+      "explain": "Six registers carry arguments. Any further arguments go on the stack."
+    },
+    {
+      "type": "text",
+      "category": "Calling convention",
+      "q": "By convention, which register holds a function's return value (for example, the length returned by strlen)?",
+      "answer": ["rax", "RAX"],
+      "explain": "Return values go in RAX."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "Inside print, why must `mov rdx, rax` come right after `call _strlen` and before `mov rax, 1`?",
+      "choices": [
+        "Because RDX must be set before RDI, or the kernel rejects the call",
+        "Because strlen returns its result in RDX and it has to be copied into RAX",
+        "Because `mov rax, 1` automatically clears RDX",
+        "Because strlen returns the length in RAX, and loading the syscall number into RAX would overwrite that length"
+      ],
+      "answer": 3,
+      "explain": "The length is in RAX after the call. Copy it into RDX, where write expects it, before RAX is reused for the syscall number."
+    },
+    {
+      "type": "tf",
+      "category": "Calling convention",
+      "q": "Because print and strlen both take their first argument in RDI, print does not have to move anything into RDI before calling strlen with the string it received.",
+      "answer": true,
+      "explain": "The caller already put the string address in RDI for print, and that is exactly where strlen expects it. Writing `mov rdi, rdi` would be redundant."
+    },
+    {
+      "type": "text",
+      "category": "Calling convention",
+      "q": "What is the name of the calling convention (application binary interface) used on Linux that fixes the argument order RDI, RSI, RDX, ...?",
+      "answer": ["System V", "System V ABI", "SysV", "SysV ABI", "System 5", "System 5 ABI", "System V AMD64 ABI"],
+      "explain": "The System V ABI standardizes register use so code from different authors agrees on where arguments and return values go."
+    },
+    {
+      "type": "tf",
+      "category": "Strings and strlen",
+      "q": "Declaring a string with `.asciz` adds a terminating zero byte, which strlen uses to find the end of the string.",
+      "answer": true,
+      "explain": "strlen loops over the bytes until it reaches the null terminator (0)."
+    },
+    {
+      "type": "num",
+      "category": "Strings and strlen",
+      "q": "After strlen finishes, the debugger shows 0xD in RAX. What string length is that in decimal?",
+      "answer": 13,
+      "explain": "0xD = 13."
+    },
+    {
+      "type": "tf",
+      "category": "Strings and strlen",
+      "q": "The `\\n` escape at the end of a string adds two characters to its length: a backslash and an n.",
+      "answer": false,
+      "explain": "`\\n` is a single newline character and counts as one byte."
+    },
+    {
+      "type": "mc",
+      "category": "Strings and strlen",
+      "q": "With the original strlen, printing one string worked, but printing a second string afterward printed too many characters. What caused this?",
+      "choices": [
+        "RCX, the counter, was never reset, so each call added onto the previous length",
+        "RAX was never incremented, so the loop never advanced",
+        "The second string was missing its newline",
+        "write always prints every string in the data segment"
+      ],
+      "answer": 0,
+      "explain": "strlen counted in RCX but never cleared it. The second call started from the first string's length and returned a total that was too large."
+    },
+    {
+      "type": "mc",
+      "category": "Strings and strlen",
+      "q": "To fix the strlen bug, where should `xor rcx, rcx` go?",
+      "choices": [
+        "Right after `inc rcx` inside the loop",
+        "At the top of the loop, before `mov bl, [rax]`",
+        "In strlen's setup code, before the loop label",
+        "After `ret`"
+      ],
+      "answer": 2,
+      "explain": "Clear the counter once when strlen starts. If you clear it inside the loop, it gets reset on every pass and every string comes out with length 0. Anything after `ret` never runs."
+    },
+    {
+      "type": "mc",
+      "category": "Strings and strlen",
+      "q": "What advantage does calling strlen at runtime have over computing a string's length at assembly time (as in a basic hello-world program)?",
+      "choices": [
+        "It makes the program use less memory",
+        "It works for any string, including ones whose length isn't known when the program is assembled",
+        "It lets you skip the null terminator",
+        "It lets write run without a length argument"
+      ],
+      "answer": 1,
+      "explain": "A length computed at assembly time only works for fixed strings. Counting at runtime makes print work for any string."
+    },
+    {
+      "type": "mc",
+      "category": "Saving registers",
+      "q": "print passes its string to strlen in RDI and still needs that value after strlen returns. Who is responsible for making sure RDI still holds it?",
+      "choices": [
+        "strlen (the callee) must restore RDI before returning",
+        "print (the caller) must save RDI itself, for example on the stack",
+        "The kernel saves RDI automatically on every call",
+        "No one; `call` preserves all registers"
+      ],
+      "answer": 1,
+      "explain": "RDI is caller-saved. strlen makes no promise to keep it unchanged, so print has to save it if it cares about the value."
+    },
+    {
+      "type": "tf",
+      "category": "Saving registers",
+      "q": "In this lesson strlen never modifies RDI, so copying RDI into RSI after the call without saving it first is good practice and will always be safe.",
+      "answer": false,
+      "explain": "It only happens to work. strlen, or some function it calls later, could clobber RDI, so print should save and restore it."
+    },
+    {
+      "type": "mc",
+      "category": "Saving registers",
+      "q": "Which instruction order in print correctly protects RDI across the strlen call and then sets up write's length and buffer?",
+      "choices": [
+        "call _strlen / push rdi / pop rdi / mov rdx, rax / mov rsi, rdi",
+        "push rdi / pop rdi / call _strlen / mov rdx, rax / mov rsi, rdi",
+        "pop rdi / call _strlen / push rdi / mov rdx, rax / mov rsi, rdi",
+        "push rdi / call _strlen / pop rdi / mov rdx, rax / mov rsi, rdi"
+      ],
+      "answer": 3,
+      "explain": "Push before the call so the value is safe, then pop after the call returns to restore it. Only then copy the length and the string address."
+    },
+    {
+      "type": "mc",
+      "category": "Saving registers",
+      "q": "To demonstrate the problem, strlen was changed to zero RDI, and print did not save it. What happened when the program ran?",
+      "choices": [
+        "The program crashed with a segmentation fault",
+        "The string was printed twice",
+        "Nothing was printed, and the program still exited with code 0",
+        "Random bytes from address 0 were printed"
+      ],
+      "answer": 2,
+      "explain": "RSI received 0 as the buffer address. The kernel found nothing to print there, so no output appeared, but the program still exited normally with code 0."
+    },
+    {
+      "type": "mc",
+      "category": "Saving registers",
+      "q": "print runs `push rdi`, then `call _strlen` (which zeroes RDI), then `pop rdi`. What is true after the pop?",
+      "choices": [
+        "RDI holds the original string address again, and that saved value has been removed from the stack",
+        "RDI is 0, because pop cannot undo changes made inside another function",
+        "RDI holds strlen's return address",
+        "RDI holds the string length"
+      ],
+      "answer": 0,
+      "explain": "pop copies the top of the stack (the saved address) into RDI and removes it from the stack, so print continues as if strlen never touched RDI."
+    },
+    {
+      "type": "num",
+      "category": "Program flow and debugging",
+      "q": "What value goes in RAX to ask the kernel to end the process (the exit syscall)?",
+      "answer": 60,
+      "explain": "RAX = 60 selects exit. RDI holds the exit code."
+    },
+    {
+      "type": "multi",
+      "category": "Program flow and debugging",
+      "q": "Which instructions set RDI to 0 (for example, to exit with status 0)?",
+      "choices": ["xor rdi, rdi", "inc rdi", "mov rdi, 0", "push rdi"],
+      "answer": [0, 2],
+      "explain": "Both xor rdi, rdi and mov rdi, 0 zero the register. The lesson prefers xor because it is slightly more efficient."
+    },
+    {
+      "type": "mc",
+      "category": "Program flow and debugging",
+      "q": "What does the `call` instruction do?",
+      "choices": [
+        "Jumps to the target and saves the return address in RCX",
+        "Runs a kernel function selected by RAX",
+        "Pushes the return address (the address of the next instruction) onto the stack, then jumps to the target",
+        "Pops an address off the stack and jumps to it"
+      ],
+      "answer": 2,
+      "explain": "call pushes the return address and then jumps. Later, ret pops that address so execution resumes on the line after the call."
+    },
+    {
+      "type": "tf",
+      "category": "Program flow and debugging",
+      "q": "When `call` pushes a return address such as 0x401005, the address bytes are stored on the stack in little-endian order.",
+      "answer": true,
+      "explain": "x86-64 is little-endian, so the least significant byte is stored at the lowest address."
+    },
+    {
+      "type": "mc",
+      "category": "Program flow and debugging",
+      "q": "After print's syscall, the program crashed because execution ran straight into strlen's code. What fixes this?",
+      "choices": [
+        "Moving the data section above the code",
+        "Placing the exit syscall (mov rax, 60 / xor rdi, rdi / syscall) at the end of the main code, before the function definitions",
+        "Adding an extra `ret` at the very start of strlen",
+        "Clearing RCX at the top of print"
+      ],
+      "answer": 1,
+      "explain": "Without an exit, the CPU just keeps executing whatever bytes come next. Ending the main code with exit, and putting functions below it, keeps execution from falling into them."
+    },
+    {
+      "type": "mc",
+      "category": "Program flow and debugging",
+      "q": "What is `int3` (interrupt 3) used for while testing the print function?",
+      "choices": [
+        "Calling the write syscall",
+        "Returning from a function",
+        "Clearing a register",
+        "Acting as a breakpoint, so a debugger can stop and you can inspect registers after continuing"
+      ],
+      "answer": 3,
+      "explain": "int3 traps to the debugger, so you can press continue and stop at that spot (for example, just before strlen returns) without stepping through every loop iteration."
+    }
+  ]
+}

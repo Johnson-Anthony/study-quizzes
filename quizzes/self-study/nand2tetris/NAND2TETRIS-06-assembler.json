@@ -1,0 +1,814 @@
+{
+  "title": "NAND2TETRIS 06: Assembler",
+  "course": "NAND2TETRIS",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Assembler fundamentals",
+      "q": "What does an assembler do?",
+      "choices": [
+        "Translates programs written in symbolic assembly language into binary machine code",
+        "Translates high-level language programs into assembly language",
+        "Executes assembly programs one instruction at a time",
+        "Loads binary code into the computer's instruction memory and runs it"
+      ],
+      "answer": 0,
+      "explain": "The assembler takes a stream of assembly commands and outputs a stream of equivalent binary instructions. That binary code can be loaded as-is into memory and executed by the hardware. Translating high-level code is the compiler's job, and the hardware does the executing."
+    },
+    {
+      "type": "multi",
+      "category": "Assembler fundamentals",
+      "q": "For each symbolic command, which tasks does an assembler carry out?",
+      "choices": [
+        "Parse the command into its underlying fields",
+        "Generate the machine-language bits for each field",
+        "Replace symbolic references with numeric memory addresses",
+        "Assemble the binary codes into a complete machine instruction",
+        "Reorder instructions so the program runs faster",
+        "Check that the program eventually terminates"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The four tasks are parsing, generating each field's bits, resolving symbols to addresses, and assembling the bits into one instruction (not necessarily in that order). Optimizing code and checking termination are not assembler jobs."
+    },
+    {
+      "type": "mc",
+      "category": "Assembler fundamentals",
+      "q": "Which of the assembler's tasks is the most challenging to implement?",
+      "choices": [
+        "Handling symbols: mapping user-defined labels and variables to actual memory addresses",
+        "Parsing each command into its fields",
+        "Looking up the binary code of each mnemonic",
+        "Writing each 16-bit result to the output file"
+      ],
+      "answer": 0,
+      "explain": "Parsing, code generation and final assembly are easy. Symbol handling is the hard part, and the book calls it the first nontrivial translation challenge on the way up the software hierarchy. The usual tool for it is a symbol table."
+    },
+    {
+      "type": "tf",
+      "category": "Assembler fundamentals",
+      "q": "A Hack assembler is essentially a text-processing program: each A- or C-instruction is translated separately and directly into exactly one 16-bit binary instruction.",
+      "answer": true,
+      "explain": "In Hack, the translation of each assembly command is direct and one-to-one. Each mnemonic field is looked up in the spec tables, and each symbol is resolved to its numeric address."
+    },
+    {
+      "type": "multi",
+      "category": "Assembler fundamentals",
+      "q": "Writing an assembler introduces basic software engineering techniques that every translator uses. Which ones?",
+      "choices": [
+        "File handling",
+        "Parsing",
+        "Code generation",
+        "Symbol tables",
+        "Garbage collection",
+        "Process scheduling"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The assembler reads and writes files, parses each line, generates binary code, and manages a symbol table. The VM translator and the compiler reuse all four techniques."
+    },
+    {
+      "type": "num",
+      "category": "Assembler fundamentals",
+      "q": "In the book's generic example (Figure 6.1), translated code is stored starting at memory address 0, variables are allocated starting at address 1024, and every command takes one memory word. Under these rules, what is the longest program (in instructions) that can run without its code running into the variables?",
+      "answer": 1024,
+      "explain": "Code occupies addresses 0 through 1023, which is 1,024 instructions. Realistic programs, like an operating system, are much larger, so real platforms put the variable base address much higher."
+    },
+    {
+      "type": "mc",
+      "category": "Assembler fundamentals",
+      "q": "In some assembly languages, a single command like `if i=101 goto end` translates into several machine instructions. How can the translator still work out the right addresses?",
+      "choices": [
+        "Track how many words each source command generates and advance an instruction memory counter by that amount",
+        "Assume every source command occupies exactly one memory word",
+        "Store multi-word commands in data memory instead of instruction memory",
+        "Reject multi-word commands as invalid"
+      ],
+      "answer": 0,
+      "explain": "Assuming one word per command is naive. The translator counts the words each command actually produces and updates its instruction memory counter to match, so label addresses stay correct."
+    },
+    {
+      "type": "tf",
+      "category": "Assembler fundamentals",
+      "q": "When allocating memory for variables, a translator can always give each variable a single memory word, whatever its data type.",
+      "answer": false,
+      "explain": "Variables of different types need different amounts of space. On a 16-bit machine, a C `short` (16 bits) fits in one address, but a `double` (64 bits) needs a block of four consecutive addresses. The translator has to consider both the data type and the hardware's word width."
+    },
+    {
+      "type": "mc",
+      "category": "Assembler fundamentals",
+      "q": "Where does the assembler sit in the hierarchy of translators (assembler, VM translator, compiler)?",
+      "choices": [
+        "It is the most basic, lowest-level translator: it turns assembly into binary that the hardware runs",
+        "It translates VM code into assembly code",
+        "It translates high-level language programs into VM code",
+        "It runs above the compiler, turning source programs into high-level code"
+      ],
+      "answer": 0,
+      "explain": "The assembler is the first and most basic module of the software hierarchy. It sits right above the hardware platform. The VM translator and the compiler are built on top of it."
+    },
+    {
+      "type": "mc",
+      "category": "Assembly syntax & file formats",
+      "q": "The Hack assembler is given `Prog.asm`. What file does it produce?",
+      "choices": ["`Prog.hack`", "`Prog.bin`", "`Prog.vm`", "`Prog.exe`"],
+      "answer": 0,
+      "explain": "By convention, assembly programs are stored in `.asm` files and binary machine code in `.hack` files, so `Prog.asm` becomes `Prog.hack`."
+    },
+    {
+      "type": "tf",
+      "category": "Assembly syntax & file formats",
+      "q": "A `.hack` file is a text file. Each line is a string of 16 `0`/`1` characters that encodes one instruction, and line n (counting from 0) is loaded into instruction memory address n.",
+      "answer": true,
+      "explain": "Binary code files are made of text lines with 16 ASCII `0`/`1` characters each. Program lines and memory addresses are both counted from 0, so line n goes to ROM address n."
+    },
+    {
+      "type": "multi",
+      "category": "Assembly syntax & file formats",
+      "q": "Which of these `.asm` lines produce no machine code?",
+      "choices": [
+        "An empty line",
+        "`// sum = 0`",
+        "`(LOOP)`",
+        "`@LOOP`",
+        "`0;JMP`",
+        "`M=0   // reset`"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Empty lines and comments are ignored. `(LOOP)` is a pseudo-command: it binds a symbol to an address but generates no code. `@LOOP` is an A-instruction and `0;JMP` is a C-instruction. `M=0   // reset` is still a C-instruction, and only its trailing comment is ignored."
+    },
+    {
+      "type": "multi",
+      "category": "Assembly syntax & file formats",
+      "q": "Which of these are legal user-defined symbols in Hack assembly?",
+      "choices": ["`LOOP_2`", "`ball.x`", "`$tmp`", "`ret:1`", "`2fast`", "`my-var`"],
+      "answer": [0, 1, 2, 3],
+      "explain": "A symbol can be any sequence of letters, digits, underscore (_), dot (.), dollar sign ($) and colon (:) that does not begin with a digit. `2fast` begins with a digit, and `-` is not an allowed character."
+    },
+    {
+      "type": "tf",
+      "category": "Assembly syntax & file formats",
+      "q": "Labels and variable names in Hack assembly are case-insensitive, so `loop` and `LOOP` are the same symbol.",
+      "answer": false,
+      "explain": "Assembly mnemonics must be uppercase, and everything else, including user-defined labels and variables, is case sensitive. `loop` and `LOOP` are two different symbols."
+    },
+    {
+      "type": "mc",
+      "category": "Assembly syntax & file formats",
+      "q": "Which of these is a legal Hack A-instruction?",
+      "choices": ["`@32767`", "`@-1`", "`@0x4000`", "`@table+5`"],
+      "answer": 0,
+      "explain": "Constants must be non-negative and written in decimal, so `@-1` and `@0x4000` are illegal. To get -1, use the C-instruction comp `-1` (for example `M=-1`). Arithmetic on symbols like `table+5` exists in some richer assemblers but not in Hack. 32767 is the largest value that fits in an A-instruction's 15 value bits."
+    },
+    {
+      "type": "mc",
+      "category": "Assembly syntax & file formats",
+      "q": "In a C-instruction `dest=comp;jump`, what happens to the punctuation when a field is empty?",
+      "choices": [
+        "If dest is empty, the `=` is omitted; if jump is empty, the `;` is omitted",
+        "Both `=` and `;` always appear, and empty fields are written as `null`",
+        "If dest is empty, the `;` is omitted; if jump is empty, the `=` is omitted",
+        "Only the comp field can ever be omitted"
+      ],
+      "answer": 0,
+      "explain": "Examples: `D;JGT` has no dest, so there is no `=`. `M=D` has no jump, so there is no `;`. `null` is the name of an empty field in the code tables and is never written in source code. comp is the one field that is always present."
+    },
+    {
+      "type": "mc",
+      "category": "Assembly syntax & file formats",
+      "q": "By convention, how are label and variable names written in Hack assembly?",
+      "choices": [
+        "Labels in uppercase, variables in lowercase",
+        "Labels in lowercase, variables in uppercase",
+        "Both in uppercase",
+        "Both in lowercase"
+      ],
+      "answer": 0,
+      "explain": "The convention is uppercase labels (`LOOP`, `END`) and lowercase variables (`i`, `sum`). It is only a convention: the assembler tells labels from variables by whether a `(Xxx)` declaration exists, not by case."
+    },
+    {
+      "type": "tf",
+      "category": "Assembly syntax & file formats",
+      "q": "A comment can follow an instruction on the same line, as in `D=M   // D=i`. The assembler ignores everything from `//` to the end of the line, and it also ignores spaces and indentation.",
+      "answer": true,
+      "explain": "Text from `//` to the end of the line is a comment. Space characters and empty lines are ignored too. The slides group empty lines, comments and indentation together as white space to ignore."
+    },
+    {
+      "type": "text",
+      "category": "A-instructions",
+      "q": "Translate `@7` into 16-bit Hack binary.",
+      "answer": "0000000000000111",
+      "explain": "An A-instruction is `0` followed by the 15-bit binary value. 7 = 111 in binary, so the result is `0000000000000111`."
+    },
+    {
+      "type": "text",
+      "category": "A-instructions",
+      "q": "Translate `@100` into 16-bit Hack binary.",
+      "answer": "0000000001100100",
+      "explain": "100 = 64 + 32 + 4 = 1100100 in binary. Padded to 16 bits that is `0000000001100100`. This instruction appears in the book's Figure 6.2."
+    },
+    {
+      "type": "mc",
+      "category": "A-instructions",
+      "q": "How can you tell from its bits whether a Hack binary instruction is an A-instruction or a C-instruction?",
+      "choices": [
+        "An A-instruction starts with `0`; a C-instruction starts with `111`",
+        "An A-instruction starts with `1`; a C-instruction starts with `0`",
+        "A-instructions are 15 bits long and C-instructions are 16 bits long",
+        "The `a`-bit (the 4th bit from the left) tells them apart"
+      ],
+      "answer": 0,
+      "explain": "The leftmost bit is the op-code: `0` for an A-instruction (`0vvv vvvv vvvv vvvv`) and `1` for a C-instruction (`111a cccc ccdd djjj`). Both are 16 bits. The `a`-bit belongs to the C-instruction's comp field."
+    },
+    {
+      "type": "num",
+      "category": "A-instructions",
+      "q": "An A-instruction is 16 bits long. How many of those bits hold the value?",
+      "answer": 15,
+      "explain": "The leftmost bit is the op-code `0`, and the remaining 15 bits are the value."
+    },
+    {
+      "type": "num",
+      "category": "A-instructions",
+      "q": "What is the largest decimal constant that a single Hack A-instruction can hold?",
+      "answer": 32767,
+      "explain": "The value field is 15 bits, so the maximum is 2^15 − 1 = 32767 (`0111111111111111`)."
+    },
+    {
+      "type": "text",
+      "category": "A-instructions",
+      "q": "Translate `@SCREEN` into 16-bit Hack binary.",
+      "answer": "0100000000000000",
+      "explain": "`SCREEN` is the predefined symbol for RAM address 16384 = 2^14 (0x4000), so the result is `0100000000000000`."
+    },
+    {
+      "type": "text",
+      "category": "A-instructions",
+      "q": "Translate `@KBD` into 16-bit Hack binary.",
+      "answer": "0110000000000000",
+      "explain": "`KBD` is the predefined symbol for 24576 = 0x6000 = 2^14 + 2^13, so the result is `0110000000000000`."
+    },
+    {
+      "type": "text",
+      "category": "A-instructions",
+      "q": "Write the A-instruction, using a decimal constant, that is encoded by `0000000000010101`.",
+      "answer": ["@21"],
+      "explain": "The leading `0` marks an A-instruction. The value bits are 10101 = 16 + 4 + 1 = 21, so the instruction is `@21`."
+    },
+    {
+      "type": "text",
+      "category": "A-instructions",
+      "q": "Translate `@R13` into 16-bit Hack binary.",
+      "answer": "0000000000001101",
+      "explain": "`R13` is the predefined symbol for RAM address 13 = 1101 in binary, so the result is `0000000000001101`."
+    },
+    {
+      "type": "text",
+      "category": "C-instructions",
+      "q": "Translate `M=D` into 16-bit Hack binary.",
+      "answer": "1110001100001000",
+      "explain": "`111` + a=0 (comp uses no M) + comp `D` = 001100 + dest `M` = 001 + jump null = 000, giving `1110001100001000`."
+    },
+    {
+      "type": "text",
+      "category": "C-instructions",
+      "q": "Translate `D=M` into 16-bit Hack binary.",
+      "answer": "1111110000010000",
+      "explain": "`111` + a=1 (comp reads M) + comp `M` = 110000 + dest `D` = 010 + jump null = 000, giving `1111110000010000`."
+    },
+    {
+      "type": "text",
+      "category": "C-instructions",
+      "q": "Translate `0;JMP` into 16-bit Hack binary.",
+      "answer": "1110101010000111",
+      "explain": "`111` + a=0 + comp `0` = 101010 + dest null = 000 + jump `JMP` = 111, giving `1110101010000111`."
+    },
+    {
+      "type": "text",
+      "category": "C-instructions",
+      "q": "Translate `AM=M-1` into 16-bit Hack binary.",
+      "answer": "1111110010101000",
+      "explain": "`111` + a=1 + comp `M-1` = 110010 + dest `AM` = 101 + jump null = 000, giving `1111110010101000`."
+    },
+    {
+      "type": "text",
+      "category": "C-instructions",
+      "q": "Translate `D;JNE` into 16-bit Hack binary.",
+      "answer": "1110001100000101",
+      "explain": "`111` + a=0 + comp `D` = 001100 + dest null = 000 + jump `JNE` = 101, giving `1110001100000101`."
+    },
+    {
+      "type": "text",
+      "category": "C-instructions",
+      "q": "Translate `MD=D+1` (written `DM=D+1` in the 2nd-edition slides) into 16-bit Hack binary.",
+      "answer": "1110011111011000",
+      "explain": "`111` + a=0 + comp `D+1` = 011111 + dest `MD`/`DM` = 011 + jump null = 000, giving `1110011111011000`."
+    },
+    {
+      "type": "text",
+      "category": "C-instructions",
+      "q": "Which C-instruction is encoded by `1111010011010000`?",
+      "answer": ["D=D-M"],
+      "explain": "Split it as `111` `1` `010011` `010` `000`. a=1 and comp 010011 give `D-M`, dest 010 is `D`, and jump 000 is null. The instruction is `D=D-M`."
+    },
+    {
+      "type": "mc",
+      "category": "C-instructions",
+      "q": "Which instruction does `1110111010100000` encode?",
+      "choices": ["`A=-1`", "`A=1`", "`M=-1`", "`D=-1`"],
+      "answer": 0,
+      "explain": "Split it as `111` `0` `111010` `100` `000`. Comp 111010 with a=0 is `-1` (`1` would be 111111). Dest 100 is the A register, and there is no jump. The instruction is `A=-1`."
+    },
+    {
+      "type": "mc",
+      "category": "C-instructions",
+      "q": "What does the `a`-bit of a C-instruction select?",
+      "choices": [
+        "Whether comp operates on the A register (a=0) or on M, that is RAM[A] (a=1)",
+        "Whether the instruction is an A-instruction or a C-instruction",
+        "Whether the result is stored in the A register",
+        "Whether the jump is taken"
+      ],
+      "answer": 0,
+      "explain": "The same six c-bits compute `A`, `A+1`, `D-A` and so on when a=0, and `M`, `M+1`, `D-M` and so on when a=1. Where the result is stored is set by the dest bits, and the instruction type by the leftmost bit."
+    },
+    {
+      "type": "mc",
+      "category": "C-instructions",
+      "q": "In the jump table, `JGT` = 001, `JEQ` = 010 and `JLT` = 100. Which bits encode `JNE`, and why?",
+      "choices": [
+        "`101`: jump if comp < 0 or comp > 0",
+        "`011`: jump if comp = 0 or comp > 0",
+        "`110`: jump if comp < 0 or comp = 0",
+        "`111`: always jump"
+      ],
+      "answer": 0,
+      "explain": "Each jump bit stands for one condition: j1 is < 0, j2 is = 0, and j3 is > 0. \"Not equal to zero\" means < 0 or > 0, which is 101. Of the other choices, 011 is `JGE`, 110 is `JLE` and 111 is `JMP`."
+    },
+    {
+      "type": "mc",
+      "category": "C-instructions",
+      "q": "A C-instruction's dest bits are `101`. Where is the computed value stored?",
+      "choices": [
+        "In the A register and in RAM[A] (`AM`)",
+        "In the D register and in RAM[A] (`MD`)",
+        "In the A register and the D register (`AD`)",
+        "In RAM[A] only (`M`)"
+      ],
+      "answer": 0,
+      "explain": "Each dest bit picks one destination: d1 is A, d2 is D, and d3 is M (RAM[A]). Bits 101 set A and M, so the dest is `AM`."
+    },
+    {
+      "type": "tf",
+      "category": "C-instructions",
+      "q": "`M=M+1` translates to `1110110111001000`.",
+      "answer": false,
+      "explain": "The comp field `M+1` reads M, so the a-bit must be 1. The correct translation is `1111110111001000`. The string given, with a=0, actually encodes `M=A+1`."
+    },
+    {
+      "type": "mc",
+      "category": "Symbols",
+      "q": "What are the three kinds of symbols in Hack assembly programs?",
+      "choices": [
+        "Predefined symbols, label symbols, and variable symbols",
+        "Constants, registers, and op-codes",
+        "Labels, macros, and constants",
+        "Predefined symbols, macros, and variables"
+      ],
+      "answer": 0,
+      "explain": "Predefined symbols include `R0`–`R15`, `SCREEN`, `KBD`, `SP`, `LCL`, `ARG`, `THIS` and `THAT`. Labels are declared with `(Xxx)`. Every other symbol is a variable. Hack has no macros."
+    },
+    {
+      "type": "num",
+      "category": "Symbols",
+      "q": "What RAM address does the predefined symbol `SCREEN` stand for (in decimal)?",
+      "answer": 16384,
+      "explain": "`SCREEN` = 16384 = 0x4000, which is the base address of the screen memory map."
+    },
+    {
+      "type": "num",
+      "category": "Symbols",
+      "q": "What RAM address does the predefined symbol `KBD` stand for (in decimal)?",
+      "answer": 24576,
+      "explain": "`KBD` = 24576 = 0x6000, which is the keyboard memory map."
+    },
+    {
+      "type": "mc",
+      "category": "Symbols",
+      "q": "Which pair of predefined symbols refer to the same RAM address?",
+      "choices": ["`R4` and `THAT`", "`R3` and `THAT`", "`R1` and `SP`", "`R5` and `ARG`"],
+      "answer": 0,
+      "explain": "Each of RAM[0]–RAM[4] has two names: `SP`/`R0` = 0, `LCL`/`R1` = 1, `ARG`/`R2` = 2, `THIS`/`R3` = 3, and `THAT`/`R4` = 4."
+    },
+    {
+      "type": "num",
+      "category": "Symbols",
+      "q": "How many predefined symbols does the assembler load into the symbol table at initialization?",
+      "answer": 23,
+      "explain": "There are 16 (`R0`–`R15`), plus 5 (`SP`, `LCL`, `ARG`, `THIS`, `THAT`), plus 2 (`SCREEN`, `KBD`), for 23 entries in total."
+    },
+    {
+      "type": "text",
+      "category": "Symbols",
+      "q": "Translate `@THIS` into 16-bit Hack binary.",
+      "answer": "0000000000000011",
+      "explain": "`THIS` is the predefined symbol for RAM address 3 (the same address as `R3`), so the result is `0000000000000011`."
+    },
+    {
+      "type": "tf",
+      "category": "Symbols",
+      "q": "A label declared with `(LOOP)` stands for an address in RAM (data memory).",
+      "answer": false,
+      "explain": "A label refers to an instruction memory (ROM) address: the location of the next instruction in the program. Variables are the symbols that map to RAM addresses."
+    },
+    {
+      "type": "mc",
+      "category": "Symbols",
+      "q": "The pseudo-command `(Xxx)` binds the symbol Xxx to which address?",
+      "choices": [
+        "The instruction memory address of the next instruction in the program",
+        "The instruction memory address of the instruction just before it",
+        "The next free RAM address, starting at 16",
+        "The source-file line number of the `(Xxx)` line, counting comments and blank lines"
+      ],
+      "answer": 0,
+      "explain": "`(Xxx)` binds Xxx to the ROM location of the next real instruction, which is that instruction's line number in the binary file. Comments, blank lines and label lines are not counted."
+    },
+    {
+      "type": "mc",
+      "category": "Symbols",
+      "q": "How does the assembler decide that a symbol is a variable?",
+      "choices": [
+        "It is not predefined and is not declared anywhere in the program as a label with `(Xxx)`",
+        "It is written in lowercase",
+        "It appears in an A-instruction before any label declaration",
+        "It is declared with a `var` statement"
+      ],
+      "answer": 0,
+      "explain": "Any symbol that is neither predefined nor defined by an `(Xxx)` declaration is a variable. Writing variables in lowercase is only a convention, and Hack has no declaration statement for variables."
+    },
+    {
+      "type": "mc",
+      "category": "Symbols",
+      "q": "Why are Hack variables allocated starting at RAM address 16?",
+      "choices": [
+        "Addresses 0–15 are taken by the predefined symbols `R0`–`R15`, so 16 is the first free address",
+        "Address 16 is where the screen memory map begins",
+        "The first 16 addresses hold program code",
+        "16 is the word width of the Hack computer"
+      ],
+      "answer": 0,
+      "explain": "Variables get consecutive RAM addresses starting at 16, which is just past the addresses used by the predefined symbols. The screen starts at 16384, and program code lives in ROM."
+    },
+    {
+      "type": "tf",
+      "category": "Symbols",
+      "q": "A label can be defined only once, but it can be used anywhere in the program, even before the line where it is defined.",
+      "answer": true,
+      "explain": "Forward references like `@END` before `(END)` are allowed. This makes life easier for programmers, and it is the reason the assembler needs two passes."
+    },
+    {
+      "type": "num",
+      "category": "Two-pass symbol resolution",
+      "q": "In the program below, what value does the first pass bind to `LOOP`?\n\n```\n// Counts down from RAM[0]; stores the number of steps in R1\n   @R0\n   D=M\n   @count\n   M=D\n   @steps\n   M=0\n(LOOP)\n   @count\n   D=M\n   @END\n   D;JLE\n   @steps\n   M=M+1\n   @count\n   M=M-1\n   @LOOP\n   0;JMP\n(END)\n   @steps\n   D=M\n   @R1\n   M=D\n(HALT)\n   @HALT\n   0;JMP\n```",
+      "answer": 6,
+      "explain": "Only A- and C-instructions advance the ROM counter. `@R0`, `D=M`, `@count`, `M=D`, `@steps` and `M=0` occupy addresses 0–5, so `(LOOP)` binds LOOP to 6, the address of the next instruction (`@count`)."
+    },
+    {
+      "type": "num",
+      "category": "Two-pass symbol resolution",
+      "q": "In the program below, what value does the first pass bind to `END`?\n\n```\n// Counts down from RAM[0]; stores the number of steps in R1\n   @R0\n   D=M\n   @count\n   M=D\n   @steps\n   M=0\n(LOOP)\n   @count\n   D=M\n   @END\n   D;JLE\n   @steps\n   M=M+1\n   @count\n   M=M-1\n   @LOOP\n   0;JMP\n(END)\n   @steps\n   D=M\n   @R1\n   M=D\n(HALT)\n   @HALT\n   0;JMP\n```",
+      "answer": 16,
+      "explain": "LOOP is 6, and the ten instructions from `@count` to `0;JMP` occupy addresses 6–15. So END binds to 16, the address of the `@steps` that follows `(END)`."
+    },
+    {
+      "type": "num",
+      "category": "Two-pass symbol resolution",
+      "q": "In the program below, which RAM address is the variable `steps` mapped to?\n\n```\n// Counts down from RAM[0]; stores the number of steps in R1\n   @R0\n   D=M\n   @count\n   M=D\n   @steps\n   M=0\n(LOOP)\n   @count\n   D=M\n   @END\n   D;JLE\n   @steps\n   M=M+1\n   @count\n   M=M-1\n   @LOOP\n   0;JMP\n(END)\n   @steps\n   D=M\n   @R1\n   M=D\n(HALT)\n   @HALT\n   0;JMP\n```",
+      "answer": 17,
+      "explain": "`R0` and `R1` are predefined, and `LOOP`, `END` and `HALT` are labels the first pass already recorded. In the second pass the variables are allocated in order of first appearance: `count` gets 16 and `steps` gets 17."
+    },
+    {
+      "type": "text",
+      "category": "Two-pass symbol resolution",
+      "q": "In the program below, what 16-bit binary does `@HALT` translate to?\n\n```\n// Counts down from RAM[0]; stores the number of steps in R1\n   @R0\n   D=M\n   @count\n   M=D\n   @steps\n   M=0\n(LOOP)\n   @count\n   D=M\n   @END\n   D;JLE\n   @steps\n   M=M+1\n   @count\n   M=M-1\n   @LOOP\n   0;JMP\n(END)\n   @steps\n   D=M\n   @R1\n   M=D\n(HALT)\n   @HALT\n   0;JMP\n```",
+      "answer": "0000000000010100",
+      "explain": "END is 16, and `@steps`, `D=M`, `@R1` and `M=D` occupy addresses 16–19, so HALT is 20. 20 = 10100 in binary, giving `0000000000010100`."
+    },
+    {
+      "type": "num",
+      "category": "Two-pass symbol resolution",
+      "q": "How many lines will the output `.hack` file have for the program below?\n\n```\n// Counts down from RAM[0]; stores the number of steps in R1\n   @R0\n   D=M\n   @count\n   M=D\n   @steps\n   M=0\n(LOOP)\n   @count\n   D=M\n   @END\n   D;JLE\n   @steps\n   M=M+1\n   @count\n   M=M-1\n   @LOOP\n   0;JMP\n(END)\n   @steps\n   D=M\n   @R1\n   M=D\n(HALT)\n   @HALT\n   0;JMP\n```",
+      "answer": 22,
+      "explain": "Each A- or C-instruction becomes one line. The comment and the three label declarations produce nothing. The last instruction (`0;JMP`) is at address 21, so there are 22 lines."
+    },
+    {
+      "type": "tf",
+      "category": "Two-pass symbol resolution",
+      "q": "In the program below, `@END` and `@count` both translate to `0000000000010000`. This means the assembler has a bug.\n\n```\n// Counts down from RAM[0]; stores the number of steps in R1\n   @R0\n   D=M\n   @count\n   M=D\n   @steps\n   M=0\n(LOOP)\n   @count\n   D=M\n   @END\n   D;JLE\n   @steps\n   M=M+1\n   @count\n   M=M-1\n   @LOOP\n   0;JMP\n(END)\n   @steps\n   D=M\n   @R1\n   M=D\n(HALT)\n   @HALT\n   0;JMP\n```",
+      "answer": false,
+      "explain": "Both really are 16, but they refer to different memories. END is ROM address 16 (the instruction after `(END)`), and count is RAM address 16 (the first variable). The A register just holds a number. A following jump treats it as a ROM address, while an access to `M` treats it as a RAM address."
+    },
+    {
+      "type": "mc",
+      "category": "Two-pass symbol resolution",
+      "q": "A faulty assembler skips the first pass. It works in a single pass, records each `(Xxx)` label when it reaches it, and treats any symbol not yet in the table as a new variable. What goes wrong with the program below?\n\n```\n// Counts down from RAM[0]; stores the number of steps in R1\n   @R0\n   D=M\n   @count\n   M=D\n   @steps\n   M=0\n(LOOP)\n   @count\n   D=M\n   @END\n   D;JLE\n   @steps\n   M=M+1\n   @count\n   M=M-1\n   @LOOP\n   0;JMP\n(END)\n   @steps\n   D=M\n   @R1\n   M=D\n(HALT)\n   @HALT\n   0;JMP\n```",
+      "choices": [
+        "`@END` is reached before `(END)`, so it becomes a variable at RAM 18 and `D;JLE` jumps to ROM address 18 instead of 16",
+        "`@LOOP` becomes a variable, because it appears after `(LOOP)`",
+        "`count` and `steps` are allocated in the opposite order",
+        "Nothing goes wrong; one pass is enough for any program"
+      ],
+      "answer": 0,
+      "explain": "`END` is a forward reference: it is used at instruction 8, before `(END)` is declared. After `count` (16) and `steps` (17), it would be allocated as the next variable, 18, so the jump lands on `@R1`. `LOOP` is declared before it is used, so it would come out right. Forward references like this one are why the first pass exists."
+    },
+    {
+      "type": "num",
+      "category": "Two-pass symbol resolution",
+      "q": "During the second pass, the assembler meets these symbolic A-instructions in this order: `@R2`, `@total`, `@LOOP`, `@x`, `@total`, `@KBD`, `@y`. `LOOP` is declared somewhere in the program as `(LOOP)`. Which RAM address does `y` get?",
+      "answer": 18,
+      "explain": "`R2` and `KBD` are predefined, and `LOOP` is a label already in the table after the first pass. The new variables, in order of first appearance, are `total` (16), `x` (17) and `y` (18). The second `@total` reuses 16."
+    },
+    {
+      "type": "mc",
+      "category": "Two-pass symbol resolution",
+      "q": "What does the assembler's first pass do?",
+      "choices": [
+        "Goes through the program counting instructions and adds each `(Xxx)` label with its ROM address to the symbol table, without generating any code",
+        "Translates every A- and C-instruction to binary and adds variables to the symbol table",
+        "Adds the predefined symbols to the symbol table",
+        "Strips comments and white space and writes the cleaned program to a new file"
+      ],
+      "answer": 0,
+      "explain": "The first pass keeps a running ROM address that starts at 0 and goes up by 1 for each A- or C-instruction. At each `(Xxx)` it records Xxx with that address. Predefined symbols are added before the first pass, and code generation and variable allocation happen in the second pass."
+    },
+    {
+      "type": "multi",
+      "category": "Two-pass symbol resolution",
+      "q": "During the first pass, which of these lines advance the ROM address counter by 1?",
+      "choices": ["`@sum`", "`D=D-M`", "`0;JMP`", "`(LOOP)`", "`// i++`", "An empty line"],
+      "answer": [0, 1, 2],
+      "explain": "Only real instructions (A- and C-instructions) occupy ROM. Label pseudo-commands, comments and blank lines generate no code, so the counter stays the same."
+    },
+    {
+      "type": "mc",
+      "category": "Two-pass symbol resolution",
+      "q": "In the second pass, the assembler meets `@xyz`, and `xyz` is not in the symbol table. What does it do?",
+      "choices": [
+        "Adds (`xyz`, n) to the table, where n is the next available RAM address (16, 17, ...), and translates the instruction using n",
+        "Reports an undefined-label error",
+        "Binds `xyz` to the current ROM address",
+        "Binds `xyz` to 0, the same address as `R0`"
+      ],
+      "answer": 0,
+      "explain": "After the first pass every label is already in the table. A symbol that is still missing must therefore be a new variable, so it gets the next free RAM address, starting at 16."
+    },
+    {
+      "type": "mc",
+      "category": "Two-pass symbol resolution",
+      "q": "Why does the Hack assembler read the program twice?",
+      "choices": [
+        "Labels can be used before they are declared, so every label's address must be known before code is generated",
+        "The first pass translates A-instructions and the second translates C-instructions",
+        "Variables must be allocated before labels can be resolved",
+        "The second pass checks the binary output of the first"
+      ],
+      "answer": 0,
+      "explain": "Allowing forward references (for example `@END` ... `(END)`) helps programmers but makes the assembler's job harder. Pass 1 binds every label to its ROM address. Pass 2 can then replace each symbol with its numeric value and allocate any remaining symbols as variables."
+    },
+    {
+      "type": "mc",
+      "category": "Two-pass symbol resolution",
+      "q": "Which order of steps for building and using the symbol table is correct?",
+      "choices": [
+        "Initialize the table with the predefined symbols → first pass adds labels → second pass generates code and adds variables",
+        "First pass adds variables → initialize with predefined symbols → second pass adds labels",
+        "Initialize with predefined symbols → first pass adds variables → second pass adds labels",
+        "First pass generates code → second pass adds labels and variables"
+      ],
+      "answer": 0,
+      "explain": "Initialization loads `R0`–`R15`, `SCREEN`, `KBD`, `SP`, `LCL`, `ARG`, `THIS` and `THAT`. The first pass counts instructions and records labels. The second pass translates each instruction and adds variables from 16 onward as it meets them."
+    },
+    {
+      "type": "mc",
+      "category": "Assembler modules & API",
+      "q": "In the proposed assembler architecture, which module translates mnemonics like `D+1` or `JLE` into their binary codes?",
+      "choices": ["Code", "Parser", "SymbolTable", "The main HackAssembler program"],
+      "answer": 0,
+      "explain": "Code supplies the binary codes for the dest, comp and jump mnemonics. Parser reads and parses instructions, SymbolTable handles symbols, and the main program drives the translation using all three."
+    },
+    {
+      "type": "mc",
+      "category": "Assembler modules & API",
+      "q": "Which module reads the input, skips white space and comments, and breaks each instruction into its fields and symbols?",
+      "choices": ["Parser", "Code", "SymbolTable", "The main HackAssembler program"],
+      "answer": 0,
+      "explain": "Parser encapsulates access to the input code. It reads each command, removes white space and comments, and gives convenient access to the command's fields and symbols."
+    },
+    {
+      "type": "mc",
+      "category": "Assembler modules & API",
+      "q": "For the current instruction `D=D+1;JLE`, what do the Parser's `dest()`, `comp()` and `jump()` routines return?",
+      "choices": [
+        "dest: `D`, comp: `D+1`, jump: `JLE`",
+        "dest: `010`, comp: `0011111`, jump: `110`",
+        "dest: `D`, comp: `D+1;JLE`, jump: null",
+        "dest: `D=`, comp: `D+1`, jump: `;JLE`"
+      ],
+      "answer": 0,
+      "explain": "Parser returns the symbolic mnemonics as strings, without the `=` and `;`. Turning them into bits (`010`, `0011111`, `110`) is the Code module's job."
+    },
+    {
+      "type": "mc",
+      "category": "Assembler modules & API",
+      "q": "For the current instruction `M=-1`, what does the Parser's `jump()` return?",
+      "choices": ["null (the instruction has no jump field)", "`JMP`", "`000`", "`-1`"],
+      "answer": 0,
+      "explain": "For `M=-1`, `dest()` returns `M`, `comp()` returns `-1`, and `jump()` returns null. Code then maps a null jump to `000`."
+    },
+    {
+      "type": "num",
+      "category": "Assembler modules & API",
+      "q": "The Code module's `comp` routine returns a binary string. How many bits long is it?",
+      "answer": 7,
+      "explain": "comp is the `a`-bit plus c1–c6, which is 7 bits. `dest` and `jump` return 3 bits each. Together with the leading `111`: 3 + 7 + 3 + 3 = 16."
+    },
+    {
+      "type": "num",
+      "category": "Assembler modules & API",
+      "q": "According to the Parser API, how many possible comp mnemonics are there?",
+      "answer": 28,
+      "explain": "The a=0 column has 18 mnemonics (`0`, `1`, `-1`, `D`, `A`, `!D`, `!A`, `-D`, `-A`, `D+1`, `A+1`, `D-1`, `A-1`, `D+A`, `D-A`, `A-D`, `D&A`, `D|A`). The a=1 column adds 10 more that use `M`, for 28 in total. dest and jump have 8 possibilities each."
+    },
+    {
+      "type": "mc",
+      "category": "Assembler modules & API",
+      "q": "When should the Parser's `symbol()` routine be called?",
+      "choices": [
+        "Only when the current instruction is an A-instruction or a label declaration `(Xxx)`",
+        "Only when the current instruction is a C-instruction",
+        "Only when the current instruction is an A-instruction",
+        "For any instruction"
+      ],
+      "answer": 0,
+      "explain": "`symbol()` returns Xxx for `@Xxx` or `(Xxx)`. For example, `@sum` gives `\"sum\"`, `(LOOP)` gives `\"LOOP\"`, and `@17` gives `\"17\"`. dest, comp and jump are the routines for C-instructions."
+    },
+    {
+      "type": "mc",
+      "category": "Assembler modules & API",
+      "q": "What does `instructionType()` (called `commandType()` in the 1st-edition book) return for the line `(END)`?",
+      "choices": [
+        "`L_INSTRUCTION` (`L_COMMAND` in the book)",
+        "`A_INSTRUCTION` (`A_COMMAND` in the book)",
+        "`C_INSTRUCTION` (`C_COMMAND` in the book)",
+        "Nothing, because `advance()` skips label lines"
+      ],
+      "answer": 0,
+      "explain": "A is for `@xxx`, C is for `dest=comp;jump`, and L is for the `(xxx)` label pseudo-command. `advance()` skips only white space and comments. Label lines must reach the main program, because the first pass needs them."
+    },
+    {
+      "type": "multi",
+      "category": "Assembler modules & API",
+      "q": "Which routines belong to the proposed SymbolTable API?",
+      "choices": [
+        "`addEntry(symbol, address)`",
+        "`contains(symbol)`",
+        "`getAddress(symbol)`",
+        "`removeEntry(symbol)`",
+        "`nextVariableAddress()`"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Besides the constructor, which creates an empty table, the API has only `addEntry`, `contains` and `getAddress`. The main program keeps track of the next free RAM address (16, 17, ...) itself."
+    },
+    {
+      "type": "mc",
+      "category": "Assembler modules & API",
+      "q": "Which data structure is a natural fit for the symbol table?",
+      "choices": [
+        "A hash table, usually available in the language's standard library",
+        "A linked list sorted by address",
+        "A two-dimensional array indexed by RAM and ROM address",
+        "A stack"
+      ],
+      "answer": 0,
+      "explain": "The table maps symbols to addresses and needs fast lookups (`contains`, `getAddress`). The classic hash table does this well, and most languages provide one, so you don't have to write it from scratch."
+    },
+    {
+      "type": "tf",
+      "category": "Assembler modules & API",
+      "q": "`advance()` should be called only when `hasMoreLines()` (called `hasMoreCommands()` in the book) is true. Before the first call there is no current instruction.",
+      "answer": true,
+      "explain": "The usual loop is: while hasMoreLines(), call advance() and then process the current instruction. advance() also skips white space and comments."
+    },
+    {
+      "type": "mc",
+      "category": "Assembler modules & API",
+      "q": "An assembler for programs that contain no symbols (every `@xxx` is a decimal number and there are no `(Xxx)` lines) can be built from which modules?",
+      "choices": [
+        "Parser and Code (plus the main program)",
+        "Parser and SymbolTable (plus the main program)",
+        "Code and SymbolTable (plus the main program)",
+        "It still needs Parser, Code, and SymbolTable"
+      ],
+      "answer": 0,
+      "explain": "Without symbols nothing needs resolving. C-instructions are built from Code's dest/comp/jump bits, and `@xxx` is translated by converting the decimal constant to binary. SymbolTable, and the two passes, are only needed once symbols are allowed."
+    },
+    {
+      "type": "tf",
+      "category": "Assembler modules & API",
+      "q": "The Code module's `dest`, `comp` and `jump` routines are used only for C-instructions. An A-instruction with a decimal constant is translated by converting the number to its 16-bit binary form.",
+      "answer": true,
+      "explain": "Code works only on the three C-instruction fields. For `@xxx`, the assembler converts the decimal value to binary (after looking up the symbol, if xxx is one) and pads it to 16 bits with a leading 0."
+    },
+    {
+      "type": "mc",
+      "category": "Perspective & history",
+      "q": "A macro command is a named sequence of machine instructions. An extended Hack assembler could accept the macro `D=M[xxx]`. Which pair of real instructions would it translate into?",
+      "choices": [
+        "`@xxx` followed by `D=M`",
+        "`D=M` followed by `@xxx`",
+        "`@xxx` followed by `D=A`",
+        "`@xxx` followed by `M=D`"
+      ],
+      "answer": 0,
+      "explain": "`@xxx` loads A with the address, and then `D=M` reads RAM[xxx] into D. Macros like this make common operations easier to write at very little translation cost. Hack itself does not support macros."
+    },
+    {
+      "type": "mc",
+      "category": "Perspective & history",
+      "q": "Some assemblers allow constant arithmetic on symbols. What would `table+5` refer to?",
+      "choices": [
+        "The fifth memory location after the address referred to by `table`",
+        "The value stored at `table`, plus 5",
+        "A new variable named `table+5`",
+        "The label 5 lines after `(table)` in the source file"
+      ],
+      "answer": 0,
+      "explain": "Assemblers with richer symbol handling can resolve `table+5` to the address of `table` plus 5. Hack's assembler has no such feature: an A-instruction takes only a plain constant or a plain symbol."
+    },
+    {
+      "type": "tf",
+      "category": "Perspective & history",
+      "q": "Stand-alone assemblers are rarely used in practice, because most assembly code is generated by compilers, and a compiler may produce binary code directly.",
+      "answer": true,
+      "explain": "Humans seldom write assembly programs. A compiler is an automaton and doesn't need symbolic commands, so it may emit binary directly. Many compilers, commonly C compilers, still let programmers embed assembly code for direct hardware control and optimization."
+    },
+    {
+      "type": "mc",
+      "category": "Perspective & history",
+      "q": "Many high-level language compilers, commonly C compilers, let programmers embed segments of assembly code inside high-level programs. What does this give the programmer?",
+      "choices": [
+        "Direct control of the underlying hardware, for optimization",
+        "Automatic portability to every CPU",
+        "Protection against low-level bugs",
+        "Faster compilation of the high-level code"
+      ],
+      "answer": 0,
+      "explain": "Embedded assembly gives direct access to the hardware, which is useful for optimization. Portability actually suffers, because assembly is tied to one machine language."
+    },
+    {
+      "type": "mc",
+      "category": "Perspective & history",
+      "q": "How was the Jacquard loom (1801) programmed?",
+      "choices": [
+        "Weaving instructions were coded on punched cards, which controlled the loom's hardware",
+        "Weavers typed symbolic instructions on a keyboard",
+        "Patterns were stored as binary numbers in mechanical memory",
+        "It was set up by hand for each row and could not be programmed"
+      ],
+      "answer": 0,
+      "explain": "The Jacquard loom read weaving instructions from punched cards that directly controlled its hardware. The idea later inspired Babbage's Analytical Engine."
+    },
+    {
+      "type": "mc",
+      "category": "Perspective & history",
+      "q": "Charles Babbage's Analytical Engine (1837) was an early mechanical computer. What inspired it, and what was its software?",
+      "choices": [
+        "It was inspired by Jacquard's loom, and its software was punched cards",
+        "It was inspired by the telegraph, and its software was Morse code",
+        "It was inspired by Ada Lovelace's compiler, and its software was a symbolic language",
+        "It was inspired by the abacus, and its software was a set of gear positions"
+      ],
+      "answer": 0,
+      "explain": "Following Jacquard's loom, the Analytical Engine had a simple programming model with conditional branching, and its programs were punched cards."
+    },
+    {
+      "type": "mc",
+      "category": "Perspective & history",
+      "q": "What was Ada Lovelace's key insight about coding instructions for the Analytical Engine?",
+      "choices": [
+        "Don't start by punching cards: write and test the program on paper in a symbolic language, and translate it into punched cards only once it is error-free",
+        "Punch the cards directly, since that is the machine's native language",
+        "Build a separate machine for each kind of calculation",
+        "Programs should be limited to arithmetic on numbers"
+      ],
+      "answer": 0,
+      "explain": "Ada's approach is high-level symbolic programming, debugging on paper, and then translation, which the slides call compiling. That is the same idea an assembler automates: write symbolically, then translate into machine code. She also foresaw the engine acting on things besides numbers, such as composing music."
+    },
+    {
+      "type": "tf",
+      "category": "Perspective & history",
+      "q": "Ada Lovelace wrote an early program to compute Bernoulli numbers on the Analytical Engine, and she is often described as \"the first programmer\".",
+      "answer": true,
+      "explain": "Ada Lovelace (1815–1852) was a mathematician and writer who worked closely with Babbage. Her Bernoulli-numbers program is a famous early program, and the Ada programming language is named after her."
+    }
+  ]
+}

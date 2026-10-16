@@ -1,0 +1,301 @@
+{
+  "title": "X86ASM 23: Building Our Own Assembly Library",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "multi",
+      "category": "Why build a library",
+      "q": "Which of these are benefits of moving reusable functions like printf and strlen out of a single source file and into their own files and a library?",
+      "choices": [
+        "You don't have to paste the function code into every new program",
+        "The main program's source stays short and clean",
+        "The library can be extended over time as more functions are written",
+        "You can link against one archive instead of listing many object files",
+        "Library functions no longer need to follow the calling convention",
+        "Calls into library functions skip the call instruction and run faster"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Splitting code into separate files and a library avoids copy-pasting code and keeps programs organized, and the library can keep growing. It does not change calling conventions or how call works."
+    },
+    {
+      "type": "mc",
+      "category": "Why build a library",
+      "q": "The custom library libasm is meant to serve our assembly programs the way which existing library serves C programs?",
+      "choices": ["libc", "libasm.so", "crt0", "ld"],
+      "answer": 0,
+      "explain": "libc provides standard functions to C programs. libasm plays the same role for our own assembly functions."
+    },
+    {
+      "type": "mc",
+      "category": "Linker errors",
+      "q": "prog.s has a _start that calls printf and exit, but it does not define either function. What happens when you assemble prog.s with as and then link prog.o by itself with ld?",
+      "choices": [
+        "Assembling works; linking fails with undefined references to printf and exit",
+        "Assembling fails because printf and exit are not defined in the file",
+        "Both steps work, but the program crashes when it reaches call printf",
+        "Both steps work, because ld finds printf and exit in the system automatically"
+      ],
+      "answer": 0,
+      "explain": "The assembler leaves calls to unknown symbols for the linker to resolve. The linker is the step that complains, reporting undefined references to printf and exit in function _start."
+    },
+    {
+      "type": "tf",
+      "category": "Linker errors",
+      "q": "True or false: a linker message like \"in function _start: undefined reference to printf\" means that code inside _start calls printf, but none of the files given to the linker provide a visible definition of printf.",
+      "answer": true,
+      "explain": "The message names the function containing the call (_start) and the symbol the linker couldn't resolve (printf)."
+    },
+    {
+      "type": "mc",
+      "category": "Linker errors",
+      "q": "printf.s was originally a standalone program. Running ld prog.o printf.o -o prog reported \"multiple definition of _start\". What causes this?",
+      "choices": [
+        "Both prog.s and printf.s define a _start label, and a program can only have one",
+        "_start must be defined in the last object file on the command line",
+        "printf.o was assembled with a different syntax from prog.o",
+        "ld always needs -e _start when it links more than one object file"
+      ],
+      "answer": 0,
+      "explain": "Two functions with the same global name can't be linked into one program. The fix was to remove _start (and .global _start) from printf.s, so only the main program provides the entry point."
+    },
+    {
+      "type": "mc",
+      "category": "Exposing symbols with .global",
+      "q": "In that same failed link (ld prog.o printf.o), the linker also still couldn't find printf and exit, even though printf.o contained both functions. Why?",
+      "choices": [
+        "printf and exit weren't declared .global in printf.s, so other object files couldn't see them",
+        "printf.o has to come before prog.o on the ld command line",
+        "Functions in a .text section can only be called from the same file",
+        "The linker gives up on symbol lookup after the first multiple-definition error"
+      ],
+      "answer": 0,
+      "explain": "Without .global, a label stays local to its object file. Adding .global printf and .global exit tells the linker these functions are available to be called from outside."
+    },
+    {
+      "type": "text",
+      "category": "Exposing symbols with .global",
+      "q": "Which GNU assembler directive tells the linker that a label (such as printf) should be visible and callable from other object files?",
+      "answer": [".global", "global", ".globl", "globl"],
+      "explain": ".global <name> exports the symbol, so the linker can resolve references to it from other object files."
+    },
+    {
+      "type": "multi",
+      "category": "Exposing symbols with .global",
+      "q": "Which edits turned printf.s from a standalone program into a library file that prog.s could link against?",
+      "choices": [
+        "Deleting the _start code",
+        "Removing the .global _start line",
+        "Adding .global printf",
+        "Renaming _exit to exit and adding .global exit",
+        "Adding .global lines for its helper functions htoa and itoa",
+        "Adding a second _start that jumps to printf",
+        "Moving every label into the .data section"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "The entry point was removed, and the four functions to share (printf, exit, htoa, itoa) were each declared .global. _exit was renamed to exit to match the name the program calls."
+    },
+    {
+      "type": "mc",
+      "category": "Exposing symbols with .global",
+      "q": "prog.s does call exit, but the function in printf.s was labeled _exit. Why was it renamed to exit?",
+      "choices": [
+        "The linker matches symbols by exact name, so the exported label has to match the name used in call",
+        "Labels that start with an underscore can never be made .global",
+        "The underscore made the assembler treat _exit as a data label",
+        "System V ABI forbids underscores in function names"
+      ],
+      "answer": 0,
+      "explain": "Symbol resolution is by exact name. A call to exit won't resolve to a symbol named _exit."
+    },
+    {
+      "type": "tf",
+      "category": "Exposing symbols with .global",
+      "q": "True or false: after its _start was removed, printf.s can no longer run as a program by itself. It has no entry point and serves only as a library file.",
+      "answer": true,
+      "explain": "With no _start, the file has no entry point. It only provides functions for other programs to link against."
+    },
+    {
+      "type": "tf",
+      "category": "Exposing symbols with .global",
+      "q": "True or false: every source file that goes into a library has to define _start so the linker knows where execution begins.",
+      "answer": false,
+      "explain": "Only the main program defines _start. A library file that also defined _start would cause a multiple-definition error."
+    },
+    {
+      "type": "mc",
+      "category": "Exposing symbols with .global",
+      "q": "The string-length function was taken from a file that also had strcmp, strncmp, and its own exit. Why should that extra exit not be copied into the library alongside the exit already exported from printf.s?",
+      "choices": [
+        "Two global definitions of exit would cause a multiple-definition error at link time",
+        "A library may export only one function per source file",
+        "exit must always live in the same file as _start",
+        "The second exit would silently replace printf's exit with no warning"
+      ],
+      "answer": 0,
+      "explain": "It's the same problem as the duplicate _start: two definitions of one global symbol can't be linked together. Each function should be defined exactly once."
+    },
+    {
+      "type": "mc",
+      "category": "Calling library functions",
+      "q": "prog.s loads the address of the hello-world string into RDI and calls the string-length function. Under the System V ABI, where is the returned length?",
+      "choices": ["RAX", "RDI", "RSI", "On top of the stack"],
+      "answer": 0,
+      "explain": "In the System V ABI, integer return values come back in RAX."
+    },
+    {
+      "type": "mc",
+      "category": "Calling library functions",
+      "q": "Right after calling the string-length function, prog.s pushes RAX before making another printf call. Why?",
+      "choices": [
+        "The printf call can overwrite RAX, so the length has to be saved somewhere else",
+        "push rax is required to align the stack for every call",
+        "printf reads its first argument from the top of the stack",
+        "Pushing RAX clears it so printf gets a clean return register"
+      ],
+      "answer": 0,
+      "explain": "RAX holds return values, so the next call is free to change it. The length is pushed to keep it safe, then popped back when it's needed. (The video notes that stack alignment is not handled here.)"
+    },
+    {
+      "type": "mc",
+      "category": "Calling library functions",
+      "q": "To print \"The length of the previous string is %d\", the saved length is popped into a register before calling printf, and RDI holds the format string. Which register should get the length?",
+      "choices": ["RSI", "RAX", "RDX", "RCX"],
+      "answer": 0,
+      "explain": "Under System V, the first integer argument goes in RDI (the format string) and the second goes in RSI (the value for %d)."
+    },
+    {
+      "type": "mc",
+      "category": "Static archives with ar",
+      "q": "Before the library existed, prog.o was linked like this: ld prog.o stringlength.o printf.o -o prog. What is the main drawback of this approach as the number of functions grows?",
+      "choices": [
+        "Every object file has to be listed on every link command, which gets tedious",
+        "ld can accept at most three object files at once",
+        "Each extra object file adds another _start to the program",
+        "Object files listed after prog.o are ignored"
+      ],
+      "answer": 0,
+      "explain": "The link works, but listing every object file gets tiring. Combining them into one archive solves this."
+    },
+    {
+      "type": "mc",
+      "category": "Static archives with ar",
+      "q": "In the command ar rs libasm.a printf.o stringlength.o, what does ar do?",
+      "choices": [
+        "Bundles the object files into one archive file that programs can link against",
+        "Assembles the .o files into a runnable executable",
+        "Disassembles the object files back into source",
+        "Compresses the object files so they can't be linked until extracted"
+      ],
+      "answer": 0,
+      "explain": "ar archives object files into a single static library (.a) that the linker can search for the symbols a program needs."
+    },
+    {
+      "type": "mc",
+      "category": "Static archives with ar",
+      "q": "In ar rs libasm.a ..., what is the r option for?",
+      "choices": [
+        "Inserting members into the archive, replacing any older copies of the same files",
+        "Reading the archive and listing its contents",
+        "Removing the named files from the archive",
+        "Making the archive read-only"
+      ],
+      "answer": 0,
+      "explain": "r means insert with replacement. When an object file is rebuilt, running ar r again swaps the updated copy into the archive."
+    },
+    {
+      "type": "text",
+      "category": "Static archives with ar",
+      "q": "By the standard naming convention, what should the file name be for a static library whose name is asm?",
+      "answer": ["libasm.a"],
+      "explain": "Static libraries are named lib<name>.a. So asm becomes libasm.a."
+    },
+    {
+      "type": "tf",
+      "category": "Static archives with ar",
+      "q": "True or false: the libasm.a archive made by ar is itself an executable program that you can run directly.",
+      "answer": false,
+      "explain": "An .a archive is a collection of object files for the linker to use. The executable is what ld produces when it links prog.o against the archive."
+    },
+    {
+      "type": "mc",
+      "category": "Linking with -L and -l",
+      "q": "In ld prog.o -L. -lasm -o prog, what does -L. do?",
+      "choices": [
+        "Adds the current directory to the directories ld searches for libraries",
+        "Links every .o file in the current directory",
+        "Tells ld to make a library instead of an executable",
+        "Loads the library at run time from the current directory"
+      ],
+      "answer": 0,
+      "explain": "-L<path> adds a library search directory, and . means the current directory. Any other path can go there instead."
+    },
+    {
+      "type": "mc",
+      "category": "Linking with -L and -l",
+      "q": "With the option -lasm, what file name does ld search for in its library search paths?",
+      "choices": ["libasm.a", "asm.a", "asm.o", "lasm.a"],
+      "answer": 0,
+      "explain": "-l<name> looks for lib<name>. So -lasm finds libasm.a, and the lib prefix and .a suffix are added automatically."
+    },
+    {
+      "type": "tf",
+      "category": "Linking with -L and -l",
+      "q": "True or false: after printf.o, stringlength.o, and their .s source files were moved out of the directory, ld prog.o -L. -lasm -o prog still produced a working program.",
+      "answer": true,
+      "explain": "libasm.a holds copies of the object code, so the linker gets printf and the string-length function from the archive. The separate .o and .s files aren't needed at link time."
+    },
+    {
+      "type": "mc",
+      "category": "Library organization",
+      "q": "In the organized layout, the library lives in a libasm directory in the home directory. Where do the source files, object files, and the final libasm.a go?",
+      "choices": [
+        "libasm/source for .s files, libasm/build/obj for .o files, libasm/build for libasm.a",
+        "libasm/build for .s files, libasm/source/obj for .o files, libasm/obj for libasm.a",
+        "Everything in libasm/build, with no subdirectories",
+        "libasm/source for .s and .o files, with libasm.a next to prog.s"
+      ],
+      "answer": 0,
+      "explain": "Sources go in source, object files in build/obj, and the linked archive libasm.a sits directly in build."
+    },
+    {
+      "type": "mc",
+      "category": "Library organization",
+      "q": "After libasm.a is moved from the current directory to the libasm/build directory in the home directory, how should the link command change?",
+      "choices": [
+        "Change -L. to -L pointing at the libasm/build path; keep -lasm the same",
+        "Keep -L. and change -lasm to -llibasm/build/asm",
+        "Drop -L and give the full path in -l, as in -l~/libasm/build/libasm.a",
+        "No change is needed, because ld searches the home directory automatically"
+      ],
+      "answer": 0,
+      "explain": "-L says where to look and -l says which library to find. Only the search directory moved, so only the -L argument changes."
+    },
+    {
+      "type": "mc",
+      "category": "Library organization",
+      "q": "You write a new reusable function in a new .s file in libasm/source. What has to happen before programs that link with -lasm can call it?",
+      "choices": [
+        "Make it .global, assemble it to a .o, add it to libasm.a with ar, then relink the programs",
+        "Nothing. ld assembles the .s files in the source directory automatically",
+        "Copy its code into each program's .s file",
+        "Rename it to _start so the linker picks it up"
+      ],
+      "answer": 0,
+      "explain": "The archive only holds object code that was added to it. A new function has to be exported, assembled, and archived (ar rs replaces or adds members), and then programs are relinked against the updated library."
+    },
+    {
+      "type": "mc",
+      "category": "Library organization",
+      "q": "Which order of steps correctly builds a program that uses the custom static library?",
+      "fixed": true,
+      "choices": [
+        "Assemble library .s files to .o, then ar rs libasm.a with the .o files, then assemble prog.s, then ld prog.o -L<dir> -lasm -o prog",
+        "ar rs libasm.a with the .s files, then ld libasm.a -o prog, then assemble prog.s",
+        "Assemble prog.s, then ld prog.o -o prog, then ar rs libasm.a prog",
+        "ld the library .s files into libasm.a, then assemble prog.s with -lasm"
+      ],
+      "answer": 0,
+      "explain": "ar archives object files, not source, so the library sources are assembled first. The program is assembled separately, and ld then resolves its calls from the archive it finds using -L and -l."
+    }
+  ]
+}

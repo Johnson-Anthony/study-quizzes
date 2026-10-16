@@ -1,0 +1,592 @@
+{
+  "title": "Compiler II: Code Generation",
+  "course": "NAND2TETRIS",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Symbol tables",
+      "q": "Which four variable kinds does the Jack compiler track in its symbol tables?",
+      "choices": ["global, local, register, heap", "field, static, local, argument", "public, private, static, final", "this, that, pointer, temp"],
+      "answer": 1,
+      "explain": "Every Jack variable has a name, a type, a kind (field, static, local, or argument), and a scope (class level or subroutine level)."
+    },
+    {
+      "type": "num",
+      "category": "Symbol tables",
+      "q": "class Point { field int x, y; static int pointCount; method int distance(Point other) { var int dx, dy; ... } }. In the method-level symbol table, what index does `other` get (its kind is argument)?",
+      "answer": 1,
+      "explain": "When compiling a method, the compiler first adds <this, Point, argument, 0>. So `other` becomes argument 1."
+    },
+    {
+      "type": "mc",
+      "category": "Symbol tables",
+      "q": "In the same Point class (field int x, y; static int pointCount;), which VM segment entry does the field `y` map to?",
+      "choices": ["static 1", "argument 1", "this 1", "this 2"],
+      "answer": 2,
+      "explain": "Fields map to the `this` segment: x is this 0 and y is this 1. pointCount is static 0 because each kind has its own counter."
+    },
+    {
+      "type": "mc",
+      "category": "Symbol tables",
+      "q": "Inside Point.distance (x is a field at index 0, dx is local 0), what does the expression `x + dx` compile to?",
+      "choices": ["push x; push dx; add", "push static 0; push local 0; add", "push argument 0; push local 1; add", "push this 0; push local 0; add"],
+      "answer": 3,
+      "explain": "The compiler swaps each variable name for its segment and index from the symbol table: x becomes this 0 and dx becomes local 0."
+    },
+    {
+      "type": "mc",
+      "category": "Symbol tables",
+      "q": "When the compiler finds a variable name inside a statement, how does it resolve the name?",
+      "choices": ["It checks the class-level table first, then the subroutine-level table", "It checks the subroutine-level table first. If the name isn't there, it checks the class-level table. If it isn't there either, that's a compilation error", "It searches both tables and uses the most recently defined entry", "It checks only the subroutine-level table, because fields must be written as this.name"],
+      "answer": 1,
+      "explain": "The subroutine-level table comes first, so a local or argument hides a field or static with the same name. The class-level table is checked next. A name in neither table is an error."
+    },
+    {
+      "type": "tf",
+      "category": "Symbol tables",
+      "q": "Jack supports nested variable scopes of any depth, such as blocks inside blocks that each declare their own variables.",
+      "answer": false,
+      "explain": "Jack has only two scopes: class level and subroutine level. Some other languages allow nesting to any depth."
+    },
+    {
+      "type": "mc",
+      "category": "Symbol tables",
+      "q": "A language with nested scopes of any depth can keep a linked list of symbol tables, one per scope. How is a variable looked up?",
+      "choices": ["Start at the outermost (class-level) table and move inward", "Merge all the tables and look the name up once", "Start at the first table in the list (the innermost scope). If the name isn't found, check the next (enclosing) table, and so on", "Search only the innermost table"],
+      "answer": 2,
+      "explain": "The list runs from the innermost scope out to the class level. Lookup walks it in that order and stops at the first match."
+    },
+    {
+      "type": "tf",
+      "category": "Symbol tables",
+      "q": "The compiler uses one running index counter that all four variable kinds share.",
+      "answer": false,
+      "explain": "There is one running counter per kind, matching the four memory segments. That's why x = this 0 and pointCount = static 0 can both have index 0."
+    },
+    {
+      "type": "mc",
+      "category": "Symbol tables",
+      "q": "When should the subroutine-level symbol table be reset?",
+      "choices": ["When the compiler starts compiling each subroutine declaration", "Once, when the compiler starts compiling the class", "After every statement", "Never. Entries build up across the whole class"],
+      "answer": 0,
+      "explain": "reset() empties the table and sets the indexes back to 0. Each subroutine starts with a fresh table, while the class-level table stays in place."
+    },
+    {
+      "type": "tf",
+      "category": "Symbol tables",
+      "q": "Each call gives a subroutine fresh local and argument variables, and they are recycled when it returns. So the compiler must generate explicit code to allocate and free them.",
+      "answer": false,
+      "explain": "The VM implementation manages variable life cycles, so the compiler doesn't have to."
+    },
+    {
+      "type": "mc",
+      "category": "Symbol tables",
+      "q": "When compiling error-free Jack code, what can you assume about an identifier that isn't in either symbol table?",
+      "choices": ["It's a misspelled local variable", "It's a static variable of another class", "It's a subroutine name or a class name", "It's a reserved OS keyword"],
+      "answer": 2,
+      "explain": "Variables are always in a symbol table. Any other identifier must be a subroutine name or a class name."
+    },
+    {
+      "type": "mc",
+      "category": "Expressions",
+      "q": "What is the postfix form of the infix expression x + y - 2 (parsed as (x + y) - 2)?",
+      "choices": ["x 2 y - +", "x y + 2 -", "+ - x y 2", "x + y 2 -"],
+      "answer": 1,
+      "explain": "Postfix puts each operator after its operands. Infix is easy for people to read, and postfix is easy for a stack machine to run: push x, push y, add, push 2, sub."
+    },
+    {
+      "type": "mc",
+      "category": "Expressions",
+      "q": "What VM code does the expression-compilation algorithm generate for foo(x, y+1, -7)? Variables are shown by name.",
+      "choices": ["call foo 3; push x; push y; push 1; add; push 7; neg", "push x; push y; add; push 1; push 7; neg; call foo 3", "push x; push y; push 1; add; push 7; neg; call foo 3", "push x; push y; push 1; add; push 7; neg; call foo 4"],
+      "answer": 2,
+      "explain": "Each argument expression is compiled in order, leaving its value on the stack. Then comes call foo n, where n = 3 is the number of arguments."
+    },
+    {
+      "type": "mc",
+      "category": "Expressions",
+      "q": "How does compileTerm handle a term of the form `unaryOp term`?",
+      "choices": ["It outputs the unary operator, then compiles the inner term", "It compiles the inner term, then outputs the unary operator", "It compiles the term twice and puts the operator between the copies", "It calls an OS function named after the operator"],
+      "answer": 1,
+      "explain": "This is postfix order: the operand's code comes first and leaves its value on the stack, then the operator (neg or not) acts on it."
+    },
+    {
+      "type": "mc",
+      "category": "Expressions",
+      "q": "x maps to local 0 and y to local 1. What does the compiler's compileExpression emit for (x + y) * 2?",
+      "choices": ["push local 0; push local 1; push constant 2; call Math.multiply 2; add", "push x; push y; add; push 2; mult", "push local 0; push local 1; add; push constant 2; call Math.multiply 2", "push local 0; push local 1; add; push constant 2; mult"],
+      "answer": 2,
+      "explain": "The output is postfix code that uses segment references. The VM has no multiply command, so * becomes a call to the OS function Math.multiply with 2 arguments."
+    },
+    {
+      "type": "tf",
+      "category": "Expressions",
+      "q": "When the VM code generated for any expression runs, it leaves the expression's value on top of the stack.",
+      "answer": true,
+      "explain": "This is the basic rule of expression code generation. let, return, do, if, and while all depend on it."
+    },
+    {
+      "type": "multi",
+      "category": "Expressions",
+      "q": "The current token in compileTerm is an identifier. Which lookahead tokens show that it is NOT a plain variable, meaning it's an array entry or a subroutine call?",
+      "choices": ["[", "(", ".", "=", ";"],
+      "answer": [0, 1, 2],
+      "explain": "One lookahead token is enough. '[' means an array entry, while '(' and '.' mean a subroutine call. Any other token isn't part of the term, so the identifier is a plain variable."
+    },
+    {
+      "type": "mc",
+      "category": "Expressions",
+      "q": "For an expression `term1 op1 term2 op2 term3`, in what order does compileExpression emit code?",
+      "choices": ["term1, op1, term2, op2, term3", "term1, term2, op1, term3, op2", "op1, op2, term1, term2, term3", "term1, term2, term3, op2, op1"],
+      "answer": 1,
+      "explain": "compileTerm(term1), compileTerm(term2), output op1, compileTerm(term3), output op2, and so on. This evaluates the expression from left to right."
+    },
+    {
+      "type": "mc",
+      "category": "Expressions",
+      "q": "How does compileTerm compile a parenthesized term `(exp)`?",
+      "choices": ["It pushes a marker, compiles exp, then pops the marker", "It calls compileExpression on exp. The parentheses produce no code", "It emits a call to a helper function for the grouped subexpression", "It compiles exp into temp 0, then pushes temp 0"],
+      "answer": 1,
+      "explain": "Parentheses only affect how the code is parsed. The term's value is simply the value of the inner expression."
+    },
+    {
+      "type": "mc",
+      "category": "Statements",
+      "q": "What does `let v = g + r2;` compile to? Variables are shown by name.",
+      "choices": ["pop v; push g; push r2; add", "push v; push g; push r2; add", "push g; push r2; add; pop v", "push g; push r2; add; push v"],
+      "answer": 2,
+      "explain": "compileLet calls compileExpression, which leaves the value on top of the stack, then emits pop segment i for the target variable."
+    },
+    {
+      "type": "mc",
+      "category": "Statements",
+      "q": "How does compileReturn handle `return;` with no value?",
+      "choices": ["It emits only return", "It emits push constant 0, then return", "It emits pop temp 0, then return", "It emits push pointer 0, then return"],
+      "answer": 1,
+      "explain": "Every VM function must return a value, so the compiler pushes a dummy 0. The caller's compiled code throws it away."
+    },
+    {
+      "type": "mc",
+      "category": "Statements",
+      "q": "Why does compileDo emit `pop temp 0` after the call?",
+      "choices": ["To save the return value for the next statement", "To restore THIS after the call", "To discard the called subroutine's return value, which a do statement ignores", "To pass the return value to the OS"],
+      "answer": 2,
+      "explain": "A do statement calls a function or method only for its effect. The compiler compiles it as a do expression and then pops away the returned value."
+    },
+    {
+      "type": "mc",
+      "category": "Statements",
+      "q": "What does `do Output.printInt(7);` compile to?",
+      "choices": ["push constant 7; call Output.printInt 1", "push constant 7; call Output.printInt 1; pop temp 0", "call Output.printInt 1; push constant 7; pop temp 0", "push constant 7; call Output.printInt 0; pop temp 0"],
+      "answer": 1,
+      "explain": "compileExpression generates the first two commands. compileDo adds pop temp 0 to discard the return value."
+    },
+    {
+      "type": "mc",
+      "category": "Statements",
+      "q": "In the standard compilation of `if (cond) {s1} else {s2}`, why does the compiler emit `not` right after the condition's code?",
+      "choices": ["To turn the condition from an integer into a boolean", "To clear the condition value off the stack", "Because if-goto jumps when the popped value is true. Negating the condition makes it jump to the else part (L1) exactly when cond is false", "Because the VM has no eq command"],
+      "answer": 2,
+      "explain": "With `not`, the code falls through into s1 when cond is true and jumps to L1 (s2) when cond is false."
+    },
+    {
+      "type": "mc",
+      "category": "Statements",
+      "q": "Which sequence correctly compiles `if (cond) {s1} else {s2}`?",
+      "choices": ["code(cond); if-goto L1; code(s1); goto L2; label L1; code(s2); label L2", "code(cond); not; if-goto L1; code(s1); label L1; code(s2); label L2", "label L1; code(cond); not; if-goto L2; code(s1); goto L1; label L2; code(s2)", "code(cond); not; if-goto L1; code(s1); goto L2; label L1; code(s2); label L2"],
+      "answer": 3,
+      "explain": "Without `not`, the code would jump to s2 when cond is true. Without `goto L2`, it would fall from s1 straight into s2. The third option is a loop, not an if."
+    },
+    {
+      "type": "mc",
+      "category": "Statements",
+      "q": "Which sequence correctly compiles `while (cond) {s}`?",
+      "choices": ["code(cond); not; if-goto L2; label L1; code(s); goto L1; label L2", "label L1; code(cond); not; if-goto L2; code(s); goto L1; label L2", "label L1; code(cond); if-goto L2; code(s); goto L1; label L2", "label L1; code(s); code(cond); if-goto L1"],
+      "answer": 1,
+      "explain": "The condition is tested at L1 on every pass. If it's false, not + if-goto exits to L2. Otherwise the body runs and goto L1 loops back. The first option never re-tests cond, and the last always runs the body at least once."
+    },
+    {
+      "type": "num",
+      "category": "Statements",
+      "q": "How many unique labels does compileWhile generate for one while statement?",
+      "answer": 2,
+      "explain": "L1 marks the condition test at the top of the loop, and L2 marks the exit just past the loop."
+    },
+    {
+      "type": "multi",
+      "category": "Statements",
+      "q": "compileStatements loops over a sequence of zero or more statements. Which statement types can appear in that sequence?",
+      "choices": ["let", "var", "do", "if", "while", "return", "field"],
+      "answer": [0, 2, 3, 4, 5],
+      "explain": "Jack has five statements: let, do, if, while, and return. var and field are declarations, handled by compileVarDec and compileClassVarDec."
+    },
+    {
+      "type": "tf",
+      "category": "Statements",
+      "q": "compileIf must generate new, unique labels each time it is called.",
+      "answer": true,
+      "explain": "A subroutine can contain many if statements, including nested ones. Each needs its own labels so their jumps don't collide."
+    },
+    {
+      "type": "mc",
+      "category": "Subroutine calls & functions",
+      "q": "x is local 0 and y is local 1. What does `let y = Math.sqrt(x);` compile to?",
+      "choices": ["push local 1; call Math.sqrt 1; pop local 0", "push local 0; call Math.sqrt 1; pop local 1", "call Math.sqrt 1; push local 0; pop local 1", "push local 0; call Math.sqrt 0; pop local 1"],
+      "answer": 1,
+      "explain": "Function calls need no special handling. They're compiled as part of expressions: push the arguments, then call f nArgs."
+    },
+    {
+      "type": "num",
+      "category": "Subroutine calls & functions",
+      "q": "In class Math, `function int sqrt(int x) { var int g, prevg, epsilon; ... }` compiles to the VM command `function Math.sqrt n`. What is n?",
+      "answer": 3,
+      "explain": "n is the number of local variables (g, prevg, epsilon). x is an argument, so it isn't counted."
+    },
+    {
+      "type": "mc",
+      "category": "Subroutine calls & functions",
+      "q": "Inside Math.sqrt, x is argument 0 and g, prevg, epsilon are local 0..2. What does `let g = x / 2;` compile to?",
+      "choices": ["push argument 0; push constant 2; div; pop local 0", "push local 0; push constant 2; call Math.divide 2; pop argument 0", "push argument 0; push constant 2; call Math.divide 2; pop local 0", "push argument 0; push constant 2; call Math.divide 1; pop local 0"],
+      "answer": 2,
+      "explain": "The VM has no divide command, so / becomes a call to the OS function Math.divide with 2 arguments. The result is popped into g (local 0)."
+    },
+    {
+      "type": "text",
+      "category": "Subroutine calls & functions",
+      "q": "A constructor, method, or function named bar in the file Foo.jack compiles to a VM function. What is that function's name?",
+      "answer": ["Foo.bar"],
+      "explain": "Every subroutine subName in ClassName.jack becomes a VM function named ClassName.subName."
+    },
+    {
+      "type": "mc",
+      "category": "Subroutine calls & functions",
+      "q": "How is a call `subName(exp1, ..., expn)` to a function or constructor of ClassName compiled?",
+      "choices": ["call ClassName.subName n, then push exp1..expn", "Push exp1..expn, then call ClassName.subName n", "Push expn..exp1 in reverse order, then call ClassName.subName n", "Push exp1..expn, then call ClassName.subName n+1"],
+      "answer": 1,
+      "explain": "The arguments are pushed in order, then the call names the full VM function and the argument count. Only method calls use n+1, because they also pass the object."
+    },
+    {
+      "type": "tf",
+      "category": "Subroutine calls & functions",
+      "q": "Compiling a function call needs machinery separate from compiling expressions.",
+      "answer": false,
+      "explain": "Function calls are terms in the expression grammar, so compileExpression and compileTerm already handle them."
+    },
+    {
+      "type": "mc",
+      "category": "Subroutine calls & functions",
+      "q": "A void function contains `do Output.printInt(1 + (2 * 3)); return;`. What does its body compile to?",
+      "choices": ["push constant 1; push constant 2; add; push constant 3; call Math.multiply 2; call Output.printInt 1; pop temp 0; push constant 0; return", "push constant 1; push constant 2; push constant 3; call Math.multiply 2; add; call Output.printInt 1; push constant 0; return", "push constant 1; push constant 2; push constant 3; call Math.multiply 2; add; call Output.printInt 1; pop temp 0; push constant 0; return", "push constant 2; push constant 3; call Math.multiply 2; push constant 1; add; call Output.printInt 1; pop temp 0; return"],
+      "answer": 2,
+      "explain": "The parenthesized product is computed before the add. pop temp 0 discards printInt's return value, and push constant 0 + return implements `return;` in a void function."
+    },
+    {
+      "type": "mc",
+      "category": "Objects: constructors & methods",
+      "q": "What does `push constant n; call Memory.alloc 1` do?",
+      "choices": ["It allocates n stack frames", "It finds a free memory block of n words and pushes its base address onto the stack", "It sets THIS to n", "It allocates one word and stores n in it"],
+      "answer": 1,
+      "explain": "Memory.alloc(n) is an OS function. It returns, by pushing onto the stack, the base address of a block of n words."
+    },
+    {
+      "type": "num",
+      "category": "Objects: constructors & methods",
+      "q": "`pop pointer 0` has set THIS to 9543. Which RAM address does `pop this 1` write to?",
+      "answer": 9544,
+      "explain": "Once THIS is set, `this i` refers to RAM address THIS + i."
+    },
+    {
+      "type": "mc",
+      "category": "Objects: constructors & methods",
+      "q": "local 1 holds the base address of a 2-field structure. Which code sets the structure's first field to 5?",
+      "choices": ["push constant 5; pop local 1", "push local 1; pop this 0; push constant 5; pop pointer 0", "push local 1; pop pointer 1; push constant 5; pop this 0", "push local 1; pop pointer 0; push constant 5; pop this 0"],
+      "answer": 3,
+      "explain": "First set THIS (pointer 0) to the structure's base address, then use `this i` to get or set field i."
+    },
+    {
+      "type": "mc",
+      "category": "Objects: constructors & methods",
+      "q": "p1 is local 0. What does `let p1 = Point.new(2,3);` compile to?",
+      "choices": ["push local 0; push constant 2; push constant 3; call Point.new 3", "push constant 2; push constant 3; call Point.new 2; pop local 0", "push constant 2; push constant 3; call Memory.alloc 2; pop local 0", "push constant 2; push constant 3; call Point.new 2; pop pointer 0"],
+      "answer": 1,
+      "explain": "A constructor call is compiled like any other subroutine call. The compiled constructor does the real work and returns the new object's address."
+    },
+    {
+      "type": "num",
+      "category": "Objects: constructors & methods",
+      "q": "class Point { field int x, y; static int pointCount; constructor Point new(int ax, int ay) {...} }. The compiled constructor starts with `push constant n; call Memory.alloc 1`. What is n?",
+      "answer": 2,
+      "explain": "n is the number of fields, which is the object's size in words. Static variables aren't stored in each object, so pointCount isn't counted."
+    },
+    {
+      "type": "num",
+      "category": "Objects: constructors & methods",
+      "q": "`constructor Point new(int ax, int ay) { let x = ax; let y = ay; let pointCount = pointCount + 1; return this; }` declares no var variables. What is n in its `function Point.new n` command?",
+      "answer": 0,
+      "explain": "n counts local (var) variables only. ax and ay are arguments, and the object's memory comes from Memory.alloc, not from locals."
+    },
+    {
+      "type": "mc",
+      "category": "Objects: constructors & methods",
+      "q": "What comes right after the function command in a compiled Jack constructor?",
+      "choices": ["push argument 0; pop pointer 0", "push constant nFields; call Memory.alloc 1; pop local 0", "push constant nFields; call Memory.alloc 1; pop pointer 0", "push pointer 0; call Memory.alloc 1"],
+      "answer": 2,
+      "explain": "The constructor allocates memory for the new object and sets THIS (pointer 0) to its base address. After that, field assignments compile to pop this i."
+    },
+    {
+      "type": "mc",
+      "category": "Objects: constructors & methods",
+      "q": "What does `return this;` at the end of a constructor compile to?",
+      "choices": ["push this 0; return", "push argument 0; return", "push constant 0; return", "push pointer 0; return"],
+      "answer": 3,
+      "explain": "In VM code, `this` is pointer 0, the new object's base address. Returning it is how the caller's variable (e.g. p1) ends up pointing at the new object."
+    },
+    {
+      "type": "tf",
+      "category": "Objects: constructors & methods",
+      "q": "A Jack constructor may leave out `return this;` because the compiler adds it automatically, as in Java or C++.",
+      "answer": false,
+      "explain": "Jack requires an explicit `return this;`. Other OOP compilers do the same thing behind the scenes by injecting code that returns the new object's address."
+    },
+    {
+      "type": "mc",
+      "category": "Objects: constructors & methods",
+      "q": "p1, p2, and d are local 0, 1, and 2. What does `let d = p1.distance(p2);` compile to?",
+      "choices": ["push local 0; push local 1; call Point.distance 2; pop local 2", "push local 1; call Point.distance 1; pop local 2", "push local 1; push local 0; call Point.distance 2; pop local 2", "push local 0; push local 1; call p1.distance 2; pop local 2"],
+      "answer": 0,
+      "explain": "The target object p1 is pushed as the first argument, then p2. The call names the class's VM function and counts both arguments."
+    },
+    {
+      "type": "mc",
+      "category": "Objects: constructors & methods",
+      "q": "A method call `obj.subName(exp1, ..., expn)` compiles to `call ClassName.subName k`. What is k?",
+      "choices": ["n + 1", "n", "n - 1", "Always 1"],
+      "answer": 0,
+      "explain": "The compiler pushes obj and then exp1..expn. Passing the target object as a hidden first argument is how the object.method(args) style of call works."
+    },
+    {
+      "type": "mc",
+      "category": "Objects: constructors & methods",
+      "q": "What comes right after the function command in a compiled Jack method?",
+      "choices": ["push constant nFields; call Memory.alloc 1; pop pointer 0", "push pointer 0; pop argument 0", "push argument 0; pop pointer 0", "push local 0; pop pointer 0"],
+      "answer": 2,
+      "explain": "Argument 0 holds the target object. Setting THIS to it makes `this i` refer to that object's fields."
+    },
+    {
+      "type": "num",
+      "category": "Objects: constructors & methods",
+      "q": "In class Point, `method int distance(Point other) { var int dx, dy; ... }` compiles to `function Point.distance n`. What is n?",
+      "answer": 2,
+      "explain": "n counts the local variables dx and dy. `this` and `other` are arguments 0 and 1."
+    },
+    {
+      "type": "mc",
+      "category": "Objects: constructors & methods",
+      "q": "In Point.distance, x is this 0, `this` is argument 0, `other` is argument 1, and dx is local 0. What does `let dx = x - other.getx();` compile to?",
+      "choices": ["push this 0; push argument 1; call Point.getx 1; sub; pop local 0", "push this 0; call Point.getx 0; sub; pop local 0", "push argument 0; push argument 1; call Point.getx 1; sub; pop local 0", "push this 0; push argument 1; call Point.getx 1; pop local 0; sub"],
+      "answer": 0,
+      "explain": "x is a field (this 0). other.getx() is a method call: push the object `other`, then call Point.getx 1. Then sub, and pop the result into dx."
+    },
+    {
+      "type": "mc",
+      "category": "Objects: constructors & methods",
+      "q": "In the function Math.sqrt(int x), x is argument 0. In the method Point.distance(Point other), `other` is argument 1. Why the difference?",
+      "choices": ["In methods, arguments are numbered starting from 1", "A method's symbol table always starts with the entry <this, className, argument, 0>, which holds the target object", "Point's fields use argument 0", "Methods reserve argument 0 for the return address"],
+      "answer": 1,
+      "explain": "Only methods get the hidden `this` argument. Functions such as Math.sqrt have no target object, so their parameters start at argument 0."
+    },
+    {
+      "type": "tf",
+      "category": "Objects: constructors & methods",
+      "q": "In memory, an object is just a structure: a block of words that holds the object's fields, reached through a base address.",
+      "answer": true,
+      "explain": "Objects are 'well-dressed structures'. Object-oriented syntax lets the programmer create and use them, and the compiler turns that into Memory.alloc plus pointer 0/this i code."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays",
+      "q": "arr is local 0. What does `let arr = Array.new(5);` compile to?",
+      "choices": ["push constant 5; call Array.new 1; pop local 0", "push constant 5; call Memory.alloc 1; pop pointer 1", "push constant 5; pop local 0", "call Array.new 5; pop local 0"],
+      "answer": 0,
+      "explain": "Arrays are instances of the OS class Array. Constructing one is an ordinary let with a call to Array.new, just like calling an object constructor."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays",
+      "q": "What does `let arr[2] = x` compile to? Variables are shown by name.",
+      "choices": ["push x; push arr; push 2; add; pop that 0", "push arr; push 2; add; push x; pop that 0", "push arr; push 2; add; pop pointer 1; pop that 0; push x", "push arr; push 2; add; pop pointer 1; push x; pop that 0"],
+      "answer": 3,
+      "explain": "Compute arr + 2 and pop it into pointer 1, which sets THAT to the element's address. Then push the value and pop it into that 0."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays",
+      "q": "What does `let x = arr[2]` compile to? Variables are shown by name.",
+      "choices": ["push arr; push 2; add; pop pointer 1; push that 0; pop x", "push arr; push 2; add; pop pointer 1; pop that 0; push x", "push arr; push 2; add; push that 0; pop x", "push 2; pop pointer 1; push that 0; pop x"],
+      "answer": 0,
+      "explain": "Setting THAT to the element's address works the same way as before. This time, push that 0 reads the element and the code pops it into x."
+    },
+    {
+      "type": "num",
+      "category": "Arrays",
+      "q": "arr's base address is 8054. While accessing arr[2], what value does `pop pointer 1` put in THAT?",
+      "answer": 8056,
+      "explain": "THAT = arr + i = 8054 + 2, so that 0 then refers to RAM[8056]."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays",
+      "q": "A naive scheme compiles `let a[i] = b[j]` as: push a; push i; add; pop pointer 1; [code for b[j]]; pop that 0. Why does this fail?",
+      "choices": ["The VM can't add two addresses", "The code for b[j] also runs pop pointer 1, which overwrites the THAT value that pointed at a[i]", "b[j] can't be evaluated before a[i] is known", "pop that 0 can be used only once per function"],
+      "answer": 1,
+      "explain": "Both sides use THAT. Evaluating the right side changes THAT, so the final pop that 0 writes to the wrong address."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays",
+      "q": "In the corrected scheme for `let a[i] = b[j]`, the stack holds the address a+i with the value b[j] on top. What comes next?",
+      "choices": ["pop pointer 1; pop that 0", "pop that 0; pop pointer 1", "pop temp 0; pop pointer 1; push temp 0; pop that 0", "pop temp 0; pop that 0; push temp 0; pop pointer 1"],
+      "answer": 2,
+      "explain": "Save the value in temp 0, pop the address a+i into THAT, push the value back, and store it with pop that 0. The left side's THAT is set only after the right side has been fully evaluated."
+    },
+    {
+      "type": "tf",
+      "category": "Arrays",
+      "q": "When compiling array access, you never need `that i` with i greater than 0.",
+      "answer": true,
+      "explain": "Array access always sets pointer 1 to arr + i and then uses that 0."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays",
+      "q": "Which VM segment entries hold the THIS and THAT base addresses?",
+      "choices": ["pointer 0 = THAT, pointer 1 = THIS", "pointer 0 = THIS, pointer 1 = THAT", "temp 0 = THIS, temp 1 = THAT", "this 0 = THIS, that 0 = THAT"],
+      "answer": 1,
+      "explain": "Objects use pointer 0 to set THIS, and arrays use pointer 1 to set THAT."
+    },
+    {
+      "type": "tf",
+      "category": "Arrays",
+      "q": "The corrected compileLet scheme for array assignment also handles nested references such as let a[a[i]] = a[b[a[b[j]]]].",
+      "answer": true,
+      "explain": "Both index expressions are compiled recursively, and THAT for the left side is set only at the end, after the temp 0 save. So array references can be nested to any depth."
+    },
+    {
+      "type": "mc",
+      "category": "Standard mapping & OS",
+      "q": "How is the Jack constant `true` implemented in VM code?",
+      "choices": ["push constant 1", "push constant 0", "push constant 1, then neg", "push pointer 0"],
+      "answer": 2,
+      "explain": "true is -1 (all bits set). The VM constant segment holds only non-negative values, so the compiler pushes 1 and negates it."
+    },
+    {
+      "type": "multi",
+      "category": "Standard mapping & OS",
+      "q": "Which Jack constants are implemented as `constant 0` in VM code?",
+      "choices": ["true", "false", "null", "this"],
+      "answer": [1, 2],
+      "explain": "false and null are both constant 0. true is constant 1 followed by neg, and this is pointer 0."
+    },
+    {
+      "type": "multi",
+      "category": "Standard mapping & OS",
+      "q": "Which of these variable-to-segment mappings are correct?",
+      "choices": ["field variables -> this i", "static variables -> static i", "local variables -> local i", "argument variables -> argument i", "field variables -> that i", "static variables -> temp i"],
+      "answer": [0, 1, 2, 3],
+      "explain": "Locals, arguments, statics, and fields map to local, argument, static, and this. The `that` segment is used for array access."
+    },
+    {
+      "type": "multi",
+      "category": "Standard mapping & OS",
+      "q": "Which Jack features does the compiler implement by calling OS routines?",
+      "choices": ["Multiplication (*)", "Division (/)", "Addition (+)", "String constants", "Object construction (memory allocation)", "Comparison (<)"],
+      "answer": [0, 1, 3, 4],
+      "explain": "* calls Math.multiply and / calls Math.divide. String constants use String.new(length) and String.appendChar(c), and object construction uses Memory.alloc(size). + and < map directly to the VM commands add and lt."
+    },
+    {
+      "type": "num",
+      "category": "Standard mapping & OS",
+      "q": "The compiler builds the string constant \"Hello\" with String.new followed by a series of String.appendChar calls. How many appendChar calls does it emit?",
+      "answer": 5,
+      "explain": "It calls String.new(5), then String.appendChar once for each of the 5 characters."
+    },
+    {
+      "type": "mc",
+      "category": "Standard mapping & OS",
+      "q": "How does generated VM code call an OS routine such as Math.sqrt?",
+      "choices": ["With a special syscall command", "With the regular call command, e.g. call Math.sqrt 1", "By jumping to a fixed ROM address", "The compiler always inlines OS routines"],
+      "answer": 1,
+      "explain": "OS routines are ordinary VM functions, so a normal `call ClassName.subName nArgs` invokes them."
+    },
+    {
+      "type": "tf",
+      "category": "Standard mapping & OS",
+      "q": "Each class file ClassName.jack is compiled separately into ClassName.vm.",
+      "answer": true,
+      "explain": "A Jack program is one or more class files in one folder. Each one becomes its own .vm file, and the VM translator then processes the folder."
+    },
+    {
+      "type": "mc",
+      "category": "Compiler architecture",
+      "q": "In the proposed compiler design, where does the CompilationEngine get its input, and where does its output go?",
+      "choices": ["Input from VMWriter; output through JackTokenizer", "Input from SymbolTable; output as XML", "Input from JackTokenizer; output through VMWriter", "Input read straight from the .jack file; output written straight as Hack assembly"],
+      "answer": 2,
+      "explain": "JackTokenizer supplies the tokens, SymbolTable tracks the variables, and VMWriter writes each VM command to the .vm file."
+    },
+    {
+      "type": "mc",
+      "category": "Compiler architecture",
+      "q": "Which segment can be passed to VMWriter.writePush but not to writePop?",
+      "choices": ["TEMP", "POINTER", "CONSTANT", "STATIC"],
+      "answer": 2,
+      "explain": "constant is a virtual segment that can only be pushed. Popping into it is meaningless."
+    },
+    {
+      "type": "mc",
+      "category": "Compiler architecture",
+      "q": "compileExpressionList returns an int. What is it, and why is it useful?",
+      "choices": ["The index of the last expression, used for array bounds", "The number of expressions in the list, which gives nArgs for the call command", "The number of VM commands written", "The stack depth after evaluation"],
+      "answer": 1,
+      "explain": "A subroutine call must emit `call f nArgs`. The expression count supplies nArgs, plus 1 for a method's hidden object argument."
+    },
+    {
+      "type": "mc",
+      "category": "Compiler architecture",
+      "q": "The syntax analyzer's compileExpression emitted XML. What does the full compiler's compileExpression emit instead?",
+      "choices": ["Infix XML with symbolic variable names", "Hack assembly", "Postfix VM code in which variables are replaced by segment i references", "A parse tree kept in memory"],
+      "answer": 2,
+      "explain": "The two have the same design and API (a set of compileXxx routines) but produce different output. The compiler writes VM code that uses symbol-table mappings."
+    },
+    {
+      "type": "tf",
+      "category": "Compiler architecture",
+      "q": "Each compileXxx routine reads xxx from the input, advances the tokenizer exactly past xxx, and emits VM code that carries out xxx's meaning.",
+      "answer": true,
+      "explain": "compileXxx is called only when xxx is the current syntactic element. If xxx has a value, its code leaves that value on top of the stack."
+    },
+    {
+      "type": "mc",
+      "category": "Compiler architecture",
+      "q": "What does SymbolTable.define(name, type, kind) do?",
+      "choices": ["It adds the variable, gives it the current running index for its kind, then increments that kind's index", "It adds the variable with index 0", "It looks up the variable and returns its kind", "It clears the table and adds the variable"],
+      "answer": 0,
+      "explain": "The kinds are STATIC, FIELD, ARG, and VAR, and each has its own running index that starts at 0."
+    },
+    {
+      "type": "mc",
+      "category": "Compiler architecture",
+      "q": "Which SymbolTable call gives the number of local variables, which the `function` command needs as nVars?",
+      "choices": ["indexOf(name)", "kindOf(name)", "varCount(VAR)", "reset()"],
+      "answer": 2,
+      "explain": "varCount(kind) returns how many variables of that kind are already defined. After the var declarations are compiled, varCount(VAR) is the local count, e.g. function Math.sqrt 3."
+    },
+    {
+      "type": "mc",
+      "category": "Compiler architecture",
+      "q": "What does SymbolTable.kindOf(name) return when the identifier isn't in the table?",
+      "choices": ["VAR", "NONE", "It throws an exception", "STATIC"],
+      "answer": 1,
+      "explain": "NONE tells the compiler the identifier isn't a variable. In error-free code, that means it's a subroutine name or a class name."
+    }
+  ]
+}

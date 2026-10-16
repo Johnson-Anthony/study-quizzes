@@ -1,0 +1,774 @@
+{
+  "title": "NAND2TETRIS 08: Virtual Machine II - Program Control",
+  "course": "NAND2TETRIS",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Branching commands",
+      "q": "What does the VM command if-goto label do?",
+      "choices": [
+        "Pops the topmost stack value; if it is true, jumps to execute the command just after the label, otherwise executes the next command",
+        "Peeks at the topmost stack value without removing it; if it is true, jumps to the label",
+        "Pops the topmost stack value; if it is false, jumps to the label, otherwise executes the next command",
+        "Pops two values, compares them, and jumps to the label if they are equal"
+      ],
+      "answer": 0,
+      "explain": "Semantics: let cond = pop; if cond, jump to execute the command just after the label; else, execute the next command. if-goto does no comparing itself. Earlier commands such as gt or lt have to produce the boolean."
+    },
+    {
+      "type": "tf",
+      "category": "Branching commands",
+      "q": "After if-goto executes, the condition value it tested is still on top of the stack.",
+      "answer": false,
+      "explain": "if-goto starts with cond = pop, so the condition is removed from the stack whether or not the jump happens."
+    },
+    {
+      "type": "mc",
+      "category": "Branching commands",
+      "q": "In the mult function, the code push local 1; push argument 1; gt; if-goto END_LOOP implements which logic?",
+      "choices": [
+        "if (local 1 > argument 1) goto END_LOOP",
+        "if (argument 1 > local 1) goto END_LOOP",
+        "if (local 1 == argument 1) goto END_LOOP",
+        "if (local 1 <= argument 1) goto END_LOOP"
+      ],
+      "answer": 0,
+      "explain": "gt compares the value pushed first (local 1) against the value pushed second (argument 1) and pushes true if local 1 is greater. if-goto then pops that boolean and jumps to END_LOOP if it is true."
+    },
+    {
+      "type": "mc",
+      "category": "Branching commands",
+      "q": "What is the role of the label command?",
+      "choices": [
+        "It marks the destination of goto (and if-goto) commands",
+        "It declares a new function's entry point",
+        "It pushes the address of the label onto the stack",
+        "It jumps unconditionally to the named location"
+      ],
+      "answer": 0,
+      "explain": "label is a declaration. It marks a place in the code that goto and if-goto can jump to. The jumping itself is done by goto (unconditionally) and if-goto (conditionally)."
+    },
+    {
+      "type": "mc",
+      "category": "Branching commands",
+      "q": "By convention, who is responsible for making sure a boolean expression has been pushed onto the stack before an if-goto command?",
+      "choices": [
+        "The writer of the VM code (typically a compiler)",
+        "The VM translator, which inserts a comparison automatically",
+        "The assembler",
+        "The if-goto command itself, which evaluates the preceding expression"
+      ],
+      "answer": 0,
+      "explain": "The convention is that the code writer (typically a compiler) must write code that pushes a boolean expression onto the stack before the if-goto command."
+    },
+    {
+      "type": "mc",
+      "category": "Branching commands",
+      "q": "Why is it not difficult to translate the VM branching commands into a target machine language?",
+      "choices": [
+        "Every computer's instruction set already has low-level labeling and goto primitives",
+        "Branching commands can be left untranslated for the assembler to handle",
+        "Branching commands never touch the stack",
+        "Every target machine has a dedicated if-goto instruction"
+      ],
+      "answer": 0,
+      "explain": "Every instruction set has low-level labels and jumps, so each VM branching command maps directly onto them. For example, label LOOP becomes (LOOP), and goto LOOP becomes @LOOP followed by 0;JMP."
+    },
+    {
+      "type": "mc",
+      "category": "Branching commands",
+      "q": "In the simple branching translation example, which Hack code does goto LOOP become?",
+      "choices": [
+        "@LOOP followed by 0;JMP",
+        "(LOOP)",
+        "@LOOP followed by D;JGT",
+        "@SP followed by M=M-1"
+      ],
+      "answer": 0,
+      "explain": "goto is unconditional, so it loads the label address into A (@LOOP) and jumps unconditionally (0;JMP). (LOOP) is the label declaration, which is what label LOOP becomes."
+    },
+    {
+      "type": "mc",
+      "category": "Function commands",
+      "q": "In call functionName nArgs, what does nArgs indicate?",
+      "choices": [
+        "How many argument values the caller pushed onto the stack before the call",
+        "How many local variables the called function has",
+        "How many values the called function will return",
+        "How many times the function may call itself recursively"
+      ],
+      "answer": 0,
+      "explain": "call calls functionName for its effect and tells the implementation that nArgs argument values were pushed onto the stack. The caller has to push those nArgs arguments before the call."
+    },
+    {
+      "type": "tf",
+      "category": "Function commands",
+      "q": "In function Foo.mult 2, the number 2 means that Foo.mult expects two arguments.",
+      "answer": false,
+      "explain": "The number in a function command is nVars, the number of local variables. In the mult example the caller also happens to pass 2 arguments, but that is a coincidence. nArgs has nothing to do with nVars."
+    },
+    {
+      "type": "mc",
+      "category": "Function commands",
+      "q": "In the FibonacciElement code, the declaration is function Main.fibonacci 0 and calls to it look like call Main.fibonacci 1. What do the 0 and the 1 mean?",
+      "choices": [
+        "Main.fibonacci has 0 local variables, and the caller pushed 1 argument",
+        "Main.fibonacci takes 0 arguments and returns 1 value",
+        "Main.fibonacci has 1 local variable, and the caller pushed 0 arguments",
+        "0 is the function's index in Main.vm and 1 is the call depth"
+      ],
+      "answer": 0,
+      "explain": "function functionName nVars declares nVars local variables (here 0). call functionName nArgs tells the implementation that nArgs arguments were pushed (here 1, the value n)."
+    },
+    {
+      "type": "mc",
+      "category": "Function commands",
+      "q": "Just before the call, the caller's stack holds 3, 8, 5 (5 on top). It executes call mult 2, where mult returns arg0 * arg1. What does the caller's stack hold just after the call?",
+      "choices": [
+        "3, 40",
+        "3, 8, 5, 40",
+        "40",
+        "3, 8, 40"
+      ],
+      "answer": 0,
+      "explain": "The return value replaces the argument values the caller pushed before the call. The two arguments (8 and 5) are replaced by 40, and the 3 underneath is untouched. The caller's next command, add, then computes 3 + 40."
+    },
+    {
+      "type": "multi",
+      "category": "Function commands",
+      "q": "Which conventions must every VM function follow?",
+      "choices": [
+        "Start with a function command",
+        "End with a return command",
+        "Return a value",
+        "Declare at least one local variable",
+        "Take at least one argument"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Every VM function must start with a function command, end with a return command, and return a value. The VM code writer (typically a compiler) is responsible for this. Functions may have 0 local variables and 0 arguments."
+    },
+    {
+      "type": "mc",
+      "category": "Function commands",
+      "q": "By convention, what must the callee do just before it executes return?",
+      "choices": [
+        "Push a return value onto the stack",
+        "Pop all of its local variables off the stack",
+        "Restore the caller's LCL and ARG pointers",
+        "Push the return address onto the stack"
+      ],
+      "answer": 0,
+      "explain": "The callee must (1) push a return value onto the stack and (2) execute a return command. Restoring pointers and jumping back are done by the code the VM translator generates for return."
+    },
+    {
+      "type": "mc",
+      "category": "Function commands",
+      "q": "After the callee's return, where does execution continue?",
+      "choices": [
+        "At the command just after the call command in the caller",
+        "At the first command of the caller's function",
+        "At the command just after the most recent label",
+        "At the call command itself, which runs again"
+      ],
+      "answer": 0,
+      "explain": "Return semantics: control goes back to the caller, and execution resumes with the command just after the call."
+    },
+    {
+      "type": "tf",
+      "category": "Function commands",
+      "q": "VM functions can call each other, including recursively, and each function execution sees its own working stack and its own memory segments.",
+      "answer": true,
+      "explain": "A VM program typically consists of many functions that call each other for their effect, including recursively. Each function execution sees its own working stack and memory segments, even though they all live on one global stack."
+    },
+    {
+      "type": "text",
+      "category": "Function commands",
+      "q": "By the VM function naming convention, what is the full name of a function called mult that is defined in the file Foo.vm?",
+      "answer": ["Foo.mult"],
+      "explain": "The full name of a VM function is fileName.functionName, so mult in Foo.vm is Foo.mult. A caller and callee can be in different VM files."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing call",
+      "q": "In what order does the code generated for call functionName nArgs push the caller's saved frame?",
+      "choices": [
+        "return address, LCL, ARG, THIS, THAT",
+        "LCL, ARG, THIS, THAT, return address",
+        "THAT, THIS, ARG, LCL, return address",
+        "return address, ARG, LCL, THIS, THAT"
+      ],
+      "answer": 0,
+      "explain": "Generated pseudocode: push retAddrLabel; push LCL; push ARG; push THIS; push THAT; ARG = SP - 5 - nArgs; LCL = SP; goto functionName; (retAddrLabel)."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing call",
+      "q": "After the saved frame has been pushed, how does call reposition ARG for the callee?",
+      "choices": [
+        "ARG = SP - 5 - nArgs",
+        "ARG = SP - nArgs",
+        "ARG = SP + 5",
+        "ARG = LCL - nArgs"
+      ],
+      "answer": 0,
+      "explain": "At this point SP is past the nArgs arguments and the 5-word saved frame. Subtracting 5 and then nArgs leaves ARG pointing at argument 0."
+    },
+    {
+      "type": "num",
+      "category": "Implementing call",
+      "q": "Just before call Foo.mult 2 executes, SP = 300, and the two arguments sit in RAM[298] and RAM[299]. After the call's generated code runs, what is ARG?",
+      "answer": 298,
+      "explain": "Pushing the 5-word frame (RAM[300..304]) makes SP = 305. Then ARG = SP - 5 - nArgs = 305 - 5 - 2 = 298, which is where argument 0 is."
+    },
+    {
+      "type": "num",
+      "category": "Implementing call",
+      "q": "Same situation: SP = 300 just before call Foo.mult 2. After the call's generated code runs (before the callee's function command), what is LCL?",
+      "answer": 305,
+      "explain": "After the return address, LCL, ARG, THIS, and THAT are pushed, SP = 305. call then sets LCL = SP = 305. The callee's local variables will be placed there."
+    },
+    {
+      "type": "num",
+      "category": "Implementing call",
+      "q": "How many words does the caller's saved frame (pushed by call) occupy on the stack?",
+      "answer": 5,
+      "explain": "The return address plus the four segment pointers LCL, ARG, THIS, and THAT. That is why the ARG formula subtracts 5."
+    },
+    {
+      "type": "multi",
+      "category": "Implementing call",
+      "q": "Which of these jobs does the code generated for call functionName nArgs do?",
+      "choices": [
+        "Save the return address",
+        "Save the caller's segment pointers (LCL, ARG, THIS, THAT)",
+        "Reposition ARG and LCL for the callee",
+        "Transfer control to the callee",
+        "Initialize the callee's local variables to 0",
+        "Restore the caller's segment pointers"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "call saves the return address, saves the caller's segment pointers, repositions ARG and LCL, and jumps to the callee. Initializing locals is the function command's job, and restoring the caller's pointers is the return command's job."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing call",
+      "q": "What is the return address that call saves?",
+      "choices": [
+        "The address in the caller's code that control should return to when the callee finishes, which is the command right after the call",
+        "The address of the callee's entry point",
+        "The RAM address where the return value will be stored",
+        "The address of the caller's first local variable"
+      ],
+      "answer": 0,
+      "explain": "call generates a unique return-address label, pushes it, jumps to the callee, and then injects that label into the code right after the jump. That way return can jump back to the command following the call."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing function",
+      "q": "What must the code generated for function functionName nVars do?",
+      "choices": [
+        "Inject an entry-point label (functionName) into the code and push nVars zeros to initialize the local segment",
+        "Save the caller's frame and jump to the function's code",
+        "Pop nVars values off the stack into the local segment",
+        "Set LCL = SP - nVars and jump to the return address"
+      ],
+      "answer": 0,
+      "explain": "Generated pseudocode: (functionName), then push 0 repeated nVars times. Saving the caller's frame is done earlier by call."
+    },
+    {
+      "type": "num",
+      "category": "Implementing function",
+      "q": "A callee is entered with SP = LCL = 305, and its declaration is function Foo.mult 2. What is SP after the function command's generated code runs?",
+      "answer": 307,
+      "explain": "The function command pushes nVars = 2 zeros (local 0 at 305 and local 1 at 306), so SP = 307. LCL stays at 305."
+    },
+    {
+      "type": "multi",
+      "category": "Implementing function",
+      "q": "Right after the function command's generated code runs, what does the callee have?",
+      "choices": [
+        "Its arguments, as passed by the caller",
+        "Its local variables, all set to 0",
+        "An empty working stack",
+        "The caller's working-stack values, available as local variables",
+        "A return value already pushed"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Once call and function have run, the callee is all set: arguments passed by the caller, local variables all 0, and an empty working stack (SP sits just past the locals)."
+    },
+    {
+      "type": "tf",
+      "category": "Implementing function",
+      "q": "When a function is entered, its local variables hold whatever values were left in that part of RAM by earlier computations.",
+      "answer": false,
+      "explain": "The function command's generated code pushes nVars zeros, so every local variable starts at 0."
+    },
+    {
+      "type": "num",
+      "category": "Implementing function",
+      "q": "In the 3 + 8 * 5 example, Foo.bar pushes 3, 8, 5 and executes call Foo.mult 2. Right after function Foo.mult 2 executes, what value does argument 1 hold?",
+      "answer": 5,
+      "explain": "The last nArgs = 2 values pushed (8 and 5) become the callee's arguments: argument 0 = 8 and argument 1 = 5. The 3 stays on the caller's working stack."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing function",
+      "q": "After call and function have both run, where does LCL point in the global stack?",
+      "choices": [
+        "At local 0, just past the saved frame (right after saved THAT)",
+        "At argument 0",
+        "At the saved return address",
+        "At the top of the stack, past all local variables"
+      ],
+      "answer": 0,
+      "explain": "call sets LCL = SP right after pushing saved THAT. function then pushes the nVars zeros starting at that address, so LCL points to local 0 and SP ends up just past the last local."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing return",
+      "q": "In return's generated code, where is the return address read from?",
+      "choices": [
+        "*(endFrame - 5), where endFrame = LCL",
+        "*(endFrame - 1), where endFrame = LCL",
+        "*(ARG - 1)",
+        "*(SP - 1)"
+      ],
+      "answer": 0,
+      "explain": "LCL points just past the 5-word saved frame (return address, LCL, ARG, THIS, THAT). The return address was pushed first, so it is 5 below endFrame."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing return",
+      "q": "Which list matches how return restores the caller's segment pointers?",
+      "choices": [
+        "THAT = *(endFrame - 1), THIS = *(endFrame - 2), ARG = *(endFrame - 3), LCL = *(endFrame - 4)",
+        "LCL = *(endFrame - 1), ARG = *(endFrame - 2), THIS = *(endFrame - 3), THAT = *(endFrame - 4)",
+        "THAT = *(endFrame + 1), THIS = *(endFrame + 2), ARG = *(endFrame + 3), LCL = *(endFrame + 4)",
+        "THIS = *(endFrame - 1), THAT = *(endFrame - 2), LCL = *(endFrame - 3), ARG = *(endFrame - 4)"
+      ],
+      "answer": 0,
+      "explain": "call pushed LCL, ARG, THIS, THAT in that order, so THAT is right below endFrame (endFrame - 1), then THIS (- 2), ARG (- 3), and LCL (- 4). The return address is at endFrame - 5."
+    },
+    {
+      "type": "num",
+      "category": "Implementing return",
+      "q": "When the callee executes return, ARG = 298. What is SP after return's generated code runs?",
+      "answer": 299,
+      "explain": "*ARG = pop() puts the return value in RAM[298], where the caller's first argument was. Then SP = ARG + 1 = 299, so the return value is the new top of the caller's stack."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing return",
+      "q": "Why does return copy the return address into retAddr before it executes *ARG = pop()?",
+      "choices": [
+        "If the callee was called with 0 arguments, ARG points at the slot holding the return address, so writing the return value there would overwrite it",
+        "pop() erases the whole saved frame",
+        "The return address is kept in ARG and is lost when ARG is restored",
+        "goto cannot take its target from the stack"
+      ],
+      "answer": 0,
+      "explain": "call sets ARG = SP - 5 - nArgs. When nArgs = 0, that is exactly the address where call pushed the return address. *ARG = pop() would overwrite it, so it has to be saved first."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing return",
+      "q": "Why does SP = ARG + 1 come before ARG is restored from the saved frame?",
+      "choices": [
+        "SP has to go just past the return value, which was placed at the callee's ARG. Once ARG is restored, it points to the caller's arguments instead",
+        "Restoring ARG first would also reset SP automatically",
+        "SP = ARG + 1 is only needed when nArgs is 0",
+        "There is no reason; the two steps could be done in either order"
+      ],
+      "answer": 0,
+      "explain": "The return value was written to *ARG using the callee's ARG. SP must be set relative to that same address. After ARG = *(endFrame - 3) runs, ARG holds the caller's own argument base, which is the wrong reference point."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing return",
+      "q": "Which sequence matches the steps that handling return must perform?",
+      "choices": [
+        "Replace the caller's pushed arguments with the return value; recycle the callee's memory; restore the caller's segment pointers; jump to the return address",
+        "Jump to the return address; restore the caller's segment pointers; copy the return value; recycle the callee's memory",
+        "Restore the caller's segment pointers; recycle the callee's memory; jump to the return address; copy the return value",
+        "Recycle the callee's memory; jump to the return address; replace the arguments with the return value; restore the caller's segment pointers"
+      ],
+      "answer": 0,
+      "explain": "The jump has to come last. Once control goes back to the caller, nothing else in return runs. Before that, the return value is moved into place, SP is repositioned (which recycles the callee's memory), and the caller's pointers are restored."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing return",
+      "q": "Once return has finished, how does the caller's world differ from just before the call?",
+      "choices": [
+        "The arguments it pushed before the call have been replaced by the callee's return value, and nothing else has changed",
+        "Its local variables have been reset to 0",
+        "Its working stack is empty",
+        "Its LCL and ARG now point to the callee's segments"
+      ],
+      "answer": 0,
+      "explain": "Result: the caller's world is exactly the same as before the call, except that the arguments it pushed have been replaced by the value returned by the callee."
+    },
+    {
+      "type": "tf",
+      "category": "Implementing return",
+      "q": "After return, the stack space that held the callee's saved frame, locals, and working stack is effectively wiped out, because SP now sits just above the return value.",
+      "answer": true,
+      "explain": "Setting SP = ARG + 1 recycles the callee's memory. Everything above the return value is treated as free stack space."
+    },
+    {
+      "type": "tf",
+      "category": "Implementing return",
+      "q": "Nested calls (foo calls bar, which calls baz, ...) and recursion need a different implementation scheme from a single call-and-return.",
+      "answer": false,
+      "explain": "The implementation follows exactly the same scheme once for every call-and-return. The global stack grows and shrinks like a telescope, last in, first out."
+    },
+    {
+      "type": "mc",
+      "category": "Bootstrap and memory map",
+      "q": "What does the bootstrap code at the start of the generated assembly do?",
+      "choices": [
+        "Sets SP = 256, then calls Sys.init with no arguments",
+        "Sets SP = 0, then calls Main.main",
+        "Sets SP = 256, then jumps to Main.main without saving a frame",
+        "Clears all of RAM to 0, then calls Sys.init"
+      ],
+      "answer": 0,
+      "explain": "Bootstrap pseudocode: SP = 256; call Sys.init (no arguments). The VM translator has to generate this in assembly at the very beginning of its output."
+    },
+    {
+      "type": "mc",
+      "category": "Bootstrap and memory map",
+      "q": "Under the run-time conventions, what does Sys.init do?",
+      "choices": [
+        "Calls Main.main, then enters an infinite loop",
+        "Sets SP to 256 and returns",
+        "Translates the program's VM files into assembly",
+        "Calls Main.main, then returns to ROM address 0"
+      ],
+      "answer": 0,
+      "explain": "Sys.init is an OS function. When the computer boots, it runs Sys.init, which calls Main.main (the program's entry point) and then enters an infinite loop."
+    },
+    {
+      "type": "num",
+      "category": "Bootstrap and memory map",
+      "q": "At which RAM address does the global stack start?",
+      "answer": 256,
+      "explain": "The stack is stored in RAM starting at address 256, which is why the bootstrap code sets SP = 256. The global stack occupies RAM[256..2047]."
+    },
+    {
+      "type": "num",
+      "category": "Bootstrap and memory map",
+      "q": "The bootstrap code sets SP = 256 and then executes call Sys.init with 0 arguments. After the call's generated code runs, what is LCL?",
+      "answer": 261,
+      "explain": "call pushes 5 words into RAM[256..260], so SP = 261. Then LCL = SP = 261 (and ARG = 261 - 5 - 0 = 256)."
+    },
+    {
+      "type": "mc",
+      "category": "Bootstrap and memory map",
+      "q": "In the standard mapping of the VM on the Hack platform, which RAM range holds static variables?",
+      "choices": [
+        "16 - 255",
+        "0 - 15",
+        "256 - 2047",
+        "2048 - 16383"
+      ],
+      "answer": 0,
+      "explain": "RAM[0..15] holds the segment pointers, the temp segment, and R13-R15. RAM[16..255] holds static variables, RAM[256..2047] the global stack, and RAM[2048..16383] the heap."
+    },
+    {
+      "type": "mc",
+      "category": "Bootstrap and memory map",
+      "q": "In the standard mapping, which RAM range is the heap, managed by the OS?",
+      "choices": [
+        "2048 - 16383",
+        "256 - 2047",
+        "16384 - 24576",
+        "16 - 255"
+      ],
+      "answer": 0,
+      "explain": "The heap is RAM[2048..16383]. Memory-mapped I/O is RAM[16384..24576], and the rest up to 32767 is unused. These regions are managed by the OS. RAM[0..2047] is managed by the run-time system, meaning the code generated by the VM translator."
+    },
+    {
+      "type": "multi",
+      "category": "Bootstrap and memory map",
+      "q": "Under the standard mapping, which of these live in RAM addresses 0 - 15?",
+      "choices": [
+        "The segment pointers such as SP, LCL, and ARG",
+        "The temp segment",
+        "Registers R13 - R15",
+        "Static variables",
+        "Memory-mapped I/O"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "RAM[0..15] holds the segment pointers (SP at 0, LCL at 1, ARG at 2, ...), the temp segment, and R13-R15. Static variables start at 16, and memory-mapped I/O starts at 16384."
+    },
+    {
+      "type": "tf",
+      "category": "Bootstrap and memory map",
+      "q": "The VM functions that make up the compiled code base (the program plus the OS) may appear in any order.",
+      "answer": true,
+      "explain": "The program is a set of VM functions in any order, one of which is Main.main. The OS is also a set of VM functions, one of which is Sys.init. Execution order comes from the bootstrap code calling Sys.init, not from where functions appear."
+    },
+    {
+      "type": "mc",
+      "category": "Bootstrap and memory map",
+      "q": "In the standard mapping, what is stored in ROM starting at address 0?",
+      "choices": [
+        "The bootstrap code, followed by the OS code and then the program code",
+        "The program code, followed by the OS code",
+        "The global stack",
+        "Main.main's code, since it is the program's entry point"
+      ],
+      "answer": 0,
+      "explain": "ROM holds the bootstrap code at address 0, then the OS code, then the program code. Because the bootstrap code comes first, the computer starts by setting SP and calling Sys.init."
+    },
+    {
+      "type": "text",
+      "category": "Symbol conventions",
+      "q": "Inside the file Foo.vm, the function Foo.mult contains the command label LOOP. What assembly label symbol should the translator generate for it?",
+      "answer": ["Foo.mult$LOOP", "(Foo.mult$LOOP)"],
+      "explain": "A label bar declared inside function foo is emitted as functionName$label, here Foo.mult$LOOP. goto LOOP and if-goto LOOP inside Foo.mult must also use Foo.mult$LOOP rather than LOOP."
+    },
+    {
+      "type": "mc",
+      "category": "Symbol conventions",
+      "q": "Function Foo.bar (in Foo.vm) executes call Foo.mult 2. Which return-address label matches the naming convention?",
+      "choices": [
+        "Foo.bar$ret.1",
+        "Foo.mult$ret.1",
+        "Foo.mult$Foo.bar",
+        "ret.Foo.mult.1"
+      ],
+      "answer": 0,
+      "explain": "Return-address symbols have the form functionName$ret.i, named after the function that contains the call (the caller), with i a running integer for each call command in that function. The return address is a location in the caller's code."
+    },
+    {
+      "type": "mc",
+      "category": "Symbol conventions",
+      "q": "How does the translator handle push static 3 when it appears in the file Bar.vm?",
+      "choices": [
+        "It refers to the assembly symbol Bar.3, and the assembler later assigns it a RAM address starting from 16",
+        "It hard-codes RAM[19] directly into the assembly",
+        "It refers to the symbol Bar.static$3",
+        "It refers to the symbol static.3, shared by all files"
+      ],
+      "answer": 0,
+      "explain": "Each static i in Xxx.vm becomes the assembly symbol Xxx.i. The Hack assembler allocates these symbolic variables in RAM starting at address 16."
+    },
+    {
+      "type": "mc",
+      "category": "Symbol conventions",
+      "q": "Class1.vm and Class2.vm both use static 0. What happens under the symbol conventions?",
+      "choices": [
+        "They become distinct symbols, Class1.0 and Class2.0, so each file gets its own RAM location",
+        "Both become the symbol static.0 and share one RAM location",
+        "The translator reports an error because static 0 is defined twice",
+        "Both are hard-wired to RAM[16]"
+      ],
+      "answer": 0,
+      "explain": "Static symbols are prefixed with the file name (Xxx.i), so the static segments of different VM files stay separate. The StaticsTest example relies on this: Class1.set and Class2.set each store into their own static 0 and static 1."
+    },
+    {
+      "type": "mc",
+      "category": "Symbol conventions",
+      "q": "Why does the translator emit Xxx.foo$bar, rather than just bar, for a label declared inside function foo?",
+      "choices": [
+        "So that labels with the same name in different functions do not collide once everything is in a single assembly file",
+        "Because the Hack assembler rejects short label names",
+        "So that the label can be called like a function",
+        "Because every label must include a return-address index"
+      ],
+      "answer": 0,
+      "explain": "All VM functions from all files end up in one .asm file, so two functions could both declare label LOOP. Prefixing the label with the function's full name makes each one unique."
+    },
+    {
+      "type": "tf",
+      "category": "Symbol conventions",
+      "q": "SP points to the RAM address that holds the topmost stack value.",
+      "answer": false,
+      "explain": "SP points to the RAM address just after the one holding the topmost stack value. That is why a push writes to *SP and then increments SP."
+    },
+    {
+      "type": "mc",
+      "category": "Symbol conventions",
+      "q": "What are the predefined symbols R13 - R15 for?",
+      "choices": [
+        "General-purpose registers the generated assembly can use for temporary storage",
+        "The base addresses of the this and that segments",
+        "Reserved for the OS heap manager",
+        "The first three static variables"
+      ],
+      "answer": 0,
+      "explain": "R13-R15 can be used for any purpose. When the generated assembly needs low-level variables for temporary storage (for example, endFrame and retAddr in return), R13-R15 come in handy."
+    },
+    {
+      "type": "mc",
+      "category": "Symbol conventions",
+      "q": "What does the assembler eventually turn a function entry-point symbol such as Foo.mult into?",
+      "choices": [
+        "The physical address in instruction memory where the function's code starts",
+        "The RAM address of the function's first local variable",
+        "The RAM address where the function's return value will be stored",
+        "Nothing; entry-point symbols are comments"
+      ],
+      "answer": 0,
+      "explain": "Handling function Foo.mult injects the label (Foo.mult) into the assembly. The assembler translates that symbol into the physical address where the function's code starts, which is where goto Foo.mult (generated by call) jumps."
+    },
+    {
+      "type": "mc",
+      "category": "VM translator design",
+      "q": "In the proposed VM translator design, which module generates the assembly code that carries out a parsed VM command?",
+      "choices": [
+        "CodeWriter",
+        "Parser",
+        "VMTranslator",
+        "Assembler"
+      ],
+      "fixed": true,
+      "answer": 0,
+      "explain": "VMTranslator drives the process, Parser reads and parses each VM command, and CodeWriter generates the assembly code for the parsed command."
+    },
+    {
+      "type": "mc",
+      "category": "VM translator design",
+      "q": "What does the Parser's commandType return for the command if-goto LOOP?",
+      "choices": [
+        "C_IF",
+        "C_GOTO",
+        "C_LABEL",
+        "C_ARITHMETIC"
+      ],
+      "answer": 0,
+      "explain": "commandType returns one of C_ARITHMETIC, C_PUSH, C_POP, C_LABEL, C_GOTO, C_IF, C_FUNCTION, C_RETURN, or C_CALL. if-goto is C_IF, goto is C_GOTO, and label is C_LABEL."
+    },
+    {
+      "type": "multi",
+      "category": "VM translator design",
+      "q": "For which current command types should the Parser's arg2 be called?",
+      "choices": [
+        "C_PUSH",
+        "C_POP",
+        "C_FUNCTION",
+        "C_CALL",
+        "C_RETURN",
+        "C_LABEL",
+        "C_ARITHMETIC"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "arg2 returns the integer second argument: the index in push/pop, nVars in function, and nArgs in call. Those four command types are the only ones that have a numeric second argument."
+    },
+    {
+      "type": "mc",
+      "category": "VM translator design",
+      "q": "When the current command is add, what does the Parser's arg1 return?",
+      "choices": [
+        "The command itself, add",
+        "Nothing; arg1 must not be called for arithmetic commands",
+        "The number of operands, 2",
+        "The constant C_ARITHMETIC"
+      ],
+      "answer": 0,
+      "explain": "For C_ARITHMETIC commands, arg1 returns the command itself (add, sub, etc.). arg1 is only off-limits when the current command is C_RETURN, which has no arguments."
+    },
+    {
+      "type": "mc",
+      "category": "VM translator design",
+      "q": "When the VM translator is given a folder containing several .vm files, what does it produce?",
+      "choices": [
+        "A single assembly file named after the folder (folderName.asm)",
+        "One .asm file for each .vm file",
+        "One .asm file for each VM function",
+        "A .hack binary file"
+      ],
+      "answer": 0,
+      "explain": "The translator handles every .vm file in the folder and writes everything into one source.asm. All VM functions from all files end up in a single assembly file, so the notion of separate VM files disappears."
+    },
+    {
+      "type": "mc",
+      "category": "VM translator design",
+      "q": "Why does the CodeWriter need setFileName, which is called whenever translation of a new .vm file begins?",
+      "choices": [
+        "Some generated symbols depend on the current file's name; for example, static i in Xxx.vm becomes Xxx.i",
+        "It opens a separate output .asm file for each input file",
+        "It resets the stack pointer to 256 for each file",
+        "It tells the Parser which file to read next"
+      ],
+      "answer": 0,
+      "explain": "setFileName tells the CodeWriter that a new VM file is being translated. Symbols such as static variables (Xxx.i) are built from the file name, so the CodeWriter has to know which file it is in. The output is still a single file."
+    },
+    {
+      "type": "mc",
+      "category": "VM translator design",
+      "q": "Which CodeWriter routine writes the bootstrap code?",
+      "choices": [
+        "The constructor, so the bootstrap code ends up at the beginning of the output file",
+        "writeCall, the first time it is invoked",
+        "close, just before the file is closed",
+        "setFileName, once per input file"
+      ],
+      "answer": 0,
+      "explain": "The CodeWriter constructor opens the output file and writes the assembly that carries out the bootstrap code. That code must be placed at the beginning of the generated output."
+    },
+    {
+      "type": "tf",
+      "category": "VM translator design",
+      "q": "The VM translator acts as the compiler's backend, while translating Jack code into VM code is the job of the compiler's frontend.",
+      "answer": true,
+      "explain": "The full pipeline is Jack -> (compiler frontend) -> VM code -> (VM translator = compiler backend) -> assembly -> (assembler) -> binary."
+    },
+    {
+      "type": "mc",
+      "category": "VM translator design",
+      "q": "When a Jack program is compiled, what does each Jack method, function, and constructor become?",
+      "choices": [
+        "A VM function",
+        "A separate .vm file",
+        "A VM label",
+        "An assembly macro"
+      ],
+      "answer": 0,
+      "explain": "Each Jack class compiles to a .vm file, and every method, function, and constructor in it becomes a VM function (for example, Foo.new or Main.main)."
+    },
+    {
+      "type": "num",
+      "category": "Tracing VM code",
+      "q": "BasicLoop: push constant 0; pop local 0; label LOOP_START; push argument 0; push local 0; add; pop local 0; push argument 0; push constant 1; sub; pop argument 0; push argument 0; if-goto LOOP_START; push local 0. If argument 0 starts at 3, what value is left on top of the stack at the end?",
+      "answer": 6,
+      "explain": "The loop adds argument 0 to local 0 and then decrements argument 0, repeating while argument 0 is non-zero: 0+3 = 3, 3+2 = 5, 5+1 = 6. When argument 0 reaches 0, if-goto falls through and push local 0 pushes 6, the sum 1+2+3."
+    },
+    {
+      "type": "num",
+      "category": "Tracing VM code",
+      "q": "The mult function (local 0 = 0, local 1 = 1; loop: if local 1 > argument 1 goto END_LOOP; local 0 += argument 0; local 1 += 1) is called with argument 0 = 8 and argument 1 = 5. What is the value of local 1 when mult returns?",
+      "answer": 6,
+      "explain": "local 1 counts 1, 2, 3, 4, 5, and each pass adds 8 to local 0, ending at 40. When local 1 becomes 6, 6 > 5 is true, so it jumps to END_LOOP and returns local 0 = 40 with local 1 = 6."
+    },
+    {
+      "type": "num",
+      "category": "Tracing VM code",
+      "q": "Main.fibonacci returns n if n < 2, otherwise fibonacci(n-2) + fibonacci(n-1). Sys.init executes push constant 4; call Main.fibonacci 1. What value does that call return?",
+      "answer": 3,
+      "explain": "fib(0)=0, fib(1)=1, fib(2)=1, fib(3)=2, fib(4)=fib(2)+fib(3)=3. Each recursive call uses the same call/function/return scheme, with frames stacking LIFO on the global stack."
+    },
+    {
+      "type": "num",
+      "category": "Tracing VM code",
+      "q": "SimpleFunction begins: function SimpleFunction.test 2; push local 0; push local 1; add; ... What value does that first add leave on top of the stack?",
+      "answer": 0,
+      "explain": "function SimpleFunction.test 2 initializes both local variables to 0, so push local 0 and push local 1 push 0 and 0, and add produces 0."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing VM code",
+      "q": "In StaticsTest, Sys.init runs push constant 6; push constant 8; call Class1.set 2; pop temp 0. Why the pop temp 0?",
+      "choices": [
+        "Every VM function returns a value. Class1.set was called only for its effect, so the caller throws away the return value",
+        "pop temp 0 passes the arguments to Class1.set",
+        "It restores the caller's THIS pointer after the call",
+        "It stores the return address so Sys.init can return later"
+      ],
+      "answer": 0,
+      "explain": "By convention every function returns a value, which replaces the arguments on the caller's stack. Since Sys.init only wants the side effect (setting the static variables), it pops the return value into temp 0 to get rid of it."
+    }
+  ]
+}

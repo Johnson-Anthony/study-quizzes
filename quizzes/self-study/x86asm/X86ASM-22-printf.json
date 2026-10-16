@@ -1,0 +1,485 @@
+{
+  "title": "X86ASM 22: How printf() Works in Assembly",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "text",
+      "category": "Variadic calls and argument passing",
+      "q": "What is a function that accepts a variable number of arguments, like printf, called?",
+      "answer": ["variadic", "a variadic function", "variadic function"],
+      "explain": "printf is a variadic function. It works out how many arguments to read from the format string, not from a fixed signature."
+    },
+    {
+      "type": "mc",
+      "category": "Variadic calls and argument passing",
+      "q": "Under the System V ABI, the format string goes in RDI. Which register does printf read when it reaches the FIRST % specifier?",
+      "choices": ["RAX", "RSI", "RDX", "RCX"],
+      "answer": 1,
+      "explain": "Arguments go in RDI, RSI, RDX, RCX, R8, R9, in that order. RDI holds the format string, so the first substituted value is in RSI."
+    },
+    {
+      "type": "mc",
+      "category": "Variadic calls and argument passing",
+      "q": "A format string has four % specifiers (none of them %%). Which register holds the value for the fourth one?",
+      "choices": ["RCX", "R9", "R8", "RDX"],
+      "answer": 2,
+      "explain": "1st specifier: RSI, 2nd: RDX, 3rd: RCX, 4th: R8, 5th: R9."
+    },
+    {
+      "type": "tf",
+      "category": "Variadic calls and argument passing",
+      "q": "printf knows how many arguments it was given because the caller puts an argument count in a register.",
+      "answer": false,
+      "explain": "No count is passed. printf scans the format string, and each specifier it finds makes it read the next register in the agreed order."
+    },
+    {
+      "type": "num",
+      "category": "Variadic calls and argument passing",
+      "q": "The minimal printf only uses the six System V argument registers and ignores the stack. At most how many values can it substitute into the format string?",
+      "answer": 5,
+      "explain": "Six registers minus RDI, which holds the format string, leaves RSI, RDX, RCX, R8 and R9. Any arguments past the sixth would be on the stack, and this version doesn't read them."
+    },
+    {
+      "type": "mc",
+      "category": "Variadic calls and argument passing",
+      "q": "To print an ASCII table, the loop uses the format \"%d\\t%x\\t%c\\n\" and copies the counter R12 into RSI, RDX and RCX before each call. Why copy the same value into three registers?",
+      "choices": [
+        "Each specifier uses up the next argument register, so each one needs its own copy of the value",
+        "printf only reads RSI, and the other two copies are there for alignment",
+        "%x and %c need the value sign-extended into wider registers",
+        "R12 is callee-saved, so printf can't read it"
+      ],
+      "answer": 0,
+      "explain": "%d reads RSI, %x reads RDX, %c reads RCX. To print one number three ways, you pass it three times."
+    },
+    {
+      "type": "mc",
+      "category": "Argument array on the stack",
+      "q": "Why does printf copy RDI, RSI, RDX, RCX, R8 and R9 into a 48-byte area on its stack?",
+      "choices": [
+        "The write syscall needs its arguments in memory",
+        "Registers can't be indexed, but an array of 8-byte slots can be walked with one pointer that moves 8 bytes at a time",
+        "Values in registers are lost every time a jmp runs",
+        "The System V ABI says every function must spill its arguments to the stack"
+      ],
+      "answer": 1,
+      "explain": "Registers are separate 'islands', so reaching the Nth one would need explicit code for each register. Once the values are in an array, the code just keeps a pointer (R15) and adds 8 to get the next argument."
+    },
+    {
+      "type": "mc",
+      "category": "Argument array on the stack",
+      "q": "In the 80-byte frame version, RDI is stored at [rbp-48] and the other registers follow in ABI order. Where is RCX stored?",
+      "choices": ["[rbp-40]", "[rbp-32]", "[rbp-24]", "[rbp-16]"],
+      "answer": 2,
+      "explain": "RDI at rbp-48, RSI at rbp-40, RDX at rbp-32, RCX at rbp-24, R8 at rbp-16, R9 at rbp-8."
+    },
+    {
+      "type": "mc",
+      "category": "Argument array on the stack",
+      "q": "Why does every argument get a full 8-byte slot, even one that will be printed with %c?",
+      "choices": [
+        "printf doesn't know the argument types ahead of time. A slot could hold an 8-byte pointer, a 4-byte integer or a 1-byte char",
+        "Characters are stored as 8-byte UTF-64 values",
+        "The stack can only be written in 8-byte units",
+        "8-byte slots let printf skip null-terminating the output"
+      ],
+      "answer": 0,
+      "explain": "The type is only known when printf reads the specifier, so each slot has to fit the largest possible value, a 64-bit register or pointer."
+    },
+    {
+      "type": "mc",
+      "category": "Argument array on the stack",
+      "q": "printf sets up `mov r13, [rbp-48]` and `lea r15, [rbp-40]`. What does each register hold?",
+      "choices": [
+        "Both hold the address of a stack slot",
+        "R13 holds the format string's address (the value stored in the slot). R15 holds the address of the RSI slot itself",
+        "R13 holds the first character of the format string. R15 holds the first argument's value",
+        "R13 holds the address of the RDI slot. R15 holds the value of the first argument"
+      ],
+      "answer": 1,
+      "explain": "mov with brackets loads the 8 bytes stored at rbp-48, which is the format string pointer, so R13 can walk the string. lea computes an address without loading anything, so R15 points at the slot array and can step through it with add r15, 8."
+    },
+    {
+      "type": "tf",
+      "category": "Argument array on the stack",
+      "q": "printf moves to the next argument with `add r15, 8`, not `sub`, because later arguments (RDX, RCX, ...) are stored at higher addresses than earlier ones.",
+      "answer": true,
+      "explain": "RSI is at rbp-40, RDX at rbp-32, and so on. Each next argument is 8 bytes closer to RBP, which means a higher address."
+    },
+    {
+      "type": "mc",
+      "category": "Argument array on the stack",
+      "q": "The format is \"%d %d\" but the caller only set RSI. What does the second %d print?",
+      "choices": [
+        "0, because unused slots are zeroed",
+        "Nothing, because printf sees the argument is missing",
+        "Whatever value happened to be left in RDX, since printf copied it into the slot anyway",
+        "The value from RSI again"
+      ],
+      "answer": 2,
+      "explain": "printf copies all six registers no matter what. A missing argument just reads stale data, which is why printf calls with missing arguments print junk."
+    },
+    {
+      "type": "mc",
+      "category": "Parsing the format string",
+      "q": "When the main loop reads a '%' from [r13], what does .pf_handlearg do first?",
+      "choices": [
+        "Copies the '%' into the output buffer",
+        "Adds 8 to R15",
+        "Increments R13 and loads the next character into AL to decide which handler to jump to",
+        "Calls itoa"
+      ],
+      "answer": 2,
+      "explain": "The '%' only marks a specifier. The handler steps past it, reads the letter after it, and compares that letter against 'c', '%', 's', 'd', 'u' and 'x'."
+    },
+    {
+      "type": "multi",
+      "category": "Parsing the format string",
+      "q": "Which of these does the final %% handler do?",
+      "choices": [
+        "Writes a '%' byte to [r14]",
+        "Increments R13",
+        "Increments R14",
+        "Adds 8 to R15"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "%% is a literal and doesn't use an argument. The first version also advanced R15 here. That was a bug, because it made later specifiers skip an argument."
+    },
+    {
+      "type": "mc",
+      "category": "Parsing the format string",
+      "q": "Why does %s need two dereferences, while %c needs only one?",
+      "choices": [
+        "Strings are stored in big-endian order",
+        "For %c, the slot holds the character itself. For %s, the slot holds a pointer, so you load the pointer from [r15] and then read the characters through it",
+        "%s has to dereference RBP first",
+        "%c also needs two dereferences. It just uses AL"
+      ],
+      "answer": 1,
+      "explain": "A string is the address of its first character. `mov rsi, [r15]` gets that address, and then the copy loop reads bytes with `mov al, [rsi]` until it hits the null terminator."
+    },
+    {
+      "type": "mc",
+      "category": "Parsing the format string",
+      "q": "The %c handler runs `mov al, [r15]` on an 8-byte slot. Which byte of the stored value ends up in AL?",
+      "choices": [
+        "The most significant byte",
+        "The least significant byte, which is the first byte in memory on little-endian x86",
+        "The byte at [r15+7]",
+        "A sum of all 8 bytes"
+      ],
+      "answer": 1,
+      "explain": "x86-64 is little-endian, so the low byte is stored first. AL is one byte, so the mov reads just that byte."
+    },
+    {
+      "type": "tf",
+      "category": "Parsing the format string",
+      "q": "While .pf_append_string copies an argument string into the buffer, it increments R13 once for each character it copies.",
+      "answer": false,
+      "explain": "R13 stays on the 's' (or 'd'/'u'/'x') while the copy runs. Only at .pf_append_string_done does the code add 8 to R15 and increment R13 once to step past the specifier letter."
+    },
+    {
+      "type": "mc",
+      "category": "Parsing the format string",
+      "q": "In the posted code, .pf_unsupported is just `jmp .pf_loop`. What does the format \"%q\" print?",
+      "choices": [
+        "Nothing",
+        "%q",
+        "q",
+        "The program crashes"
+      ],
+      "answer": 2,
+      "explain": ".pf_handlearg already moved R13 onto the 'q'. Back in the main loop, 'q' isn't null or '%', so it gets copied as a normal character. The '%' is dropped and R15 doesn't move."
+    },
+    {
+      "type": "mc",
+      "category": "Parsing the format string",
+      "q": "The first version of the decimal handler segfaulted, and the crash showed up inside the string handler. What caused it?",
+      "choices": [
+        "itoa divided by zero",
+        "The handler had no jump at the end, so execution fell through into the code at the next label",
+        "R15 pointed at the wrong slot",
+        "The output buffer was too small"
+      ],
+      "answer": 1,
+      "explain": "Labels don't stop execution. Without a jmp, the CPU keeps running whatever instructions come next in memory, which here were the string handler's."
+    },
+    {
+      "type": "mc",
+      "category": "Output buffer and syscalls",
+      "q": "Why does printf collect its output in a 128-byte buffer instead of writing each character as it goes?",
+      "choices": [
+        "write can only send 128 bytes",
+        "A write syscall for every character is slow. Building the whole string and making one syscall at the end is much cheaper",
+        "Strings in .data are read-only",
+        "The buffer is needed to null-terminate the format string"
+      ],
+      "answer": 1,
+      "explain": "R13 reads from the format string (source) and R14 writes to buf (destination). One write call prints everything at the end."
+    },
+    {
+      "type": "mc",
+      "category": "Output buffer and syscalls",
+      "q": "At .pf_done, RSI = address of buf and R14 points to where the next byte would go. How is the length for write (RDX) computed?",
+      "choices": [
+        "RDX = 128",
+        "RDX = R14 - RSI",
+        "RDX = R13 - RSI",
+        "RDX = R14 + RSI"
+      ],
+      "answer": 1,
+      "explain": "End pointer minus start pointer is the number of bytes written. The code runs `sub r14, rsi` and then `mov rdx, r14`, with RAX = 1 (write) and RDI = 1 (stdout)."
+    },
+    {
+      "type": "tf",
+      "category": "Output buffer and syscalls",
+      "q": "The length passed to write includes the null terminator stored at [r14].",
+      "answer": false,
+      "explain": "The terminator is written with `mov byte ptr [r14], 0`, but R14 isn't incremented afterward. So R14 - buf counts only the visible characters."
+    },
+    {
+      "type": "mc",
+      "category": "Output buffer and syscalls",
+      "q": "`mov [r14], 0` fails to assemble, but `mov [r14], al` works. Why?",
+      "choices": [
+        "R14 can't be used as a pointer",
+        "With an immediate and a memory operand the size is ambiguous, so you need `byte ptr`. AL is a 1-byte register, which tells the assembler the size",
+        "Zero can't be stored to memory",
+        "Intel syntax requires a prefix on immediates"
+      ],
+      "answer": 1,
+      "explain": "The fix is `mov byte ptr [r14], 0`. The same applies to `mov byte ptr [r14], '%'` and `'-'`."
+    },
+    {
+      "type": "num",
+      "category": "Output buffer and syscalls",
+      "q": "_exit loads RAX with a syscall number and zeroes RDI. What number goes in RAX?",
+      "answer": 60,
+      "explain": "Syscall 60 is exit, and RDI = 0 is the exit status. Syscall 1 is write."
+    },
+    {
+      "type": "mc",
+      "category": "Number-to-string conversion",
+      "q": "Why do itoa and htoa run `xor rdx, rdx` before every `div rcx`?",
+      "choices": [
+        "div uses RDX as the divisor",
+        "div divides the 128-bit value RDX:RAX. Anything left in RDX, like the previous remainder, becomes the high half and makes the dividend huge",
+        "It sets the carry flag div needs",
+        "It null-terminates the output string"
+      ],
+      "answer": 1,
+      "explain": "With RDX cleared, the dividend is just the 64-bit value in RAX. xor rdx, rdx does the same thing as mov rdx, 0."
+    },
+    {
+      "type": "mc",
+      "category": "Number-to-string conversion",
+      "q": "After `div rcx`, where are the quotient and the remainder?",
+      "choices": [
+        "Quotient in RDX, remainder in RAX",
+        "Quotient in RAX, remainder in RDX",
+        "Quotient in RCX, remainder in RDX",
+        "Quotient in RAX, remainder in RCX"
+      ],
+      "answer": 1,
+      "explain": "The remainder in RDX is the next digit. The code adds '0' and stores DL. The quotient in RAX is what gets divided on the next pass."
+    },
+    {
+      "type": "mc",
+      "category": "Number-to-string conversion",
+      "q": "Why does itoa start at the end of its buffer and write toward the front?",
+      "choices": [
+        "Dividing by 10 over and over produces the least significant digit first",
+        "Writing backwards is required on the stack",
+        "It saves one byte of buffer space",
+        "The write syscall reads its buffer backwards"
+      ],
+      "answer": 0,
+      "explain": "27 / 10 = 2 remainder 7, then 2 / 10 = 0 remainder 2. Digits come out 7 then 2, so writing right to left gives \"27\"."
+    },
+    {
+      "type": "mc",
+      "category": "Number-to-string conversion",
+      "q": "itoa gets a buffer start in RSI and a size in RDX (32). Why does it run `dec rdx` before `add rsi, rdx`?",
+      "choices": [
+        "To make room for a minus sign",
+        "Offsets in a 32-byte buffer go from 0 to 31, so the last byte is at start + size - 1",
+        "div changes RDX anyway",
+        "To keep the stack 16-byte aligned"
+      ],
+      "answer": 1,
+      "explain": "Adding the full 32 would point one byte past the buffer. The null terminator goes in the last byte, and digits are written backward from just before it."
+    },
+    {
+      "type": "mc",
+      "category": "Number-to-string conversion",
+      "q": "What does itoa return in RAX?",
+      "choices": [
+        "The number of digits written",
+        "The start of the 32-byte buffer it was given",
+        "A pointer to the first (most significant) digit, which is usually somewhere in the middle of the buffer",
+        "The remainder from the last division"
+      ],
+      "answer": 2,
+      "explain": "The digits are packed against the end of the buffer, so the string starts wherever RDI stopped. The caller moves RAX into RSI and jumps to .pf_append_string."
+    },
+    {
+      "type": "text",
+      "category": "Number-to-string conversion",
+      "q": "What string does itoa produce when the input is 0?",
+      "answer": ["0"],
+      "explain": "The loop writes a digit before it checks whether the quotient is 0. So 0 / 10 = 0 remainder 0 writes '0', and then the loop exits. You always get at least one digit."
+    },
+    {
+      "type": "text",
+      "category": "Number-to-string conversion",
+      "q": "In htoa, a remainder of 13 goes to the letter branch (`add rdx, 'a'` then `sub rdx, 10`). Which character is stored?",
+      "answer": ["d"],
+      "explain": "'a' + 13 - 10 = 'a' + 3 = 'd'. Subtracting 10 lines up 10 with 'a', 11 with 'b', and so on up to 15 with 'f'. The output is lowercase."
+    },
+    {
+      "type": "text",
+      "category": "Number-to-string conversion",
+      "q": "The posted program passes 5678 for its %x specifier. What hex digits does htoa produce? (Write them the way htoa outputs them.)",
+      "answer": ["162e", "0x162e"],
+      "explain": "5678 / 16 = 354 r 14 ('e'), 354 / 16 = 22 r 2, 22 / 16 = 1 r 6, 1 / 16 = 0 r 1. Reading most significant first gives 162e. The format adds the literal 0x in front."
+    },
+    {
+      "type": "mc",
+      "category": "Signed and unsigned output",
+      "q": "How does the %d (signed) handler print a negative value?",
+      "choices": [
+        "It calls htoa and adds a minus sign",
+        "`cmp rdi, 0` / `jl`. Then it writes '-' to the buffer, runs `neg rdi` to get the positive value, and converts that with itoa",
+        "It clears the top bit of RDI and calls itoa",
+        "It prints the value with %u and lets the terminal add the sign"
+      ],
+      "answer": 1,
+      "explain": "Values that aren't negative jump straight to the unsigned handler. Negative values get a '-' first, and then their magnitude is printed."
+    },
+    {
+      "type": "tf",
+      "category": "Signed and unsigned output",
+      "q": "`neg` performs two's complement negation, so if RDI holds -12357, it holds 12357 after `neg rdi`.",
+      "answer": true,
+      "explain": "neg computes 0 - value, which is two's complement negation, so it turns a negative number into its positive magnitude."
+    },
+    {
+      "type": "text",
+      "category": "Signed and unsigned output",
+      "q": "What does the minimal printf output for %x when the argument is -1 (all 64 bits)?",
+      "answer": ["ffffffffffffffff", "0xffffffffffffffff"],
+      "explain": "In two's complement, -1 is all ones. That's sixteen 'f' digits, lowercase because htoa maps 10-15 starting at 'a'."
+    },
+    {
+      "type": "mc",
+      "category": "Signed and unsigned output",
+      "q": "When -12357 is printed with %u, why would the original 16-byte itoa buffer have been too small?",
+      "choices": [
+        "Unsigned values need a sign byte too",
+        "Read as unsigned, it's 18446744073709539259. That's 20 digits plus a null terminator, 21 bytes",
+        "%u prints in binary",
+        "%u stores each digit in 2 bytes"
+      ],
+      "answer": 1,
+      "explain": "As unsigned, a 64-bit value can be up to 20 decimal digits. The 32-byte scratch buffer has room for that."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and register hygiene",
+      "q": "The first itoa reserved 16 bytes in its own stack frame, wrote the digits there, and returned a pointer to them. What was wrong with that?",
+      "choices": [
+        "16 bytes is always too small",
+        "The memory was freed as soon as itoa unwound its frame and returned, so later pushes or calls could overwrite it. The bug would only show up sometimes",
+        "A function can't use RDI as a destination pointer",
+        "Stack memory can't be read by the write syscall"
+      ],
+      "answer": 1,
+      "explain": "Returning a pointer into a frame that's already gone (it's 'out of scope') usually seems to work, which makes it one of the worst kinds of bugs to track down."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and register hygiene",
+      "q": "How was the itoa buffer-lifetime bug fixed?",
+      "choices": [
+        "itoa reserved 32 bytes instead of 16",
+        "printf reserved 80 bytes (48 for the argument slots plus 32 of scratch space) and passed itoa a pointer to the scratch area in RSI and its size in RDX",
+        "itoa wrote straight into buf",
+        "itoa saved its buffer with push before returning"
+      ],
+      "answer": 1,
+      "explain": "The caller owns memory that lasts longer than the call. itoa no longer touches the stack, so it doesn't need a prologue or epilogue."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and register hygiene",
+      "q": "In the posted code, the negative path loads its scratch buffer with `lea rsi, [rsp-80]`, but the other paths use `[rbp-80]`. Right after `mov rbp, rsp` / `sub rsp, 80`, what does [rsp-80] actually point to?",
+      "choices": [
+        "The same address as [rbp-80]",
+        "[rbp-160], which is 80 bytes below printf's frame, in stack memory it never reserved",
+        "The saved RBP",
+        "The start of buf in .data"
+      ],
+      "answer": 1,
+      "explain": "After sub rsp, 80, RSP equals RBP-80, so RSP-80 is RBP-160. The scratch area printf actually reserved starts at [rbp-80], which is the same address as [rsp]."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and register hygiene",
+      "q": "What does it mean that R13, R14 and R15 are callee-saved under the System V ABI?",
+      "choices": [
+        "The caller has to save them before every call",
+        "If a called function uses them, it has to put back the caller's values before it returns",
+        "The kernel saves them during syscalls",
+        "They can only hold return values"
+      ],
+      "answer": 1,
+      "explain": "From printf's point of view, whoever called it owns R13-R15. printf pushes them on entry and pops them before returning. The test was to set R13=1, R14=2, R15=3, call printf, then check them at an int3."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and register hygiene",
+      "q": "Which epilogue correctly undoes `push rbp; mov rbp, rsp; push r13; push r14; push r15; sub rsp, 88`?",
+      "choices": [
+        "add rsp, 88; pop r15; pop r14; pop r13; mov rsp, rbp; pop rbp; ret",
+        "add rsp, 88; pop r13; pop r14; pop r15; mov rsp, rbp; pop rbp; ret",
+        "pop r15; pop r14; pop r13; add rsp, 88; pop rbp; ret",
+        "mov rsp, rbp; pop rbp; pop r13; pop r14; pop r15; ret"
+      ],
+      "answer": 0,
+      "explain": "Undo the steps in reverse order: free the 88 bytes, pop the registers in the opposite order they were pushed, then restore RSP and RBP."
+    },
+    {
+      "type": "num",
+      "category": "Stack frames and register hygiene",
+      "q": "Pushing R13, R14 and R15 right after setting RBP moves every local down by 24 bytes. The scratch buffer used to be at [rbp-80]. What N gives its new address, [rbp-N]?",
+      "answer": 104,
+      "explain": "80 + 24 = 104. The argument slots shift the same way: the format string goes from rbp-48 to rbp-72, and R9's slot goes from rbp-8 to rbp-32."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and register hygiene",
+      "q": "After the three pushes were added, RSP inside printf ended in hex 8. Why was the allocation changed from 80 to 88 bytes?",
+      "choices": [
+        "The pushes take 24 bytes, which is not a multiple of 16. Another 8 bytes of padding brings RSP back to a 16-byte boundary (ending in 0), which the System V ABI requires",
+        "itoa needed 8 more bytes for a minus sign",
+        "The output buffer grew by 8 bytes",
+        "push only works when RSP ends in 8"
+      ],
+      "answer": 0,
+      "explain": "24 + 8 = 32, which is a multiple of 16. The extra 8 bytes are padding and are never used."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and register hygiene",
+      "q": "After changing `sub rsp, 80` to `sub rsp, 88`, the program segfaulted at exit. Why?",
+      "choices": [
+        "88 isn't a multiple of 8",
+        "The epilogue still ran `add rsp, 80`, so RSP was 8 bytes off and the pops and return read the wrong stack slots",
+        "R15 was popped before R13",
+        "The write syscall overflowed buf"
+      ],
+      "answer": 1,
+      "explain": "The amount freed has to match the amount reserved. Changing the epilogue to add rsp, 88 fixed the crash."
+    }
+  ]
+}

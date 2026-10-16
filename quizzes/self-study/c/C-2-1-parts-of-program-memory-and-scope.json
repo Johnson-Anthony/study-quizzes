@@ -1,0 +1,246 @@
+{
+  "title": "2.1 Parts of Program Memory and Scope",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Scope",
+      "q": "What does a variable's scope define in C?",
+      "choices": [
+        "The set of code blocks in which the variable's name is bound to a memory location and can be used",
+        "The number of bytes the variable occupies in memory",
+        "The data type of the variable",
+        "The maximum value the variable can hold"
+      ],
+      "answer": 0,
+      "explain": "Scope defines when a variable's name has meaning: the code blocks in which the name is bound to (associated with) a memory location and can be used by program code."
+    },
+    {
+      "type": "mc",
+      "category": "Scope",
+      "q": "Given `int change(int amt) { int val; val = g_x; g_x += amt; return val; }`, where can the parameter `amt` be used?",
+      "choices": [
+        "Only by statements inside the body of `change`",
+        "Anywhere in the program after `change` is declared",
+        "Inside `change` and inside any function that calls `change`",
+        "Anywhere, because parameters are stored in the data section"
+      ],
+      "answer": 0,
+      "explain": "Parameters, like local variables, are in scope only inside the function that defines them."
+    },
+    {
+      "type": "mc",
+      "category": "Scope",
+      "q": "Consider this program:\n```c\nint g_x;\n\nint main(void) {\n    int x, result;\n    /* ... */\n}\n\nint max(int n1, int n2) {\n    int val;\n    /* <-- here */\n}\n```\nWhich variables are in scope at the marked line inside `max`?",
+      "choices": [
+        "`n1`, `n2`, `val`, and `g_x`",
+        "`n1`, `n2`, and `val` only",
+        "`n1`, `n2`, `val`, `x`, `result`, and `g_x`",
+        "`g_x` only"
+      ],
+      "answer": 0,
+      "explain": "`max`'s own parameters and local variable are in scope, and global `g_x` is in scope everywhere. `main`'s locals `x` and `result` are in scope only inside `main`."
+    },
+    {
+      "type": "tf",
+      "category": "Scope",
+      "q": "Two different functions, `max` and `change`, can each declare a local variable named `val` without conflict.",
+      "answer": true,
+      "explain": "Local variables are in scope only inside their own function, so a reference to `val` inside `max` means `max`'s `val`. The `val` belonging to `change` is not in scope there."
+    },
+    {
+      "type": "mc",
+      "category": "Global variables",
+      "q": "How do you create a global variable in C?",
+      "choices": [
+        "Declare it outside of any function body",
+        "Declare it at the top of `main`",
+        "Declare it with a `global` keyword",
+        "Declare it as a parameter of `main`"
+      ],
+      "answer": 0,
+      "explain": "Declaring a variable outside of any function body creates a global variable."
+    },
+    {
+      "type": "tf",
+      "category": "Global variables",
+      "q": "Two global variables in the same program may share a name as long as they have different types.",
+      "answer": false,
+      "explain": "Every global variable must have a unique name. Its name identifies one specific storage location for the entire run of the program."
+    },
+    {
+      "type": "tf",
+      "category": "Global variables",
+      "q": "A global variable is bound to the same memory location for the entire duration of the program.",
+      "answer": true,
+      "explain": "Globals stay in scope permanently because they are always bound to one specific memory location."
+    },
+    {
+      "type": "num",
+      "category": "Global variables",
+      "q": "What does this program print?\n```c\n#include <stdio.h>\n\nint total;\n\nvoid add(int amt) {\n    int val;\n    val = amt * 2;\n    total += val;\n}\n\nint main(void) {\n    total = 1;\n    add(3);\n    add(4);\n    printf(\"%d\\n\", total);\n    return 0;\n}\n```",
+      "answer": 15,
+      "explain": "`total` is a global, so every call to `add` updates the same storage: 1 + 6 + 8 = 15. The local `val` gets fresh storage on each call."
+    },
+    {
+      "type": "num",
+      "category": "Global variables",
+      "q": "Given:\n```c\nint g_x;\n\nint change(int amt) {\n    int val;\n    val = g_x;\n    g_x += amt;\n    return val;\n}\n```\n`main` sets `g_x = 10;` and then runs `result = change(10);`. What is the value of `g_x` afterward?",
+      "answer": 20,
+      "explain": "`change` can modify the global `g_x` directly: it saves the old value (10) in `val`, adds 10 to `g_x`, and returns 10. `g_x` is now 20."
+    },
+    {
+      "type": "multi",
+      "category": "Global variables",
+      "q": "Which are reasons to use local variables and parameters instead of global variables whenever possible?",
+      "choices": [
+        "The code is more modular",
+        "The code is more general-purpose",
+        "The code is easier to debug",
+        "It can be more space-efficient, because locals and parameters take up memory only while their function is active",
+        "Functions cannot read global variables"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Local variables and parameters make code more modular, general-purpose, and easier to debug, and they take up memory only while their function is active. Any function can read and modify globals."
+    },
+    {
+      "type": "mc",
+      "category": "Local variables and the stack",
+      "q": "When is stack space for a function's parameters and local variables allocated and deallocated?",
+      "choices": [
+        "Allocated when the function is called; deallocated when the function returns",
+        "Allocated when the program starts; deallocated when the program exits",
+        "Allocated when the variable is first assigned; deallocated when the program exits",
+        "Allocated at compile time; never deallocated"
+      ],
+      "answer": 0,
+      "explain": "Space for a parameter or local variable is allocated on the stack when the function is called and deallocated when it returns."
+    },
+    {
+      "type": "text",
+      "category": "Local variables and the stack",
+      "q": "Each active call of a function gets its own region on the stack that holds space for its parameters and local variables. What is this region called?",
+      "answer": ["stack frame", "frame", "a stack frame", "activation record"],
+      "explain": "Each activation of a function gets a separate stack frame that holds its parameters and local variables."
+    },
+    {
+      "type": "tf",
+      "category": "Local variables and the stack",
+      "q": "In a recursive function, all of the active recursive calls share one copy of the function's local variables.",
+      "answer": false,
+      "explain": "Each activation gets its own bindings. Every recursive call has a separate stack frame with its own space for parameters and local variables."
+    },
+    {
+      "type": "num",
+      "category": "Local variables and the stack",
+      "q": "A recursive function `int fact(int n)` has been called and is currently 4 calls deep, so 4 activations of `fact` are active and none has returned yet. How many separate copies of the parameter `n` exist on the stack?",
+      "answer": 4,
+      "explain": "Each activation has its own stack frame, so each of the 4 active calls has its own copy of `n`."
+    },
+    {
+      "type": "mc",
+      "category": "Memory regions",
+      "q": "Which part of a program's memory holds local variables and function parameters?",
+      "choices": ["Stack", "Heap", "Data", "Code"],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Local variables and parameters live on the stack, inside the stack frame of the function's activation."
+    },
+    {
+      "type": "mc",
+      "category": "Memory regions",
+      "q": "Which part of a program's memory holds global variables?",
+      "choices": ["Stack", "Heap", "Data", "Code"],
+      "answer": 2,
+      "fixed": true,
+      "explain": "Global variables are stored in the data section, and their storage lasts for the entire run of the program."
+    },
+    {
+      "type": "mc",
+      "category": "Memory regions",
+      "q": "Which part of a program's memory is used for dynamic memory allocation?",
+      "choices": ["Stack", "Heap", "Data", "Code"],
+      "answer": 1,
+      "fixed": true,
+      "explain": "The heap is the part of the address space used for dynamic memory allocation."
+    },
+    {
+      "type": "mc",
+      "category": "Memory regions",
+      "q": "Where are the instructions for functions such as `main`, `max`, and `change` stored?",
+      "choices": ["Stack", "Heap", "Data", "Code"],
+      "answer": 3,
+      "fixed": true,
+      "explain": "A program's instructions are stored in the code section."
+    },
+    {
+      "type": "tf",
+      "category": "Memory regions",
+      "q": "Like the stack, the data region grows and shrinks as functions are called and return.",
+      "answer": false,
+      "explain": "The data region does not grow or shrink. Storage for globals lasts for the entire run of the program."
+    },
+    {
+      "type": "multi",
+      "category": "Memory regions",
+      "q": "Which of these memory regions change in size while the program runs?",
+      "choices": ["Stack", "Heap", "Data"],
+      "answer": [0, 1],
+      "fixed": true,
+      "explain": "The stack grows and shrinks as functions are called and return, and the heap grows as more space is allocated dynamically. The data region stays a fixed size."
+    },
+    {
+      "type": "mc",
+      "category": "Address space layout",
+      "q": "What is a program's address space?",
+      "choices": [
+        "The storage locations for everything the program needs to run, namely its instructions and data",
+        "Only the memory that holds the program's global variables",
+        "The set of files the program can open on disk",
+        "The region of memory reserved for the operating system"
+      ],
+      "answer": 0,
+      "explain": "The OS creates the address space when it launches the program. It holds storage for the program's instructions and data and can be thought of as an array of addressable bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Address space layout",
+      "q": "Which part of a program's address space cannot be used by the running program?",
+      "choices": [
+        "The top of memory, which is reserved for the operating system",
+        "The code section",
+        "The heap",
+        "The data section"
+      ],
+      "answer": 0,
+      "explain": "The top of a program's memory is reserved for the operating system. The remaining parts can be used by the running program."
+    },
+    {
+      "type": "mc",
+      "category": "Address space layout",
+      "q": "Why is the stack usually placed near the bottom of memory, at the highest addresses?",
+      "choices": [
+        "Stack space grows and shrinks as functions are called and return, so it needs room to change",
+        "The stack holds global variables, which must sit far from the code",
+        "Higher addresses are faster to access",
+        "The operating system region is always at the highest addresses"
+      ],
+      "answer": 0,
+      "explain": "The stack grows and shrinks during execution, so placing it at the highest addresses leaves room for it to change."
+    },
+    {
+      "type": "mc",
+      "category": "Address space layout",
+      "q": "As a running program allocates more dynamic memory, which direction does the heap grow?",
+      "choices": [
+        "Toward higher addresses",
+        "Toward lower addresses",
+        "It does not grow; its size is fixed at launch",
+        "Toward the operating system region"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "The heap is usually far from the stack and grows toward higher addresses as more space is allocated dynamically."
+    }
+  ]
+}

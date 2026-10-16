@@ -1,0 +1,676 @@
+{
+  "title": "NAND2TETRIS 09: High-Level Language (Jack)",
+  "course": "NAND2TETRIS",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Syntax and program structure",
+      "q": "Which subroutine is the entry point of a Jack program?",
+      "choices": [
+        "Main.main",
+        "The first function declared in the first .jack file compiled",
+        "Any function named main, in whichever class declares it",
+        "Main.new"
+      ],
+      "answer": 0,
+      "explain": "A Jack program is one or more classes, one of which must be named Main. Main must have a function named main, and execution begins at Main.main."
+    },
+    {
+      "type": "tf",
+      "category": "Syntax and program structure",
+      "q": "A Jack class named Foo must be stored in its own file named Foo.jack.",
+      "answer": true,
+      "explain": "The class is the basic compilation unit, and each class Foo lives in a separate Foo.jack file."
+    },
+    {
+      "type": "multi",
+      "category": "Syntax and program structure",
+      "q": "Which of the following are legal Jack identifiers?",
+      "choices": ["_count", "x2", "2x", "my-var", "Total_Sum"],
+      "answer": [0, 1, 4],
+      "explain": "Identifiers are any-length sequences of letters, digits and '_', and the first character must be a letter or '_'. '2x' starts with a digit, and 'my-var' contains '-', which is the minus operator."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax and program structure",
+      "q": "How does Jack treat `-13` in source code?",
+      "choices": [
+        "As an expression: the unary minus operator applied to the integer constant 13",
+        "As a negative integer constant",
+        "As a syntax error, since Jack has no negative numbers",
+        "As the constant 32755"
+      ],
+      "answer": 0,
+      "explain": "Integer constants range from 0 to 32767. A negative value like -13 isn't a constant. It's an expression that applies unary minus to the constant 13."
+    },
+    {
+      "type": "num",
+      "category": "Syntax and program structure",
+      "q": "What is the largest integer constant you can write in Jack source code?",
+      "answer": 32767,
+      "explain": "Jack integer constants are values in the range 0 to 32767."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax and program structure",
+      "q": "A Jack string constant can contain any character except two. Which two are they, and how do you get them?",
+      "choices": [
+        "Newline and double quote. Call String.newLine() and String.doubleQuote().",
+        "Backslash and single quote. Jack supports C-style escape sequences for them.",
+        "Tab and newline. Use the escape sequences for tab and newline.",
+        "Double quote and semicolon. Call String.doubleQuote() and String.semicolon()."
+      ],
+      "answer": 0,
+      "explain": "String constants are enclosed in double quotes and can't contain a newline or a double quote. The OS functions String.newLine() and String.doubleQuote() supply those characters."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax and program structure",
+      "q": "What is the `/** ... */` comment form intended for?",
+      "choices": [
+        "API documentation comments",
+        "Comments that run to the end of the line",
+        "Compiler directives",
+        "Disabling code during debugging; it can't hold prose"
+      ],
+      "answer": 0,
+      "explain": "Jack supports three comment forms: `//` runs to the end of the line, `/* ... */` runs until the closing `*/`, and `/** ... */` is for API documentation. The compiler ignores all of them, along with white space."
+    },
+    {
+      "type": "tf",
+      "category": "Syntax and program structure",
+      "q": "Jack is case sensitive, so `count` and `Count` are different identifiers.",
+      "answer": true,
+      "explain": "The language is case sensitive: x and X are treated as different identifiers."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax and program structure",
+      "q": "Which Jack symbol is both the assignment operator and the equality comparison operator?",
+      "choices": ["=", "==", ":=", "~"],
+      "answer": 0,
+      "explain": "Jack uses a single `=` for both, e.g. `let x = 0;` and `while (~(current = null))`. There is no `==` operator."
+    },
+    {
+      "type": "multi",
+      "category": "Data types, variables, and casting",
+      "q": "Which of these are primitive types in Jack?",
+      "choices": ["int", "char", "boolean", "String", "Array", "float"],
+      "answer": [0, 1, 2],
+      "explain": "Jack's primitive types are int, char and boolean. String and Array are class types from the standard library (the OS), and Jack has no floating-point type."
+    },
+    {
+      "type": "mc",
+      "category": "Data types, variables, and casting",
+      "q": "Which kind of Jack variable has exactly one copy, shared by all instances of the class?",
+      "choices": ["static", "field", "local (var)", "parameter"],
+      "answer": 0,
+      "explain": "Only one copy of each static variable exists, and every object of the class shares it (like a private static variable in Java). Each object gets its own copy of the field variables."
+    },
+    {
+      "type": "mc",
+      "category": "Data types, variables, and casting",
+      "q": "What is the scope of a field variable?",
+      "choices": [
+        "The class it is declared in, except in functions, where it is undefined",
+        "The whole program",
+        "Only the constructor that initializes it",
+        "The class it is declared in, including its functions"
+      ],
+      "answer": 0,
+      "explain": "Fields belong to individual objects. A function operates on no particular object, so there is no current object whose fields it could use."
+    },
+    {
+      "type": "mc",
+      "category": "Data types, variables, and casting",
+      "q": "You declared `var char c;` and want c to hold the character 'A'. Which statement works in Jack?",
+      "choices": [
+        "let c = 65;",
+        "let c = 'A';",
+        "let c = char('A');",
+        "let c = \"A\";"
+      ],
+      "answer": 0,
+      "explain": "Jack has no character literals, so `let c = 'A';` isn't supported. Characters and integers convert freely, and 65 is the code for 'A'. A workaround is `let s = \"A\"; let c = s.charAt(0);`. Assigning \"A\" directly would store a String object's address, not the character code."
+    },
+    {
+      "type": "num",
+      "category": "Data types, variables, and casting",
+      "q": "After `var Array arr; let arr = 5000; let arr[100] = 17;` runs, which RAM address holds 17?",
+      "answer": 5100,
+      "explain": "An integer assigned to a reference variable is treated as a memory address. arr[100] is the word at arr + 100, which is RAM[5100]."
+    },
+    {
+      "type": "mc",
+      "category": "Data types, variables, and casting",
+      "q": "Point has two int fields, x and y, and a print method that prints \"(x,y)\". What does this code print? `let arr = Array.new(2); let arr[0] = 2; let arr[1] = 5; let p = arr; do p.print();` (p is declared as a Point)",
+      "choices": [
+        "(2,5)",
+        "Nothing; it's a compile-time type error",
+        "(0,0)",
+        "The address of arr"
+      ],
+      "answer": 0,
+      "explain": "Jack is weakly typed, so an object can be converted into an array and back. p now points to the memory block holding [2,5], and Point's print method reads those two words as x = 2, y = 5."
+    },
+    {
+      "type": "num",
+      "category": "Data types, variables, and casting",
+      "q": "Using the Hack character set, what value does c hold after `let s = \"ABC\"; let c = s.charAt(1);`?",
+      "answer": 66,
+      "explain": "charAt is zero-based, so index 1 is 'B'. In the Hack character set A = 65, B = 66, C = 67."
+    },
+    {
+      "type": "mc",
+      "category": "Data types, variables, and casting",
+      "q": "How do you represent a two-dimensional array in Jack?",
+      "choices": [
+        "Create an array whose elements are arrays",
+        "Declare it with `var Array2D grid;`",
+        "Call Array.new(rows, cols)",
+        "You can't; Jack has no way to represent 2D data"
+      ],
+      "answer": 0,
+      "explain": "Array.new takes a single size. To get a multi-dimensional array, create an array of arrays."
+    },
+    {
+      "type": "tf",
+      "category": "Data types, variables, and casting",
+      "q": "Jack arrays are typed: an Array that holds integers can't also hold a Point or a String.",
+      "answer": false,
+      "explain": "Jack arrays are untyped instances of the OS class Array. The lecture's example puts 12, false, a Point and a String into one 4-element array."
+    },
+    {
+      "type": "mc",
+      "category": "Data types, variables, and casting",
+      "q": "What does the declaration `var String s;` create?",
+      "choices": [
+        "An object variable (a pointer). The String itself still has to be created, e.g. with String.new or a string constant.",
+        "A String object with room for 0 characters",
+        "A String initialized to the empty string",
+        "A fixed 64-character buffer"
+      ],
+      "answer": 0,
+      "explain": "Declaring a class-type variable only creates a reference. `var char c;`, by contrast, creates a primitive variable."
+    },
+    {
+      "type": "mc",
+      "category": "Statements and expressions",
+      "q": "What is the `do` statement for?",
+      "choices": [
+        "Calling a function or method for its effect, ignoring any returned value",
+        "Starting a do-while loop",
+        "Declaring a subroutine",
+        "Assigning the result of a call to a variable"
+      ],
+      "answer": 0,
+      "explain": "`do` must precede a function or method call made outside an expression, e.g. `do Output.println();`. Assignments use `let`."
+    },
+    {
+      "type": "tf",
+      "category": "Statements and expressions",
+      "q": "In Jack, you can leave out the curly braces around an if or while body when the body is a single statement.",
+      "answer": false,
+      "explain": "The braces are mandatory even for a single statement, e.g. `if (a > 0) { return a; } else { return -a; }`."
+    },
+    {
+      "type": "mc",
+      "category": "Statements and expressions",
+      "q": "What is the value of the Jack expression `2 + 3 * 4`?",
+      "choices": [
+        "Unpredictable, because Jack has no operator priority. Write `2 + (3 * 4)` instead.",
+        "14, since * binds tighter than +",
+        "20, since Jack evaluates strictly left to right by definition",
+        "None; it's a compile error"
+      ],
+      "answer": 0,
+      "explain": "Jack defines no operator priority, so the lecture calls this expression's value unpredictable. Use parentheses to enforce the order you want."
+    },
+    {
+      "type": "mc",
+      "category": "Statements and expressions",
+      "q": "What does the unary operator `~` do in Jack?",
+      "choices": [
+        "Boolean negation (bit-wise NOT for integers)",
+        "Arithmetic negation",
+        "Approximate equality",
+        "Bit-wise XOR"
+      ],
+      "answer": 0,
+      "explain": "Jack has two unary operators: `-` for arithmetic negation and `~` for boolean negation, which is bit-wise for integers. For example, `~(current = null)` means current is not null."
+    },
+    {
+      "type": "tf",
+      "category": "Statements and expressions",
+      "q": "You can use the `this` keyword inside a function.",
+      "answer": false,
+      "explain": "`this` denotes the current object. A function is a static method that operates on no particular object, so `this` can't be used there."
+    },
+    {
+      "type": "multi",
+      "category": "Statements and expressions",
+      "q": "Which of the following can be a Jack expression?",
+      "choices": [
+        "The constant 17",
+        "this, inside a method",
+        "A call to a subroutine whose return type is void",
+        "~done, where done is a boolean variable",
+        "i++"
+      ],
+      "answer": [0, 1, 3],
+      "explain": "An expression can be a constant, a variable in scope, `this` (outside functions), an array element, a call to a subroutine that returns a non-void type, a unary `-` or `~` applied to an expression, a binary operation, or a parenthesized expression. Jack has no `++` operator."
+    },
+    {
+      "type": "mc",
+      "category": "Statements and expressions",
+      "q": "Which of these is a legal Jack assignment to the local variable x?",
+      "choices": ["let x = 0;", "x = 0;", "var x = 0;", "set x = 0;"],
+      "answer": 0,
+      "explain": "Every assignment must start with `let`. `var` only declares locals, with a type: `var int x;`."
+    },
+    {
+      "type": "mc",
+      "category": "Statements and expressions",
+      "q": "How must the method `method void draw()` end?",
+      "choices": [
+        "With `return;`",
+        "With `return this;`",
+        "With `return 0;`",
+        "No return is needed; it can just reach the closing brace"
+      ],
+      "answer": 0,
+      "explain": "Every subroutine must end with `return value;` or `return;`. Void functions and methods use `return;`, and constructors must end with `return this;`."
+    },
+    {
+      "type": "tf",
+      "category": "Statements and expressions",
+      "q": "Rules like requiring `let` before assignments, `do` before standalone calls, and braces around every block make Jack programs a bit harder to write but make the Jack compiler much easier to write.",
+      "answer": true,
+      "explain": "The lecture says some of these peculiar syntax features make writing Jack programs a bit harder and writing a Jack compiler much easier."
+    },
+    {
+      "type": "mc",
+      "category": "Classes, objects, and memory",
+      "q": "Which kind of Jack subroutine is a static method that operates on no particular object?",
+      "choices": ["function", "method", "constructor", "field"],
+      "answer": 0,
+      "explain": "Constructors create new objects, methods operate on the current object, and functions are static methods that operate on no particular object."
+    },
+    {
+      "type": "mc",
+      "category": "Classes, objects, and memory",
+      "q": "Inside a method of class Point, how can you read the x field of a different Point object named other?",
+      "choices": [
+        "Call an accessor such as other.getx(), because all fields are private",
+        "Write other.x",
+        "Write Point.x(other)",
+        "Write this.x, which refers to other"
+      ],
+      "answer": 0,
+      "explain": "In Jack all fields are private and all methods are public. You read the current object's field by just writing x (the same as this.x). For another object, you need a get/set method."
+    },
+    {
+      "type": "mc",
+      "category": "Classes, objects, and memory",
+      "q": "Inside a constructor, what does `this` contain?",
+      "choices": [
+        "The base address of the object the constructor created",
+        "The class name",
+        "The number of objects created so far",
+        "null, until `return this;` runs"
+      ],
+      "answer": 0,
+      "explain": "The compiled constructor calls an OS function to allocate a memory block for the new object, then sets a local `this` to the block's base address. `return this;` hands that address back to the caller."
+    },
+    {
+      "type": "mc",
+      "category": "Classes, objects, and memory",
+      "q": "On the Hack platform, where do Jack objects and arrays live?",
+      "choices": [
+        "On the heap, starting at RAM address 2048",
+        "On the stack, at RAM 256 to 2047",
+        "In the static variable area, starting at RAM address 16",
+        "In CPU registers"
+      ],
+      "answer": 0,
+      "explain": "Static variables start at RAM 16. The stack (256 to 2047) holds the local and argument variables of running subroutines. Objects and arrays live on the heap, which starts at 2048. A client variable like p1 sits on the stack and holds a heap address."
+    },
+    {
+      "type": "num",
+      "category": "Classes, objects, and memory",
+      "q": "In the Point class, the constructor increments the static pointCount, and plus returns Point.new(...). What number does this code print? `let p1 = Point.new(1,2); let p2 = Point.new(3,4); let p3 = p1.plus(p2); do Output.printInt(Point.getPointCount());`",
+      "answer": 3,
+      "explain": "plus creates its result by calling Point.new, so the constructor runs three times: for p1, for p2, and inside plus for p3."
+    },
+    {
+      "type": "tf",
+      "category": "Classes, objects, and memory",
+      "q": "Jack has automatic garbage collection, so objects you no longer need are reclaimed for you.",
+      "answer": false,
+      "explain": "Jack has no garbage collection. Best practice is to dispose an object once you no longer need it, and to give every class that has constructors a dispose method that calls Memory.deAlloc(this)."
+    },
+    {
+      "type": "mc",
+      "category": "Classes, objects, and memory",
+      "q": "Inside method f of class Foo, what does `do g();` do?",
+      "choices": [
+        "Calls method g of class Foo on the current (this) object",
+        "Calls function g of class Foo with no object",
+        "Calls a global function g",
+        "Nothing; it's illegal because every call must name a class or object"
+      ],
+      "answer": 0,
+      "explain": "An unqualified call means a method of the current class, called on `this`. That's why it can't appear inside a function. Calling a function requires the class name, e.g. `do Foo.p(3);`."
+    },
+    {
+      "type": "tf",
+      "category": "Classes, objects, and memory",
+      "q": "Every Jack class must declare at least one constructor.",
+      "answer": false,
+      "explain": "A Jack class has 0 or more constructors, one of which is normally named new. A class like Main, which only has the function main, needs none."
+    },
+    {
+      "type": "mc",
+      "category": "Classes, objects, and memory",
+      "q": "What makes up a Jack class declaration?",
+      "choices": [
+        "Field variable declarations, static variable declarations, and subroutine declarations",
+        "Import statements, field declarations, and method declarations",
+        "Local variable declarations, statements, and a return",
+        "An interface, a constructor, and a destructor"
+      ],
+      "answer": 0,
+      "explain": "A class is a sequence of field declarations, static variable declarations, and subroutine declarations (constructors, methods and functions)."
+    },
+    {
+      "type": "mc",
+      "category": "Linked lists",
+      "q": "How does the lecture define a list recursively?",
+      "choices": [
+        "Either null, or a value followed by a list",
+        "An array whose last element is null",
+        "A pair of lists",
+        "A value followed by null"
+      ],
+      "answer": 0,
+      "explain": "A list is the value null, or a value followed by a list. So (3, 5, 2) is (3, (5, (2, null))). The List class mirrors this with an int field `data` and a List field `next`."
+    },
+    {
+      "type": "mc",
+      "category": "Linked lists",
+      "q": "What does `do v.print();` display after `let v = List.new(2, null); let v = List.new(5, v); let v = List.new(3, v);`?",
+      "choices": ["3 5 2", "2 5 3", "2 3 5", "3"],
+      "answer": 0,
+      "explain": "Each List.new(car, cdr) makes a new node whose next field points at the existing list, so the node created last becomes the head. The result is the list (3, 5, 2)."
+    },
+    {
+      "type": "mc",
+      "category": "Linked lists",
+      "q": "In `constructor List new(int car, List cdr)`, what does `let next = cdr;` do?",
+      "choices": [
+        "Links the new node to the list that was passed in",
+        "Advances an iterator to the next node",
+        "Copies the entire cdr list",
+        "Sets next to null"
+      ],
+      "answer": 0,
+      "explain": "The constructor stores car in data, stores the reference cdr in next (no copying), then returns this. The new node is now the head of the old list."
+    },
+    {
+      "type": "mc",
+      "category": "Linked lists",
+      "q": "List.print starts with `let current = this;` and loops `while (~(current = null)) { ...; let current = current.getNext(); }`. When does the loop stop?",
+      "choices": [
+        "After the last node is printed, when current becomes null",
+        "When current.getData() is 0",
+        "Immediately, because current starts as null",
+        "Never, unless the body executes an explicit return"
+      ],
+      "answer": 0,
+      "explain": "current starts at the first node. Each pass prints current's data and moves to the next node. The last node's next is null, so the condition fails after that node is printed."
+    },
+    {
+      "type": "mc",
+      "category": "Linked lists",
+      "q": "List.dispose runs `if (~(next = null)) { do next.dispose(); }` and then `do Memory.deAlloc(this);`. For the list (3, 5, 2), in what order are the nodes freed?",
+      "choices": [
+        "2, then 5, then 3",
+        "3, then 5, then 2",
+        "All three at the same moment",
+        "Only 3 is freed; the other nodes leak"
+      ],
+      "answer": 0,
+      "explain": "Each call disposes its tail before freeing itself. The recursion reaches node 2, whose next is null, so node 2 is freed first. Then the call on 5 resumes and frees 5, and finally the call on 3 frees 3."
+    },
+    {
+      "type": "num",
+      "category": "Linked lists",
+      "q": "The client calls v.dispose() on a 3-element list. Counting that call, how many times does dispose() run in total?",
+      "answer": 3,
+      "explain": "dispose runs once per node: the client's call on the head, plus one recursive next.dispose() call for each of the two remaining nodes."
+    },
+    {
+      "type": "mc",
+      "category": "Linked lists",
+      "q": "When v.dispose() starts executing, what is `this` set to?",
+      "choices": [
+        "The object dispose was called on (the node v points to)",
+        "null",
+        "The last node of the list",
+        "The List class itself"
+      ],
+      "answer": 0,
+      "explain": "The compiled method creates a local variable named this and sets it to the object the method was called on. In the recursive call next.dispose(), this is the next node."
+    },
+    {
+      "type": "mc",
+      "category": "Linked lists",
+      "q": "What best practice does the lecture recommend for code that builds and manipulates lists?",
+      "choices": [
+        "Move it from the client into the List class, e.g. an append method or a constructor that takes an array",
+        "Keep it in Main so the List class stays small",
+        "Store the list's head and tail in static variables",
+        "Skip constructors and build nodes with Memory.alloc"
+      ],
+      "answer": 0,
+      "explain": "Building a list by chaining List.new calls in client code works, but the lecture says there are better and safer ways and that construction/manipulation code belongs in the List class."
+    },
+    {
+      "type": "multi",
+      "category": "The Jack OS",
+      "q": "Which of the following are classes in the Jack OS?",
+      "choices": ["Math", "Screen", "Memory", "Sys", "File", "Thread"],
+      "answer": [0, 1, 2, 3],
+      "explain": "The Jack OS classes are Math, String, Array, Output, Screen, Keyboard, Memory and Sys. It has no File or Thread classes."
+    },
+    {
+      "type": "mc",
+      "category": "The Jack OS",
+      "q": "What does `do Memory.poke(513, Memory.peek(512));` do?",
+      "choices": [
+        "Sets RAM[513] to the value of RAM[512]",
+        "Sets RAM[512] to the value of RAM[513]",
+        "Swaps RAM[512] and RAM[513]",
+        "Allocates 513 words starting at address 512"
+      ],
+      "answer": 0,
+      "explain": "Memory.peek(address) returns the value stored at that address, and Memory.poke(address, value) writes value there."
+    },
+    {
+      "type": "mc",
+      "category": "The Jack OS",
+      "q": "What does this code display? `do Output.printInt(97); do Output.printChar(97); do Output.printString(\"a\");`",
+      "choices": ["97aa", "979797", "aaa", "97a97"],
+      "answer": 0,
+      "explain": "printInt prints the number 97. printChar prints the character whose code is 97, which is 'a'. printString prints the string \"a\"."
+    },
+    {
+      "type": "mc",
+      "category": "The Jack OS",
+      "q": "How is the screen laid out for text written with the Output class?",
+      "choices": [
+        "23 rows of 64 characters",
+        "256 rows of 512 characters",
+        "25 rows of 80 characters",
+        "32 rows of 64 characters"
+      ],
+      "answer": 0,
+      "explain": "Output treats the screen as 23 rows of 64 characters, black and white, in a fixed font defined in the Output class."
+    },
+    {
+      "type": "mc",
+      "category": "The Jack OS",
+      "q": "What is the resolution of the screen that the Screen class draws on?",
+      "choices": [
+        "256 rows of 512 pixels, black and white",
+        "512 rows of 256 pixels, grayscale",
+        "480 rows of 640 pixels, black and white",
+        "23 rows of 64 pixels"
+      ],
+      "answer": 0,
+      "explain": "The Hack screen is 256 rows by 512 pixels, black and white. Screen offers clearScreen, setColor, drawPixel, drawLine, drawRectangle and drawCircle."
+    },
+    {
+      "type": "mc",
+      "category": "The Jack OS",
+      "q": "How long does `do Sys.wait(1000);` pause?",
+      "choices": [
+        "One second (the duration is in milliseconds)",
+        "1000 seconds",
+        "1000 clock cycles",
+        "Until a key is pressed"
+      ],
+      "answer": 0,
+      "explain": "Sys.wait takes a duration in milliseconds. Sys also provides halt() and error(errorCode)."
+    },
+    {
+      "type": "mc",
+      "category": "The Jack OS",
+      "q": "How does the lecture describe a language's standard class library?",
+      "choices": [
+        "As a language-specific OS that closes gaps between high-level programs and the hardware",
+        "As an optional add-on that most programs avoid",
+        "As the part of the compiler that parses expressions",
+        "As a replacement for the VM"
+      ],
+      "answer": 0,
+      "explain": "Most languages are simple, and their power comes from an open-ended standard class library. The Jack OS is that library for Jack: it closes gaps between programs and the host hardware and provides efficient implementations of common functions and ADTs."
+    },
+    {
+      "type": "mc",
+      "category": "The Jack OS",
+      "q": "Which expression gets the last character of the String str?",
+      "choices": [
+        "str.charAt(str.length() - 1)",
+        "str.charAt(str.length())",
+        "str.lastChar()",
+        "str[str.length() - 1]"
+      ],
+      "answer": 0,
+      "explain": "Characters are indexed from 0 to length() - 1 and read with the String method charAt. String has no lastChar method, and a String is an object, not an Array, so you can't index it with brackets."
+    },
+    {
+      "type": "mc",
+      "category": "The Jack OS",
+      "q": "Which of these is NOT a function in the Jack OS Math class?",
+      "choices": ["pow", "sqrt", "multiply", "abs"],
+      "answer": 0,
+      "explain": "Math provides abs, multiply, divide, min, max and sqrt. It has no pow."
+    },
+    {
+      "type": "mc",
+      "category": "Applications and graphics",
+      "q": "Square Dance is built from three classes. Which one creates a Square and runs the loop that reads keys and moves, resizes, or quits?",
+      "choices": ["SquareGame", "Square", "Main", "Keyboard"],
+      "answer": 0,
+      "explain": "Square represents a graphical square object. SquareGame creates a Square and loops over the user's input. Main creates a SquareGame, runs it, and then disposes it."
+    },
+    {
+      "type": "mc",
+      "category": "Applications and graphics",
+      "q": "SquareGame.run first loops `while (key = 0) { let key = Keyboard.keyPressed(); do moveSquare(); }`, handles the key, and then loops `while (~(key = 0)) { let key = Keyboard.keyPressed(); do moveSquare(); }`. What does the second loop do?",
+      "choices": [
+        "Waits for the key to be released while keeping the square moving",
+        "Waits for a key to be pressed",
+        "Quits the game",
+        "Deletes the typed characters from the keyboard buffer"
+      ],
+      "answer": 0,
+      "explain": "The first loop waits for a key press and the second waits for its release. Both call moveSquare, so the square keeps moving in its current direction. This is the typical way interactive Jack apps handle keyboard events."
+    },
+    {
+      "type": "num",
+      "category": "Applications and graphics",
+      "q": "In the Hack character set, what code does Keyboard.keyPressed() return for the up-arrow key?",
+      "answer": 131,
+      "explain": "The arrow keys are left 130, up 131, right 132 and down 133. Newline is 128. SquareGame sets direction = 1 (up) when key = 131."
+    },
+    {
+      "type": "mc",
+      "category": "Applications and graphics",
+      "q": "Why does Square.moveUp redraw only two rows instead of erasing and redrawing the whole square?",
+      "choices": [
+        "Moving up 2 pixels changes only the bottom two rows (which become background) and the top two rows (which become black), so updating just those is cheaper",
+        "Screen.drawRectangle can draw at most two rows at a time",
+        "The square is only two pixels tall",
+        "To create a deliberate flicker effect"
+      ],
+      "answer": 0,
+      "explain": "moveUp calls setColor(false) to erase the bottom two rows, subtracts 2 from y, then calls setColor(true) to draw the two new top rows. Every other pixel stays black."
+    },
+    {
+      "type": "num",
+      "category": "Applications and graphics",
+      "q": "Drawing a 16x16 sprite with Screen.drawPixel took 75 drawing operations. How many Memory.poke writes does the optimized version need?",
+      "answer": 16,
+      "explain": "Each 16-pixel row of the sprite fits in one 16-bit word of the screen memory map, so one poke per row draws the whole sprite: 16 writes."
+    },
+    {
+      "type": "num",
+      "category": "Applications and graphics",
+      "q": "A sprite row is 0001100000110000 in binary. What decimal value do you poke into screen memory for that row?",
+      "answer": 6192,
+      "explain": "The 1 bits are worth 4096 + 2048 + 32 + 16 = 6192."
+    },
+    {
+      "type": "num",
+      "category": "Applications and graphics",
+      "q": "Generated sprite code computes memAddress = 16384 + location and then pokes one word per sprite row. A screen row is 512 pixels and each memory word holds 16 pixels. How many words apart are the addresses of two vertically adjacent sprite rows?",
+      "answer": 32,
+      "explain": "One screen row takes 512 / 16 = 32 words, so the next row down starts 32 words later. That's why the generated code pokes memAddress+0, +32, +64, and so on."
+    },
+    {
+      "type": "mc",
+      "category": "Applications and graphics",
+      "q": "According to the lecture's best practice, when should you draw with Memory.poke instead of the Screen class?",
+      "choices": [
+        "For high-performance sprites. Use Screen for simple graphics.",
+        "Always, because Screen is deprecated",
+        "Never, because Jack forbids poking screen memory",
+        "Only when drawing text"
+      ],
+      "answer": 0,
+      "explain": "For simple graphics, use the standard OS library (Screen). For high-performance sprites, design the image in a bitmap editor and write it straight into the screen memory map with Memory.poke."
+    },
+    {
+      "type": "tf",
+      "category": "Applications and graphics",
+      "q": "Jack supports inheritance between classes.",
+      "answer": false,
+      "explain": "Jack's limitations include a primitive type system, few control structures, some peculiar syntax, and no inheritance. The goal is a minimal language that a simple compiler can implement."
+    },
+    {
+      "type": "mc",
+      "category": "Applications and graphics",
+      "q": "Why is Jack designed to be weakly typed with full memory access?",
+      "choices": [
+        "To give the programmer full control of the platform, especially when writing the OS",
+        "To make programs run faster in the VM emulator",
+        "Because strong typing is impossible on 16-bit hardware",
+        "To support inheritance"
+      ],
+      "answer": 0,
+      "explain": "Weak typing and full memory access (e.g. casting integers to addresses, Memory.peek/poke) give the programmer full control of the computer, which matters most when writing the OS."
+    }
+  ]
+}

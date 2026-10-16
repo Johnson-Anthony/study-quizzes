@@ -1,0 +1,285 @@
+{
+  "title": "X86ASM 03: Add, Subtract, Increment & Decrement",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "num",
+      "category": "add and sub",
+      "q": "What value is in rax after these instructions run?\n\nmov rax, 1\nadd rax, 3\nadd rax, 5",
+      "answer": 9,
+      "explain": "mov sets rax to 1. Each add puts the new sum back in rax: 1 + 3 = 4, then 4 + 5 = 9."
+    },
+    {
+      "type": "mc",
+      "category": "add and sub",
+      "q": "Intel syntax (destination first). After these instructions, what are rax and rbx?\n\nmov rax, 1\nmov rbx, 3\nadd rax, rbx",
+      "choices": [
+        "rax = 4, rbx = 3",
+        "rax = 1, rbx = 4",
+        "rax = 4, rbx = 4",
+        "rax = 3, rbx = 1"
+      ],
+      "answer": 0,
+      "explain": "The sum is stored in the first operand (rax). rbx is only read, so it keeps its value of 3."
+    },
+    {
+      "type": "tf",
+      "category": "add and sub",
+      "q": "In Intel syntax, running `add rax, rbx` changes the value stored in rbx.",
+      "answer": false,
+      "explain": "Only the first operand (the destination, rax) receives the result. rbx is read but not changed."
+    },
+    {
+      "type": "tf",
+      "category": "add and sub",
+      "q": "`add rax, 3` replaces whatever is in rax with the value 3.",
+      "answer": false,
+      "explain": "add adds 3 to the value already in rax. Replacing the value is what mov does."
+    },
+    {
+      "type": "num",
+      "category": "add and sub",
+      "q": "What value is in rax after these instructions run?\n\nmov rax, 9\nmov rbx, 3\nsub rax, rbx",
+      "answer": 6,
+      "explain": "sub rax, rbx computes rax - rbx and stores it in rax: 9 - 3 = 6."
+    },
+    {
+      "type": "text",
+      "category": "add and sub",
+      "q": "Write the single instruction (Intel syntax) that subtracts the immediate value 2 from rax.",
+      "answer": ["sub rax, 2", "sub rax,2", "SUB RAX, 2", "SUB RAX,2"],
+      "explain": "sub takes the destination first and then the value to subtract: sub rax, 2."
+    },
+    {
+      "type": "num",
+      "category": "add and sub",
+      "q": "What value is in rax after these instructions run?\n\nmov rax, 10\nmov rbx, 4\nsub rax, rbx\ninc rax\nadd rax, rbx",
+      "answer": 11,
+      "explain": "10 - 4 = 6, inc gives 7, then adding rbx (still 4, since sub doesn't change it) gives 11."
+    },
+    {
+      "type": "num",
+      "category": "inc and dec",
+      "q": "What value is in rax after these instructions run?\n\nmov rax, 5\ninc rax\ninc rax\ninc rax",
+      "answer": 8,
+      "explain": "Each inc adds 1: 5 -> 6 -> 7 -> 8."
+    },
+    {
+      "type": "num",
+      "category": "inc and dec",
+      "q": "What value is in rax after these instructions run?\n\nmov rax, 9\ndec rax\ndec rax",
+      "answer": 7,
+      "explain": "Each dec subtracts 1: 9 -> 8 -> 7."
+    },
+    {
+      "type": "mc",
+      "category": "inc and dec",
+      "q": "Which instruction has the same effect on rax as `inc rax`?",
+      "choices": [
+        "add rax, 1",
+        "mov rax, 1",
+        "sub rax, 1",
+        "add rax, rax"
+      ],
+      "answer": 0,
+      "explain": "inc increases a register by exactly one, which is the same as adding 1. mov rax, 1 overwrites rax, and add rax, rax doubles it."
+    },
+    {
+      "type": "multi",
+      "category": "inc and dec",
+      "q": "Which of these instructions take only one operand (a single register) in the forms shown in the lesson?",
+      "choices": ["inc", "dec", "add", "sub", "mov"],
+      "answer": [0, 1],
+      "explain": "inc and dec always change their one register by 1. add, sub and mov need both a destination and a source (a register or an immediate value)."
+    },
+    {
+      "type": "text",
+      "category": "inc and dec",
+      "q": "What is the mnemonic for the instruction that decreases a register's value by one?",
+      "answer": ["dec", "DEC"],
+      "explain": "dec (decrement) lowers its operand by 1. Its counterpart is inc."
+    },
+    {
+      "type": "mc",
+      "category": "inc and dec",
+      "q": "Which of these is a typical use for inc and dec?",
+      "choices": [
+        "Counting iterations in a loop (like a for loop counter)",
+        "Copying one register into another",
+        "Moving data between RAM and registers",
+        "Changing the instruction pointer directly"
+      ],
+      "answer": 0,
+      "explain": "Stepping a value up or down by one is exactly what a loop counter does."
+    },
+    {
+      "type": "mc",
+      "category": "clobbering",
+      "q": "What does it mean to \"clobber\" a register?",
+      "choices": [
+        "To change its value during an operation before you have gotten what you needed out of it",
+        "To clear it to zero on purpose before using it",
+        "To read its value without changing it",
+        "To move an immediate value into it more than once"
+      ],
+      "answer": 0,
+      "explain": "A clobbered register was overwritten, usually as a side effect of using it as an add/sub destination, while its old value was still needed."
+    },
+    {
+      "type": "num",
+      "category": "clobbering",
+      "q": "What value is in rcx after these instructions run?\n\nmov rbx, 1\nmov rcx, 1\nadd rcx, rbx\nmov rdx, rcx",
+      "answer": 2,
+      "explain": "add rcx, rbx stores the sum (2) in rcx, so rcx's original value of 1 is clobbered. rdx also ends up with 2."
+    },
+    {
+      "type": "mc",
+      "category": "clobbering",
+      "q": "rbx = 1 and rcx = 1. You want rdx = rcx + rbx without changing rcx or rbx, and you may only use register-to-register mov and add. Which sequence works?",
+      "choices": [
+        "mov r15, rcx\nadd r15, rbx\nmov rdx, r15",
+        "add rcx, rbx\nmov rdx, rcx",
+        "add rbx, rcx\nmov rdx, rbx",
+        "mov rdx, rcx\nadd rcx, rbx"
+      ],
+      "answer": 0,
+      "explain": "Copying rcx into the scratch register r15 and doing the add there leaves rcx and rbx untouched. The other sequences either clobber rcx or rbx, or leave rdx with the wrong value."
+    },
+    {
+      "type": "mc",
+      "category": "clobbering",
+      "q": "There are two ways to avoid clobbering: (A) keep a dedicated buffer register and do the arithmetic there, or (B) back up the register, do the arithmetic in it, then restore it. Why is approach A slightly better?",
+      "choices": [
+        "It needs one fewer instruction",
+        "Approach B gives the wrong result",
+        "Approach A doesn't need a spare register",
+        "Approach B can only be used with sub, not add"
+      ],
+      "answer": 0,
+      "explain": "Both give the right answer and both use a spare register, but backup-and-restore needs an extra mov at the end to put the original value back."
+    },
+    {
+      "type": "num",
+      "category": "clobbering",
+      "q": "Using the backup-and-restore approach with r15 as the backup, how many instructions does it take to set rdx = rcx + rbx while leaving rcx with its original value at the end?",
+      "answer": 4,
+      "explain": "mov r15, rcx (back up); add rcx, rbx (clobbers rcx); mov rdx, rcx (store result); mov rcx, r15 (restore). The buffer approach needs only 3."
+    },
+    {
+      "type": "num",
+      "category": "Fibonacci exercise",
+      "q": "The Fibonacci sequence starts 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, ... What is the next term?",
+      "answer": 89,
+      "explain": "Each term is the sum of the two before it: 34 + 55 = 89."
+    },
+    {
+      "type": "mc",
+      "category": "Fibonacci exercise",
+      "q": "rax was set to 0 with the only allowed immediate mov. Everything else has to be a register-to-register mov or arithmetic. How can you put 1 in rbx?",
+      "choices": [
+        "mov rbx, rax\ninc rbx",
+        "mov rbx, 1",
+        "add rbx, 1\nmov rax, rbx",
+        "dec rax\nmov rbx, rax"
+      ],
+      "answer": 0,
+      "explain": "Copying rax (0) into rbx makes sure rbx is 0, and inc then raises it to 1. mov rbx, 1 and add rbx, 1 both use an immediate value, which the rule forbids. The last option gives -1, not 1."
+    },
+    {
+      "type": "num",
+      "category": "Fibonacci exercise",
+      "q": "What value is in rcx after these instructions run?\n\nmov rax, 0\nmov rbx, rax\ninc rbx\nadd rbx, rax\nmov rcx, rbx",
+      "answer": 1,
+      "explain": "rax = 0, rbx = 0 then inc makes it 1. add rbx, rax adds 0, so rbx stays 1, and that is copied to rcx."
+    },
+    {
+      "type": "num",
+      "category": "Fibonacci exercise",
+      "q": "Fibonacci terms starting at 0 are stored in order in rax, rbx, rcx, rdx, rsi, rdi, then r8 through r15 (skipping rsp, rbp and rip). What decimal value ends up in r15?",
+      "answer": 233,
+      "explain": "That is 14 registers: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233. r15 holds the 14th term, 233."
+    },
+    {
+      "type": "mc",
+      "category": "Fibonacci exercise",
+      "q": "When filling r15 last (r13 and r14 already hold the previous two terms, and r15 had been the buffer), why is no separate buffer needed?",
+      "choices": [
+        "r15 is the final destination, so you can do mov r15, r14 then add r15, r13 directly",
+        "r15 cannot be clobbered",
+        "add automatically saves the old value of its destination",
+        "The last term doesn't have to be the sum of the previous two"
+      ],
+      "answer": 0,
+      "explain": "A buffer protects a value you still need. Here the register you do the arithmetic in is where the result belongs, so nothing needed gets clobbered."
+    },
+    {
+      "type": "num",
+      "category": "Fibonacci exercise",
+      "q": "A register viewer shows values in hexadecimal. A register shows 22. What is that in decimal?",
+      "answer": 34,
+      "explain": "0x22 = 2 x 16 + 2 = 34."
+    },
+    {
+      "type": "num",
+      "category": "Fibonacci exercise",
+      "q": "A register viewer shows values in hexadecimal. A register shows D. What is that in decimal?",
+      "answer": 13,
+      "explain": "Hex digits A-F stand for 10-15, so D = 13."
+    },
+    {
+      "type": "text",
+      "category": "Fibonacci exercise",
+      "q": "The decimal value 233 is shown in a hexadecimal register viewer. What does it display? (Give the hex digits.)",
+      "answer": ["E9", "e9", "0xE9", "0xe9"],
+      "explain": "233 = 14 x 16 + 9, and 14 is E in hex, so it shows E9."
+    },
+    {
+      "type": "multi",
+      "category": "registers and RAM",
+      "q": "When filling the general registers with data in the exercise, which registers were deliberately skipped?",
+      "choices": ["rsp (stack pointer)", "rbp (base pointer)", "rip (instruction pointer)", "rsi", "rdi", "r15"],
+      "answer": [0, 1, 2],
+      "explain": "rsp and rbp are left for stack work, and rip can't be the target of a mov. rsi, rdi and r8-r15 were all used."
+    },
+    {
+      "type": "mc",
+      "category": "registers and RAM",
+      "q": "Why is it good practice to avoid using rsp and rbp as ordinary data registers?",
+      "choices": [
+        "They belong to the stack, so they should only be used on purpose for that",
+        "They can only hold the value 0",
+        "Writing to them is illegal, like rip",
+        "They are smaller than the other general-purpose registers"
+      ],
+      "answer": 0,
+      "explain": "rsp and rbp are the stack pointer and base pointer. Even if you aren't using the stack yet, leave them alone unless you are using them for that job."
+    },
+    {
+      "type": "tf",
+      "category": "registers and RAM",
+      "q": "You can load a value directly into the instruction pointer (rip) with mov.",
+      "answer": false,
+      "explain": "Moving a value into rip is illegal, which is one reason the exercise skipped it."
+    },
+    {
+      "type": "tf",
+      "category": "registers and RAM",
+      "q": "x86-64 has 16 general-purpose registers (rax through r15), and each one is 8 bytes wide.",
+      "answer": true,
+      "explain": "rax, rbx, rcx, rdx, rsi, rdi, rsp, rbp and r8-r15 make 16 registers of 8 bytes (64 bits) each."
+    },
+    {
+      "type": "mc",
+      "category": "registers and RAM",
+      "q": "Why do programs need RAM in addition to registers?",
+      "choices": [
+        "There are only a few small registers, which fill up quickly. RAM holds far more data, and registers are mainly for loading values, calculating, and saving results back.",
+        "Arithmetic instructions like add and sub only work on RAM, not registers",
+        "Registers lose their values after each instruction",
+        "RAM is faster than registers for arithmetic"
+      ],
+      "answer": 0,
+      "explain": "Sixteen 8-byte registers were full after a short Fibonacci run. RAM provides gigabytes, so data is loaded into registers, worked on, and stored back."
+    }
+  ]
+}

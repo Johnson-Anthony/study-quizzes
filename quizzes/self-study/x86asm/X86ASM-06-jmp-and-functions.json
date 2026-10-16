@@ -1,0 +1,269 @@
+{
+  "title": "X86ASM 06: JMP and Functions in Assembly",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "tf",
+      "category": "Labels and sequential execution",
+      "q": "At the machine level, a program's instructions are just a series of bytes in memory with no built-in function boundaries, so the programmer has to create any function structure.",
+      "answer": true,
+      "explain": "The CPU sees no structure in the instruction bytes. Functions exist only because we arrange jumps and return addresses ourselves."
+    },
+    {
+      "type": "mc",
+      "category": "Labels and sequential execution",
+      "q": "What does putting a label such as `exit:` in front of an instruction actually do?",
+      "choices": [
+        "Names that instruction's memory address so you can refer to it without writing the address out",
+        "Turns the instructions that follow into a function with its own scope",
+        "Makes the CPU stop when execution reaches the label",
+        "Saves a return address automatically when execution reaches it"
+      ],
+      "answer": 0,
+      "explain": "A label only marks an address, for example 0x401020, so you can refer to it by name. It does not create a function or change how anything runs."
+    },
+    {
+      "type": "tf",
+      "category": "Labels and sequential execution",
+      "q": "If you edit code so that a labeled instruction ends up at a different address, references to that label automatically use the new address.",
+      "answer": true,
+      "explain": "That is one of the main benefits of labels over hard-coded addresses: the assembler works out the label's address again from the current layout."
+    },
+    {
+      "type": "tf",
+      "category": "Labels and sequential execution",
+      "q": "When straight-line execution reaches a label, the CPU stops there unless something jumps past it.",
+      "answer": false,
+      "explain": "Labels are not instructions. The instruction pointer keeps going straight down through them, whatever is in the way."
+    },
+    {
+      "type": "mc",
+      "category": "Labels and sequential execution",
+      "q": "What is the only way to change the order in which the CPU executes instructions?",
+      "choices": [
+        "Change the instruction pointer",
+        "Add labels to mark where functions begin and end",
+        "Leave blank lines between sections of code",
+        "Put the address of the next instruction in RAX"
+      ],
+      "answer": 0,
+      "explain": "The CPU fetches whatever the instruction pointer points to, so changing the flow means changing the instruction pointer. jmp does exactly that."
+    },
+    {
+      "type": "text",
+      "category": "JMP and control flow",
+      "q": "Which x86-64 instruction mnemonic sets the instruction pointer to a target address, such as a label, so execution continues there?",
+      "answer": ["jmp", "JMP"],
+      "explain": "jmp (jump) moves the instruction pointer to the target. For example, `jmp print` skips over any code in between and continues at print."
+    },
+    {
+      "type": "mc",
+      "category": "JMP and control flow",
+      "q": "The program was rearranged so the exit code comes before the print code in the source. Why?",
+      "choices": [
+        "Straight-line execution would then exit right away, so a jmp is needed to reach print",
+        "The assembler requires exit code to come first",
+        "Code placed first runs faster",
+        "Labels only work on code near the top of the file"
+      ],
+      "answer": 0,
+      "explain": "With exit first, the program just quits if run from top to bottom. That makes it necessary to use jmp to get to print."
+    },
+    {
+      "type": "mc",
+      "category": "JMP and control flow",
+      "q": "The program starts with `jmp print`. The print code does its write syscall and has no more instructions after it. What happens once the string is printed?",
+      "choices": [
+        "Execution continues into the empty memory after print, and the OS kills the program",
+        "Execution automatically goes back to the instruction after `jmp print`",
+        "The program exits cleanly with code 0 because the syscall ends it",
+        "The CPU loops back to the start of print"
+      ],
+      "answer": 0,
+      "explain": "Nothing stops execution after the syscall. The instruction pointer keeps going into an empty memory region, and the OS shuts the program down with a segmentation fault."
+    },
+    {
+      "type": "text",
+      "category": "JMP and control flow",
+      "q": "When execution ran past the end of the code into empty memory, the OS shut the program down with what kind of error?",
+      "answer": ["segmentation fault", "segfault", "seg fault", "a segmentation fault"],
+      "explain": "A segmentation fault: the OS forcibly ended the program because it broke the OS's rules by running into memory it should not have."
+    },
+    {
+      "type": "tf",
+      "category": "JMP and control flow",
+      "q": "A syscall that writes a string to the screen also ends the program when it finishes.",
+      "answer": false,
+      "explain": "After the write syscall, execution just continues with the next bytes in memory. Only the exit syscall (rax = 60) ends the program."
+    },
+    {
+      "type": "mc",
+      "category": "JMP and control flow",
+      "q": "In the exit sequence `mov rax, 60` / `xor rdi, rdi` / `syscall`, what does `xor rdi, rdi` do?",
+      "choices": [
+        "Sets RDI to 0, so the program exits with code 0",
+        "Sets RDI to 60, the exit system call number",
+        "Swaps RDI and RAX",
+        "Jumps to the address held in RDI"
+      ],
+      "answer": 0,
+      "explain": "XORing a register with itself always gives 0. RDI holds the exit code, which is why the program exits with code 0."
+    },
+    {
+      "type": "tf",
+      "category": "JMP and control flow",
+      "q": "At bottom, every function call works by moving the instruction pointer to the address where the function's code begins.",
+      "answer": true,
+      "explain": "Jumping the instruction pointer to where you want to run code is the basic mechanism behind any function call."
+    },
+    {
+      "type": "mc",
+      "category": "Return addresses",
+      "q": "In the first working version, print ends with `jmp exit`. Why is that a rigid design?",
+      "choices": [
+        "print always goes to exit, not back to whatever code called it",
+        "jmp can only move forward in memory",
+        "jmp exit is slower than a syscall",
+        "exit then has to come after print in memory"
+      ],
+      "answer": 0,
+      "explain": "A proper utility function does one job and then gives control back to its caller, such as main. It should not decide by itself that the program exits."
+    },
+    {
+      "type": "num",
+      "category": "Return addresses",
+      "q": "main jumps to the print function on line 6. Once print finishes, which line of main should execution ideally continue on?",
+      "answer": 7,
+      "explain": "The return address is the instruction right after the one that transferred control to the function. Here that is line 7."
+    },
+    {
+      "type": "mc",
+      "category": "Return addresses",
+      "q": "In the hand-built return mechanism, what does the caller do just before `jmp print`?",
+      "choices": [
+        "Loads R15 with the address of the label where execution should resume",
+        "Loads R15 with the address of print",
+        "Sets RAX to 60 so print knows to return",
+        "Moves the instruction pointer into RDI"
+      ],
+      "answer": 0,
+      "explain": "The caller and the function agree that R15 holds the return address. The caller puts the address of the resume point (the `return` label) in R15, then jumps to print."
+    },
+    {
+      "type": "text",
+      "category": "Return addresses",
+      "q": "With the R15 convention, what single instruction ends print so it goes back to its caller?",
+      "answer": ["jmp r15", "JMP R15", "jmp R15", "JMP r15"],
+      "explain": "`jmp r15` jumps to whatever address the caller stored in R15, so print returns correctly no matter where it was called from."
+    },
+    {
+      "type": "tf",
+      "category": "Return addresses",
+      "q": "The hardware requires R15 for return addresses. It is the only register jmp can use as a target.",
+      "answer": false,
+      "explain": "R15 was simply chosen as an agreement between the caller and the function. Any register could have been used for this hand-built convention."
+    },
+    {
+      "type": "multi",
+      "category": "Return addresses",
+      "q": "What does the R15 return-address approach do better than ending print with `jmp exit`?",
+      "choices": [
+        "print can be called from anywhere in the program",
+        "print returns to whatever address the caller put in R15",
+        "It supports nested function calls of any depth",
+        "It frees R15 for arithmetic"
+      ],
+      "answer": [0, 1],
+      "explain": "The approach is dynamic: any caller can use print and get control back. It still fails with nested calls, and it ties up R15."
+    },
+    {
+      "type": "tf",
+      "category": "Nested calls and clobbering",
+      "q": "With static jumps (print_hello ends with `jmp print_world`, and print_world ends with `jmp exit`), the program still prints hello and world and exits correctly.",
+      "answer": true,
+      "explain": "The hard-coded chain works, but it is static: each function's next step is fixed instead of returning to whoever called it."
+    },
+    {
+      "type": "mc",
+      "category": "Nested calls and clobbering",
+      "q": "main loads R15 with `return` and jumps to print_hello. print_hello loads R15 with `return_hello` and jumps to print_world, which ends with `jmp r15`. When print_hello then runs its own `jmp r15`, where does execution go?",
+      "choices": [
+        "Back to return_hello, because R15 still holds that address",
+        "Back to the `return` label in main",
+        "Straight to exit",
+        "Into empty memory, causing an immediate segmentation fault"
+      ],
+      "answer": 0,
+      "explain": "print_hello overwrote R15 with return_hello before it called print_world. main's original return address is gone, so nobody remembers where to go back to in main."
+    },
+    {
+      "type": "text",
+      "category": "Nested calls and clobbering",
+      "q": "What word describes accidentally overwriting a register's value before you were done with it, as happened to main's return address in R15?",
+      "answer": ["clobber", "clobbered", "clobbering"],
+      "explain": "The value was clobbered: overwritten by accident before it was needed, with no way to get it back."
+    },
+    {
+      "type": "num",
+      "category": "Nested calls and clobbering",
+      "q": "If you used every general-purpose register to hold return addresses, what is the most return addresses you could store at once?",
+      "answer": 16,
+      "explain": "There are 16 general-purpose registers, so 16 is the limit. Recursion can need hundreds or thousands of active calls."
+    },
+    {
+      "type": "multi",
+      "category": "Nested calls and clobbering",
+      "q": "Why is storing return addresses in registers, even in all of them, not a workable general solution?",
+      "choices": [
+        "A register holds only one address, so a nested call overwrites the earlier one",
+        "If every register held addresses, none would be left for arithmetic or data processing",
+        "Recursion can need far more than 16 active return addresses",
+        "jmp cannot take its target from a register",
+        "Registers are wiped every time a syscall runs"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "One register is one slot. Using all of them still gives only 16 slots and leaves nothing for computation. jmp r15 worked fine, so registers can be jump targets."
+    },
+    {
+      "type": "num",
+      "category": "The stack",
+      "q": "How many bytes is one register such as R15, which is also the size of each return-address slot in the stack shown in the lesson?",
+      "answer": 8,
+      "explain": "R15 is a single 8-byte register. The stack is described as 8-byte slots, one after another, like R15 repeated over and over."
+    },
+    {
+      "type": "mc",
+      "category": "The stack",
+      "q": "How does the lesson describe the stack?",
+      "choices": [
+        "A sequence of bytes in memory, split into 8-byte slots, with the current position tracked by the stack pointer",
+        "A set of extra hidden CPU registers used only for return addresses",
+        "A structure the OS creates only for recursive programs",
+        "A special label that marks the end of the program's code"
+      ],
+      "answer": 0,
+      "explain": "The stack is just memory. Because it can hold many 8-byte return addresses, not just the one that fits in R15, it supports nested function calls."
+    },
+    {
+      "type": "text",
+      "category": "The stack",
+      "q": "What register keeps track of your current position in the stack?",
+      "answer": ["stack pointer", "the stack pointer", "rsp", "RSP"],
+      "explain": "The stack pointer (RSP on x86-64) tracks where you are in the stack."
+    },
+    {
+      "type": "multi",
+      "category": "The stack",
+      "q": "Which two instructions use the stack to call functions and return from them?",
+      "choices": [
+        "call",
+        "ret (return)",
+        "jmp",
+        "syscall",
+        "xor"
+      ],
+      "answer": [0, 1],
+      "explain": "call and ret (return) use the stack to save and restore return addresses. That replaces the hand-built R15 scheme and supports nested calls."
+    }
+  ]
+}

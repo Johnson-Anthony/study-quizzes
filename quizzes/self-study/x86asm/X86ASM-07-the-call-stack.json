@@ -1,0 +1,366 @@
+{
+  "title": "X86ASM 07: The Call Stack",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "tf",
+      "category": "Why a call stack",
+      "q": "Saving the return address in a single register (such as R15) works for a single function call that makes no nested calls.",
+      "answer": true,
+      "explain": "With one call, R15 holds the address of the next instruction, the function jumps back to it, and execution continues normally. It only breaks once a called function calls another function."
+    },
+    {
+      "type": "mc",
+      "category": "Why a call stack",
+      "q": "Using only R15 to hold return addresses, _start calls print_hello and print_hello calls print_goodbye. print_goodbye returns correctly. What happens when print_hello then tries to return through R15?",
+      "choices": [
+        "It returns correctly to _start and the program exits",
+        "It jumps to print_goodbye again and prints \"goodbye!\" forever",
+        "It jumps back to its own return instruction again and again, an infinite loop",
+        "The CPU automatically restores the earlier value of R15"
+      ],
+      "answer": 2,
+      "explain": "The nested call overwrote R15 with print_hello's own resume address. So print_hello's return jumps to itself, reads the same R15, and jumps to itself again forever."
+    },
+    {
+      "type": "mc",
+      "category": "Why a call stack",
+      "q": "What is the root cause of the single-register scheme failing on nested calls?",
+      "choices": [
+        "A register cannot hold a 64-bit address",
+        "Only one return address can be stored, so a nested call overwrites the caller's saved address",
+        "The kernel clears R15 during every syscall",
+        "jmp can only jump forward in memory"
+      ],
+      "answer": 1,
+      "explain": "One register is room for exactly one address. What is needed is a place to store as many return addresses as there are nested calls, without overwriting any of them."
+    },
+    {
+      "type": "mc",
+      "category": "Why a call stack",
+      "q": "What was the call stack originally created to do? (Other features were added to it later.)",
+      "choices": [
+        "Store return addresses so nested function calls can each find their way back",
+        "Store the string data a program prints",
+        "Store syscall numbers for the kernel",
+        "Hold only local variables"
+      ],
+      "answer": 0,
+      "explain": "At its core the call stack is a list of slots for return addresses. Storing local variables and other uses came later."
+    },
+    {
+      "type": "num",
+      "category": "Building a call stack by hand",
+      "q": "On a 64-bit system, how many bytes does each saved return address take up?",
+      "answer": 8,
+      "explain": "A 64-bit address is 8 bytes (a quadword), so each stack slot is 8 bytes and the pointer moves by 8 per slot."
+    },
+    {
+      "type": "num",
+      "category": "Building a call stack by hand",
+      "q": "To support 500 nested function calls, with each return address taking 8 bytes, how many bytes of stack space are needed (before rounding up)?",
+      "answer": 4000,
+      "explain": "500 x 8 = 4000 bytes. The lesson rounds this up to 4096 bytes (4 KB)."
+    },
+    {
+      "type": "num",
+      "category": "Building a call stack by hand",
+      "q": "A hand-built call stack reserves 4096 bytes. How many 8-byte return-address slots fit in it?",
+      "answer": 512,
+      "explain": "4096 / 8 = 512 slots, which is a bit more than the 500 nested calls the space was sized for."
+    },
+    {
+      "type": "mc",
+      "category": "Building a call stack by hand",
+      "q": "The space is reserved with `call_stack: .skip 4096, 0xFF`. What does the second operand (`0xFF`) do?",
+      "choices": [
+        "It sets the alignment of the block to 0xFF bytes",
+        "It limits the stack to 0xFF slots",
+        "It marks the block as executable",
+        "It fills every reserved byte with 0xFF"
+      ],
+      "answer": 3,
+      "explain": "Adding a comma and a value after the size sets every byte of the reserved space to that value. The lesson uses it to show the memory belongs to the program, then sets it back to zero."
+    },
+    {
+      "type": "tf",
+      "category": "Building a call stack by hand",
+      "q": "In the hand-built call stack, R15 is always left pointing at the next free slot, not at the most recently written one.",
+      "answer": true,
+      "explain": "That is the rule the lesson follows: whoever saves an address next can write straight to [r15] without first adjusting the pointer."
+    },
+    {
+      "type": "mc",
+      "category": "Building a call stack by hand",
+      "q": "The return address is already in RAX. Which order of instructions saves it to the hand-built stack, following the 'write, then increment' rule?",
+      "choices": [
+        "`add r15, 8` then `mov [r15], rax`",
+        "`mov [r15], rax` then `add r15, 8`",
+        "`sub r15, 8` then `mov [r15], rax`",
+        "`mov r15, rax` then `add r15, 8`"
+      ],
+      "answer": 1,
+      "explain": "Write into the free slot R15 points at, then move R15 up 8 bytes to the next free slot."
+    },
+    {
+      "type": "mc",
+      "category": "Building a call stack by hand",
+      "q": "Which sequence correctly returns using the hand-built stack, following the 'decrement, then read' rule?",
+      "choices": [
+        "`mov rax, [r15]`, `sub r15, 8`, `jmp rax`",
+        "`sub r15, 8`, `jmp r15`",
+        "`add r15, 8`, `mov rax, [r15]`, `jmp rax`",
+        "`sub r15, 8`, `mov rax, [r15]`, `jmp rax`"
+      ],
+      "answer": 3,
+      "explain": "R15 points at the next free slot, so first back it up 8 bytes to the last saved address. Then load that address from memory into RAX and jump to it."
+    },
+    {
+      "type": "multi",
+      "category": "Building a call stack by hand",
+      "q": "Which instructions are part of the lesson's hand-built replacement for `call print_hello` (save the return address, then enter the function)?",
+      "choices": [
+        "`lea rax, [resume_here]`",
+        "`mov [r15], rax`",
+        "`add r15, 8`",
+        "`jmp print_hello`",
+        "`sub r15, 8`",
+        "`mov rax, [r15]`"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Load the resume address into RAX, write it to the slot R15 points at, move R15 to the next slot, then jump. The `sub r15, 8` and `mov rax, [r15]` instructions belong to the return sequence."
+    },
+    {
+      "type": "mc",
+      "category": "Building a call stack by hand",
+      "q": "R15 starts at 0x402000 (the start of call_stack). Two return addresses are saved, each with 'write, then add 8'. What is R15 now?",
+      "choices": [
+        "0x402002",
+        "0x402008",
+        "0x402010",
+        "0x402016"
+      ],
+      "answer": 2,
+      "explain": "0x402000 + 8 + 8 = 0x402000 + 16 = 0x402010 (16 decimal is 0x10 in hex). That is the third slot."
+    },
+    {
+      "type": "mc",
+      "category": "Building a call stack by hand",
+      "q": "Continuing from R15 = 0x402010 with two addresses saved, print_goodbye returns once using 'decrement, then read'. What is R15 afterward?",
+      "choices": [
+        "0x402000",
+        "0x402008",
+        "0x402010",
+        "0x402018"
+      ],
+      "answer": 1,
+      "explain": "Subtracting 8 from 0x402010 gives 0x402008, the second slot, which holds print_hello's resume address. That slot now counts as free again."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and addressing",
+      "q": "What is the difference between `mov [r15], rax` and `mov r15, rax`?",
+      "choices": [
+        "They do the same thing",
+        "`mov [r15], rax` writes RAX's value into memory at the address held in R15; `mov r15, rax` overwrites R15 itself",
+        "`mov [r15], rax` copies R15 into RAX",
+        "The brackets make the destination read-only"
+      ],
+      "answer": 1,
+      "explain": "Brackets treat the register as a pointer: look at the address stored in R15 and go to that spot in memory. Without brackets, the register itself is the destination."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and addressing",
+      "q": "After switching to the hand-built stack, print_goodbye still ends with `jmp r15`, and R15 = 0x402010. Why does this fail?",
+      "choices": [
+        "It jumps to address 0x402010 itself, an empty data slot rather than code, so the program crashes",
+        "jmp cannot take a register as its operand",
+        "It jumps to the right return address, but one slot too early",
+        "It works correctly; nothing fails"
+      ],
+      "answer": 0,
+      "explain": "Without brackets, jmp uses the value in R15 as the target. That value is the stack pointer (the free slot), not a saved return address, so execution lands in data and segfaults."
+    },
+    {
+      "type": "tf",
+      "category": "Memory and addressing",
+      "q": "`lea r15, [call_stack]` loads the address of the call_stack label into R15, not the bytes stored there.",
+      "answer": true,
+      "explain": "lea (load effective address) computes the address. After it runs, R15 holds the starting address of the reserved block (0x402000 in the lesson)."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and addressing",
+      "q": "When the return address 0x40101D was written to a stack slot, its bytes looked reversed in the memory viewer. What is this byte-ordering format called?",
+      "choices": [
+        "Big-endian",
+        "Two's complement",
+        "Little-endian",
+        "ASCII encoding"
+      ],
+      "answer": 2,
+      "explain": "x86 stores multi-byte values little-endian, lowest byte first, so the address appears byte-reversed in memory."
+    },
+    {
+      "type": "multi",
+      "category": "call and ret",
+      "q": "What does `call print_hello` do?",
+      "choices": [
+        "Pushes the address of the instruction right after the call onto the stack",
+        "Jumps to print_hello",
+        "Saves the return address in R15",
+        "Pushes the address of the call instruction itself onto the stack",
+        "Pops the top value off the stack"
+      ],
+      "answer": [0, 1],
+      "explain": "call does two things in one instruction: it pushes the return address (the next instruction) onto the stack, then jumps to the target. This replaces the multi-line manual sequence."
+    },
+    {
+      "type": "mc",
+      "category": "call and ret",
+      "q": "What does `ret` do?",
+      "choices": [
+        "Pushes the current address onto the stack",
+        "Pops the address on top of the stack and jumps to it",
+        "Jumps to whatever address is in R15",
+        "Jumps back to the start of the program"
+      ],
+      "answer": 1,
+      "explain": "ret is the reverse of call. It removes the return address from the top of the stack and continues execution there."
+    },
+    {
+      "type": "mc",
+      "category": "call and ret",
+      "q": "_start contains `call print_hello` followed by `jmp exit`. Which address does `call print_hello` push onto the stack?",
+      "choices": [
+        "The address of the `call print_hello` instruction",
+        "The address of the print_hello label",
+        "The address of the `jmp exit` instruction",
+        "The address of the exit label"
+      ],
+      "answer": 2,
+      "explain": "The return address is always the instruction right after the call, so execution resumes at `jmp exit` when print_hello returns."
+    },
+    {
+      "type": "mc",
+      "category": "call and ret",
+      "q": "print_hello ends with `call print_goodbye` followed by `ret`. Where does print_goodbye's own `ret` send execution?",
+      "choices": [
+        "To the `jmp exit` instruction in _start",
+        "To the instruction right after `call print_goodbye`, the `ret` at the end of print_hello",
+        "To the first instruction of print_hello",
+        "Directly to the exit routine"
+      ],
+      "answer": 1,
+      "explain": "print_goodbye returns to the instruction after its call, which is print_hello's ret. That ret then pops the next address and returns to `jmp exit` in _start."
+    },
+    {
+      "type": "tf",
+      "category": "call and ret",
+      "q": "call and ret are built into the CPU hardware and are faster than doing the same work with several separate instructions by hand.",
+      "answer": true,
+      "explain": "They provide the same function as the hand-built stack, but in single, hardwired instructions that also manage the stack pointer automatically."
+    },
+    {
+      "type": "mc",
+      "category": "call and ret",
+      "q": "Which way does the CPU's built-in stack grow as values are pushed?",
+      "choices": [
+        "From high memory addresses toward lower ones",
+        "From low memory addresses toward higher ones",
+        "It does not move; values overwrite one fixed slot",
+        "It alternates direction with each push"
+      ],
+      "answer": 0,
+      "explain": "The real stack grows from high to low memory. Pushing subtracts from the stack pointer, the reverse of the hand-built stack, where R15 went up by 8 per save."
+    },
+    {
+      "type": "tf",
+      "category": "call and ret",
+      "q": "When ret pops a return address, that slot in memory is zeroed out.",
+      "answer": false,
+      "explain": "Nothing is cleared. The stack pointer just moves past the slot, so the old data is still in memory but no longer counts as part of the stack."
+    },
+    {
+      "type": "text",
+      "category": "push and pop",
+      "q": "One stack-terminology word: what does call do to the return address?",
+      "answer": ["push", "pushes", "pushing", "pushes it onto the stack", "push it onto the stack"],
+      "explain": "call pushes the return address onto the stack."
+    },
+    {
+      "type": "text",
+      "category": "push and pop",
+      "q": "One stack-terminology word: what does ret do to the return address?",
+      "answer": ["pop", "pops", "popping", "pops it off the stack", "pop it off the stack"],
+      "explain": "ret pops the return address off the stack and jumps to it."
+    },
+    {
+      "type": "mc",
+      "category": "push and pop",
+      "q": "What does `push rdx` do?",
+      "choices": [
+        "Removes the top value of the stack and puts it in RDX",
+        "Sets RDX to zero",
+        "Jumps to the address held in RDX",
+        "Adds RDX's value onto the top of the stack"
+      ],
+      "answer": 3,
+      "explain": "push places a register's value on the stack as a new top slot. RDX keeps its value."
+    },
+    {
+      "type": "mc",
+      "category": "push and pop",
+      "q": "What does `pop rax` do?",
+      "choices": [
+        "Copies RAX onto the top of the stack",
+        "Removes the top value from the stack and puts it in RAX",
+        "Clears the whole stack",
+        "Jumps to the address on top of the stack"
+      ],
+      "answer": 1,
+      "explain": "pop takes the value off the top of the stack and loads it into the named register. That value then disappears from the visible stack."
+    },
+    {
+      "type": "num",
+      "category": "System calls",
+      "q": "What value goes in RAX to request the exit system call?",
+      "answer": 60,
+      "explain": "`mov rax, 60` selects exit; `syscall` then runs it."
+    },
+    {
+      "type": "num",
+      "category": "System calls",
+      "q": "What value goes in RAX to request the write system call used by print_hello?",
+      "answer": 1,
+      "explain": "`mov rax, 1` selects write. RDI = 1 sends output to the terminal."
+    },
+    {
+      "type": "mc",
+      "category": "System calls",
+      "q": "In print_hello's write syscall, which register holds the length of the string?",
+      "choices": [
+        "RAX",
+        "RDI",
+        "RSI",
+        "RDX"
+      ],
+      "answer": 3,
+      "explain": "RAX = syscall number (1, write), RDI = 1 (the terminal), RSI = address where the string starts, RDX = string length."
+    },
+    {
+      "type": "mc",
+      "category": "System calls",
+      "q": "Why does the exit routine run `xor rdi, rdi` before `syscall`?",
+      "choices": [
+        "To pick the write syscall",
+        "It is an efficient way to set RDI to 0, which the kernel reports as the exit code",
+        "To flip every bit of RDI to 1",
+        "To pop the last return address off the stack"
+      ],
+      "answer": 1,
+      "explain": "XORing a register with itself always gives 0. The kernel reads RDI as the exit code, so the program exits with code 0."
+    }
+  ]
+}

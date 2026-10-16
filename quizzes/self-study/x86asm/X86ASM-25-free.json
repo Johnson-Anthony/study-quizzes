@@ -1,0 +1,371 @@
+{
+  "title": "X86ASM 25: Building free() from Scratch",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Block headers",
+      "q": "Before block headers were added, why could the bump allocator not support a free() function?",
+      "choices": [
+        "It kept no record of the size or status of the blocks it handed out, so a returned address told it nothing about the block",
+        "It allocated memory on the stack, so blocks disappeared when functions returned",
+        "It aligned every request to 8 bytes, which made the addresses impossible to compare",
+        "It never moved the heap pointer, so every block had the same address"
+      ],
+      "answer": 0,
+      "explain": "The bump allocator just returned the current heap pointer and moved it forward. When a block was handed back, all it had was an address, with no size and no free/used status."
+    },
+    {
+      "type": "mc",
+      "category": "Block headers",
+      "q": "In this allocator's 8-byte block header, what is stored at offset 0 and offset 4?",
+      "choices": [
+        "Offset 0: 4-byte total block size (including header); offset 4: 4-byte is-free flag",
+        "Offset 0: 4-byte is-free flag; offset 4: 4-byte total block size",
+        "Offset 0: the size the user requested; offset 4: the aligned size",
+        "Offset 0: pointer to the next block; offset 4: pointer to the previous block"
+      ],
+      "answer": 0,
+      "explain": "The header is [size (4 bytes) | is-free flag (4 bytes)]. The size is the total block size including the header."
+    },
+    {
+      "type": "tf",
+      "category": "Block headers",
+      "q": "In this allocator, an is-free flag value of 0 means the block is available for reuse.",
+      "answer": false,
+      "explain": "The flag answers 'is it free?': 1 means free, 0 means in use. malloc writes 0 when it hands a block out, and free() writes 1."
+    },
+    {
+      "type": "mc",
+      "category": "Block headers",
+      "q": "A block's header starts at address 0x...610. Which address does malloc return to the caller?",
+      "choices": [
+        "0x...608",
+        "0x...610",
+        "0x...618",
+        "0x...620"
+      ],
+      "answer": 2,
+      "explain": "malloc adds the header size (8) to the block address and returns that payload pointer, so the header stays hidden from the user: 0x610 + 8 = 0x618."
+    },
+    {
+      "type": "mc",
+      "category": "Block headers",
+      "q": "To mark a block as used, the code writes the immediate 0 to [rax+4]. Why does that instruction need 'dword ptr'?",
+      "choices": [
+        "The assembler can't tell how many bytes an immediate stored to memory should take, and the flag field is 32 bits",
+        "Without it the CPU would treat rax+4 as a signed offset",
+        "dword ptr makes the store atomic so other threads see it",
+        "It tells the assembler that rax holds a stack address instead of a heap address"
+      ],
+      "answer": 0,
+      "explain": "With a memory destination and an immediate source, nothing tells the assembler the operand size. 'dword' (4 bytes / 32 bits) matches the 4-byte flag field."
+    },
+    {
+      "type": "mc",
+      "category": "Block headers",
+      "q": "When writing the block size into the header at [rax+0], why is ECX used instead of RCX?",
+      "choices": [
+        "RCX would write 8 bytes, but the size field is only 4 bytes; ECX writes exactly 32 bits",
+        "RCX cannot be used as a source operand for a memory store",
+        "ECX is faster because it skips the alignment check",
+        "RCX holds the return address at that point in the function"
+      ],
+      "answer": 0,
+      "explain": "The size field is 4 bytes. A 64-bit store from RCX would also cover the next 4 bytes (the flag field). ECX is the low 32 bits of RCX."
+    },
+    {
+      "type": "num",
+      "category": "Block size calculation",
+      "q": "With 8-byte alignment and an 8-byte header, a user requests 17 bytes. What total block size is recorded in the header?",
+      "answer": 32,
+      "explain": "17 aligns up to 24, then the 8-byte header is added: 24 + 8 = 32."
+    },
+    {
+      "type": "num",
+      "category": "Block size calculation",
+      "q": "With 8-byte alignment and an 8-byte header, a user requests 1 byte. What is the total block size?",
+      "answer": 16,
+      "explain": "1 aligns up to 8, plus the 8-byte header = 16."
+    },
+    {
+      "type": "num",
+      "category": "Block size calculation",
+      "q": "A user requests 128 bytes. What value is stored in the block's size field?",
+      "answer": 136,
+      "explain": "128 is already a multiple of 8. Adding the 8-byte header gives 136, and the size field holds the total block size."
+    },
+    {
+      "type": "num",
+      "category": "Block size calculation",
+      "q": "You want an allocation to take up exactly 96 bytes of heap in total. How many bytes should you request?",
+      "answer": 88,
+      "explain": "88 is already 8-aligned, and 88 + 8 (header) = 96."
+    },
+    {
+      "type": "tf",
+      "category": "Block size calculation",
+      "q": "The size field in a block header stores the number of bytes the user originally asked for.",
+      "answer": false,
+      "explain": "It stores the total block size: the aligned request plus the header. For managing the heap only the block size matters, not the requested or aligned size."
+    },
+    {
+      "type": "num",
+      "category": "Heap traversal and GDB",
+      "q": "In GDB, 'x/1xw 0x403010' shows 0x20 for a block's size field. What is that size in decimal bytes?",
+      "answer": 32,
+      "explain": "0x20 = 2 x 16 = 32. Using 'x/1dw' instead would print it in decimal directly."
+    },
+    {
+      "type": "mc",
+      "category": "Heap traversal and GDB",
+      "q": "In GDB's examine command (x), how many bytes is the 'w' (word) unit size?",
+      "choices": [
+        "2",
+        "4",
+        "8",
+        "16"
+      ],
+      "answer": 1,
+      "explain": "In GDB a word is 4 bytes, which matches the 4-byte size and flag fields. So x/1xw reads exactly one header field."
+    },
+    {
+      "type": "mc",
+      "category": "Heap traversal and GDB",
+      "q": "The heap printer walks the heap block by block. How does it get from one block to the next, and when does it stop?",
+      "choices": [
+        "It adds the current block's size field to the block address, and stops once that address is >= the heap pointer",
+        "It adds 8 (the header size) to the address each time, and stops at a zero size field",
+        "It follows a next-block pointer stored in each header, and stops at a null pointer",
+        "It adds the aligned request size, and stops at the end of the page"
+      ],
+      "answer": 0,
+      "explain": "Since the size field is the total block size, block address + size = the next block's header. The heap pointer marks the first unallocated byte, so no valid header exists at or beyond it."
+    },
+    {
+      "type": "mc",
+      "category": "Heap traversal and GDB",
+      "q": "Why does the heap printer keep the current block pointer, size, and flag in stack local variables instead of just leaving them in RAX, RCX, and RDX?",
+      "choices": [
+        "Each call to printf can overwrite those registers, so values needed after the call have to be saved and reloaded",
+        "Registers can't hold values larger than 16 bits",
+        "Stack variables are needed so GDB can display them",
+        "The heap pointer is stored in RAX and would be lost"
+      ],
+      "answer": 0,
+      "explain": "Called functions like printf are free to overwrite registers such as RAX, RCX, RDX, and RDI. Before the values were saved, the flag comparison after printf used whatever junk was left in EDX."
+    },
+    {
+      "type": "num",
+      "category": "Heap traversal and GDB",
+      "q": "A function needs three 8-byte local variables and has to keep the stack 16-byte aligned. How many bytes should it subtract from RSP after 'push rbp; mov rbp, rsp'?",
+      "answer": 32,
+      "explain": "3 x 8 = 24 bytes, rounded up to the next multiple of 16 = 32."
+    },
+    {
+      "type": "mc",
+      "category": "Heap traversal and GDB",
+      "q": "The heap printer walked every block correctly but then crashed with a segmentation fault. What was the bug?",
+      "choices": [
+        "The function returned without tearing down its stack frame (restoring RSP from RBP and popping RBP)",
+        "The loop compared against the heap end instead of the heap pointer",
+        "The flag was compared with JG instead of JA",
+        "The header size was set to 4 instead of 8"
+      ],
+      "answer": 0,
+      "explain": "After the prologue moved RSP, ret popped the wrong value as the return address. Restoring RSP from RBP and popping RBP before ret fixed it."
+    },
+    {
+      "type": "mc",
+      "category": "Heap traversal and GDB",
+      "q": "There is no header past the last block. How does the heap printer work out how much unallocated space is left?",
+      "choices": [
+        "Heap end minus heap pointer",
+        "Heap pointer minus heap start",
+        "Sum of all block sizes minus the page size",
+        "Number of blocks times the header size"
+      ],
+      "answer": 0,
+      "explain": "The heap pointer marks where the next new block would go, and the heap end marks where the reserved region stops. The difference is the space still unused."
+    },
+    {
+      "type": "mc",
+      "category": "free()",
+      "q": "free() receives the payload address in RDI. What is the first thing it must do?",
+      "choices": [
+        "Subtract the header size (8) from RDI to get to the block's header",
+        "Add the header size (8) to RDI to get to the block's data",
+        "Compare RDI with the heap pointer to find the block size",
+        "Zero out the payload starting at RDI"
+      ],
+      "answer": 0,
+      "explain": "The user only knows the payload pointer, which is 8 bytes past the hidden header. Moving back 8 bytes exposes the header."
+    },
+    {
+      "type": "multi",
+      "category": "free()",
+      "q": "Which of these does this allocator's free() actually do?",
+      "choices": [
+        "Moves the pointer back by the header size",
+        "Writes the 4-byte value 1 to the flag field at offset 4",
+        "Overwrites the payload with zeros",
+        "Updates the size field to the user's request size",
+        "Moves the heap pointer back to the start of the freed block"
+      ],
+      "answer": [0, 1],
+      "explain": "free() only finds the header and sets the flag to 1. It doesn't touch the size, clear the data, or move the heap pointer. Freeing memory is basically checking a box."
+    },
+    {
+      "type": "tf",
+      "category": "free()",
+      "q": "When this allocator frees a block, the contents of the payload are erased.",
+      "answer": false,
+      "explain": "Only the is-free flag changes. Zeroing the memory would take too much time, so the old data stays until the block is reused."
+    },
+    {
+      "type": "mc",
+      "category": "free()",
+      "q": "free() is called with payload pointer 0x228a268. Where does it write the is-free flag?",
+      "choices": [
+        "0x228a260",
+        "0x228a264",
+        "0x228a26c",
+        "0x228a270"
+      ],
+      "answer": 1,
+      "explain": "Header = 0x228a268 - 8 = 0x228a260. The flag is at header + 4 = 0x228a264."
+    },
+    {
+      "type": "mc",
+      "category": "Finding free blocks",
+      "q": "What does find_free_block return?",
+      "choices": [
+        "The address of the header of a suitable free block, or 0 (null) if there isn't one",
+        "The payload address of the largest free block",
+        "The number of free blocks in the heap",
+        "The size of the first free block, or -1 if there isn't one"
+      ],
+      "answer": 0,
+      "explain": "It returns the block's start (its header), not the payload. malloc still adds the header size before returning. A return value of 0 tells malloc to fall back to bump allocation."
+    },
+    {
+      "type": "multi",
+      "category": "Finding free blocks",
+      "q": "Which conditions must a block meet for find_free_block to choose it?",
+      "choices": [
+        "Its flag at offset 4 equals 1",
+        "Its size field is greater than or equal to the required size",
+        "Its size field exactly equals the required size",
+        "It is the last block before the heap pointer",
+        "It is smaller than the previous free block"
+      ],
+      "answer": [0, 1],
+      "explain": "The block must be free and big enough. If the required size is greater than the block's size, the block is too small and the search moves on."
+    },
+    {
+      "type": "mc",
+      "category": "Finding free blocks",
+      "q": "When comparing the required size to a block's size, why switch from JG to JA?",
+      "choices": [
+        "Sizes and addresses are unsigned values; JA compares unsigned, while JG compares signed",
+        "JA is the only conditional jump that works with 32-bit registers",
+        "JG jumps when the values are equal, and JA does not",
+        "JA also checks the is-free flag automatically"
+      ],
+      "answer": 0,
+      "explain": "JG (jump if greater) treats operands as signed, so large values could be read as negative. JA (jump if above) is the unsigned version, which fits sizes and memory addresses."
+    },
+    {
+      "type": "mc",
+      "category": "Finding free blocks",
+      "q": "Two free blocks in the heap are both big enough for a request. Which one does find_free_block return?",
+      "choices": [
+        "The one closest to the start of the heap, since it returns the first match while walking forward",
+        "The smaller of the two, to waste less space",
+        "The larger of the two",
+        "The one closest to the heap pointer"
+      ],
+      "answer": 0,
+      "explain": "The search walks from the heap start and returns as soon as it finds a block that is free and large enough. It doesn't compare candidates."
+    },
+    {
+      "type": "mc",
+      "category": "Finding free blocks",
+      "q": "Which size does malloc pass to find_free_block?",
+      "choices": [
+        "The total block size: the request aligned to 8, plus the header size",
+        "The raw number of bytes the user asked for",
+        "The aligned size without the header",
+        "The size of the most recently freed block"
+      ],
+      "answer": 0,
+      "explain": "malloc still aligns the request and adds the header first, so it knows the actual block size it needs. That is the value compared against the header size fields."
+    },
+    {
+      "type": "mc",
+      "category": "Reusing blocks and tradeoffs",
+      "q": "When malloc reuses a free block found by find_free_block, what does it write into that block's header?",
+      "choices": [
+        "Only the flag (set to 0); the size field is left alone",
+        "Only the size field (set to the new request's block size)",
+        "Both the new size and a flag of 0",
+        "Nothing; it returns the payload pointer right away"
+      ],
+      "answer": 0,
+      "explain": "The flag is set to 0 (in use) and then the header size is added to return the payload. The size is only written when a block is first carved out of unused heap space."
+    },
+    {
+      "type": "mc",
+      "category": "Reusing blocks and tradeoffs",
+      "q": "A 32-byte free block is reused by a request needing 16 bytes. Why would writing 16 into the size field be a mistake?",
+      "choices": [
+        "The allocator would treat the block as 16 bytes for good, so later larger requests would skip it even though it really has 32 bytes",
+        "It would cause the CPU to raise an alignment exception",
+        "The heap pointer would move back 16 bytes",
+        "free() would no longer be able to find the header"
+      ],
+      "answer": 0,
+      "explain": "The size field has to describe the block's real extent. Shrinking it mislabels the block (a kind of leak), and heap traversal would also land in the wrong place for the next header."
+    },
+    {
+      "type": "num",
+      "category": "Reusing blocks and tradeoffs",
+      "q": "A 1024-byte request creates a 1032-byte block, which is later freed. A request needing a 16-byte block then reuses it. How many bytes of that block go beyond what the new request needs?",
+      "answer": 1016,
+      "explain": "1032 - 16 = 1016 bytes are wasted. The proposed fix is to split large free blocks into a block of the needed size and a leftover free block."
+    },
+    {
+      "type": "mc",
+      "category": "Reusing blocks and tradeoffs",
+      "q": "What improvement is proposed for when a small request reuses a much larger free block?",
+      "choices": [
+        "Split the large block into two blocks: one sized for the request and one remaining free block",
+        "Refuse to reuse any block larger than the request",
+        "Zero the extra space so it can be reclaimed",
+        "Move the heap pointer back to the end of the small request"
+      ],
+      "answer": 0,
+      "explain": "Splitting lets the leftover space become its own free block instead of being wasted inside an oversized allocation."
+    },
+    {
+      "type": "mc",
+      "category": "Reusing blocks and tradeoffs",
+      "q": "Compared with the original bump allocator, how does adding free-block reuse affect malloc's speed?",
+      "choices": [
+        "It gets slower, because each allocation may have to walk every block, so the cost grows with the number of allocations",
+        "It gets faster, because reused blocks skip alignment",
+        "It doesn't change, because find_free_block runs in constant time",
+        "It only slows down free(), not malloc"
+      ],
+      "answer": 0,
+      "explain": "The bump allocator just put each block at the end with no checks. Now malloc scans blocks from the heap start until it finds a fit, which is a linear walk."
+    },
+    {
+      "type": "tf",
+      "category": "Reusing blocks and tradeoffs",
+      "q": "If the heap holds a million allocated blocks and none of them are free, every new malloc call walks all million blocks before falling back to bump allocation.",
+      "answer": true,
+      "explain": "find_free_block has to reach the heap pointer before it can return null, so with no free blocks every allocation pays for a full traversal."
+    }
+  ]
+}

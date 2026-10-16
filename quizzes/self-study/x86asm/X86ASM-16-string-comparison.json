@@ -1,0 +1,315 @@
+{
+  "title": "X86ASM 16: String Comparison (strcmp and strncmp)",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Why CMP is not enough",
+      "q": "Why can't a single CMP instruction compare two strings?",
+      "choices": [
+        "CMP works on fixed-size values that fit in a register (1, 2, 4, or 8 bytes), but a string can be any length",
+        "CMP cannot use byte-sized registers such as AL",
+        "CMP always overwrites both operands, which would destroy the strings",
+        "CMP only works on numbers, never on ASCII characters"
+      ],
+      "answer": 0,
+      "explain": "A string can be 2 bytes or millions of bytes long, so you have to walk through it and compare one byte at a time."
+    },
+    {
+      "type": "tf",
+      "category": "Why CMP is not enough",
+      "q": "If RDI and RSI hold pointers to two strings, `cmp rdi, rsi` tells you whether the two strings have the same contents.",
+      "answer": false,
+      "explain": "RDI and RSI hold memory addresses. Two separate strings sit at different addresses even when their contents are the same. You have to load the bytes stored at those addresses and compare those."
+    },
+    {
+      "type": "num",
+      "category": "Why CMP is not enough",
+      "q": "Comparing \"hello\" and \"hey\" one byte at a time, at which character position (counting from 1) is the first mismatch found?",
+      "answer": 3,
+      "explain": "h = h, e = e, then l vs y differ at position 3."
+    },
+    {
+      "type": "mc",
+      "category": "Null terminators",
+      "q": "In GNU as, what does the 'z' in the `.asciz` directive add compared with `.ascii`?",
+      "choices": [
+        "A zero (null) byte after the string, marking where it ends",
+        "A length byte placed before the string",
+        "A newline character after the string",
+        "Zero-padding up to an 8-byte boundary"
+      ],
+      "answer": 0,
+      "explain": ".asciz adds a null terminator. With .ascii you get only the characters and no end marker."
+    },
+    {
+      "type": "tf",
+      "category": "Null terminators",
+      "q": "If the strings are defined with `.ascii` instead of `.asciz`, a strcmp loop that stops at a zero byte has no reliable way to tell where either string ends.",
+      "answer": true,
+      "explain": "Without the null terminator there is no end marker. The loop would keep reading whatever bytes come next in memory."
+    },
+    {
+      "type": "num",
+      "category": "Null terminators",
+      "q": "s1 is defined as `.asciz \"hey!\"` and s2 is defined right after it in the data section. How many bytes after the start of s1 does s2 begin?",
+      "answer": 5,
+      "explain": "4 characters (h, e, y, !) plus 1 null terminator = 5 bytes. So s2's first byte is at s1 + 5."
+    },
+    {
+      "type": "mc",
+      "category": "Null terminators",
+      "q": "Why does strcmp need to check for the null terminator at all?",
+      "choices": [
+        "A mismatch is easy to detect, but when every character matches, the null terminator is the only thing that tells the loop it has reached the end and the strings are equal",
+        "The null terminator is needed to detect a mismatch between two characters",
+        "CMP cannot compare two characters unless one of them is zero",
+        "The null terminator resets RDI and RSI back to the start of the strings"
+      ],
+      "answer": 0,
+      "explain": "On a mismatch the loop quits right away. When the characters keep matching, reaching a null at the same position in both strings is what decides that they match."
+    },
+    {
+      "type": "mc",
+      "category": "The strcmp loop",
+      "q": "What does `mov al, [rdi]` do, and why does it load exactly one byte?",
+      "choices": [
+        "The brackets treat RDI as a memory address and load the value stored there. One byte is loaded because AL is a 1-byte register",
+        "It copies the address in RDI into AL. One byte is loaded because addresses are 1 byte",
+        "It loads 8 bytes from memory and throws away the upper 7 because of the brackets",
+        "It stores AL into the memory location that RDI points to"
+      ],
+      "answer": 0,
+      "explain": "The brackets mean dereference: look up the address in RAM. The destination register's size (AL = 1 byte) sets how many bytes are read."
+    },
+    {
+      "type": "tf",
+      "category": "The strcmp loop",
+      "q": "After `mov dl, [rsi]`, the upper bytes of RDX must be cleared first, or `cmp al, dl` will give the wrong result.",
+      "answer": false,
+      "explain": "Only the low byte DL is used in the comparison. Leftover data in the rest of RDX doesn't matter."
+    },
+    {
+      "type": "mc",
+      "category": "The strcmp loop",
+      "q": "In strcmp, after `cmp al, dl` finds the characters equal and the null check finds they are not zero, what happens next?",
+      "choices": [
+        "Increment RDI and RSI, then jump back to the top of the loop to load the next pair of characters",
+        "Subtract DL from AL and return",
+        "Increment only RDI, because RSI follows automatically",
+        "Jump to the done label, because one matching character is enough"
+      ],
+      "answer": 0,
+      "explain": "Both pointers move forward one byte, and the loop repeats for as long as the characters keep matching."
+    },
+    {
+      "type": "mc",
+      "category": "The strcmp loop",
+      "q": "After confirming AL == DL, the function checks only AL against 0 (`cmp al, 0` / `je done`). Why doesn't it also need to check DL?",
+      "choices": [
+        "On a mismatch the code has already jumped away, so at this point AL equals DL. If AL is the null terminator, DL must be too",
+        "DL can never hold a zero byte",
+        "The CPU automatically checks DL whenever AL is compared",
+        "Only the first string is null-terminated"
+      ],
+      "answer": 0,
+      "explain": "The mismatch check comes first, so reaching the null check means the two characters are equal. Checking one of them covers both."
+    },
+    {
+      "type": "num",
+      "category": "The strcmp loop",
+      "q": "strcmp is called with s1 = \"hello\" and s2 = \"hello\". How many character pairs are loaded and compared before it jumps to done (count the null terminators too)?",
+      "answer": 6,
+      "explain": "h, e, l, l, o, then the null terminators. The 6th pair is equal and AL is 0, so it jumps to done."
+    },
+    {
+      "type": "text",
+      "category": "The strcmp loop",
+      "q": "Which conditional jump instruction comes right after `cmp al, dl` to leave the loop when the characters differ?",
+      "answer": ["jne", "JNE", "jnz", "JNZ"],
+      "explain": "jne (jump if not equal) goes to the done label as soon as a mismatch is found."
+    },
+    {
+      "type": "mc",
+      "category": "Return value",
+      "q": "At the done label, why does strcmp use `sub al, dl` instead of another comparison to work out why it got there?",
+      "choices": [
+        "One subtraction gives 0 when the final characters are equal (both null, so a full match) and a nonzero value on a mismatch. The sign also shows which string sorts first",
+        "SUB is the only instruction that can read AL and DL together",
+        "CMP cannot be used twice in the same function",
+        "SUB resets the pointers so the strings can be compared again"
+      ],
+      "answer": 0,
+      "explain": "Two paths lead to done: a mismatch or a full match. The subtraction handles both, giving zero for a match and nonzero otherwise, and it also shows lexicographic order."
+    },
+    {
+      "type": "num",
+      "category": "Return value",
+      "q": "strcmp is called with s1 = \"hey\" and s2 = \"hello\". Given 'y' = 0x79 and 'l' = 0x6C, what value (in decimal) does `sub al, dl` leave in AL?",
+      "answer": 13,
+      "tolerance": 0,
+      "explain": "The first mismatch is y vs l. 0x79 - 0x6C = 0x0D = 13. It isn't zero, so the strings don't match."
+    },
+    {
+      "type": "tf",
+      "category": "Return value",
+      "q": "A positive result from strcmp(s1, s2) means s1 would come after s2 in a sorted, dictionary-style list.",
+      "answer": true,
+      "explain": "The result is s1's character minus s2's character at the first difference. Positive means s1's character is larger, so s1 is lexicographically greater. This is why the return value can be used for sorting."
+    },
+    {
+      "type": "mc",
+      "category": "Return value",
+      "q": "Under the System V ABI used for this function, where is the return value expected, and why does strcmp need no extra MOV to put it there?",
+      "choices": [
+        "RAX. The subtraction is done in AL, which is the low byte of RAX, so the result is already in place",
+        "RDI. The first argument register is reused for the result",
+        "RDX. The subtraction result lands in DL",
+        "On the stack. The SUB instruction pushes its result"
+      ],
+      "answer": 0,
+      "explain": "RAX is the return-value register. Because the characters were loaded into AL and the subtraction writes AL, the result is already in RAX."
+    },
+    {
+      "type": "text",
+      "category": "Return value",
+      "q": "What is the hexadecimal ASCII code of lowercase 'h'?",
+      "answer": ["0x68", "0X68", "68", "68h", "68H"],
+      "explain": "Lowercase h is 0x68, the value seen in AL and DL when both strings start with h."
+    },
+    {
+      "type": "mc",
+      "category": "Using the result",
+      "q": "After `call strcmp`, how does the caller decide whether to print \"match\" or \"no match\"?",
+      "choices": [
+        "`cmp rax, 0`, then `je` to the match code and otherwise jump to the no-match code",
+        "`cmp rdi, rsi`, then `je` to the match code",
+        "Check whether RAX is negative, because a match returns -1",
+        "Call slen on both strings and compare the lengths"
+      ],
+      "answer": 0,
+      "explain": "A return value of zero in RAX means the strings match, and any nonzero value means they don't."
+    },
+    {
+      "type": "tf",
+      "category": "Using the result",
+      "q": "With this strcmp, comparing an empty string with another empty string reports a match.",
+      "answer": true,
+      "explain": "Both first bytes are null. They are equal, AL is 0, so it jumps to done, and 0 - 0 = 0 means a match."
+    },
+    {
+      "type": "tf",
+      "category": "Using the result",
+      "q": "With this strcmp, \"hey\" and \"hey!\" are reported as matching because every character of the shorter string matches.",
+      "answer": false,
+      "explain": "At the 4th position one string has its null terminator (0) and the other has '!'. They differ, so it jumps to done with a nonzero result. strcmp compares whole strings, not prefixes."
+    },
+    {
+      "type": "mc",
+      "category": "Using the result",
+      "q": "_start loads the two pointers and calls strcmp, and the strcmp code sits directly after _start. If nothing comes after the call, what happens when strcmp returns?",
+      "choices": [
+        "Execution falls through into the strcmp code again, so the program effectively loops",
+        "The program exits cleanly with the result as its exit code",
+        "The CPU halts because RET has no return address",
+        "The assembler refuses to build the program"
+      ],
+      "answer": 0,
+      "explain": "Instructions run one after another. With no exit or jump after the call, execution runs straight into the function body that follows. That's why match/no-match handling followed by an exit is added."
+    },
+    {
+      "type": "text",
+      "category": "strncmp",
+      "q": "Under the System V calling convention, which 64-bit register holds the third argument (strncmp's character count N)?",
+      "answer": ["rdx", "RDX"],
+      "explain": "Argument 1 goes in RDI, argument 2 in RSI, and argument 3 in RDX."
+    },
+    {
+      "type": "mc",
+      "category": "strncmp",
+      "q": "Why does strncmp start by copying the count from RDX into RCX?",
+      "choices": [
+        "DL, the low byte of RDX, is already used to load characters from the second string, so a count left in RDX would be overwritten",
+        "RDX cannot be decremented",
+        "The System V ABI requires counts to be passed in RCX",
+        "RCX is the only register that can be compared with zero"
+      ],
+      "answer": 0,
+      "explain": "Each `mov dl, [rsi]` overwrites the low byte of RDX. Moving the count to RCX keeps it safe. RCX is also historically the counter register."
+    },
+    {
+      "type": "mc",
+      "category": "strncmp",
+      "q": "Besides moving the count into RCX, which other change would also fix the conflict between the count argument and character loading?",
+      "choices": [
+        "Load the second string's characters into a different byte register such as BL and keep the count in RDX",
+        "Load both strings' characters into AL",
+        "Pass the count in RSI instead",
+        "Increment RDX instead of decrementing it"
+      ],
+      "answer": 0,
+      "explain": "The problem is only that DL and the count share RDX. Using BL for the characters leaves RDX free for the count."
+    },
+    {
+      "type": "multi",
+      "category": "strncmp",
+      "q": "Which conditions cause the strncmp loop to jump to its done label?",
+      "choices": [
+        "The two current characters differ",
+        "The current (matching) character is the null terminator",
+        "The counter in RCX has reached zero",
+        "RDI and RSI point to the same address",
+        "RAX becomes nonzero"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "strncmp keeps both strcmp exit checks (mismatch and null terminator) and adds a third: stop once the requested number of characters has been checked."
+    },
+    {
+      "type": "mc",
+      "category": "strncmp",
+      "q": "Why does strncmp need a separate loop label below its setup code instead of jumping back to the first line of the function?",
+      "choices": [
+        "Jumping to the top would run the setup (`mov rcx, rdx`) on every pass and reset the counter, so the setup has to run only once",
+        "Labels can be the target of only one jump",
+        "Jumping to the function name would push another return address",
+        "The assembler doesn't allow jumping to a function's own name"
+      ],
+      "answer": 0,
+      "explain": "The one-time setup goes before the loop label. The loop label goes at the per-iteration work, and the backward jump targets that label."
+    },
+    {
+      "type": "num",
+      "category": "strncmp",
+      "q": "strncmp is called with RDX = 1. What value does RCX hold right after it is decremented for the first time?",
+      "answer": 0,
+      "explain": "RCX = 1, and decrementing it gives 0. After checking the first pair of characters, `cmp rcx, 0` / `je done` exits, so exactly one character is compared."
+    },
+    {
+      "type": "tf",
+      "category": "strncmp",
+      "q": "strncmp(\"ab\", \"ac\", 1) reports a match.",
+      "answer": true,
+      "explain": "Only the first character is checked (a = a). The counter reaches zero and the function exits with 0 - 0 = 0, before the b vs c difference is reached."
+    },
+    {
+      "type": "tf",
+      "category": "strncmp",
+      "q": "strncmp(\"hi\", \"hi\", 10) still correctly reports a match, even though N is larger than the strings.",
+      "answer": true,
+      "explain": "The null terminator check is still in the loop. Both strings reach their null terminator at the same position, so it exits with a result of 0 before the counter runs out."
+    },
+    {
+      "type": "mc",
+      "category": "strncmp",
+      "q": "What is the main advantage of strncmp over copying the first N characters of each string into new strings and running strcmp on those copies?",
+      "choices": [
+        "It compares the prefixes in place, with no extra copying, which saves work and processing time",
+        "It is the only way to compare strings longer than 8 bytes",
+        "It doesn't need null terminators in either string under any circumstances",
+        "It sorts the two strings as a side effect"
+      ],
+      "answer": 0,
+      "explain": "Making separate copies just to compare prefixes is cumbersome and wastes processing. strncmp checks only the first N characters of the original strings."
+    }
+  ]
+}

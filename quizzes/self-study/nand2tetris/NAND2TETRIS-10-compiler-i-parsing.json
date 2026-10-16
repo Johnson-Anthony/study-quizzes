@@ -1,0 +1,686 @@
+{
+  "title": "Nand2Tetris 10: Compiler I - Syntax Analysis",
+  "course": "NAND2TETRIS",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Compiler architecture",
+      "q": "In the two-tier compilation model, what does the compiler translate a Jack program into first?",
+      "choices": ["Hack machine code", "VM code", "Hack assembly", "An XML parse tree"],
+      "answer": 1,
+      "explain": "The compiler translates Jack into VM code. A separate VM translator then turns the VM code into machine code. XML is only a test output of the syntax analyzer."
+    },
+    {
+      "type": "mc",
+      "category": "Compiler architecture",
+      "q": "Which part of the Jack compiler expresses the parsed semantics of the program in the target language?",
+      "choices": ["The tokenizer", "The parser", "The code generator", "The syntax analyzer"],
+      "answer": 2,
+      "explain": "The syntax analyzer (tokenizer + parser) works out the structure of the source code. The code generator then expresses that structure in the target language (VM code)."
+    },
+    {
+      "type": "tf",
+      "category": "Compiler architecture",
+      "q": "The syntax analyzer outputs XML because XML is the Jack compiler's final target language.",
+      "answer": false,
+      "explain": "The target language is VM code. The syntax analyzer writes XML so you can unit-test that it parses correctly: the XML shows the parse tree it found."
+    },
+    {
+      "type": "mc",
+      "category": "Compiler architecture",
+      "q": "In the proposed syntax analyzer implementation, which module handles the parsing?",
+      "choices": ["`JackTokenizer`", "`CompilationEngine`", "`JackAnalyzer`"],
+      "answer": 1,
+      "explain": "`JackTokenizer` handles the input, `CompilationEngine` handles the parsing, and `JackAnalyzer` drives the process."
+    },
+    {
+      "type": "mc",
+      "category": "Compiler architecture",
+      "q": "For each input `.jack` file, `JackAnalyzer` (1) creates a `JackTokenizer` from the file and (2) creates the output `.xml` file. What does it do next?",
+      "choices": [
+        "Loops over all tokens, calling a different compile method for each token",
+        "Creates a `CompilationEngine` and calls `compileClass`, which does the rest of the parsing recursively",
+        "Calls `compileStatements` once per subroutine",
+        "Closes the output file and starts code generation"
+      ],
+      "answer": 1,
+      "explain": "`class` is the top-level grammar rule, so a single call to `compileClass` parses the whole file through recursion. After that, the output file is closed."
+    },
+    {
+      "type": "tf",
+      "category": "Compiler architecture",
+      "q": "When `JackAnalyzer` is given a folder, it writes one combined `.xml` file for all the `.jack` files in it.",
+      "answer": false,
+      "explain": "It writes one `.xml` file for every `.jack` file (for example, `Square.jack` becomes `Square.xml`). The output files go in the same folder as the source files."
+    },
+    {
+      "type": "tf",
+      "category": "Compiler architecture",
+      "q": "The Jack analyzer described in this unit detects, handles, and reports errors.",
+      "answer": false,
+      "explain": "The Jack analyzer does not handle errors. Error handling (detection, handling, and reporting) is mentioned only as a topic beyond the basic analyzer."
+    },
+    {
+      "type": "mc",
+      "category": "Compiler architecture",
+      "q": "Why can tools such as Lex/Yacc or ANTLR produce parsers more or less automatically?",
+      "choices": [
+        "Because all programming languages share the same grammar",
+        "Because parsing only requires tokenizing",
+        "Because a syntax analyzer's design follows directly from the language's grammar",
+        "Because these tools translate VM code back into source code"
+      ],
+      "answer": 2,
+      "explain": "Each grammar rule maps onto a parsing routine. So once you have a grammar, a parser can be generated largely mechanically."
+    },
+    {
+      "type": "mc",
+      "category": "Jack lexicon",
+      "q": "In syntax analysis, what is a *lexicon*?",
+      "choices": [
+        "The set of grammar rules of a language",
+        "The set of valid tokens of a language",
+        "The parse tree of a program",
+        "The list of a program's variable names"
+      ],
+      "answer": 1,
+      "explain": "A lexicon is the set of valid tokens. The grammar rules then say how those tokens can be arranged."
+    },
+    {
+      "type": "num",
+      "category": "Jack lexicon",
+      "q": "How many categories of tokens (terminal elements) does the Jack language have?",
+      "answer": 5,
+      "explain": "The five categories are keyword, symbol, integerConstant, stringConstant, and identifier."
+    },
+    {
+      "type": "multi",
+      "category": "Jack lexicon",
+      "q": "Which of these are Jack keywords?",
+      "choices": ["`let`", "`then`", "`this`", "`null`", "`for`", "`do`", "`string`", "`else`"],
+      "answer": [0, 2, 3, 5, 7],
+      "explain": "Jack's keywords are: class, constructor, function, method, field, static, var, int, char, boolean, void, true, false, null, this, let, do, if, else, while, return. Jack has no `then`, `for`, or `string` keyword."
+    },
+    {
+      "type": "multi",
+      "category": "Jack lexicon",
+      "q": "Which of these are Jack symbols?",
+      "choices": ["`~`", "`!`", "`&`", "`%`", "`|`", "`.`", "`^`"],
+      "answer": [0, 2, 4, 5],
+      "explain": "Jack's symbols are `{ } ( ) [ ] . , ; + - * / & | < > = ~`. `!`, `%`, and `^` are not in the lexicon. Jack uses `~` for 'not'."
+    },
+    {
+      "type": "mc",
+      "category": "Jack lexicon",
+      "q": "Which of these is NOT a valid Jack identifier?",
+      "choices": ["`_count`", "`count2`", "`2count`", "`Count_`"],
+      "answer": 2,
+      "explain": "An identifier is a sequence of letters, digits, and underscores that does not start with a digit."
+    },
+    {
+      "type": "num",
+      "category": "Jack lexicon",
+      "q": "What is the largest value a Jack integerConstant can have?",
+      "answer": 32767,
+      "explain": "An integerConstant is a decimal number from 0 to 32767. There are no negative integer constants: `-5` is the unary operator `-` applied to the term `5`."
+    },
+    {
+      "type": "tf",
+      "category": "Jack lexicon",
+      "q": "A Jack string constant may contain a newline character, as long as it doesn't contain a double quote.",
+      "answer": false,
+      "explain": "A stringConstant is a sequence of Unicode characters between double quotes. It cannot include a double quote or a newline."
+    },
+    {
+      "type": "num",
+      "category": "Jack lexicon",
+      "q": "How many tokens does the tokenizer produce for this input?\n\n```\nif (x < 0) {  // check the sign\n```",
+      "answer": 7,
+      "explain": "The tokens are `if`, `(`, `x`, `<`, `0`, `)`, and `{`. White space and comments are skipped, so they are not tokens."
+    },
+    {
+      "type": "mc",
+      "category": "Jack lexicon",
+      "q": "In `let done = true;`, what kind of token is `true`?",
+      "choices": ["identifier", "keyword", "integerConstant", "stringConstant"],
+      "answer": 1,
+      "explain": "`true` is a Jack keyword. In expressions it also serves as a keywordConstant."
+    },
+    {
+      "type": "mc",
+      "category": "JackTokenizer",
+      "q": "In the tokenizer's XML test output, how is the source token `<` written?",
+      "choices": ["`<symbol> < </symbol>`", "`<symbol> &lt; </symbol>`", "`<op> < </op>`", "`<symbol> \"<\" </symbol>`"],
+      "answer": 1,
+      "explain": "Writing `<`, `>`, `\"`, or `&` directly would break the XML, so they are written as `&lt;`, `&gt;`, `&quot;`, and `&amp;`."
+    },
+    {
+      "type": "mc",
+      "category": "JackTokenizer",
+      "q": "How does the tokenizer output the string constant in `let sign = \"negative\";`?",
+      "choices": [
+        "`<stringConstant> \"negative\" </stringConstant>`",
+        "`<identifier> negative </identifier>`",
+        "`<stringConstant> negative </stringConstant>`",
+        "`<stringConstant> &quot;negative&quot; </stringConstant>`"
+      ],
+      "answer": 2,
+      "explain": "String constants are output without their surrounding double quotes."
+    },
+    {
+      "type": "tf",
+      "category": "JackTokenizer",
+      "q": "`advance` should be called only when `hasMoreTokens` is true. Right after the tokenizer is constructed, there is no current token yet.",
+      "answer": true,
+      "explain": "This is why the test driver calls `advance()` once to get the first token before it enters its loop."
+    },
+    {
+      "type": "mc",
+      "category": "JackTokenizer",
+      "q": "`tokenType()` returns `INT_CONST`. Which routine should you call to get the token's value?",
+      "choices": ["`keyWord`", "`symbol`", "`identifier`", "`intVal`"],
+      "answer": 3,
+      "explain": "Each value routine should be called only for its matching type: `keyWord` for `KEYWORD`, `symbol` (returns a char) for `SYMBOL`, `identifier` for `IDENTIFIER`, `intVal` for `INT_CONST`, and `stringVal` for `STRING_CONST`."
+    },
+    {
+      "type": "mc",
+      "category": "JackTokenizer",
+      "q": "What does `stringVal` return for the source token `\"hello world\"`?",
+      "choices": [
+        "`\"hello world\"`, with the quotes",
+        "`hello world`, without the quotes",
+        "Two tokens, `hello` and `world`",
+        "The length of the string"
+      ],
+      "answer": 1,
+      "explain": "`stringVal` returns the string's value without the opening and closing double quotes. The whole quoted string is a single token."
+    },
+    {
+      "type": "tf",
+      "category": "JackTokenizer",
+      "q": "The JackTokenizer passes comments to the parser as tokens, and the parser is responsible for ignoring them.",
+      "answer": false,
+      "explain": "The tokenizer skips comments and white space, so the parser only ever sees real tokens."
+    },
+    {
+      "type": "mc",
+      "category": "JackTokenizer",
+      "q": "Which list gives the possible return values of `tokenType`?",
+      "choices": [
+        "`KEYWORD`, `OPERATOR`, `IDENTIFIER`, `NUMBER`, `STRING`",
+        "`TERMINAL`, `NONTERMINAL`",
+        "`KEYWORD`, `SYMBOL`, `IDENTIFIER`, `INT_CONST`, `STRING_CONST`",
+        "`KEYWORD`, `SYMBOL`, `VARIABLE`, `CONSTANT`"
+      ],
+      "answer": 2,
+      "explain": "There is one constant for each of the five lexical categories."
+    },
+    {
+      "type": "mc",
+      "category": "Grammars",
+      "q": "As the term is used in this unit, what is a grammar?",
+      "choices": [
+        "The set of valid tokens of a language",
+        "A set of rules of the form `ruleName: ruleDefinition`, each specifying how valid tokens can be arranged to form valid language patterns",
+        "A procedure that translates source code into VM code",
+        "A list of a language's keywords and symbols"
+      ],
+      "answer": 1,
+      "explain": "The lexicon says what the tokens are. The grammar says how tokens can be combined."
+    },
+    {
+      "type": "mc",
+      "category": "Grammars",
+      "q": "In the grammar notation, what does `x?` mean?",
+      "choices": [
+        "`x` appears 0 or more times",
+        "`x` appears 1 or more times",
+        "`x` appears 0 or 1 times",
+        "`x` must appear at the end of the input"
+      ],
+      "answer": 2,
+      "explain": "`x?` means 0 or 1 times and `x*` means 0 or more times. `x | y` means either x or y, `x y` means x followed by y, and `(x y)` groups x and y."
+    },
+    {
+      "type": "mc",
+      "category": "Grammars",
+      "q": "On a grammar rule's right-hand side, what is the difference between `'while'` (quoted) and `expression` (unquoted)?",
+      "choices": [
+        "`'while'` is text that must appear verbatim; `expression` names another rule (a lexical element)",
+        "`'while'` is optional; `expression` is required",
+        "`'while'` is a nonterminal; `expression` is a terminal",
+        "There is no difference; the quotes are only for readability"
+      ],
+      "answer": 0,
+      "explain": "Quoted text must appear in the input exactly as written. An unquoted name refers to a rule that is defined elsewhere in the grammar."
+    },
+    {
+      "type": "mc",
+      "category": "Grammars",
+      "q": "What makes a grammar rule a *nonterminal*?",
+      "choices": [
+        "It describes a single token",
+        "Its definition mentions other rules",
+        "It can only appear at the end of a program",
+        "It contains no quoted text"
+      ],
+      "answer": 1,
+      "explain": "A nonterminal is a rule whose definition refers to other rules. For example, `whileStatement` refers to `expression` and `statements`. Terminal rules such as `varName`, `constant`, and `op` describe tokens directly."
+    },
+    {
+      "type": "mc",
+      "category": "Grammars",
+      "q": "Given the rule\n\n```\nifStatement: 'if' '(' expression ')' '{' statements '}'\n```\n\nwhy is this input rejected?\n\n```\nif (n < lim)\n   let n = n + 1;\n}\n```",
+      "choices": [
+        "`n < lim` is not a valid expression",
+        "`let` statements can't appear inside an `if`",
+        "The opening `{` after the condition is missing",
+        "The closing `}` must be followed by `;`"
+      ],
+      "answer": 2,
+      "explain": "The rule requires `'{'` right after `')'`. Without it, the input doesn't match the rule."
+    },
+    {
+      "type": "tf",
+      "category": "Grammars",
+      "q": "Under the simplified grammar where `expression: term (op term)?`, `let n = n + 1;` is valid but `let n = n + 1 + 2;` is not.",
+      "answer": true,
+      "explain": "`(op term)?` allows at most one `op term` pair. The full Jack grammar uses `expression: term (op term)*`, which allows any number of them."
+    },
+    {
+      "type": "tf",
+      "category": "Grammars",
+      "q": "Because `statements: statement*`, a while loop with an empty body, `while (x) { }`, is grammatically valid.",
+      "answer": true,
+      "explain": "`*` means zero or more, so `statements` can be empty."
+    },
+    {
+      "type": "mc",
+      "category": "Parsing & recursive descent",
+      "q": "What does it mean to parse an input according to a grammar?",
+      "choices": [
+        "To check whether the grammar accepts the input and, along the way, uncover its grammatical structure (a parse tree)",
+        "To split the input into tokens and discard white space",
+        "To translate the input directly into machine code",
+        "To list every identifier that appears in the input"
+      ],
+      "answer": 0,
+      "explain": "Splitting the input into tokens is the tokenizer's job. The parser works on the resulting token stream: it accepts or rejects it and builds its parse tree."
+    },
+    {
+      "type": "mc",
+      "category": "Parsing & recursive descent",
+      "q": "What is the root node of the parse tree for `while (count < 100) { let count = count + 1; }`?",
+      "choices": ["`expression`", "`whileStatement`", "`letStatement`", "`statements`"],
+      "answer": 1,
+      "explain": "The `whileStatement` node has the tokens `while ( ) { }` as children. It also has an `expression` subtree for `count < 100` and a `statements` subtree that holds the `letStatement`."
+    },
+    {
+      "type": "mc",
+      "category": "Parsing & recursive descent",
+      "q": "What do the two L's in 'LL grammar' stand for?",
+      "choices": [
+        "The input is parsed from Left to right, performing a Leftmost derivation",
+        "Lexical analysis and Linking",
+        "Left-recursive and Lookahead",
+        "Line-by-line and Last-in-first-out"
+      ],
+      "answer": 0,
+      "explain": "LL means parsing inputs from left to right while performing a leftmost derivation of the input."
+    },
+    {
+      "type": "mc",
+      "category": "Parsing & recursive descent",
+      "q": "What does it mean for a grammar to be LL(1)?",
+      "choices": [
+        "Each rule has exactly one alternative",
+        "The first token is enough to know which rule to invoke next",
+        "The parser may backtrack at most one token",
+        "The grammar has only one nonterminal"
+      ],
+      "answer": 1,
+      "explain": "In an LL(k) grammar, looking ahead k tokens is enough to choose the next parsing rule. For LL(1), the first token is enough."
+    },
+    {
+      "type": "tf",
+      "category": "Parsing & recursive descent",
+      "q": "LL(1) grammars can be handled by recursive descent parsing without any backtracking.",
+      "answer": true,
+      "explain": "Because one token always decides which rule comes next, the parser never has to undo a choice."
+    },
+    {
+      "type": "mc",
+      "category": "Parsing & recursive descent",
+      "q": "Where does the Jack grammar fail to be LL(1)?",
+      "choices": [
+        "When parsing an `if` statement with an `else` clause",
+        "When parsing a class variable declaration (`static` vs `field`)",
+        "When parsing a term that begins with an identifier, where the next token may be needed (LL(2))",
+        "When parsing a `return` statement with no expression"
+      ],
+      "answer": 2,
+      "explain": "An identifier at the start of a term could be a variable, an array entry, or a subroutine call. The token after it (`[`, `(`, `.`, or something else) decides which. Everywhere else, the current token is enough."
+    },
+    {
+      "type": "multi",
+      "category": "Parsing & recursive descent",
+      "q": "Which statements describe recursive descent parsing as used in the Jack analyzer?",
+      "choices": [
+        "The parser is a set of `compileXxx` methods",
+        "Each `compileXxx` method is designed from a corresponding grammar rule",
+        "Each `compileXxx` method handles its own part of the input and advances the input past it",
+        "The `compileXxx` methods call each other recursively",
+        "The parser reads the whole token stream first, then backtracks to find matching rules",
+        "The tokenizer generates the `compileXxx` methods automatically"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The parser is a set of mutually recursive methods, one for each grammar rule, and each method consumes exactly its own part of the input. The parser does not backtrack, and the tokenizer does not generate any code."
+    },
+    {
+      "type": "mc",
+      "category": "Parsing & recursive descent",
+      "q": "What does the `process(str)` helper used by the parsing methods do?",
+      "choices": [
+        "Searches ahead in the input for `str` and skips everything before it",
+        "If the current token equals `str`, outputs it as an XML token, otherwise reports a syntax error; then advances to the next token",
+        "Adds `str` to the grammar as a new rule",
+        "Prints `str` without checking the current token or advancing"
+      ],
+      "answer": 1,
+      "explain": "`process` checks that the expected terminal is present, writes it out, and advances the input. It can be refined to accept a set of possible strings (for example, `static` or `field`)."
+    },
+    {
+      "type": "mc",
+      "category": "Parsing & recursive descent",
+      "q": "Fill in the missing step of `compileWhile`, which parses `'while' '(' expression ')' '{' statements '}'`:\n\n```\nprint(\"<whileStatement>\")\nprocess(\"while\")\nprocess(\"(\")\n???\nprocess(\")\")\nprocess(\"{\")\ncompileStatements()\nprocess(\"}\")\nprint(\"</whileStatement>\")\n```",
+      "choices": ["`compileExpression()`", "`process(\"expression\")`", "`compileTerm()`", "`compileStatements()`"],
+      "answer": 0,
+      "explain": "Terminals (quoted tokens) are handled with `process`. A nonterminal such as `expression` is handled by calling its own compile method. That call is where the recursion in recursive descent happens."
+    },
+    {
+      "type": "mc",
+      "category": "Jack grammar: structure & statements",
+      "q": "The rule `class: 'class' className '{' classVarDec* subroutineDec* '}'` contains `classVarDec*`. How should `compileClass` handle it?",
+      "choices": [
+        "Use a loop that parses as many classVarDec elements as appear in the input",
+        "Call `compileClassVarDec` exactly once",
+        "Skip class variable declarations, because the tokenizer handles them",
+        "Use backtracking to guess how many there are"
+      ],
+      "answer": 0,
+      "explain": "A rule element `x*` maps naturally onto a loop. Since a classVarDec always begins with `static` or `field`, keep parsing classVarDecs while the current token is one of those."
+    },
+    {
+      "type": "multi",
+      "category": "Jack grammar: structure & statements",
+      "q": "According to the Jack grammar, which of these can serve as a `type` (as in `var type varName;`)?",
+      "choices": ["`int`", "`boolean`", "`void`", "`char`", "A class name, such as `Point`", "`float`"],
+      "answer": [0, 1, 3, 4],
+      "explain": "The rule is `type: 'int' | 'char' | 'boolean' | className`. `void` is allowed only as a subroutine's return type (`('void' | type)` in subroutineDec), and Jack has no `float`."
+    },
+    {
+      "type": "multi",
+      "category": "Jack grammar: structure & statements",
+      "q": "Which keywords can begin a `subroutineDec`?",
+      "choices": ["`constructor`", "`function`", "`method`", "`field`", "`static`", "`var`"],
+      "answer": [0, 1, 2],
+      "explain": "The rule is `subroutineDec: ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' subroutineBody`. `static` and `field` begin a classVarDec, and `var` begins a varDec."
+    },
+    {
+      "type": "tf",
+      "category": "Jack grammar: structure & statements",
+      "q": "Given `subroutineBody: '{' varDec* statements '}'`, a `var` declaration may appear after a statement inside a subroutine body.",
+      "answer": false,
+      "explain": "All the varDecs come first, followed by the statements."
+    },
+    {
+      "type": "mc",
+      "category": "Jack grammar: structure & statements",
+      "q": "The rule `letStatement: 'let' varName ('[' expression ']')? '=' expression ';'` covers both `let x = ...` and `let x[i] = ...`. In `compileLet`, what should the parser expect right after handling `varName`?",
+      "choices": [
+        "Always `=`",
+        "Either `=` or `[`, and continue parsing accordingly",
+        "Always `[`",
+        "An expression"
+      ],
+      "answer": 1,
+      "explain": "The optional `('[' expression ']')?` part means the next token is either `[` (array assignment) or `=` (plain assignment)."
+    },
+    {
+      "type": "tf",
+      "category": "Jack grammar: structure & statements",
+      "q": "In the Jack grammar, the `else` clause of an `if` statement is optional.",
+      "answer": true,
+      "explain": "The rule is `ifStatement: 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?`. The trailing `?` makes the else part optional."
+    },
+    {
+      "type": "tf",
+      "category": "Jack grammar: structure & statements",
+      "q": "`return;` (with no expression) is grammatically valid in Jack.",
+      "answer": true,
+      "explain": "The rule is `returnStatement: 'return' expression? ';'`, so the expression is optional."
+    },
+    {
+      "type": "mc",
+      "category": "Jack grammar: structure & statements",
+      "q": "Why is it recommended to parse `do subroutineCall;` as if it were `do expression;`?",
+      "choices": [
+        "Because `do` statements can contain arbitrary arithmetic",
+        "Because subroutine calls cannot appear inside expressions",
+        "Because a subroutine call is itself an expression (a term), so the expression-parsing code already handles it",
+        "Because the tokenizer cannot recognize subroutine names"
+      ],
+      "answer": 2,
+      "explain": "A subroutineCall is one of the alternatives of `term`, so `compileExpression` / `compileTerm` already know how to parse it. Reusing them avoids duplicating that logic."
+    },
+    {
+      "type": "multi",
+      "category": "Jack grammar: structure & statements",
+      "q": "Which of these are kinds of `statement` in the Jack grammar?",
+      "choices": ["`let`", "`if`", "`while`", "`do`", "`return`", "`for`", "`var`", "`else`"],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "The rule is `statement: letStatement | ifStatement | whileStatement | doStatement | returnStatement`. `var` begins a variable declaration (varDec), `else` is part of ifStatement, and Jack has no `for`."
+    },
+    {
+      "type": "multi",
+      "category": "Jack grammar: expressions",
+      "q": "Which of these are keywordConstants in the Jack grammar?",
+      "choices": ["`true`", "`false`", "`null`", "`this`", "`void`", "`let`"],
+      "answer": [0, 1, 2, 3],
+      "explain": "The rule is `keywordConstant: 'true' | 'false' | 'null' | 'this'`."
+    },
+    {
+      "type": "multi",
+      "category": "Jack grammar: expressions",
+      "q": "Which symbols can act as unary operators (`unaryOp`) in Jack?",
+      "choices": ["`-`", "`~`", "`!`", "`+`"],
+      "answer": [0, 1],
+      "explain": "The rule is `unaryOp: '-' | '~'`. A term can be `unaryOp term`, as in `-x` or `~done`. `-` is also a binary op."
+    },
+    {
+      "type": "mc",
+      "category": "Jack grammar: expressions",
+      "q": "While parsing `y + arr[5] - p.get(row) * count() - Math.sqrt(dist)`, the current token is `p` and the next token is `.`. What kind of term is being parsed?",
+      "choices": [
+        "An array entry, `varName '[' expression ']'`",
+        "A plain variable",
+        "A subroutine call of the form `(className | varName) '.' subroutineName '(' expressionList ')'`",
+        "A subroutine call of the form `subroutineName '(' expressionList ')'`"
+      ],
+      "answer": 2,
+      "explain": "After an identifier, `[` means an array entry, `(` means `subroutineName(...)`, `.` means `className/varName.subroutineName(...)`, and anything else means a plain variable."
+    },
+    {
+      "type": "mc",
+      "category": "Jack grammar: expressions",
+      "q": "In the same expression, the current token is `count` and the next token is `(`. What kind of term is it?",
+      "choices": [
+        "An array entry",
+        "A plain variable",
+        "A parenthesized expression, `'(' expression ')'`",
+        "A subroutine call, `subroutineName '(' expressionList ')'`"
+      ],
+      "answer": 3,
+      "explain": "An identifier followed by `(` is a call to a subroutine named by that identifier. Here the argument list is empty."
+    },
+    {
+      "type": "mc",
+      "category": "Jack grammar: expressions",
+      "q": "While parsing `y + arr[5]`, `compileTerm` sees the identifier `y` followed by `+`. What should it do?",
+      "choices": [
+        "Treat `y` as a plain variable and stop, without advancing past `+`",
+        "Treat `+` as part of the term and advance past it",
+        "Report a syntax error, since an identifier must be followed by `[`, `(`, or `.`",
+        "Treat `y` as a subroutine name"
+      ],
+      "answer": 0,
+      "explain": "Any token other than `[`, `(`, or `.` is not part of this term, so `compileTerm` must not advance past it. `compileExpression` then handles the `op term` that follows."
+    },
+    {
+      "type": "mc",
+      "category": "Jack grammar: expressions",
+      "q": "When parsing a term that begins with an identifier, what should the parser do?",
+      "choices": [
+        "Assume it's a variable and backtrack if parsing fails later",
+        "Save the current token, then advance to get the next token, which tells you which alternative applies",
+        "Call a separate `compileSubroutineCall` method right away",
+        "Ask the tokenizer to re-tokenize the identifier"
+      ],
+      "answer": 1,
+      "explain": "This is the only place where Jack needs two tokens of lookahead (LL(2)). Save the identifier, look at the next token, and then parse the matching alternative."
+    },
+    {
+      "type": "mc",
+      "category": "Jack grammar: expressions",
+      "q": "Why does the proposed design have no separate `compileSubroutineCall` method?",
+      "choices": [
+        "A subroutineCall occurs in only one place, inside a term, so `compileTerm` can parse it directly",
+        "Subroutine calls are handled entirely by the tokenizer",
+        "Jack doesn't allow subroutine calls inside expressions",
+        "`compileDo` handles all subroutine calls, including those inside expressions"
+      ],
+      "answer": 0,
+      "explain": "In the grammar, `subroutineCall` appears only as an alternative of `term`, so the simplest approach is to parse it inside `compileTerm`."
+    },
+    {
+      "type": "tf",
+      "category": "Jack grammar: expressions",
+      "q": "Given `expressionList: (expression (',' expression)*)?`, an empty argument list, as in `count()`, is valid.",
+      "answer": true,
+      "explain": "The whole rule is wrapped in `( ... )?`, so the list can be empty."
+    },
+    {
+      "type": "tf",
+      "category": "Jack grammar: expressions",
+      "q": "In the Jack grammar, a parenthesized subexpression like `(x + 1)` counts as a single `term`.",
+      "answer": true,
+      "explain": "One of term's alternatives is `'(' expression ')'`. So the expression `x * (x + 1)` has two terms, `x` and `(x + 1)`, joined by the op `*`."
+    },
+    {
+      "type": "multi",
+      "category": "CompilationEngine & XML output",
+      "q": "In the proposed CompilationEngine API, which grammar elements have NO `compileXxx` method of their own, and are parsed directly by other methods instead?",
+      "choices": ["`subroutineCall`", "`varName`", "`type`", "`statement`", "`term`", "`expressionList`", "`parameterList`", "`className`"],
+      "answer": [0, 1, 2, 3, 7],
+      "explain": "Six elements have no method: subroutineCall, subroutineName, varName, className, type, and statement. This keeps the implementation simpler. `term`, `expressionList`, and `parameterList` each have their own compile method."
+    },
+    {
+      "type": "multi",
+      "category": "CompilationEngine & XML output",
+      "q": "Which of these nonterminals get their own wrapping XML tags in the analyzer's output?",
+      "choices": ["`parameterList`", "`statement`", "`term`", "`subroutineCall`", "`expressionList`", "`varName`", "`statements`"],
+      "answer": [0, 2, 4, 6],
+      "explain": "The tagged nonterminals are: class, classVarDec, subroutineDec, parameterList, subroutineBody, varDec, statements, letStatement, ifStatement, whileStatement, doStatement, returnStatement, expression, term, and expressionList. `statement` and `subroutineCall` get no wrapper tags, and a `varName` is output as an `<identifier>` token."
+    },
+    {
+      "type": "tf",
+      "category": "CompilationEngine & XML output",
+      "q": "For `method int getx() { return x; }`, the XML output still contains a `<parameterList>` element, even though the parameter list is empty.",
+      "answer": true,
+      "explain": "parameterList is a tagged nonterminal. An empty one is output as `<parameterList>` immediately followed by `</parameterList>`."
+    },
+    {
+      "type": "mc",
+      "category": "CompilationEngine & XML output",
+      "q": "`compileParameterList` does not handle the enclosing `(` and `)` tokens. Which method outputs them?",
+      "choices": ["`compileParameterList`", "`compileClass`", "`compileSubroutine`", "`compileExpressionList`"],
+      "answer": 2,
+      "explain": "`'(' parameterList ')'` is part of the subroutineDec rule, which `compileSubroutine` handles. In the XML, the `(` and `)` symbols sit inside `<subroutineDec>`, on either side of `<parameterList>`."
+    },
+    {
+      "type": "tf",
+      "category": "CompilationEngine & XML output",
+      "q": "`compileStatements` handles the enclosing `{` and `}` tokens of a block.",
+      "answer": false,
+      "explain": "It compiles only a sequence of statements. The curly braces belong to the enclosing rule, such as whileStatement, ifStatement, or subroutineBody."
+    },
+    {
+      "type": "mc",
+      "category": "CompilationEngine & XML output",
+      "q": "What does `compileExpressionList` return?",
+      "choices": [
+        "Nothing",
+        "The number of expressions in the list (an int)",
+        "The value of the last expression",
+        "A boolean indicating success"
+      ],
+      "answer": 1,
+      "explain": "It compiles a possibly empty, comma-separated list of expressions and returns how many expressions were in it. The other compile routines return nothing."
+    },
+    {
+      "type": "mc",
+      "category": "CompilationEngine & XML output",
+      "q": "After a CompilationEngine is constructed, which routine must be called next?",
+      "choices": ["`compileClass`", "`compileStatements`", "`compileSubroutine`", "`compileTerm`"],
+      "answer": 0,
+      "explain": "Every Jack file contains exactly one class, and `class` is the top-level rule, so parsing always starts with `compileClass`."
+    },
+    {
+      "type": "mc",
+      "category": "CompilationEngine & XML output",
+      "q": "Each `compileXxx` routine handles all the tokens that make up xxx. Where must it leave the tokenizer when it finishes?",
+      "choices": [
+        "Exactly past the tokens that make up xxx",
+        "On the last token of xxx",
+        "At the start of the next source line",
+        "Back at the first token of xxx"
+      ],
+      "answer": 0,
+      "explain": "Each routine consumes exactly its own tokens. That way, the caller's current token is the first token after xxx."
+    },
+    {
+      "type": "mc",
+      "category": "CompilationEngine & XML output",
+      "q": "This is the output for `return x;`:\n\n```\n<returnStatement>\n  <keyword> return </keyword>\n  <expression>\n    <term>\n      <identifier> x </identifier>\n    </term>\n  </expression>\n  <symbol> ; </symbol>\n</returnStatement>\n```\n\nWhich method writes the `<symbol> ; </symbol>` line?",
+      "choices": ["`compileExpression`", "`compileTerm`", "`compileReturn`", "`compileStatements`"],
+      "answer": 2,
+      "explain": "`compileReturn` prints `<returnStatement>`, processes `return`, calls `compileExpression` (which writes the `<expression>` block), processes `;`, and prints `</returnStatement>`."
+    },
+    {
+      "type": "mc",
+      "category": "CompilationEngine & XML output",
+      "q": "In the XML parse tree for `let x = x * (x + 1);`, how does `(x + 1)` appear?",
+      "choices": [
+        "As a `<term>` containing `<symbol> ( </symbol>`, an `<expression>`, and `<symbol> ) </symbol>`",
+        "As an `<expression>` directly inside the outer `<expression>`, with no `<term>`",
+        "As a single `<term>` containing just the three tokens `x`, `+`, and `1`",
+        "As an `<expressionList>`"
+      ],
+      "answer": 0,
+      "explain": "`(x + 1)` matches the term alternative `'(' expression ')'`. The inner `<expression>` has its own two `<term>` elements, `x` and `1`, with the symbol `+` between them."
+    },
+    {
+      "type": "mc",
+      "category": "CompilationEngine & XML output",
+      "q": "How does the analyzer output a terminal element (token) such as `let`?",
+      "choices": [
+        "`<token> let </token>`",
+        "`<keyword> let </keyword>`, i.e. `<tokenType> xxx </tokenType>`",
+        "`<terminal type=\"keyword\"> let </terminal>`",
+        "Just `let`, with no tags"
+      ],
+      "answer": 1,
+      "explain": "The tag name is the token type: keyword, symbol, integerConstant, stringConstant, or identifier."
+    }
+  ]
+}

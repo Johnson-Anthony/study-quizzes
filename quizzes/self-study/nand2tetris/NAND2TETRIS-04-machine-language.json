@@ -1,0 +1,1194 @@
+{
+  "title": "NAND2TETRIS 04: Machine Language",
+  "course": "NAND2TETRIS",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Machine language basics",
+      "q": "A machine language can be viewed as an agreed-upon formalism designed to manipulate a ___ using a ___ and a set of ___. Fill in the blanks in order.",
+      "choices": [
+        "memory; processor; registers",
+        "processor; compiler; variables",
+        "program; operating system; files",
+        "register file; ALU; instructions"
+      ],
+      "answer": 0,
+      "explain": "Machine languages in general can be described with three abstractions. A **memory** is an array of addressed words. A **processor** (CPU) performs a fixed set of elementary operations. A set of **registers** gives fast storage close to the CPU."
+    },
+    {
+      "type": "mc",
+      "category": "Machine language basics",
+      "q": "Why are processors equipped with registers in addition to main memory?",
+      "choices": [
+        "Memory access is relatively slow and needs long instruction formats, so registers next to the processor act as a fast local memory",
+        "The ALU can only store instructions in registers, never data",
+        "Main memory can only hold instructions, so all data must live in registers",
+        "Registers are wider than memory words, so they can hold larger numbers"
+      ],
+      "answer": 0,
+      "explain": "Accessing memory is slow and needs long instruction formats, since an address alone may take 32 bits. Registers sit right next to the processor and serve as a high-speed local memory, so programs can use fewer memory-access commands and run faster."
+    },
+    {
+      "type": "mc",
+      "category": "Machine language basics",
+      "q": "What is the difference between *assembly language* and an *assembler*?",
+      "choices": [
+        "Assembly is the symbolic notation for machine instructions; the assembler is the program that translates it into binary code",
+        "Assembly is the binary machine code; the assembler is its symbolic notation",
+        "They are two names for the same thing",
+        "Assembly is a high-level language; the assembler is the CPU that executes it"
+      ],
+      "answer": 0,
+      "explain": "Writing programs with symbolic commands (mnemonics and operands) instead of raw bits is called assembly language. The assembler is a text-processing program. It parses each command into fields, translates each field to binary, and assembles the resulting machine instructions."
+    },
+    {
+      "type": "mc",
+      "category": "Machine language basics",
+      "q": "A hypothetical 16-bit machine splits each instruction into four 4-bit fields. The leftmost field is the op-code and the other three name registers by number. In the instruction `1010001100011001`, which registers are named?",
+      "choices": [
+        "R3, R1 and R9",
+        "R10, R3 and R1",
+        "R5, R1 and R9",
+        "R3, R2 and R8"
+      ],
+      "answer": 0,
+      "explain": "Split it as `1010 | 0011 | 0001 | 1001`. The op-code is 1010 (say `ADD`) and the operand fields are 3, 1 and 9. Read as *set R3 to R1 + R9*, it would be written symbolically as `ADD R3,R1,R9`."
+    },
+    {
+      "type": "tf",
+      "category": "Machine language basics",
+      "q": "A *mnemonic* such as `ADD` is a symbolic label whose name hints at what it stands for. Here it stands for a binary operation code.",
+      "answer": true,
+      "explain": "Binary codes are cryptic, so machine languages are specified with both binary codes and mnemonics. For example, a designer might write op-code 1010 as `ADD` and the registers as `R0`, `R1`, `R2`, ..."
+    },
+    {
+      "type": "mc",
+      "category": "Machine language basics",
+      "q": "What is the *stored program concept*?",
+      "choices": [
+        "The computer's memory can store programs just like it stores data",
+        "Each program needs its own dedicated hardware",
+        "Programs live on a separate device that the CPU cannot address",
+        "The CPU keeps the running program entirely in its registers"
+      ],
+      "answer": 0,
+      "explain": "Instructions and data both sit in memory as binary words, so programs = data. That is why the same fixed hardware can run many different programs. It is one of the fundamental ideas in computer science."
+    },
+    {
+      "type": "tf",
+      "category": "Machine language basics",
+      "q": "Machine languages of different computers vary in syntax, but their semantics are essentially the same: manipulating registers.",
+      "answer": true,
+      "explain": "Typical RISC-style commands include `add R1,R2`, `addi R1,73`, `mov R1,R2`, `load R1,137` and `jgt R1,15`. Every machine spells them differently (a \"Tower of Babel\"), but all of them support similar generic commands for arithmetic/logic, memory access, and flow of control."
+    },
+    {
+      "type": "mc",
+      "category": "Machine language basics",
+      "q": "How do CPU-resident registers differ from memory-resident registers?",
+      "choices": [
+        "CPU-resident registers are few and accessed directly by name; memory-resident registers are many and accessed by address",
+        "CPU-resident registers are many and accessed by address; memory-resident registers are few and accessed by name",
+        "CPU-resident registers hold only instructions; memory-resident registers hold only data",
+        "There is no difference; the terms are interchangeable"
+      ],
+      "answer": 0,
+      "explain": "Conceptually, a computer is a processor that manipulates registers. A few of them live inside the CPU and are named directly (e.g., `R1`, `A`). The many memory registers are selected by their address."
+    },
+    {
+      "type": "mc",
+      "category": "Addressing modes & control flow",
+      "q": "Which addressing mode does `LOADI R1,67` (meaning R1 ← 67) use?",
+      "choices": ["Immediate", "Direct", "Indirect", "Relative"],
+      "answer": 0,
+      "explain": "Immediate addressing loads constants. The numeric field in the instruction is used as the value itself, not as an address. Compare `LOAD R1,67`, which is direct addressing (R1 ← Memory[67])."
+    },
+    {
+      "type": "mc",
+      "category": "Addressing modes & control flow",
+      "q": "Which addressing mode does `LOAD R1,67` (meaning R1 ← Memory[67]) use?",
+      "choices": ["Immediate", "Direct", "Indirect", "Relative"],
+      "answer": 1,
+      "explain": "Direct addressing names a specific address, or a symbol bound to one. If `bar` refers to address 67, `LOAD R1,bar` has the same effect."
+    },
+    {
+      "type": "mc",
+      "category": "Addressing modes & control flow",
+      "q": "Which addressing mode is used to handle *pointers*? In this mode the instruction names a memory location that holds the address of the data it needs.",
+      "choices": ["Immediate", "Direct", "Indirect", "Relative"],
+      "answer": 2,
+      "explain": "In indirect addressing the address is not hard-coded in the instruction. The instruction points to a location that holds the address. Compilers use this for array accesses such as `foo[j]`."
+    },
+    {
+      "type": "mc",
+      "category": "Addressing modes & control flow",
+      "q": "A compiler translates `x = foo[j]` as shown below, where `foo` is the array's base address.\n\n```\nADD R1,foo,j\nLOAD* R2,R1\nSTR R2,x\n```\n\nWhat does R1 hold after the first instruction?",
+      "choices": [
+        "The address of `foo[j]`, i.e., the base address plus the displacement j",
+        "The value of `foo[j]`",
+        "The value of `x`",
+        "The base address of `foo`, unchanged"
+      ],
+      "answer": 0,
+      "explain": "The j-th array entry sits j words past the base address, so `foo + j` is its address. In C this is `x = *(foo + j)`. Next, `LOAD* R2,R1` reads Memory[R1] (indirect addressing), and `STR` stores the result in `x`."
+    },
+    {
+      "type": "multi",
+      "category": "Addressing modes & control flow",
+      "q": "Which of these are purposes of branching (flow of control)?",
+      "choices": [
+        "Repetition: jump backward to the beginning of a loop",
+        "Conditional execution: jump forward past an if-then clause when its condition is false",
+        "Subroutine calling: jump to the first command of another code segment",
+        "Loading constants into registers",
+        "Translating symbols into addresses"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Programs normally run one command after another. Branching lets them jump elsewhere for loops, if-then logic and subroutine calls, so every machine language has both conditional and unconditional jumps."
+    },
+    {
+      "type": "mc",
+      "category": "Addressing modes & control flow",
+      "q": "`while (R1>=0) { code segment 1 }` is typically translated as:\n\n```\nbeginWhile:\n  JNG R1,endWhile   // if R1<0 goto endWhile\n  // code segment 1\n  JMP beginWhile\nendWhile:\n```\n\nWhy does the low-level code test `R1<0` instead of `R1>=0`?",
+      "choices": [
+        "The jump has to leave the loop when the condition is false, so it branches on the negated condition",
+        "The CPU can only test for negative values",
+        "JNG is faster than a greater-or-equal test",
+        "It is a mistake: the loop body would never run"
+      ],
+      "answer": 0,
+      "explain": "The conditional jump skips over the body to `endWhile` exactly when the loop should stop (R1 < 0). Otherwise execution falls into the body, and `JMP beginWhile` sends control back to test again."
+    },
+    {
+      "type": "tf",
+      "category": "Addressing modes & control flow",
+      "q": "An unconditional jump such as `JMP beginWhile` needs only the target address. A conditional jump such as `JNG R1,endWhile` must also specify a Boolean condition.",
+      "answer": true,
+      "explain": "In some languages the condition is written in the jump command itself. In others it is a by-product of executing an earlier command."
+    },
+    {
+      "type": "mc",
+      "category": "Addressing modes & control flow",
+      "q": "Programs that use symbolic references (labels like `LOOP`) instead of physical line numbers are easier to develop, readable, and ___.",
+      "choices": [
+        "relocatable",
+        "faster to execute",
+        "smaller in binary form",
+        "independent of the instruction set"
+      ],
+      "answer": 0,
+      "explain": "With `goto LOOP` rather than `goto 13`, the code doesn't depend on where it ends up in memory. Labels are bound to actual addresses at translation time."
+    },
+    {
+      "type": "mc",
+      "category": "Hack memory & registers",
+      "q": "Which description of the Hack computer is correct?",
+      "choices": [
+        "A 16-bit von Neumann platform: a CPU, two separate memory modules (instruction memory and data memory), and two memory-mapped I/O devices (screen and keyboard)",
+        "An 8-bit machine with a single shared memory for code and data",
+        "A 32-bit machine whose CPU reads its instructions from the keyboard",
+        "A 16-bit machine with one memory unit and a hard disk for programs"
+      ],
+      "answer": 0,
+      "explain": "Hack has a CPU, a read-only instruction memory (ROM), a read-write data memory (RAM), and two I/O devices, a screen and a keyboard, which are accessed through memory maps in RAM."
+    },
+    {
+      "type": "num",
+      "category": "Hack memory & registers",
+      "q": "Each Hack memory (instruction and data) is 16 bits wide and has a 15-bit address space. What is the maximum number of words each memory can hold?",
+      "answer": 32768,
+      "explain": "2^15 = 32768 words (32K), at addresses 0 through 32767."
+    },
+    {
+      "type": "tf",
+      "category": "Hack memory & registers",
+      "q": "A running Hack program can write new instructions into the instruction memory.",
+      "answer": false,
+      "explain": "The instruction memory (ROM) is read-only. Programs are loaded into it by some outside means, for example by replacing a pre-burned ROM chip like a game cartridge, or by loading a text file of machine code into a simulator."
+    },
+    {
+      "type": "mc",
+      "category": "Hack memory & registers",
+      "q": "In Hack assembly, what does `M` refer to?",
+      "choices": [
+        "The data-memory register whose address is the current value of A, i.e., RAM[A]",
+        "A third CPU register alongside A and D",
+        "The ROM location holding the current instruction",
+        "The most recently written memory location"
+      ],
+      "answer": 0,
+      "explain": "Memory-access instructions operate on an implicit location labeled M, which is always RAM[A]. So you set A first with an A-instruction, then use M."
+    },
+    {
+      "type": "mc",
+      "category": "Hack memory & registers",
+      "q": "Which statement about Hack's D and A registers is correct?",
+      "choices": [
+        "D holds only data values; A can serve as a data value, a data-memory address, or an instruction-memory address",
+        "Both D and A can select a data-memory location",
+        "A holds only addresses and D holds only instructions",
+        "D is the address register and A is the data register"
+      ],
+      "answer": 0,
+      "explain": "Both are 16-bit registers that arithmetic/logic instructions can change (e.g., `A=D-1`, `D=!A`). D is used only for data. A also selects RAM[A] (= M) and holds the jump target ROM[A]."
+    },
+    {
+      "type": "tf",
+      "category": "Hack memory & registers",
+      "q": "In Hack, `D = Memory[516] - 1` can be done with a single instruction.",
+      "answer": false,
+      "explain": "A Hack instruction can't hold both an op-code and an address, so this takes two. `@516` selects the memory word, then `D=M-1` does the computation."
+    },
+    {
+      "type": "mc",
+      "category": "Hack memory & registers",
+      "q": "Why can't a single Hack instruction contain both an operation code and a memory address?",
+      "choices": [
+        "Instructions are 16 bits wide and an address needs 15 bits, which leaves no room for an operation code",
+        "The ALU cannot read addresses",
+        "Addresses must always come from the D register",
+        "The assembler forbids numbers inside C-instructions for readability"
+      ],
+      "answer": 0,
+      "explain": "For this reason Hack works on memory through the implicit operand M = RAM[A], and jumps always go to ROM[A]."
+    },
+    {
+      "type": "multi",
+      "category": "Hack memory & registers",
+      "q": "Which of these are effects of executing `@19`?",
+      "choices": [
+        "A is set to 19",
+        "RAM[19] becomes the selected data-memory register (M)",
+        "ROM[19] becomes the selected instruction-memory location",
+        "D is set to 19",
+        "Execution immediately jumps to ROM[19]"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The A-instruction sets A ← 19. As side effects, RAM[A] becomes M and ROM[A] becomes the possible jump target. Nothing jumps until a later C-instruction with a jump directive runs."
+    },
+    {
+      "type": "mc",
+      "category": "A-instruction",
+      "q": "What does the Hack instruction `@value` do?",
+      "choices": [
+        "Stores value in the A register",
+        "Stores value in RAM[A]",
+        "Jumps to instruction number value",
+        "Stores value in the D register"
+      ],
+      "answer": 0,
+      "explain": "Value is a non-negative decimal number or a symbol bound to one, and `@value` simply loads it into A. For example, `@5` stores the binary of 5 in A."
+    },
+    {
+      "type": "multi",
+      "category": "A-instruction",
+      "q": "Which of these are purposes of the A-instruction?",
+      "choices": [
+        "Entering a constant into the computer under program control",
+        "Selecting a data-memory location for a following C-instruction that uses M",
+        "Loading the jump destination for a following C-instruction that jumps",
+        "Computing an ALU function and storing the result in D",
+        "Reading the keyboard directly into D"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The A-instruction has three uses. It is the only way to enter a constant under program control. It sets the address before a C-instruction that operates on M. It loads the target before a C-instruction that jumps."
+    },
+    {
+      "type": "num",
+      "category": "A-instruction",
+      "q": "What is the largest constant you can write in a Hack A-instruction (`@xxx`)?",
+      "answer": 32767,
+      "explain": "The A-instruction carries a 15-bit value (`0vvvvvvvvvvvvvvv`), so xxx ranges from 0 to 2^15 − 1 = 32767."
+    },
+    {
+      "type": "tf",
+      "category": "A-instruction",
+      "q": "`@-1` is a legal A-instruction that sets A to −1.",
+      "answer": false,
+      "explain": "The value must be a non-negative decimal number or a symbol bound to one. To get −1, use the ALU constant in a C-instruction such as `A=-1` or `D=-1`."
+    },
+    {
+      "type": "mc",
+      "category": "A-instruction",
+      "q": "Which code sets D to 1954?",
+      "choices": [
+        "`@1954` then `D=A`",
+        "`D=1954`",
+        "`@1954` then `D=M`",
+        "`@D` then `M=1954`"
+      ],
+      "answer": 0,
+      "explain": "A C-instruction's comp field can only produce the constants 0, 1 and −1. Any other constant has to come in through an A-instruction, and `D=A` copies it into D. `D=M` would load RAM[1954] instead."
+    },
+    {
+      "type": "mc",
+      "category": "A-instruction",
+      "q": "The symbol `sum` refers to memory location 17. What do `@sum` and `@17` each do?",
+      "choices": [
+        "Both set A to 17",
+        "`@sum` sets A to the value stored in sum, and `@17` sets A to 17",
+        "Both set D to 17",
+        "Both store 17 into RAM[A]"
+      ],
+      "answer": 0,
+      "explain": "In an A-instruction, a symbol stands for the number it is bound to, here the address 17. To get the *contents* of sum, follow `@sum` with a C-instruction such as `D=M`."
+    },
+    {
+      "type": "tf",
+      "category": "A-instruction",
+      "q": "The sequence `@17`, `D=A`, `@100`, `M=D` sets RAM[100] to 17. In the first pair of instructions A serves as a data register, and in the second pair as an address register.",
+      "answer": true,
+      "explain": "`@17` / `D=A` treats 17 as a plain value, and the addressing side effect is ignored. `@100` / `M=D` uses A to select RAM[100]."
+    },
+    {
+      "type": "mc",
+      "category": "C-instruction",
+      "q": "A Hack C-instruction `dest=comp;jump` answers which three questions?",
+      "choices": [
+        "What to compute, where to store the result, and what to do next",
+        "Which register to read, which address to load, and which device to use",
+        "What constant to load, which label to bind, and which variable to allocate",
+        "Which instruction to fetch, decode, and retire"
+      ],
+      "answer": 0,
+      "explain": "comp tells the ALU what to compute. dest says where to store the ALU output. jump gives the condition for fetching the next instruction from ROM[A] rather than from the next address."
+    },
+    {
+      "type": "multi",
+      "category": "C-instruction",
+      "q": "Which of these appear as `comp` mnemonics in the Hack specification table?",
+      "choices": ["`D+M`", "`A-D`", "`!M`", "`D|A`", "`A+M`", "`D*A`", "`D+2`"],
+      "answer": [0, 1, 2, 3],
+      "explain": "The a-bit chooses either A or M as the ALU's second operand, so no comp can use both, which rules out `A+M`. Hack has no multiply operation. The only constants are 0, 1 and −1, plus ±1 forms like `D+1` and `M-1`."
+    },
+    {
+      "type": "mc",
+      "category": "C-instruction",
+      "q": "In the instruction `D=D+M`, what role does the `+` character play?",
+      "choices": [
+        "None by itself. The whole string `D+M` is one mnemonic for a single ALU operation",
+        "The assembler parses it as an arithmetic operator and emits a separate ADD op-code",
+        "It tells the CPU to add the D and M fields of the instruction",
+        "It is optional, so `D=DM` means the same thing"
+      ],
+      "answer": 0,
+      "explain": "`+` has no algebraic role here. The three-character string `D+M` is a single assembly mnemonic that maps to one 7-bit comp code (`1000010`)."
+    },
+    {
+      "type": "mc",
+      "category": "C-instruction",
+      "q": "Which C-instruction stores D+1 in both D and RAM[A]?",
+      "choices": ["`MD=D+1`", "`D=M+1`", "`D+1=MD`", "`M=D+1;JMP`"],
+      "answer": 0,
+      "explain": "dest goes on the left of `=`. With d-bits 011 the value goes to both M and D. The book writes this dest as `MD` and some slides write `DM`, but it is the same field. `D=M+1` computes RAM[A]+1 into D only."
+    },
+    {
+      "type": "text",
+      "category": "C-instruction",
+      "q": "Which `dest` mnemonic stores the computed value in both the A register and RAM[A], but not in D?",
+      "answer": "AM",
+      "explain": "The d-bits d1 d2 d3 stand for A, D, M, so `AM` is 101. The full list is null, M, D, MD, A, AM, AD, AMD."
+    },
+    {
+      "type": "text",
+      "category": "C-instruction",
+      "q": "Give the jump mnemonic that jumps when the ALU output is not zero.",
+      "answer": "JNE",
+      "explain": "The eight jump codes are null, JGT, JEQ, JGE, JLT, JNE, JLE and JMP. JNE (j-bits 101) jumps when out < 0 or out > 0, i.e., out ≠ 0."
+    },
+    {
+      "type": "mc",
+      "category": "C-instruction",
+      "q": "What does `D;JGT` do?",
+      "choices": [
+        "Computes D. If D > 0, execution continues at ROM[A]; otherwise the next instruction runs",
+        "If D > 0, jumps to ROM[D]",
+        "Sets D to 1 if D > 0, else 0",
+        "If D > 0, jumps to RAM[A]"
+      ],
+      "answer": 0,
+      "explain": "There is no dest, so nothing is stored. The ALU output (here just D) is compared with 0 according to the jump field. Jumps always go to the instruction-memory location addressed by A."
+    },
+    {
+      "type": "tf",
+      "category": "C-instruction",
+      "q": "In the unconditional jump `0;JMP`, the ALU computes 0 only because C-instruction syntax requires some computation. The value itself is ignored.",
+      "answer": true,
+      "explain": "comp is mandatory in a C-instruction, and 0 is an arbitrary choice. With no dest the result is discarded, and JMP jumps no matter what."
+    },
+    {
+      "type": "multi",
+      "category": "C-instruction",
+      "q": "Which of these are valid Hack C-instructions?",
+      "choices": ["`M=M+1`", "`D;JEQ`", "`0;JMP`", "`A=D-1`", "`D=5`", "`JMP`", "`D=D*2`"],
+      "answer": [0, 1, 2, 3],
+      "explain": "dest and jump are optional, but comp is mandatory, so a bare `JMP` is invalid. `5` is not a comp mnemonic (constants other than 0, 1, −1 must come from an A-instruction), and Hack has no multiply operation."
+    },
+    {
+      "type": "mc",
+      "category": "C-instruction",
+      "q": "In Hack comp mnemonics, what does `!D` compute?",
+      "choices": [
+        "The 16-bit bitwise Not of D",
+        "The two's-complement negation of D (−D)",
+        "1 if D is 0, otherwise 0",
+        "D minus 1"
+      ],
+      "answer": 0,
+      "explain": "In the comp table, `+` and `-` are 16-bit two's-complement addition and subtraction, while `!`, `|` and `&` are 16-bit bitwise Not, Or and And. Negation has its own mnemonic, `-D`."
+    },
+    {
+      "type": "mc",
+      "category": "C-instruction",
+      "q": "After `@56`, what does the instruction `D-1;JEQ` do?",
+      "choices": [
+        "If D−1 equals 0, jumps to ROM[56]; D itself is unchanged",
+        "Decrements D, then jumps to ROM[56] if the new D is 0",
+        "Jumps to ROM[55]",
+        "Stores D−1 in RAM[56] and jumps"
+      ],
+      "answer": 0,
+      "explain": "The comp in a jump can be any ALU computation, not just D. With an empty dest, the result D−1 is only compared with 0 and never stored, so D keeps its value."
+    },
+    {
+      "type": "mc",
+      "category": "Binary encoding",
+      "q": "How can you tell a Hack A-instruction from a C-instruction in binary?",
+      "choices": [
+        "Leftmost bit 0 means A-instruction; leftmost bit 1 means C-instruction",
+        "Leftmost bit 1 means A-instruction; leftmost bit 0 means C-instruction",
+        "A-instructions always end in three 0s",
+        "C-instructions are 32 bits long"
+      ],
+      "answer": 0,
+      "explain": "An A-instruction is `0vvvvvvvvvvvvvvv`, a 0 followed by a 15-bit value. A C-instruction is `111a cccc ccdd djjj`. Its leading 1 is the C-instruction code and the next two bits are unused."
+    },
+    {
+      "type": "text",
+      "category": "Binary encoding",
+      "q": "Write the 16-bit binary code for `@5`.",
+      "answer": "0000000000000101",
+      "explain": "An A-instruction is a 0 followed by the 15-bit value. 5 is `101` in binary, padded to `0000000000000101`."
+    },
+    {
+      "type": "text",
+      "category": "Binary encoding",
+      "q": "Write the 16-bit binary code for `@100`.",
+      "answer": "0000000001100100",
+      "explain": "100 = 64 + 32 + 4, which is `1100100` in binary. Padded with zeros to 16 bits it becomes `0000000001100100`."
+    },
+    {
+      "type": "mc",
+      "category": "Binary encoding",
+      "q": "In the C-instruction format `111a cccc ccdd djjj`, what does the a-bit do?",
+      "choices": [
+        "Chooses whether the ALU uses A (a=0) or M = RAM[A] (a=1) as its operand",
+        "Chooses whether the result is stored in A",
+        "Marks the instruction as an address instruction",
+        "Enables or disables the jump field"
+      ],
+      "answer": 0,
+      "explain": "The comp table has two columns with the same c-bits. With a=0 the mnemonic uses A (e.g., `D+A`), and with a=1 it uses M (e.g., `D+M`)."
+    },
+    {
+      "type": "text",
+      "category": "Binary encoding",
+      "q": "Write the 16-bit binary code for `D=A`.",
+      "answer": "1110110000010000",
+      "explain": "`111` + a=0 + comp A (`110000`) + dest D (`010`) + jump null (`000`) gives `1110 1100 0001 0000`."
+    },
+    {
+      "type": "text",
+      "category": "Binary encoding",
+      "q": "Write the 16-bit binary code for `0;JMP`.",
+      "answer": "1110101010000111",
+      "explain": "`111` + a=0 + comp 0 (`101010`) + dest null (`000`) + jump JMP (`111`) gives `1110 1010 1000 0111`."
+    },
+    {
+      "type": "mc",
+      "category": "Binary encoding",
+      "q": "Decode the C-instruction `1111110000010000`.",
+      "choices": ["`D=M`", "`D=A`", "`M=D`", "`A=M`"],
+      "answer": 0,
+      "explain": "The fields are `111` | a=1 | c=`110000` | d=`010` | j=`000`. With a=1, c-bits 110000 mean M. dest 010 is D, and there is no jump, so the instruction is `D=M`."
+    },
+    {
+      "type": "mc",
+      "category": "Binary encoding",
+      "q": "Decode the C-instruction `1110001100000001`.",
+      "choices": ["`D;JGT`", "`D;JLT`", "`D=D;JEQ`", "`0;JGT`"],
+      "answer": 0,
+      "explain": "The fields are `111` | a=0 | c=`001100` (D) | d=`000` (null) | j=`001` (JGT), so the instruction is `D;JGT`."
+    },
+    {
+      "type": "mc",
+      "category": "Binary encoding",
+      "q": "Which is the binary code for `AM=M-1`?",
+      "choices": ["`1111110010101000`", "`1110110010101000`", "`1111110010011000`", "`1111110111101000`"],
+      "answer": 0,
+      "explain": "a=1 (uses M), comp M-1 = `110010`, dest AM = `101`, jump null = `000`. The other choices encode `AM=A-1` (a=0), `MD=M-1` (dest 011) and `AM=M+1` (comp 110111)."
+    },
+    {
+      "type": "num",
+      "category": "Binary encoding",
+      "q": "The comp field is the a-bit plus six c-bits. How many different functions could this 7-bit pattern code in principle?",
+      "answer": 128,
+      "explain": "2^7 = 128 patterns. Only 28 of them are documented in the Hack language specification."
+    },
+    {
+      "type": "tf",
+      "category": "Binary encoding",
+      "q": "In a Hack C-instruction, the two bits right after the leading 1 are not used.",
+      "answer": true,
+      "explain": "In the format `111a cccc ccdd djjj`, the leftmost 1 marks a C-instruction and the next two bits are unused (written as 1s). The other 13 bits form the a, comp, dest and jump fields."
+    },
+    {
+      "type": "mc",
+      "category": "Branching in Hack",
+      "q": "How do you write `goto 7` in Hack?",
+      "choices": [
+        "`@7` then `0;JMP`",
+        "`JMP 7`",
+        "`0;JMP` then `@7`",
+        "`@7` then `M;JMP`"
+      ],
+      "answer": 0,
+      "explain": "Hack jump instructions don't name an address. They always go to ROM[A], so you set A with `@7` first and then jump unconditionally. The `0;` prefix is a syntax convention."
+    },
+    {
+      "type": "mc",
+      "category": "Branching in Hack",
+      "q": "Which code implements `if (D = 0) goto 300`?",
+      "choices": [
+        "`@300` then `D;JEQ`",
+        "`@300` then `D;JNE`",
+        "`D;JEQ` then `@300`",
+        "`@D` then `300;JEQ`"
+      ],
+      "answer": 0,
+      "explain": "Load the target into A first. Then use a C-instruction with comp D and jump condition JEQ."
+    },
+    {
+      "type": "mc",
+      "category": "Branching in Hack",
+      "q": "Which code implements `if (RAM[3] < 100) goto 12`?",
+      "choices": [
+        "`@3`, `D=M`, `@100`, `D=D-A`, `@12`, `D;JLT`",
+        "`@3`, `D=M`, `@100`, `D=D-M`, `@12`, `D;JLT`",
+        "`@3`, `D=M`, `@100`, `D=D-A`, `@12`, `D;JGT`",
+        "`@3`, `D=A`, `@100`, `D=D-A`, `@12`, `D;JLT`"
+      ],
+      "answer": 0,
+      "explain": "Compute D = RAM[3] − 100 and jump if the result is negative. `D=D-M` would subtract RAM[100] rather than the constant 100. `JGT` tests the wrong direction. `D=A` loads the number 3 instead of RAM[3]."
+    },
+    {
+      "type": "tf",
+      "category": "Branching in Hack",
+      "q": "A Hack jump instruction such as `D;JGT` contains the address of its jump destination.",
+      "answer": false,
+      "explain": "The destination is never in the jump instruction itself. It must already be in A, usually set by the preceding A-instruction, and the jump goes to ROM[A]."
+    },
+    {
+      "type": "mc",
+      "category": "Branching in Hack",
+      "q": "`if Memory[3]=5 then goto 100 else goto 200` is implemented as:\n\n```\n@3\nD=M\n@5\nD=D-A\n@100\nD;JEQ\n@200\n0;JMP\n```\n\nIf Memory[3] holds 7, where does execution go?",
+      "choices": [
+        "To instruction 200",
+        "To instruction 100",
+        "To instruction 2",
+        "Into an infinite loop at instruction 6"
+      ],
+      "answer": 0,
+      "explain": "D = 7 − 5 = 2, which is not 0, so `D;JEQ` doesn't jump. Execution continues with `@200` and `0;JMP`, which goes to instruction 200."
+    },
+    {
+      "type": "mc",
+      "category": "Branching in Hack",
+      "q": "Why is it best practice that a C-instruction that may jump should not mention M, and vice versa?",
+      "choices": [
+        "A selects both RAM[A] (for M) and ROM[A] (the jump target), and one address rarely makes sense for both",
+        "C-instructions that use M are executed twice",
+        "The jump field and the a-bit share the same bits",
+        "M cannot be read while a jump is in progress"
+      ],
+      "answer": 0,
+      "explain": "A can select either a data-memory location for M or an instruction-memory location for a jump. Using it for both at once is almost always a bug, so `@LOOP` followed by `M;JEQ` is a warning sign."
+    },
+    {
+      "type": "multi",
+      "category": "Branching in Hack",
+      "q": "Suppose D = 0 and A holds a valid jump target. Which of these instructions jump?",
+      "choices": ["`D;JEQ`", "`D;JGE`", "`D;JLE`", "`D-1;JLT`", "`D;JGT`", "`D;JNE`", "`D+1;JLE`"],
+      "answer": [0, 1, 2, 3],
+      "explain": "JEQ, JGE and JLE all include equality, so they jump when the output is 0. `D-1` gives −1 < 0, so JLT jumps. JGT and JNE need a nonzero value, and `D+1` gives 1, which is not ≤ 0."
+    },
+    {
+      "type": "multi",
+      "category": "Branching in Hack",
+      "q": "Suppose D = −5 and A holds a valid jump target. Which of these instructions jump?",
+      "choices": ["`D;JLT`", "`D;JNE`", "`D+1;JLT`", "`D;JGE`", "`D;JEQ`", "`D+5;JNE`"],
+      "answer": [0, 1, 2],
+      "explain": "−5 < 0 and −5 ≠ 0, so JLT and JNE jump. `D+1` gives −4, still negative. JGE and JEQ fail. `D+5` gives 0, so JNE doesn't jump."
+    },
+    {
+      "type": "mc",
+      "category": "Branching in Hack",
+      "q": "The jump bits j1 j2 j3 stand for out < 0, out = 0 and out > 0. Which mnemonic has j-bits `011`?",
+      "choices": ["`JGE`", "`JLE`", "`JNE`", "`JGT`"],
+      "answer": 0,
+      "explain": "`011` means jump if out = 0 or out > 0, i.e., out ≥ 0, which is JGE. JLE is 110, JNE is 101 and JGT is 001."
+    },
+    {
+      "type": "multi",
+      "category": "Branching in Hack",
+      "q": "This program should set `R2 = max(R0, R1)`:\n\n```\n@R0\nD=M\n@R1\nD=D-M\n@ITSR0\nD;???\n@R1\nD=M\n@R2\nM=D\n@END\n0;JMP\n(ITSR0)\n@R0\nD=M\n@R2\nM=D\n(END)\n@END\n0;JMP\n```\n\nWhich jump mnemonics in place of `???` make it correct for all inputs?",
+      "choices": ["`JGT`", "`JGE`", "`JLT`", "`JLE`", "`JNE`", "`JEQ`"],
+      "answer": [0, 1],
+      "explain": "D = R0 − R1, and the program should jump to ITSR0 whenever R0 is the maximum. JGT works. JGE also works, because when R0 = R1 either value is the max. JNE would jump wrongly when R0 < R1, and JEQ would fail to jump when R0 > R1."
+    },
+    {
+      "type": "multi",
+      "category": "Symbols",
+      "q": "Which predefined Hack symbols refer to RAM address 0?",
+      "choices": ["`R0`", "`SP`", "`LCL`", "`SCREEN`", "`KBD`"],
+      "answer": [0, 1],
+      "explain": "R0–R15 are bound to 0–15, and SP, LCL, ARG, THIS, THAT to 0–4, so address 0 has two names, `R0` and `SP`. LCL is 1, SCREEN is 16384 and KBD is 24576."
+    },
+    {
+      "type": "num",
+      "category": "Symbols",
+      "q": "The predefined symbol `THIS` refers to which RAM address?",
+      "answer": 3,
+      "explain": "SP = 0, LCL = 1, ARG = 2, THIS = 3 and THAT = 4. Each of these addresses also has an R-name, so THIS is the same location as R3."
+    },
+    {
+      "type": "mc",
+      "category": "Symbols",
+      "q": "What does the label declaration `(LOOP)` do?",
+      "choices": [
+        "Binds LOOP to the instruction-memory address of the next command",
+        "Allocates a RAM register named LOOP",
+        "Generates a jump to LOOP",
+        "Starts a block that repeats until `(END)`"
+      ],
+      "answer": 0,
+      "explain": "`(Xxx)` is a pseudo-command. It makes the symbol Xxx refer to the ROM address of the next real instruction, so `@LOOP` followed by `0;JMP` jumps there."
+    },
+    {
+      "type": "tf",
+      "category": "Symbols",
+      "q": "The pseudo-command `(Xxx)` generates one machine instruction.",
+      "answer": false,
+      "explain": "It is called a pseudo-command because it generates no machine code. It only tells the assembler which address the label stands for."
+    },
+    {
+      "type": "num",
+      "category": "Symbols",
+      "q": "The assembler assigns the first user-defined variable to which RAM address?",
+      "answer": 16,
+      "explain": "A symbol that is neither predefined nor declared with `(Xxx)` is treated as a variable. The assembler gives each variable a unique address starting at RAM[16] (0x0010), just past the virtual registers R0–R15."
+    },
+    {
+      "type": "tf",
+      "category": "Symbols",
+      "q": "A label can be used in an assembly program before the line where it is declared.",
+      "answer": true,
+      "explain": "A label may be defined only once, but it can be used anywhere in the program, even before its declaration. Forward references like `@END` are resolved during translation."
+    },
+    {
+      "type": "num",
+      "category": "Symbols",
+      "q": "To what ROM address is the label `CONT` bound in this program?\n\n```\n// i = 1000\n@1000\nD=A\n@i\nM=D\n(LOOP)\n// if (i = 0) goto CONT\n@i\nD=M\n@CONT\nD;JEQ\n// i = i - 1\n@i\nM=M-1\n// goto LOOP\n@LOOP\n0;JMP\n(CONT)\n...\n```",
+      "answer": 12,
+      "explain": "Count only real instructions, starting at 0. Comments and label declarations take no space. `@1000`, `D=A`, `@i`, `M=D` occupy 0–3, so LOOP = 4. Eight more instructions fill 4–11, so CONT = 12."
+    },
+    {
+      "type": "mc",
+      "category": "Symbols",
+      "q": "Why write `@R1` instead of `@1` when using RAM[1] as a variable?",
+      "choices": [
+        "It makes the code more readable: `@R1` signals a virtual register, while `@1` might just be the constant 1",
+        "`@R1` accesses a faster CPU register than `@1`",
+        "`R1` is allocated by the assembler starting at RAM[16]",
+        "Physical addresses below 16 are forbidden in A-instructions"
+      ],
+      "answer": 0,
+      "explain": "`@R1` and `@1` both set A to 1. R0–R15 are sometimes called \"virtual registers\", and using those names instead of physical addresses makes Hack code easier to read."
+    },
+    {
+      "type": "num",
+      "category": "Programming & tracing",
+      "q": "RAM[0] = 5 and RAM[1] = 7. After this code runs, what is RAM[2]?\n\n```\n@R0\nD=M\n@R1\nD=D+M\n@17\nD=D+A\n@R2\nM=D\n```",
+      "answer": 29,
+      "explain": "D = RAM[0] = 5, then D = 5 + RAM[1] = 12, then D = 12 + 17 = 29 (`D=D+A` adds the constant held in A). Finally RAM[2] = 29."
+    },
+    {
+      "type": "num",
+      "category": "Programming & tracing",
+      "q": "R0 = 6. After this code runs, what is R1?\n\n```\n@R0\nD=M\n@R1\nM=D\nM=D+M\n```",
+      "answer": 12,
+      "explain": "D = 6, then R1 = 6, then R1 = D + R1 = 12. The code sets R1 to 2 × R0."
+    },
+    {
+      "type": "num",
+      "category": "Programming & tracing",
+      "q": "Starting with R0 = 4, what value does this program leave in R1?\n\n```\n@i\nM=1\n@sum\nM=0\n(LOOP)\n@i\nD=M\n@R0\nD=D-M\n@STOP\nD;JGT\n@sum\nD=M\n@i\nD=D+M\n@sum\nM=D\n@i\nM=M+1\n@LOOP\n0;JMP\n(STOP)\n@sum\nD=M\n@R1\nM=D\n(END)\n@END\n0;JMP\n```",
+      "answer": 10,
+      "explain": "While i ≤ R0 the loop adds i to sum, so sum = 1 + 2 + 3 + 4 = 10. When i = 5, i − R0 > 0 and the program jumps to STOP, which copies sum into R1. The program computes R1 = 1 + 2 + ... + R0."
+    },
+    {
+      "type": "num",
+      "category": "Programming & tracing",
+      "q": "What is R1 after this program runs with R0 = 0?\n\n```\n@R0\nD=M\n@POS\nD;JGE\n@R1\nM=-1\n@END\n0;JMP\n(POS)\n@R1\nM=1\n(END)\n@END\n0;JMP\n```",
+      "answer": 1,
+      "explain": "JGE jumps when D ≥ 0, which includes 0, so execution goes to POS and sets R1 = 1. The program computes signum: R1 = 1 if R0 ≥ 0, else −1."
+    },
+    {
+      "type": "mc",
+      "category": "Programming & tracing",
+      "q": "Why should every Hack program end with an infinite loop such as `(END)`, `@END`, `0;JMP`?",
+      "choices": [
+        "Otherwise the CPU keeps executing whatever happens to be in the following memory words (memory is never empty), which could even be malicious code",
+        "The assembler rejects programs whose last instruction is not a jump",
+        "The loop writes the program's results back to RAM",
+        "It resets the computer so the program runs again from instruction 0"
+      ],
+      "answer": 0,
+      "explain": "The CPU doesn't know where a program ends. It just keeps fetching the next word. Trapping execution in a tight loop is the standard way to \"terminate\" a Hack program."
+    },
+    {
+      "type": "num",
+      "category": "Programming & tracing",
+      "q": "After this code runs, what is RAM[20]?\n\n```\n@10\nD=A\n@20\nM=D\nD=D+A\n@20\nM=D+M\n```",
+      "answer": 40,
+      "explain": "D = 10, so RAM[20] = 10. `D=D+A` uses A = 20 as data, giving D = 30. Finally RAM[20] = 30 + 10 = 40."
+    },
+    {
+      "type": "mc",
+      "category": "Programming & tracing",
+      "q": "Which code computes `RAM[3] = RAM[4] + 1`?",
+      "choices": [
+        "`@4`, `D=M+1`, `@3`, `M=D`",
+        "`@4`, `D=A+1`, `@3`, `M=D`",
+        "`@3`, `D=M+1`, `@4`, `M=D`",
+        "`@4`, `M=M+1`, `@3`, `M=D`"
+      ],
+      "answer": 0,
+      "explain": "Select RAM[4] and put its value + 1 in D, then select RAM[3] and store D. `D=A+1` gives the constant 5. The third choice swaps source and destination. The fourth changes RAM[4] and then stores whatever D already held."
+    },
+    {
+      "type": "mc",
+      "category": "Programming & tracing",
+      "q": "Which code computes `RAM[3] = RAM[3] - 15`?",
+      "choices": [
+        "`@15`, `D=A`, `@3`, `M=M-D`",
+        "`@3`, `M=M-15`",
+        "`@15`, `D=M`, `@3`, `M=M-D`",
+        "`@3`, `D=M`, `@15`, `M=D-A`"
+      ],
+      "answer": 0,
+      "explain": "The constant 15 must come in through an A-instruction, because `M-15` is not a valid comp. `D=M` after `@15` would read RAM[15]. The last choice stores into RAM[15] instead of RAM[3]."
+    },
+    {
+      "type": "mc",
+      "category": "Programming & tracing",
+      "q": "What is the recommended way to start writing a non-trivial Hack assembly program?",
+      "choices": [
+        "Write pseudocode first (and optimize it), then translate it into assembly",
+        "Write the binary code first, then add mnemonics",
+        "Assign every variable a RAM address by hand",
+        "Avoid labels to keep the code short"
+      ],
+      "answer": 0,
+      "explain": "Pseudocode with gotos and labels maps almost line by line onto Hack. Optimizing it first pays off. For example, signum can be written as `R1 = -1; if (R0 < 0) goto END; R1 = 1`, which needs one jump instead of two."
+    },
+    {
+      "type": "mc",
+      "category": "Pointers & arrays",
+      "q": "R0 holds an address *addr*. Which code sets RAM[addr] to −1?",
+      "choices": [
+        "`@R0`, `A=M`, `M=-1`",
+        "`@R0`, `M=-1`",
+        "`@R0`, `D=M`, `M=-1`",
+        "`@R0`, `A=D`, `M=-1`"
+      ],
+      "answer": 0,
+      "explain": "`A=M` loads the pointer (the contents of R0) into A, so M becomes RAM[addr]. The second and third choices overwrite R0 itself, and `A=D` uses whatever D happened to hold."
+    },
+    {
+      "type": "num",
+      "category": "Pointers & arrays",
+      "q": "RAM[0] = 1013 and RAM[1013] = 75. After this code runs, what is RAM[1]?\n\n```\n@R0\nA=M\nD=M\n@R1\nM=D\n```",
+      "answer": 75,
+      "explain": "`A=M` sets A to 1013 (the pointer), `D=M` reads RAM[1013] = 75, and the last two lines store it in R1. The code computes R1 = RAM[R0]."
+    },
+    {
+      "type": "mc",
+      "category": "Pointers & arrays",
+      "q": "How is pointer-based memory access done in Hack?",
+      "choices": [
+        "Set the A register to the target address with a C-instruction of the form `A=...`, then use M",
+        "Use a special `LOAD*` instruction",
+        "Store the address in D and then use M",
+        "Write the address into the jump field"
+      ],
+      "answer": 0,
+      "explain": "Hack has no separate indirect-addressing instruction. Computing an address into A (e.g., `A=M` or `A=D+M`) and then using M has the same effect."
+    },
+    {
+      "type": "mc",
+      "category": "Pointers & arrays",
+      "q": "Variable `arr` (stored at RAM[16]) holds an array's base address, 5034. This code implements `sum = sum + arr[j]`:\n\n```\n@arr\nD=M\n@j\nA=D+M\nD=M\n@sum\nM=D+M\n```\n\nWhy is the second line `D=M` rather than `D=A`?",
+      "choices": [
+        "`@arr` puts the variable's own address (16) in A; the base address 5034 is the value stored there, i.e., M",
+        "`D=A` is not a legal C-instruction",
+        "`D=A` would load the value of j",
+        "Both would work identically"
+      ],
+      "answer": 0,
+      "explain": "A symbol in an A-instruction gives the variable's address. Its *contents*, here the array's base address, are read through M. `A=D+M` then computes base + j, the address of arr[j]."
+    },
+    {
+      "type": "num",
+      "category": "Pointers & arrays",
+      "q": "Variable `arr` holds 5034, and RAM[5034..5038] hold 100, 50, 200, 2, 7. With j = 2, what is in D after this code?\n\n```\n@arr\nD=M\n@j\nA=D+M\nD=M\n```",
+      "answer": 200,
+      "explain": "D = 5034, then A = 5034 + 2 = 5036, then D = RAM[5036] = 200. That is arr[2]."
+    },
+    {
+      "type": "mc",
+      "category": "Pointers & arrays",
+      "q": "Any high-level array access `arr[expression]` can be compiled into Hack code built on which low-level idiom?",
+      "choices": [
+        "`A = arr + expression`, then operate on M",
+        "`D = arr * expression`",
+        "`@arr[expression]`",
+        "`0;JMP` to the array's label"
+      ],
+      "answer": 0,
+      "explain": "Compute the element's address into A, and M is then the array element. For example, `arr[j] = arr[j] + 1` becomes `@arr`, `D=M`, `@j`, `A=D+M`, `M=M+1`."
+    },
+    {
+      "type": "num",
+      "category": "Pointers & arrays",
+      "q": "R0 = 300 and R1 = 5. This program sets a block of memory words to −1. What is the highest RAM address it writes −1 into?\n\n```\n@i\nM=0\n(LOOP)\n@i\nD=M\n@R1\nD=D-M\n@END\nD;JEQ\n@R0\nD=M\n@i\nA=D+M\nM=-1\n@i\nM=M+1\n@LOOP\n0;JMP\n(END)\n@END\n0;JMP\n```",
+      "answer": 304,
+      "explain": "i takes the values 0, 1, 2, 3, 4, and the loop exits when i = R1 = 5. Each pass sets RAM[R0 + i] = −1, so RAM[300] through RAM[304] are written."
+    },
+    {
+      "type": "tf",
+      "category": "Pointers & arrays",
+      "q": "`arr[j] = arr[j] + 1` can be implemented as `@arr`, `D=M`, `@j`, `A=D+M`, `M=M+1`.",
+      "answer": true,
+      "explain": "The first four instructions point A at arr[j] (base + j), and `M=M+1` increments that element in place."
+    },
+    {
+      "type": "mc",
+      "category": "Screen memory map",
+      "q": "What is the resolution of the Hack screen?",
+      "choices": [
+        "256 rows × 512 pixels per row, black and white",
+        "512 rows × 256 pixels per row, black and white",
+        "256 rows × 512 pixels per row, 16 gray levels",
+        "480 rows × 640 pixels per row, black and white"
+      ],
+      "answer": 0,
+      "explain": "The black-and-white screen has 256 rows of 512 pixels. It is represented by an 8K-word memory map that starts at RAM[16384]."
+    },
+    {
+      "type": "num",
+      "category": "Screen memory map",
+      "q": "What is the base address of the screen memory map (the value of `SCREEN`)?",
+      "answer": 16384,
+      "explain": "SCREEN = 16384 = 0x4000. The screen map occupies RAM[16384] through RAM[24575]."
+    },
+    {
+      "type": "num",
+      "category": "Screen memory map",
+      "q": "How many 16-bit words make up the screen memory map?",
+      "answer": 8192,
+      "explain": "Each 512-pixel row takes 512 / 16 = 32 words, and 256 rows × 32 words = 8192 words (8K)."
+    },
+    {
+      "type": "num",
+      "category": "Screen memory map",
+      "q": "Which RAM address holds the pixel at row 10, column 100?",
+      "answer": 16710,
+      "explain": "The address is `SCREEN + 32*row + col/16` with integer division: 16384 + 320 + 6 = 16710."
+    },
+    {
+      "type": "num",
+      "category": "Screen memory map",
+      "q": "Counting from 0 at the least significant bit, which bit of its word represents the pixel at row 10, column 100?",
+      "answer": 4,
+      "explain": "The bit index is `col % 16`, counting from LSB to MSB. Here that is 100 % 16 = 4."
+    },
+    {
+      "type": "mc",
+      "category": "Screen memory map",
+      "q": "What does `@SCREEN` followed by `M=1` do?",
+      "choices": [
+        "Blackens the leftmost pixel of the top row (row 0, column 0)",
+        "Blackens the 16 leftmost pixels of the top row",
+        "Blackens the rightmost pixel of the top row",
+        "Blackens every pixel on the screen"
+      ],
+      "answer": 0,
+      "explain": "The value 1 sets only bit 0 of RAM[16384]. Bit 0 is the least significant bit and maps to column 0 % 16 = 0, the top-left pixel. `M=-1` would set all 16 bits."
+    },
+    {
+      "type": "mc",
+      "category": "Screen memory map",
+      "q": "What does `@SCREEN` followed by `M=-1` do?",
+      "choices": [
+        "Sets the 16 leftmost pixels of the top row to black",
+        "Sets the top-left pixel to white",
+        "Clears the entire screen",
+        "Sets the entire top row to black"
+      ],
+      "answer": 0,
+      "explain": "In 16-bit two's complement, −1 is `1111111111111111`, so all 16 bits of the first word become 1 (black). That word covers columns 0–15 of row 0. A full row needs 32 words."
+    },
+    {
+      "type": "mc",
+      "category": "Screen memory map",
+      "q": "This code blackens the first 16 pixels of row 2:\n\n```\n@64\nD=A\n@SCREEN\nA=A+D\nM=-1\n```\n\nWhy 64?",
+      "choices": [
+        "Each row takes 32 words, so row 2 starts 2 × 32 = 64 words after SCREEN",
+        "Each row takes 64 words",
+        "Row 2 starts at bit 64 of the first word",
+        "64 is the code for black"
+      ],
+      "answer": 0,
+      "explain": "Each row is 512 / 16 = 32 words long, so row r starts at SCREEN + 32r. For row 2 that is 16384 + 64 = 16448."
+    },
+    {
+      "type": "mc",
+      "category": "Screen memory map",
+      "q": "Which pixel does bit 5 of RAM[16450] represent?",
+      "choices": [
+        "Row 2, column 37",
+        "Row 2, column 5",
+        "Row 66, column 5",
+        "Row 0, column 1061"
+      ],
+      "answer": 0,
+      "explain": "The offset from SCREEN is 16450 − 16384 = 66 = 2·32 + 2. That is row 2, word 2 of the row, which covers columns 32–47. Bit 5 is column 32 + 5 = 37."
+    },
+    {
+      "type": "tf",
+      "category": "Screen memory map",
+      "q": "Writing a 0 into a screen-memory bit makes the corresponding pixel white.",
+      "answer": true,
+      "explain": "In the screen memory map, 1 = black and 0 = white. A continuous refresh loop keeps the physical screen in sync with its memory map."
+    },
+    {
+      "type": "num",
+      "category": "Keyboard input",
+      "q": "At which RAM address is the keyboard memory map (the value of `KBD`)?",
+      "answer": 24576,
+      "explain": "KBD = 24576 = 0x6000. It is a single 16-bit word located right after the screen map (16384–24575)."
+    },
+    {
+      "type": "mc",
+      "category": "Keyboard input",
+      "q": "What does RAM[KBD] hold when no key is pressed?",
+      "choices": ["0", "−1", "The code of the last key pressed", "32 (the space character)"],
+      "answer": 0,
+      "explain": "While a key is held down, its character code appears in RAM[24576]. When no key is pressed, that location holds 0."
+    },
+    {
+      "type": "num",
+      "category": "Keyboard input",
+      "q": "What code appears in RAM[KBD] while the up-arrow key is held down?",
+      "answer": 131,
+      "explain": "On top of the usual ASCII codes, Hack defines special keys: newline 128, backspace 129, left 130, up 131, right 132, down 133, home 134, end 135, page up 136, page down 137, insert 138, delete 139, esc 140, and f1–f12 141–152."
+    },
+    {
+      "type": "mc",
+      "category": "Keyboard input",
+      "q": "Which code jumps to END if the key currently pressed is `q` (character code 113)?",
+      "choices": [
+        "`@KBD`, `D=M`, `@113`, `D=D-A`, `@END`, `D;JEQ`",
+        "`@KBD`, `D=A`, `@113`, `D=D-A`, `@END`, `D;JEQ`",
+        "`@KBD`, `D=M`, `@113`, `D=D-M`, `@END`, `D;JEQ`",
+        "`@KBD`, `D=M`, `@113`, `D=D-A`, `@END`, `D;JNE`"
+      ],
+      "answer": 0,
+      "explain": "Read the key code with `D=M` at KBD, subtract the constant 113, and jump if the result is 0. `D=A` would compare the *address* 24576. `D=D-M` would subtract RAM[113]. JNE would jump on every key except q."
+    },
+    {
+      "type": "mc",
+      "category": "Keyboard input",
+      "q": "A program blackens the screen while any key is held down. Which test correctly jumps to BLACK when a key is pressed?",
+      "choices": [
+        "`@KBD`, `D=M`, `@BLACK`, `D;JNE`",
+        "`@KBD`, `D=M`, `@BLACK`, `D;JEQ`",
+        "`@KBD`, `D=A`, `@BLACK`, `D;JNE`",
+        "`@KBD`, `D=M`, `@BLACK`, `D;JLT`"
+      ],
+      "answer": 0,
+      "explain": "A pressed key makes RAM[KBD] nonzero, so jump if the value is not 0. JEQ jumps exactly when *no* key is pressed. `D=A` loads 24576, which is always nonzero. Key codes are positive, so JLT never jumps."
+    },
+    {
+      "type": "multi",
+      "category": "Keyboard input",
+      "q": "How does Hack handle low-level I/O?",
+      "choices": [
+        "Drawing on the screen means writing bits into a RAM segment mapped to the screen",
+        "Reading the keyboard means reading a RAM location mapped to the keyboard",
+        "Special IN and OUT machine instructions move data to and from devices",
+        "The keyboard interrupts the CPU, which jumps to a handler routine"
+      ],
+      "answer": [0, 1],
+      "explain": "Both devices are memory-mapped: the screen map starts at SCREEN = 16384, and the keyboard map is the word at KBD = 24576. Ordinary A- and C-instructions do all the I/O."
+    },
+    {
+      "type": "tf",
+      "category": "Keyboard input",
+      "q": "The keyboard memory map is a single 16-bit register.",
+      "answer": true,
+      "explain": "One word, RAM[24576], holds the code of the key currently pressed, or 0 if no key is pressed. A program reads input by probing this register."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax & file conventions",
+      "q": "What does a Hack binary code file (e.g., `Prog.hack`) contain?",
+      "choices": [
+        "Text lines, each a sequence of sixteen '0' and '1' characters coding one machine instruction",
+        "Raw binary bytes, two per instruction",
+        "Assembly mnemonics such as `D=M`",
+        "Hexadecimal digits, four per instruction"
+      ],
+      "answer": 0,
+      "explain": "A binary code file is plain text with one 16-character line of 0s and 1s per instruction. Assembly source files use the `.asm` extension."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax & file conventions",
+      "q": "When a `.hack` program is loaded, where does the instruction on the file's *n*th line (counting from 0) go?",
+      "choices": [
+        "Instruction memory address n",
+        "Data memory address n",
+        "Instruction memory address 16 + n",
+        "Instruction memory address n + 1"
+      ],
+      "answer": 0,
+      "explain": "Program lines and memory addresses are both counted from 0. The first instruction goes to ROM[0], the next to ROM[1], and so on."
+    },
+    {
+      "type": "tf",
+      "category": "Syntax & file conventions",
+      "q": "Hack assembly constants may be written in hexadecimal, e.g., `@0x4000`.",
+      "answer": false,
+      "explain": "Constants must be non-negative and are always written in decimal. Write `@16384`, or use the predefined symbol `@SCREEN`."
+    },
+    {
+      "type": "tf",
+      "category": "Syntax & file conventions",
+      "q": "`d=m+1` is a legal Hack instruction because the assembler ignores case.",
+      "answer": false,
+      "explain": "All assembly mnemonics must be uppercase, as in `D=M+1`. User-defined labels and variable names are case-sensitive."
+    },
+    {
+      "type": "multi",
+      "category": "Syntax & file conventions",
+      "q": "Which are legal user-defined symbol names in Hack assembly?",
+      "choices": ["`LOOP_END`", "`$tmp`", "`x.1`", "`2ndLoop`", "`my-var`"],
+      "answer": [0, 1, 2],
+      "explain": "A symbol is any sequence of letters, digits, underscore (_), dot (.), dollar sign ($) and colon (:) that doesn't begin with a digit. `2ndLoop` begins with a digit, and `-` isn't an allowed character."
+    },
+    {
+      "type": "tf",
+      "category": "Syntax & file conventions",
+      "q": "`@foo` and `@Foo` refer to the same variable.",
+      "answer": false,
+      "explain": "User-defined symbols are case-sensitive, so these are two different variables with two different RAM addresses. Mixing them up is a common bug."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax & file conventions",
+      "q": "What naming convention is recommended for Hack assembly?",
+      "choices": [
+        "Uppercase for labels, lowercase for variables",
+        "Lowercase for labels, uppercase for variables",
+        "Uppercase for everything",
+        "Labels must start with `$`"
+      ],
+      "answer": 0,
+      "explain": "Labels look like `(LOOP)` and `@END`, and variables look like `@i` and `@sum`. Well-written low-level code also uses sensible names, indentation and documentation."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax & file conventions",
+      "q": "How are comments written in Hack assembly?",
+      "choices": [
+        "Text from `//` to the end of the line",
+        "Text between `/*` and `*/`",
+        "Lines starting with `;`",
+        "Lines starting with `#`"
+      ],
+      "answer": 0,
+      "explain": "Text that begins with two slashes and runs to the end of the line is ignored. Spaces and empty lines are ignored too."
+    },
+    {
+      "type": "tf",
+      "category": "Hack in perspective",
+      "q": "Hack provides multiplication and division as primitive machine-language operations.",
+      "answer": false,
+      "explain": "It does not. High-level languages need them, so they are implemented in software, at the operating-system level. Any feature the machine language lacks can be built in software at a performance cost."
+    },
+    {
+      "type": "mc",
+      "category": "Hack in perspective",
+      "q": "Why is Hack described as a \"½ address machine\"?",
+      "choices": [
+        "A 16-bit instruction has no room for both an op-code and a 15-bit address, so memory operations take two instructions: an A-instruction for the address and a C-instruction for the operation",
+        "Only half of its RAM is addressable",
+        "Each instruction can address only half a word",
+        "It uses 8-bit addresses inside 16-bit words"
+      ],
+      "answer": 0,
+      "explain": "Most machine languages can name at least one address in every instruction. In Hack, `@xxx` supplies the address and the following C-instruction operates on M or jumps."
+    },
+    {
+      "type": "mc",
+      "category": "Hack in perspective",
+      "q": "What does typical Hack assembly code look like?",
+      "choices": [
+        "A mostly alternating sequence of A- and C-instructions, e.g., `@xxx` then `D=D+M`, `@YYY` then `0;JMP`",
+        "Long runs of C-instructions with an occasional label",
+        "Mostly A-instructions, since they do the computation",
+        "Three-operand instructions such as `ADD R3,R1,R9`"
+      ],
+      "answer": 0,
+      "explain": "Every memory access or jump needs an A-instruction to set the address, followed by the C-instruction that uses it. This produces the characteristic A/C rhythm."
+    },
+    {
+      "type": "num",
+      "category": "Hack in perspective",
+      "q": "Macro commands such as `D=D+M[xxx]` or `GOTO YYY` would make Hack assembly code about what percent shorter?",
+      "answer": 50,
+      "explain": "The assembler would expand each macro into its two-instruction form (`@xxx` then `D=D+M`, or `@YYY` then `0;JMP`). Code written with macros would be more readable and about 50% shorter."
+    },
+    {
+      "type": "mc",
+      "category": "Hack in perspective",
+      "q": "Besides translating instructions into binary, what else is the assembler responsible for?",
+      "choices": [
+        "Managing all system- and user-defined symbols and replacing them with physical memory addresses",
+        "Running the program and checking its results",
+        "Allocating screen memory for graphics",
+        "Optimizing the programmer's pseudocode"
+      ],
+      "answer": 0,
+      "explain": "The assembler replaces predefined symbols with their fixed values, labels with ROM addresses, and variables with RAM addresses starting at 16."
+    },
+    {
+      "type": "tf",
+      "category": "Hack in perspective",
+      "q": "Hack's C-instruction syntax (e.g., `D=M`, `D=D+M`) was chosen to resemble a high-level language rather than traditional directives like `LOAD` and `ADD`, but the difference is purely syntactic.",
+      "answer": true,
+      "explain": "Hack deliberately looks less mechanical than most assembly languages. Underneath, `D=D+M` is still a single mnemonic coding one ALU operation, just like an `ADD` directive would be."
+    }
+  ]
+}

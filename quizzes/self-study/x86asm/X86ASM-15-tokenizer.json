@@ -1,0 +1,428 @@
+{
+  "title": "X86ASM 15: Building a Tokenizer in Assembly",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Tokenization concept",
+      "q": "After tokenizing the input line \"hi there friend\", what data structure does the program end up with?",
+      "choices": [
+        "One string with every space removed",
+        "An array of 8-byte pointers, each pointing to the start of one null-terminated word",
+        "An array of 1-byte characters, one per word",
+        "A linked list of copied words stored on the stack"
+      ],
+      "answer": 1,
+      "explain": "The tokens array holds addresses (pointers to strings). Each one points to the first character of a word in the buffer, and each word has been ended with a 0 byte."
+    },
+    {
+      "type": "tf",
+      "category": "Tokenization concept",
+      "q": "The tokenizer in this lesson copies each word into its own new memory area.",
+      "answer": false,
+      "explain": "It works in place. Words stay where they are in buf. The delimiting space after each word becomes a 0 byte, and the tokens array only stores the start address of each word."
+    },
+    {
+      "type": "multi",
+      "category": "Tokenization concept",
+      "q": "Which operations make up in-place tokenization as built in this lesson?",
+      "choices": [
+        "Record the address of the first character of each word in an array",
+        "Replace the space that ends a word with a null terminator (0)",
+        "Shift the remaining characters left to close up the gaps between words",
+        "Allocate a new buffer for each word and copy it there"
+      ],
+      "answer": [0, 1],
+      "explain": "Only two things happen: store each word's starting address, and turn the space after each word into 0 so a string routine stops there. Nothing gets moved or copied."
+    },
+    {
+      "type": "num",
+      "category": "Tokenization concept",
+      "q": "When the input \"hi there friend\" (already null-terminated) is tokenized, how many bytes inside buf does tokenize overwrite?",
+      "answer": 2,
+      "explain": "Only the two spaces (after \"hi\" and after \"there\") become 0. \"friend\" already ends at the 0 that was written after readline, so findend stops there and tokenize ends."
+    },
+    {
+      "type": "mc",
+      "category": "Input and buffers",
+      "q": "In GNU as, what does the line `bufsize = . - buf` (placed right after `buf: .skip 128`) compute?",
+      "choices": [
+        "The address of buf, rounded down",
+        "The number of bytes read from the keyboard at run time",
+        "The current location minus the address of buf, i.e. the size of buf (128), computed at assembly time",
+        "The size of the whole .data section"
+      ],
+      "answer": 2,
+      "explain": "`.` is the current location counter. Subtracting buf's address gives the bytes reserved between them. If the .skip size changes, bufsize updates automatically."
+    },
+    {
+      "type": "mc",
+      "category": "Input and buffers",
+      "q": "Why does the program pass `bufsize - 1` as readline's maximum length instead of `bufsize`?",
+      "choices": [
+        "The read syscall always reads one byte more than requested",
+        "To leave room for the null terminator written at buf + (bytes read)",
+        "Because array indexes start at zero",
+        "To skip the trailing newline character"
+      ],
+      "answer": 1,
+      "explain": "After reading, the code writes a 0 at [buf + rax]. If read filled the whole buffer, that 0 would land past the end. Reserving one byte prevents that."
+    },
+    {
+      "type": "mc",
+      "category": "Input and buffers",
+      "q": "Right after the read syscall (rax = 0) returns, what is in rax?",
+      "choices": [
+        "The number of bytes actually read",
+        "The address of the buffer",
+        "Always 0 on success",
+        "The file descriptor that was read from"
+      ],
+      "answer": 0,
+      "explain": "read returns the count of bytes read in rax. readline returns right away, so the caller can use rax to find where the input ends."
+    },
+    {
+      "type": "num",
+      "category": "Input and buffers",
+      "q": "What value goes into rax to request the Linux x86-64 read system call?",
+      "answer": 0,
+      "explain": "readline sets rax = 0 (read) and rdi = 0 (stdin). For comparison, write is 1 and exit is 60."
+    },
+    {
+      "type": "mc",
+      "category": "Input and buffers",
+      "q": "With rdi = address of buf and rax = number of bytes read, what does `mov byte ptr [rdi + rax], 0` do?",
+      "choices": [
+        "Clears the entire buffer",
+        "Writes 8 zero bytes starting at the end of the input",
+        "Writes one 0 byte right after the last character read, null-terminating the string",
+        "Sets rax to zero"
+      ],
+      "answer": 2,
+      "explain": "rdi + rax is the address just past the last byte read. Writing a single 0 byte there makes the input a proper null-terminated string."
+    },
+    {
+      "type": "mc",
+      "category": "Input and buffers",
+      "q": "On a real Linux terminal, read usually includes the newline from pressing Enter at the end of the data. How can the code keep that newline out of the last token?",
+      "choices": [
+        "Decrement rax before writing the 0, so the newline itself is overwritten by the null terminator",
+        "Increment rax before writing the 0",
+        "Pass bufsize + 1 to readline",
+        "Call skipwhite before readline"
+      ],
+      "answer": 0,
+      "explain": "When the input ends in a newline, the last byte read is that newline. Writing the 0 at offset rax - 1 replaces it with the terminator."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and pointers",
+      "q": "Why does `cmp byte ptr [rdi], ' '` need the `byte ptr` size specifier?",
+      "choices": [
+        "It turns rdi into a byte register",
+        "A memory operand compared with an immediate has no implied size, so the assembler must be told to use exactly one byte (one character)",
+        "It makes the comparison signed",
+        "It is only needed for jumps, not comparisons"
+      ],
+      "answer": 1,
+      "explain": "A memory address alone doesn't say how many bytes to use. byte ptr limits the operation to the single character at rdi. The same goes for `mov byte ptr [rdi], 0`, which must not overwrite neighboring bytes."
+    },
+    {
+      "type": "text",
+      "category": "Memory and pointers",
+      "q": "What is the ASCII code for the space character, in hexadecimal?",
+      "answer": ["0x20", "20", "20h", "0X20", "$20"],
+      "explain": "Space is 0x20 (32 decimal). The code can write either 0x20 or ' ' in the comparison."
+    },
+    {
+      "type": "num",
+      "category": "Memory and pointers",
+      "q": "How many bytes long is each entry in the tokens array?",
+      "answer": 8,
+      "explain": "Each entry is a pointer, and addresses on x86-64 are 64 bits = 8 bytes. That's why r15 advances with `add r15, 8`."
+    },
+    {
+      "type": "num",
+      "category": "Memory and pointers",
+      "q": "The tokens array is declared with `.skip 128`. How many token pointers can it hold?",
+      "answer": 16,
+      "explain": "128 bytes / 8 bytes per pointer = 16 entries."
+    },
+    {
+      "type": "text",
+      "category": "Memory and pointers",
+      "q": "buf is at 0x402000 and is 128 bytes long, and tokens is declared immediately after it. At what address (in hex) does tokens start?",
+      "answer": ["0x402080", "402080", "402080h", "0X402080"],
+      "explain": "128 decimal = 0x80, so tokens begins at 0x402000 + 0x80 = 0x402080."
+    },
+    {
+      "type": "text",
+      "category": "Memory and pointers",
+      "q": "If the tokens array starts at 0x402080, what is the address (in hex) of its third entry?",
+      "answer": ["0x402090", "402090", "402090h", "0X402090"],
+      "explain": "Entries are 8 bytes apart: 0x402080, 0x402088, 0x402090. The jump from 88 to 90 looks like 2 but is 8 in hex."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and pointers",
+      "q": "In print_tokens, why is the comparison done on a qword (or on a full 64-bit register loaded from [r15]) rather than a byte?",
+      "choices": [
+        "Each array entry is a full 8-byte pointer, and a byte check would only test the low byte of the address",
+        "Quad-word comparisons are faster than byte comparisons",
+        "Strings must be compared 8 characters at a time",
+        "The cmp instruction cannot work on bytes"
+      ],
+      "answer": 0,
+      "explain": "An entry is null only when all 8 bytes are 0. A real address can easily have a low byte of 0, so comparing a single byte would give false results."
+    },
+    {
+      "type": "mc",
+      "category": "Scanning functions",
+      "q": "In its final form, when does findend stop advancing rdi and return?",
+      "choices": [
+        "When the current byte is not a space",
+        "When the current byte is a space or a 0 (end of the string)",
+        "After exactly 8 bytes",
+        "When the current byte is a newline only"
+      ],
+      "answer": 1,
+      "explain": "findend scans past the characters of a word. It stops at the space that ends the word, or at the 0 that ends the whole input."
+    },
+    {
+      "type": "mc",
+      "category": "Scanning functions",
+      "q": "What does skipwhite do?",
+      "choices": [
+        "Replaces every space in the string with 0",
+        "Advances rdi past consecutive spaces and returns once rdi points at a byte that is not a space",
+        "Counts the spaces in the string and returns the count in rax",
+        "Removes spaces by shifting characters left"
+      ],
+      "answer": 1,
+      "explain": "It works opposite to findend: while [rdi] is a space, it increments rdi. When the byte isn't a space (a character or the final 0), it returns with rdi still pointing there."
+    },
+    {
+      "type": "mc",
+      "category": "Scanning functions",
+      "q": "findend can return for two different reasons. How does tokenize know whether it reached the end of the input?",
+      "choices": [
+        "findend sets rax to 1 for end of input",
+        "After findend returns, tokenize compares byte ptr [rdi] with 0 and jumps to tokenize.end if it is 0",
+        "tokenize counts characters and compares the count with bufsize",
+        "It checks the zero flag set by findend's last increment"
+      ],
+      "answer": 1,
+      "explain": "findend doesn't report why it stopped, so tokenize looks at the byte under rdi. A 0 means the input is finished. A space means it should null it and keep going."
+    },
+    {
+      "type": "mc",
+      "category": "Scanning functions",
+      "q": "Why does tokenize copy the array pointer from rsi into r15 at the start?",
+      "choices": [
+        "rsi is used by system calls and other routines, so r15 is a safer place to keep and advance the array position",
+        "r15 is the only register that can be used in brackets",
+        "rsi cannot be incremented",
+        "The syscall instruction requires the array address in r15"
+      ],
+      "answer": 0,
+      "explain": "rsi gets overwritten by syscall setup (print/readline put buffer addresses in it). r15 is set once before the loop and then moves forward 8 bytes per token."
+    },
+    {
+      "type": "mc",
+      "category": "Scanning functions",
+      "q": "In an early version of the loop, after the code wrote 0 over the space, it jumped straight back to store the next token without `inc rdi`. Where did the second token pointer point?",
+      "choices": [
+        "At the first character of the next word",
+        "At the 0 that had just been written, so the token was an empty string",
+        "At the start of buf again",
+        "At the tokens array itself"
+      ],
+      "answer": 1,
+      "explain": "rdi was still on the byte that had just been nulled. Incrementing rdi moves it past the new terminator so the next word can be found."
+    },
+    {
+      "type": "mc",
+      "category": "Scanning functions",
+      "q": "Before findend checked for 0, the tokenize loop had no way to stop. What happened once it scanned past the end of the input?",
+      "choices": [
+        "It stopped automatically at the end of buf",
+        "It kept going into the tokens array, treated 0x20 bytes inside stored addresses as spaces, overwrote its own data, and eventually crashed",
+        "The CPU raised an exception at the first 0 byte",
+        "It looped back to the start of buf and printed the input forever"
+      ],
+      "answer": 1,
+      "explain": "Nothing stopped it, so it walked into the memory after buf (the tokens array), nulling bytes that happened to equal 0x20 and adding bogus entries until it ran off the end of its memory."
+    },
+    {
+      "type": "mc",
+      "category": "Scanning functions",
+      "q": "Without skipwhite, what goes wrong when the input starts with several spaces?",
+      "choices": [
+        "Nothing; findend handles it",
+        "The first token points at a space; findend stops on it at once and it is nulled, giving empty or garbage tokens before the real words",
+        "The program refuses to read the input",
+        "Only the last word is lost"
+      ],
+      "answer": 1,
+      "explain": "The loop assumed rdi was on a word. With leading spaces, it saved the address of a space, nulled it right away, and filled the array with junk. Calling skipwhite first fixes this."
+    },
+    {
+      "type": "text",
+      "category": "Scanning functions",
+      "q": "buf is at 0x402000 and holds \"hi there friend\" with single spaces and no leading spaces. What address (hex) does the second entry of the tokens array hold?",
+      "answer": ["0x402003", "402003", "402003h", "0X402003"],
+      "explain": "Offsets: h=0, i=1, space=2, t=3. The second token \"there\" starts at 0x402000 + 3."
+    },
+    {
+      "type": "text",
+      "category": "Scanning functions",
+      "q": "buf is at 0x402000 and holds \"hi there friend\" with single spaces and no leading spaces. What address (hex) does the third entry of the tokens array hold?",
+      "answer": ["0x402009", "402009", "402009h", "0X402009"],
+      "explain": "\"there\" fills offsets 3-7, the space is at 8, so \"friend\" starts at offset 9: 0x402009."
+    },
+    {
+      "type": "num",
+      "category": "Scanning functions",
+      "q": "With the final tokenize (skipwhite at the top of every loop pass), how many tokens does the input \"   hi     there  \" produce?",
+      "answer": 2,
+      "explain": "skipwhite skips any run of spaces before each token, both leading and between words. After \"there\", skipwhite lands on the final 0 and the loop ends. Extra spaces never become tokens."
+    },
+    {
+      "type": "mc",
+      "category": "Printing tokens",
+      "q": "How does print_tokens know it has reached the end of the tokens array?",
+      "choices": [
+        "It reads a count stored in the first entry",
+        "It stops at the first entry that is 0 (a null pointer); this works because the array memory starts out zeroed",
+        "It always prints exactly 16 entries",
+        "It stops when the printed string has length 0"
+      ],
+      "answer": 1,
+      "explain": "The array is zero-initialized and tokenize fills it from the front. The first entry that is still 0 marks the end. Keeping a count in a register would also work."
+    },
+    {
+      "type": "mc",
+      "category": "Printing tokens",
+      "q": "The first attempt to print the first token used `lea rdi, [tokens]` and then `call print`, and it printed garbage. Why?",
+      "choices": [
+        "print needs the length in rdi, not an address",
+        "rdi pointed at the array itself, whose bytes are addresses rather than characters; the entry needed to be dereferenced (e.g. mov rdi, [rdi]) to get the string's address",
+        "The tokens array had not been null-terminated",
+        "lea cannot be used with labels in .data"
+      ],
+      "answer": 1,
+      "explain": "tokens is an array of pointers. Printing it as text prints the raw bytes of an address. Loading the value stored there gives the address of the actual characters."
+    },
+    {
+      "type": "tf",
+      "category": "Printing tokens",
+      "q": "`inc r15, 8` is a valid way to move r15 forward to the next 8-byte array entry.",
+      "answer": false,
+      "explain": "inc takes only one operand and always adds 1. Use `add r15, 8` to move forward one pointer."
+    },
+    {
+      "type": "mc",
+      "category": "Printing tokens",
+      "q": "Why does print_tokens keep its array position in r15 instead of rdi?",
+      "choices": [
+        "rdi holds each token's address for println, and println then overwrites rdi (for example, setting it to 1 for stdout), so the position would be lost",
+        "r15 is the only register that can be dereferenced",
+        "rdi cannot hold 64-bit values",
+        "println reads the array position from r15"
+      ],
+      "answer": 0,
+      "explain": "rdi is the argument register and the write syscall setup puts the file descriptor in it. A register that println doesn't touch keeps the loop position safe between calls."
+    },
+    {
+      "type": "mc",
+      "category": "Printing tokens",
+      "q": "How does println put a line break after each token?",
+      "choices": [
+        "It adds a newline byte to the end of the token in buf",
+        "After writing the string, it does a second write syscall with rsi = address of a single newline byte and rdx = 1",
+        "It calls slen with a negative length",
+        "It sets rax to 2 instead of 1"
+      ],
+      "answer": 1,
+      "explain": "println does what print does, then calls write again (rax = 1, rdi = 1) with rsi pointing to a one-byte newline in .data and a length of 1. It works, but it costs an extra syscall."
+    },
+    {
+      "type": "mc",
+      "category": "Edge cases and debugging",
+      "q": "How does the program handle the user pressing Enter (submitting) with no data at all?",
+      "choices": [
+        "It checks if rax == 0 after readline and, if so, prints a \"No data entered\" message and exits",
+        "skipwhite detects it and loops forever",
+        "It prints an empty token",
+        "The read syscall returns -1, which crashes the program"
+      ],
+      "answer": 0,
+      "explain": "If read returned 0 bytes, there's nothing to tokenize, so the code jumps to a branch that prints an error message and calls exit."
+    },
+    {
+      "type": "mc",
+      "category": "Edge cases and debugging",
+      "q": "The input is only spaces. Which check in tokenize keeps it from recording a bogus token?",
+      "choices": [
+        "Comparing rax with 0 after readline",
+        "After skipwhite returns, comparing byte ptr [rdi] with 0; if it is the end of the string, stop before storing anything",
+        "Checking that r15 is less than the end of the tokens array",
+        "findend's check for a space"
+      ],
+      "answer": 1,
+      "explain": "rax isn't 0 because spaces were read. skipwhite moves past all of them to the final 0, and the check for 0 right after skipwhite stops the loop before any pointer is stored."
+    },
+    {
+      "type": "mc",
+      "category": "Edge cases and debugging",
+      "q": "What does the int3 instruction do?",
+      "choices": [
+        "Calls the third system call",
+        "Triggers a breakpoint interrupt that pauses execution so state can be inspected",
+        "Multiplies a register by 3",
+        "Returns from an interrupt handler"
+      ],
+      "answer": 1,
+      "explain": "int3 is the one-byte breakpoint instruction. When run under a debugger, it pauses so you can look at registers and memory."
+    },
+    {
+      "type": "mc",
+      "category": "Edge cases and debugging",
+      "q": "The memview helper saves rsp in r14, points rsp at buf, hits a breakpoint, and then restores rsp from r14 before `ret`. Why must rsp be restored before `ret`?",
+      "choices": [
+        "ret pops the return address from the stack at rsp; if rsp still pointed at buf, it would jump to an address made from the input bytes",
+        "int3 changes the value of rsp",
+        "r14 is cleared by every function call",
+        "The data section is read-only"
+      ],
+      "answer": 0,
+      "explain": "call pushes the return address and ret pops it from wherever rsp points. Restoring rsp first means ret gets the real return address."
+    },
+    {
+      "type": "mc",
+      "category": "Edge cases and debugging",
+      "q": "Memory in .data starts out filled with zeros. Why does that hide the null terminator when you look at memory after a read?",
+      "choices": [
+        "The 0 written after the input looks exactly like the zeros already there, so the write is invisible (filling the buffer with a non-zero value such as 0xFF makes it visible)",
+        "Null terminators are never stored in memory",
+        "The memory viewer filters out zero bytes",
+        "read automatically removes zero bytes"
+      ],
+      "answer": 0,
+      "explain": "Writing 0 over a 0 changes nothing you can see. Filling the buffer with 0xFF first makes the new 0 byte stand out."
+    },
+    {
+      "type": "mc",
+      "category": "Tokenization concept",
+      "q": "Once a command line such as \"echo hello world\" has been tokenized, what is the natural next step for a shell?",
+      "choices": [
+        "Re-join the tokens into one string",
+        "Compare the first token with known command names (which needs a string-compare routine) to pick a handler",
+        "Sort the tokens alphabetically",
+        "Convert every token to a number"
+      ],
+      "answer": 1,
+      "explain": "The first token is the command name. The shell compares it with the commands it knows (e.g. \"echo\") and passes the remaining tokens as arguments. Compilers tokenize their input the same way before parsing."
+    }
+  ]
+}

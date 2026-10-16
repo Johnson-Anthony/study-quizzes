@@ -1,0 +1,272 @@
+{
+  "title": "X86ASM 08: If Statements and Loops",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "If statements",
+      "q": "In the usual assembly pattern for an if statement, when does the conditional jump happen?",
+      "choices": [
+        "When the condition is true, so it jumps into the body",
+        "When the condition is false, so it skips past the body",
+        "Every time, no matter what the condition is",
+        "Only when the body has already run once"
+      ],
+      "answer": 1,
+      "explain": "Assembly turns the logic around. If the condition holds, execution just falls through into the body. The jump is used to skip the body when the condition fails."
+    },
+    {
+      "type": "text",
+      "category": "If statements",
+      "q": "You want `if (rax == 3) { print }` with a single conditional jump. After `cmp rax, 3`, which jump mnemonic should skip the print body?",
+      "answer": ["jne", "jnz"],
+      "explain": "The jump should fire when the condition fails, which here means rax is not equal to 3. So use jne (jnz is the same instruction under another name)."
+    },
+    {
+      "type": "tf",
+      "category": "If statements",
+      "q": "`cmp` can only check whether two values are equal, so you need a different instruction to test greater-than or less-than.",
+      "answer": false,
+      "explain": "cmp compares the two operands in every way at once (equal, greater, less) and records the results in the flags. The conditional jump that follows chooses which of those results to act on."
+    },
+    {
+      "type": "mc",
+      "category": "If statements",
+      "q": "rax holds 3 and you run `cmp rax, 3`. Which flag gets set to show that the two values are equal?",
+      "choices": ["Zero flag", "Carry flag", "Sign flag", "Overflow flag"],
+      "answer": 0,
+      "explain": "cmp subtracts the operands internally. When they are equal the result is zero, so the zero flag is set. je/jz and jne/jnz test this flag."
+    },
+    {
+      "type": "mc",
+      "category": "If statements",
+      "q": "rax = 4. The code is `cmp rax, 3` / `jne skip` / (print 'rax is 3') / `skip: ...`. What happens?",
+      "choices": [
+        "The message is printed, then execution continues at skip",
+        "The jump is taken to skip, so the print never runs",
+        "The assembler rejects the code because 4 is not 3",
+        "The program loops forever"
+      ],
+      "answer": 1,
+      "explain": "4 is not equal to 3, so jne is taken and the body (the print) is skipped."
+    },
+    {
+      "type": "mc",
+      "category": "If statements",
+      "q": "To skip the body of `if (rax <= 7)` using a signed comparison, which jump should follow `cmp rax, 7`?",
+      "choices": ["jle", "jg", "jge", "jl"],
+      "answer": 1,
+      "explain": "You jump on the opposite of the condition. The opposite of 'less than or equal to' is 'greater than', so use jg."
+    },
+    {
+      "type": "mc",
+      "category": "Loops",
+      "q": "You are writing `while (rax < 3) rax++;`. After `cmp rax, 3` at the top of the loop, which jump should leave the loop?",
+      "choices": ["jl", "jge", "jg", "jle"],
+      "answer": 1,
+      "explain": "The loop should stop once the condition is false. The opposite of rax < 3 is rax >= 3, so jge jumps out to the exit. If it is not taken, execution falls into the body."
+    },
+    {
+      "type": "tf",
+      "category": "Loops",
+      "q": "A while loop is just an if statement whose body ends with an unconditional jump back to the comparison.",
+      "answer": true,
+      "explain": "Take away the final jmp and you have a single if statement that runs once. Adding the jmp back to the cmp turns it into a loop."
+    },
+    {
+      "type": "num",
+      "category": "Loops",
+      "q": "Trace this code: `mov rax, 0` / `top: cmp rax, 3` / `jge done` / `inc rax` / `jmp top` / `done: ...`. What value does rax hold when execution reaches done?",
+      "answer": 3,
+      "explain": "rax counts up 0, 1, 2, 3. At 0, 1 and 2 the jge is not taken, so rax is incremented. When rax is 3, cmp finds it is >= 3 and jge jumps to done."
+    },
+    {
+      "type": "num",
+      "category": "Loops",
+      "q": "A loop starts with rax = 0 and runs `while (rax < 255) rax++`. How many times does `inc rax` execute?",
+      "answer": 255,
+      "explain": "rax goes from 0 up to 255 (0xFF), one increment at a time, which is 255 increments. When rax reaches 255 the exit jump is taken."
+    },
+    {
+      "type": "text",
+      "category": "Loops",
+      "q": "After the loop `for (rax = 0; rax < 10; rax++) {}` finishes, a debugger shows rax in hexadecimal. What value does it show?",
+      "answer": ["0xa", "0xA", "a", "A", "0x0a", "0x0A"],
+      "explain": "The loop leaves when rax reaches 10, and 10 in decimal is 0xA in hex."
+    },
+    {
+      "type": "mc",
+      "category": "Loops",
+      "q": "You translate `for (i = 0; i < 10; i++)` into assembly with `mov rax, 0`, then `cmp`/`jge`, then the body and `inc rax`, then a closing `jmp`. Where should that jmp go?",
+      "choices": [
+        "Back to the `cmp` that checks the condition",
+        "Back to `mov rax, 0`, the initialization",
+        "Straight to the exit label",
+        "To the instruction right after the jmp"
+      ],
+      "answer": 0,
+      "explain": "Initialization runs only once, before the loop starts. Each new pass should check the condition again, so the jmp goes to the cmp. Jumping to `mov rax, 0` would reset the counter on every pass and the loop would never end."
+    },
+    {
+      "type": "tf",
+      "category": "Loops",
+      "q": "A `jmp` has to target a label. Jumping to a raw numeric address such as 0x401007 is not allowed.",
+      "answer": false,
+      "explain": "A label is just a name for an address, and the assembler replaces it with that address. You can jump to the numeric address directly, but labels are much safer."
+    },
+    {
+      "type": "mc",
+      "category": "Loops",
+      "q": "What does putting `int3` in a program do?",
+      "choices": [
+        "It raises a breakpoint interrupt that pauses execution, so you can inspect registers in the debugger or emulator",
+        "It exits the program with status 3",
+        "It adds 3 to rax",
+        "It makes the next conditional jump always taken"
+      ],
+      "answer": 0,
+      "explain": "int3 is the breakpoint interrupt. It lets you run a long loop at full speed, then stop at a chosen point and look at the state, for example rax = 0xFF after 255 passes."
+    },
+    {
+      "type": "multi",
+      "category": "Signed vs unsigned jumps",
+      "q": "rax = -1, then `cmp rax, 1` runs. Which of these conditional jumps would be taken?",
+      "choices": ["jl", "jb", "jge", "jae", "jne"],
+      "answer": [0, 3, 4],
+      "explain": "As signed numbers, -1 < 1, so jl is taken and jge is not. As unsigned, -1 has every bit set (0xFFFFFFFFFFFFFFFF), which is far larger than 1, so jb is not taken and jae is. The values differ, so jne is taken."
+    },
+    {
+      "type": "mc",
+      "category": "Signed vs unsigned jumps",
+      "q": "After `mov rax, -1` and `cmp rax, 1`, why is `jb` NOT taken, even though -1 is mathematically smaller than 1?",
+      "choices": [
+        "jb compares as unsigned, and -1 has every bit set, which makes it the largest unsigned value",
+        "jb only works when both operands are registers",
+        "cmp cannot handle negative numbers and leaves the flags unchanged",
+        "jb is a signed jump, and -1 > 1 in signed arithmetic"
+      ],
+      "answer": 0,
+      "explain": "The register only holds bits. The jump you choose decides how they are read. Read as unsigned, the bit pattern for -1 is the largest possible value, so it is not 'below' 1."
+    },
+    {
+      "type": "multi",
+      "category": "Signed vs unsigned jumps",
+      "q": "Which of these conditional jumps compare their operands as SIGNED numbers?",
+      "choices": ["jg", "ja", "jle", "jbe", "jl", "jae", "jge"],
+      "answer": [0, 2, 4, 6],
+      "explain": "The signed jumps use greater/less: jg, jge, jl, jle. The unsigned jumps use above/below: ja, jae, jb, jbe."
+    },
+    {
+      "type": "mc",
+      "category": "Signed vs unsigned jumps",
+      "q": "Which jump is the unsigned version of `jg` (jump if greater)?",
+      "choices": ["jae", "ja", "jb", "jnz"],
+      "answer": 1,
+      "explain": "ja (jump if above) is the unsigned 'greater than'. jae is the unsigned 'greater than or equal to'."
+    },
+    {
+      "type": "mc",
+      "category": "Signed vs unsigned jumps",
+      "q": "Which jump is the unsigned version of `jle` (jump if less than or equal to)?",
+      "choices": ["jb", "jbe", "jae", "jl"],
+      "answer": 1,
+      "explain": "jbe (jump if below or equal) is the unsigned 'less than or equal to'. jb is the unsigned 'less than'."
+    },
+    {
+      "type": "tf",
+      "category": "Signed vs unsigned jumps",
+      "q": "`je` and `jz` are different instructions: je compares two values, while jz checks whether a result was zero.",
+      "answer": false,
+      "explain": "They are two names for the same instruction, and the CPU treats them identically. The same goes for jne and jnz."
+    },
+    {
+      "type": "tf",
+      "category": "Signed vs unsigned jumps",
+      "q": "`je` and `jne` behave the same whether you think of the values as signed or unsigned.",
+      "answer": true,
+      "explain": "Equality is a bit-for-bit match, so there is nothing to interpret. Signedness only matters for ordering comparisons such as greater/less or above/below."
+    },
+    {
+      "type": "mc",
+      "category": "Signed vs unsigned jumps",
+      "q": "Your values might be negative. Which family of conditional jumps should you use for ordering comparisons?",
+      "choices": [
+        "Signed: jg, jge, jl, jle",
+        "Unsigned: ja, jae, jb, jbe",
+        "Only je and jne",
+        "Either family; they always give the same result"
+      ],
+      "answer": 0,
+      "explain": "Negative numbers need the signed jumps. The unsigned jumps read a negative value's bits as a huge positive number. Use the unsigned jumps only when every value is known to be non-negative."
+    },
+    {
+      "type": "mc",
+      "category": "Compound conditions",
+      "q": "Which sequence correctly implements `if (rax > 1 && rax < 5) { body }` using signed jumps?",
+      "choices": [
+        "cmp rax, 1; jle exit; cmp rax, 5; jge exit; (body)",
+        "cmp rax, 1; jg exit; cmp rax, 5; jl exit; (body)",
+        "cmp rax, 1; cmp rax, 5; jle exit; jge exit; (body)",
+        "cmp rax, 1; jle body; cmp rax, 5; jge body; (exit)"
+      ],
+      "answer": 0,
+      "explain": "For an AND, each condition jumps away on failure: 'not > 1' is jle, and 'not < 5' is jge. Execution only falls through to the body when both checks pass. Each jump must come right after its own cmp."
+    },
+    {
+      "type": "tf",
+      "category": "Compound conditions",
+      "q": "For a compound condition, you can write both `cmp` instructions back to back and then put both conditional jumps after them.",
+      "answer": false,
+      "explain": "Each cmp overwrites the flags, so the second cmp wipes out the first one's result. Every cmp needs its conditional jump right after it."
+    },
+    {
+      "type": "tf",
+      "category": "Compound conditions",
+      "q": "For an AND condition, you jump to the failure (end) path as soon as any one condition fails, and only fall through to the body if all of them pass.",
+      "answer": true,
+      "explain": "One false condition makes the whole AND false, so there is no reason to check the rest. You jump away on the first failure."
+    },
+    {
+      "type": "mc",
+      "category": "Compound conditions",
+      "q": "When you implement `if (x == 0 || x > 50) { body }`, where do the conditional jumps usually go?",
+      "choices": [
+        "To the body as soon as any condition is true. If none are true, execution falls through to the failure path",
+        "To the end as soon as any condition is false",
+        "To the body only after every condition has been checked",
+        "Back to the first comparison until a condition becomes true"
+      ],
+      "answer": 0,
+      "explain": "One true condition makes the whole OR true. Each test jumps to the success path (the body) when it passes. If every test fails, execution falls through to the failure path."
+    },
+    {
+      "type": "multi",
+      "category": "Compound conditions",
+      "q": "The code is `cmp rax, 0; je print; cmp rax, 50; jg print;` followed by the exit code when neither jump is taken. For which starting values of rax does execution reach print?",
+      "choices": ["0", "3", "50", "51", "99", "-5"],
+      "answer": [0, 3, 4],
+      "fixed": true,
+      "explain": "0 matches je. 51 and 99 are greater than 50, so jg is taken. 3 and 50 fail both tests (50 is not greater than 50). -5 is not 0 and, as a signed number, not greater than 50, so it reaches exit."
+    },
+    {
+      "type": "text",
+      "category": "Compound conditions",
+      "q": "The first half of a compound condition is `if (rax > 1)`, using signed values and the jump-away-on-failure style. Which jump mnemonic should follow `cmp rax, 1`?",
+      "answer": ["jle", "jng"],
+      "explain": "If rax is not greater than 1, meaning it is 1 or less, the condition has failed and you jump away. So use jle."
+    },
+    {
+      "type": "mc",
+      "category": "Compound conditions",
+      "q": "rax = 5 and the code is `cmp rax, 1; jle exit; cmp rax, 5; jge exit; (body)`. What happens?",
+      "choices": [
+        "The first jump (jle exit) is taken",
+        "The second jump (jge exit) is taken, so the body is skipped",
+        "Neither jump is taken and the body runs",
+        "Both jumps are taken"
+      ],
+      "answer": 1,
+      "explain": "5 > 1, so jle is not taken. Then 5 >= 5, so jge jumps to exit and the body never runs. 5 does not satisfy x < 5."
+    }
+  ]
+}

@@ -1,0 +1,396 @@
+{
+  "title": "X86ASM 21: The Heap and the brk System Call",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Why dynamic memory",
+      "q": "What is the main limitation of the data segment that makes a heap useful?",
+      "choices": [
+        "It can't grow or shrink at runtime",
+        "Only the function that declared a variable can access it",
+        "Its contents are lost when the declaring function returns",
+        "It can only hold one byte per label"
+      ],
+      "answer": 0,
+      "explain": "The data segment is global, so every function can access it, but its size is fixed. It can't be resized at runtime."
+    },
+    {
+      "type": "mc",
+      "category": "Why dynamic memory",
+      "q": "Function A reserves space on the stack, then calls B, which calls C. What goes wrong if that memory needs to outlive A?",
+      "choices": [
+        "B and C can't see A's stack memory at all",
+        "Once A returns, the memory is effectively gone, and accessing it is unreliable",
+        "The stack can't grow, so A can't reserve the space in the first place",
+        "The kernel zeroes the stack every time a function is called"
+      ],
+      "answer": 1,
+      "explain": "The stack can grow and shrink, but space reserved there belongs to the function that reserved it. Functions A calls can use it while A is still running, but after A returns, using it is unreliable."
+    },
+    {
+      "type": "tf",
+      "category": "Why dynamic memory",
+      "q": "If function A reserves stack space and then calls B, which calls C, then C can still use A's memory as long as A hasn't returned.",
+      "answer": true,
+      "explain": "Every function A calls can see A's stack memory while A is still active. The problem only starts after A returns."
+    },
+    {
+      "type": "multi",
+      "category": "Why dynamic memory",
+      "q": "Which of these describe heap memory allocated with brk?",
+      "choices": [
+        "Any function in the program can use it",
+        "It stays valid after the function that allocated it returns",
+        "Its size can be changed at runtime",
+        "It's freed automatically when the allocating function returns",
+        "It's the modern way to allocate memory and can be placed almost anywhere in the address space"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "brk extends the data segment, so the heap is global and can grow at runtime. It stays valid until the program gives it back or exits. The modern approach, which can place memory in many different areas, is mmap, not brk."
+    },
+    {
+      "type": "mc",
+      "category": "The brk system call",
+      "q": "What is the 'program break'?",
+      "choices": [
+        "The address of the first instruction in the text segment",
+        "The current top of the stack",
+        "The end of the data segment, where it meets unmapped memory",
+        "The address the program jumps to when it exits"
+      ],
+      "answer": 2,
+      "explain": "The program break marks the end of the data segment. brk moves it to make that segment bigger or smaller."
+    },
+    {
+      "type": "num",
+      "category": "The brk system call",
+      "q": "What is the system call number for brk on x86-64 Linux?",
+      "answer": 12,
+      "explain": "Before calling syscall, you put 12 in RAX."
+    },
+    {
+      "type": "mc",
+      "category": "The brk system call",
+      "q": "With RAX = 12 and RDI = 0, what does syscall return in RAX?",
+      "choices": [
+        "An error, because 0 isn't a valid address",
+        "The current program break, which is where a new heap would start",
+        "The amount of free heap space in bytes",
+        "The address of the stack pointer"
+      ],
+      "answer": 1,
+      "explain": "Calling brk with 0 asks the kernel where the program break is right now. Nothing has been allocated yet, so that address is where the heap will start."
+    },
+    {
+      "type": "mc",
+      "category": "The brk system call",
+      "q": "When you call brk to move the program break, which register holds the requested new break address?",
+      "choices": ["RAX", "RDI", "RSI", "RSP"],
+      "answer": 1,
+      "explain": "RDI holds the first syscall argument. RAX holds the syscall number (12) going in and the return value coming out."
+    },
+    {
+      "type": "tf",
+      "category": "The brk system call",
+      "q": "When a program starts and no heap has been allocated yet, the current program break is both the start and the end of the heap.",
+      "answer": true,
+      "explain": "The heap is added onto the end of the data segment. Before anything is allocated it has zero size, so its start and end are the same address: the current break."
+    },
+    {
+      "type": "mc",
+      "category": "The brk system call",
+      "q": "You request a new program break with brk. How can you tell the kernel honored the request?",
+      "choices": [
+        "RAX is 0 after the syscall",
+        "RAX holds the new break you asked for",
+        "RDI is set to -1",
+        "The program gets a SIGCHLD signal"
+      ],
+      "answer": 1,
+      "explain": "In the example, the request for 0x402400 returned 0x402400 in RAX, which showed the space had been reserved."
+    },
+    {
+      "type": "mc",
+      "category": "The brk system call",
+      "q": "In some environment, a brk syscall returns -38 (and the program uses it as its exit code). What does that mean?",
+      "choices": [
+        "Permission denied",
+        "Out of memory",
+        "Function not implemented (ENOSYS): the environment doesn't support that syscall",
+        "The requested address isn't page-aligned"
+      ],
+      "answer": 2,
+      "explain": "Error number 38 is ENOSYS, 'function not implemented'. The emulated environment didn't support brk, so the program had to run on a real Linux system."
+    },
+    {
+      "type": "text",
+      "category": "The brk system call",
+      "q": "Which system call does the lesson name as the modern alternative to brk for allocating memory?",
+      "answer": ["mmap", "memory map", "mmap()"],
+      "explain": "brk is the classic way: it just extends the data segment. mmap is the modern way and can place memory in many different areas."
+    },
+    {
+      "type": "text",
+      "category": "Program break addresses",
+      "q": "brk(0) returns 0x402000. You add 1024 to it and call brk with the result. What should brk return if it succeeds? (Answer in hex.)",
+      "answer": ["0x402400", "402400", "0X402400"],
+      "explain": "1024 decimal is 0x400, so 0x402000 + 0x400 = 0x402400."
+    },
+    {
+      "type": "num",
+      "category": "Program break addresses",
+      "q": "After allocation, the heap runs from 0x403000 to 0x403400. How many bytes is that, in decimal?",
+      "answer": 1024,
+      "explain": "0x403400 - 0x403000 = 0x400 = 1024 bytes. The video loosely calls this 'a thousand'."
+    },
+    {
+      "type": "mc",
+      "category": "Program break addresses",
+      "q": "The program's instructions are at 0x401000 and 0x401007, and brk(0) returns 0x402000 (the program has no data). What does 0x402000 represent?",
+      "choices": [
+        "The top of the stack",
+        "The end of the program image, where the mapped address space currently ends",
+        "The first byte of the text segment",
+        "An address chosen at random by the kernel on every run"
+      ],
+      "answer": 1,
+      "explain": "0x402000 is the end of the program image and the current end of mapped memory. To get heap space, you move the break past it."
+    },
+    {
+      "type": "mc",
+      "category": "Writing to heap memory",
+      "q": "The current break is 0x402000. Before calling brk a second time, the program runs `mov [0x402000], rax`. What happens?",
+      "choices": [
+        "The write succeeds because the data segment is global",
+        "Segmentation fault: that address is at the program break and isn't reserved yet",
+        "The kernel extends the break automatically to make room",
+        "The value is silently dropped"
+      ],
+      "answer": 1,
+      "explain": "Memory at and beyond the program break isn't reserved, so the write causes a segfault."
+    },
+    {
+      "type": "tf",
+      "category": "Writing to heap memory",
+      "q": "After brk moves the break from 0x402000 to 0x402400, `mov [0x402000], rax` succeeds and the value can be read back from 0x402000.",
+      "answer": true,
+      "explain": "Moving the break reserved 0x402000 through 0x402400, so that address is now legal to write to. Examining it in GDB showed 1234."
+    },
+    {
+      "type": "mc",
+      "category": "Writing to heap memory",
+      "q": "The address of the start of the heap is saved in an 8-byte variable called `buffer`. Which sequence (Intel syntax) correctly writes 1234 to the start of the heap?",
+      "choices": [
+        "mov rax, [buffer]\nmov rbx, 1234\nmov [rax], rbx",
+        "mov rax, [buffer]\nmov rbx, 1234\nmov rax, rbx",
+        "mov rbx, 1234\nmov [buffer], rbx",
+        "mov rax, [buffer]\nmov rbx, 1234\nmov [rbx], rax"
+      ],
+      "answer": 0,
+      "explain": "First load the saved address from buffer into RAX. Then use RAX as a pointer: [rax] dereferences it, so the store goes to the heap. The other choices overwrite a register, overwrite the saved pointer, or write to address 1234."
+    },
+    {
+      "type": "mc",
+      "category": "Writing to heap memory",
+      "q": "`buffer` is the only variable in .data, at 0x402000, and holds the saved start of the heap. Later the program runs `mov [0x402000], rax` to write test data 'to the heap'. What's the bug?",
+      "choices": [
+        "Nothing is wrong. 0x402000 is the start of the heap",
+        "It overwrites the saved heap-start pointer in buffer instead of writing to the heap",
+        "It causes a segfault because .data is read-only",
+        "It writes to the stack instead of the heap"
+      ],
+      "answer": 1,
+      "explain": "Once .data has a variable at 0x402000, the heap no longer starts there. The hard-coded address clobbers buffer. The fix is to load the address from buffer and dereference it."
+    },
+    {
+      "type": "mc",
+      "category": "Page alignment and the data segment",
+      "q": "A 1-byte variable is added to .data, and it lands at 0x402000. Where does brk(0) now report the program break?",
+      "choices": ["0x402001", "0x402008", "0x403000", "0x402400"],
+      "answer": 2,
+      "explain": "The data segment now takes up one whole page, so the break, and with it the start of the heap, moves to 0x403000."
+    },
+    {
+      "type": "num",
+      "category": "Page alignment and the data segment",
+      "q": "The heap start moved from 0x402000 to 0x403000. How many bytes is the 0x1000 difference, in decimal?",
+      "answer": 4096,
+      "explain": "0x1000 = 4096 bytes, which is one page of memory."
+    },
+    {
+      "type": "mc",
+      "category": "Page alignment and the data segment",
+      "q": "Why does adding a single byte to .data push the heap start back by 0x1000?",
+      "choices": [
+        "The assembler pads every variable to 4096 bytes",
+        "The kernel maps memory in whole pages, so the data segment gets a full 4096-byte page",
+        "brk always reserves 4096 bytes no matter what you ask for",
+        "ASLR adds a random offset"
+      ],
+      "answer": 1,
+      "explain": "You asked for one byte, but the kernel hands out a whole page anyway, so addresses stay aligned to 4096 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Page alignment and the data segment",
+      "q": "You reserved 1 byte in .data but got a whole 4096-byte page. Should you use the other 4095 bytes?",
+      "choices": [
+        "Yes. They're guaranteed to be yours",
+        "No. Any access to them always segfaults",
+        "Writing to them may work, but it's unreliable because you never reserved them. Reserve the space explicitly",
+        "Only if you call brk(0) first"
+      ],
+      "answer": 2,
+      "explain": "Whether that extra space exists depends on the linker and toolchain. If you need the space, reserve it explicitly."
+    },
+    {
+      "type": "mc",
+      "category": "Page alignment and the data segment",
+      "q": "Why do .data variables keep landing at the same address (such as 0x402000) every run in this environment?",
+      "choices": [
+        "Address Space Layout Randomization (ASLR) is turned off",
+        "x86-64 always loads .data at 0x402000",
+        "The brk syscall pins the data segment",
+        "GDB rewrites addresses to make them predictable"
+      ],
+      "answer": 0,
+      "explain": "With ASLR turned on, which is normal on a modern system, these addresses would be random. With it off, the memory layout is the same every run."
+    },
+    {
+      "type": "tf",
+      "category": "Page alignment and the data segment",
+      "q": "The main purpose of ASLR is to make programs run faster.",
+      "answer": false,
+      "explain": "ASLR is a security feature. Randomizing the memory layout makes it harder to attack a program or run malicious code."
+    },
+    {
+      "type": "mc",
+      "category": "Deallocating the heap",
+      "q": "To shrink the heap back later, what must the program do right after the first brk(0) call?",
+      "choices": [
+        "Nothing. The kernel remembers the original break",
+        "Save the returned address (the original break) in a variable, such as an 8-byte slot in .data or .bss",
+        "Push RDI onto the stack and never pop it",
+        "Call brk with a negative size"
+      ],
+      "answer": 1,
+      "explain": "Once the break moves, the original value is lost unless you saved it. It's a 64-bit address, so it needs an 8-byte (quad) variable."
+    },
+    {
+      "type": "mc",
+      "category": "Deallocating the heap",
+      "q": "The original break is stored in `buffer`. Which sequence gives the heap back?",
+      "choices": [
+        "mov rax, 12\nmov rdi, [buffer]\nsyscall",
+        "mov rax, 12\nmov rdi, 0\nsyscall",
+        "mov rax, [buffer]\nmov rdi, 12\nsyscall",
+        "mov rax, 60\nmov rdi, [buffer]\nsyscall"
+      ],
+      "answer": 0,
+      "explain": "Call brk (12 in RAX) with the original break in RDI. The kernel moves the break back and returns it in RAX. Calling brk(0) only asks for the current break, and 60 is a different syscall."
+    },
+    {
+      "type": "tf",
+      "category": "Deallocating the heap",
+      "q": "If a program never moves the break back, its heap memory stays allocated even after the program exits.",
+      "answer": false,
+      "explain": "The kernel takes the memory back when the program ends. Shrinking the break yourself matters only if you want to return the memory sooner."
+    },
+    {
+      "type": "mc",
+      "category": "Deallocating the heap",
+      "q": "Moving the program break back to its original value is most like which stack operation?",
+      "choices": [
+        "Pushing a return address",
+        "Resetting the stack pointer (or base pointer) after reserving space on the stack",
+        "Calling a function",
+        "Swapping RSP and RIP"
+      ],
+      "answer": 1,
+      "explain": "Both reserve space by moving a boundary and release it by moving the boundary back to where it was."
+    },
+    {
+      "type": "mc",
+      "category": "GDB and build tooling",
+      "q": "Which GDB command makes disassembly show Intel syntax instead of the default AT&T?",
+      "choices": [
+        "set disassembly-flavor intel",
+        "layout intel",
+        "set syntax noprefix",
+        ".intel_syntax noprefix"
+      ],
+      "answer": 0,
+      "explain": "The `.intel_syntax noprefix` directive affects only how the assembler reads your source. GDB needs its own `set disassembly-flavor intel` setting."
+    },
+    {
+      "type": "mc",
+      "category": "GDB and build tooling",
+      "q": "What does GDB's `starti` command do?",
+      "choices": [
+        "Runs the program to completion",
+        "Starts the program and stops before its very first instruction",
+        "Steps into the next function call",
+        "Restarts GDB with Intel syntax"
+      ],
+      "answer": 1,
+      "explain": "starti starts the program and stops right away at the first instruction, so you can single-step from the very beginning."
+    },
+    {
+      "type": "text",
+      "category": "GDB and build tooling",
+      "q": "Which short GDB command executes exactly one machine instruction?",
+      "answer": ["si", "stepi"],
+      "explain": "si (stepi) moves forward one instruction at a time."
+    },
+    {
+      "type": "text",
+      "category": "GDB and build tooling",
+      "q": "Which one-letter GDB command shows the contents of memory at an address (for example, to check that 1234 was written to 0x403000)?",
+      "answer": ["x", "x/", "examine"],
+      "explain": "The x (examine) command shows memory, for example `x 0x403000`. `print &buff` shows a symbol's address instead."
+    },
+    {
+      "type": "mc",
+      "category": "GDB and build tooling",
+      "q": "In the build line `as break.s -o break.o && ld break.o -o break`, what does `&&` do?",
+      "choices": [
+        "Runs both commands at the same time",
+        "Runs ld only if as succeeded",
+        "Runs ld only if as failed",
+        "Sends as's output into ld"
+      ],
+      "answer": 1,
+      "explain": "With &&, the second command runs only if the first succeeds. If assembly fails, the chain stops."
+    },
+    {
+      "type": "mc",
+      "category": "GDB and build tooling",
+      "q": "A build script named `b` shows 'permission denied' when you run it. Which command fixes that, giving the owner read, write, and execute permission?",
+      "choices": ["chmod 700 b", "chmod 400 b", "chown 700 b", "chmod 007 b"],
+      "answer": 0,
+      "explain": "7 = rwx for the owner, and 0 = no permissions for group and others. The script also needs a correct shebang line, such as #!/bin/bash."
+    },
+    {
+      "type": "mc",
+      "category": "GDB and build tooling",
+      "q": "Which file can hold GDB commands (such as the Intel flavor and layout settings) that run automatically every time GDB starts?",
+      "choices": [".gdbinit", ".bashrc", ".gdb_history", "gdb.conf in the current directory"],
+      "answer": 0,
+      "explain": "Commands in .gdbinit run when GDB starts, so you don't have to pass them with -ex every time."
+    },
+    {
+      "type": "mc",
+      "category": "GDB and build tooling",
+      "q": "A program makes the brk calls but never calls the exit syscall. Run outside GDB, it crashes with a segmentation fault. Why?",
+      "choices": [
+        "brk always segfaults outside a debugger",
+        "Without an exit syscall, the CPU keeps executing past the end of the code",
+        "The program break was set too high",
+        "ld didn't mark the file as executable"
+      ],
+      "answer": 1,
+      "explain": "A program in assembly has to end with the exit syscall. Otherwise, execution runs past the last instruction into memory that isn't valid code, which segfaults."
+    }
+  ]
+}

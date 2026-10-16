@@ -1,0 +1,688 @@
+{
+ "title": "Boolean Arithmetic",
+ "course": "NAND2TETRIS",
+ "questions": [
+  {
+   "type": "num",
+   "category": "Binary Numbers",
+   "q": "Convert the binary numeral 1011010 to decimal.",
+   "answer": 90,
+   "explain": "1011010 = 2^6 + 2^4 + 2^3 + 2^1 = 64 + 16 + 8 + 2 = 90."
+  },
+  {
+   "type": "text",
+   "category": "Binary Numbers",
+   "q": "Convert 523 (decimal) to binary.",
+   "answer": ["1000001011", "10 0000 1011"],
+   "explain": "Largest power of 2 that fits in 523 is 512 = 2^9, leaving 11 = 8 + 2 + 1. So 523 = 2^9 + 2^3 + 2^1 + 2^0 = 1000001011."
+  },
+  {
+   "type": "num",
+   "category": "Binary Numbers",
+   "q": "What is the decimal value of the binary numeral 10011?",
+   "answer": 19,
+   "explain": "1*2^4 + 0*2^3 + 0*2^2 + 1*2^1 + 1*2^0 = 16 + 2 + 1 = 19."
+  },
+  {
+   "type": "text",
+   "category": "Binary Numbers",
+   "q": "Using the 'largest power of 2 that fits' method, convert 100 (decimal) to binary.",
+   "answer": ["1100100", "110 0100"],
+   "explain": "64 fits (remainder 36), 32 fits (remainder 4), 4 fits (remainder 0). 100 = 2^6 + 2^5 + 2^2 = 1100100."
+  },
+  {
+   "type": "mc",
+   "category": "Binary Numbers",
+   "q": "In a positional numeral system, what does the digit at position i (counting from the right, starting at 0) encode?",
+   "choices": [
+    "How many copies of base^i are added to the value",
+    "How many copies of i are added to the value",
+    "How many copies of i^base are added to the value",
+    "The exponent the base is raised to"
+   ],
+   "answer": 0,
+   "explain": "Value = sum of d_i * base^i. The digit d_i says how many copies of base^i to add. The method itself works for any base."
+  },
+  {
+   "type": "mc",
+   "category": "Binary Numbers",
+   "q": "In a positional numeral system, the base is:",
+   "choices": [
+    "The number of distinct digit symbols (including 0)",
+    "The largest digit value",
+    "The number of digits in the numeral",
+    "Always 10"
+   ],
+   "answer": 0,
+   "explain": "A positional system has a fixed set of digit symbols including 0, and the base is the number of symbols. Base 10 has 0-9; base 2 has 0 and 1."
+  },
+  {
+   "type": "num",
+   "category": "Binary Numbers",
+   "q": "Using n = 8 bits, what is the largest unsigned integer that can be represented?",
+   "answer": 255,
+   "explain": "n bits represent the unsigned integers 0 ... 2^n - 1. For n = 8 that is 2^8 - 1 = 255."
+  },
+  {
+   "type": "num",
+   "category": "Binary Numbers",
+   "q": "How many bits does it take to write 7053 as an unsigned binary numeral (no leading zeros)?",
+   "answer": 13,
+   "explain": "2^12 = 4096 <= 7053 < 8192 = 2^13, so the highest position is 12 and the numeral has 13 bits: 1101110001101."
+  },
+  {
+   "type": "tf",
+   "category": "Binary Numbers",
+   "q": "The written symbol '17' is itself the number seventeen.",
+   "answer": false,
+   "explain": "'17' is a numeral, an agreed-upon code that represents the number seventeen. The same number could be written in other codes, such as 10001 in binary or XVII in Roman numerals."
+  },
+  {
+   "type": "mc",
+   "category": "Binary Numbers",
+   "q": "Why do computers need algorithms for converting between decimal and binary?",
+   "choices": [
+    "Only to interact with humans, who read and write base 10, while the computer represents and processes everything in base 2",
+    "Because the ALU can only add decimal numbers",
+    "Because memory stores numbers in decimal and the CPU works in binary",
+    "Because binary cannot represent negative numbers"
+   ],
+   "answer": 0,
+   "explain": "Inside the computer everything is binary. Conversions exist only so the computer can take input from and show output to humans who use base 10."
+  },
+  {
+   "type": "text",
+   "category": "Binary Addition & Overflow",
+   "q": "Add the 4-bit numbers 1001 + 0101. Give the 4-bit result.",
+   "answer": ["1110"],
+   "explain": "Working right to left with carries: 1+1 = 0 carry 1; 0+0+1 = 1; 0+1 = 1; 1+0 = 1. Result 1110 (9 + 5 = 14), and there is no carry out of the MSB, so no overflow."
+  },
+  {
+   "type": "mc",
+   "category": "Binary Addition & Overflow",
+   "q": "Adding 1011 + 0111 in a 4-bit system produces:",
+   "choices": [
+    "0010, with a carry of 1 out of the MSB (overflow)",
+    "10010, stored in full",
+    "1110, with no overflow",
+    "0010, with no carry out of the MSB"
+   ],
+   "answer": 0,
+   "explain": "11 + 7 = 18 = 10010. Only 4 bits fit, so the stored result is 0010. The addition of the two MSBs generated a carry of 1, which is the unsigned overflow."
+  },
+  {
+   "type": "text",
+   "category": "Binary Addition & Overflow",
+   "q": "Compute 0111 + 1110 in a 4-bit system, ignoring overflow. Give the 4 stored bits.",
+   "answer": ["0101"],
+   "explain": "0111 + 1110 = 10101. The 5th (overflow) bit is dropped, leaving 0101. As unsigned values: (7 + 14) mod 16 = 5."
+  },
+  {
+   "type": "mc",
+   "category": "Binary Addition & Overflow",
+   "q": "What is the LSB of a binary number?",
+   "choices": [
+    "The least significant bit, the right-most bit",
+    "The least significant bit, the left-most bit",
+    "The last signed bit, the left-most bit",
+    "The lowest set bit, the right-most 1"
+   ],
+   "answer": 0,
+   "explain": "LSB = least significant bit (right-most, weight 2^0). MSB = most significant bit (left-most). Binary addition starts at the LSBs and moves toward the MSBs."
+  },
+  {
+   "type": "mc",
+   "category": "Binary Addition & Overflow",
+   "q": "In unsigned n-bit binary addition, when does overflow happen?",
+   "choices": [
+    "When adding the two most significant bits (plus the incoming carry) produces a carry of 1",
+    "When the two least significant bits are both 1",
+    "When any column produces a carry",
+    "Whenever the result has a 1 in its MSB"
+   ],
+   "answer": 0,
+   "explain": "If the last bit-wise addition (at the MSBs) produces a carry of 1, the true sum needs n+1 bits and has overflowed. Carries in lower columns are normal and just move to the next column."
+  },
+  {
+   "type": "tf",
+   "category": "Binary Addition & Overflow",
+   "q": "Dropping the overflow bit of an n-bit addition is the binary equivalent of computing the sum modulo 2^n.",
+   "answer": true,
+   "explain": "The dropped bit has weight 2^n, so throwing it away is the same as subtracting 2^n, which gives the sum mod 2^n."
+  },
+  {
+   "type": "num",
+   "category": "Binary Addition & Overflow",
+   "q": "In a single column of multi-bit binary addition, what is the maximum number of bits being added together?",
+   "answer": 3,
+   "explain": "Each column adds the two bits in that position plus the carry from the previous column. That is why a full adder (3-bit adder) is the building block for multi-bit adders."
+  },
+  {
+   "type": "multi",
+   "category": "Binary Addition & Overflow",
+   "q": "Addition is described as the foundation of all arithmetic. Which of these operations are obtained from addition?",
+   "choices": [
+    "Subtraction (by adding the negation)",
+    "Multiplication",
+    "Division",
+    "Bitwise And"
+   ],
+   "answer": [0, 1, 2],
+   "explain": "Subtraction comes 'for free' as x + (-y) in two's complement. Multiplication and division can be implemented efficiently using addition. Bitwise And is a separate logic operation computed directly by And gates."
+  },
+  {
+   "type": "tf",
+   "category": "Binary Addition & Overflow",
+   "q": "The same binary addition algorithm works for any word size n (16, 32, 64, ...).",
+   "answer": true,
+   "explain": "Adding right to left and propagating carries is the same procedure whatever n is. Adding two n-bit numbers is just more of the same."
+  },
+  {
+   "type": "mc",
+   "category": "Two's Complement",
+   "q": "In an n-bit two's complement system, how is -x coded (for x != 0)?",
+   "choices": [
+    "As the binary code of 2^n - x",
+    "As the binary code of 2^(n-1) - x",
+    "As x with its MSB set to 1",
+    "As !x (all bits of x flipped)"
+   ],
+   "answer": 0,
+   "explain": "The two's complement of x is 2^n - x, and that is the code for -x. Setting the MSB is sign-magnitude, which was rejected. Flipping the bits alone gives -x - 1."
+  },
+  {
+   "type": "text",
+   "category": "Two's Complement",
+   "q": "Give the 5-bit two's complement code for -2.",
+   "answer": ["11110"],
+   "explain": "2^5 - 2 = 32 - 2 = 30 = 11110. Check: 00010 + 11110 = 100000, and dropping the 6th bit leaves 00000."
+  },
+  {
+   "type": "num",
+   "category": "Two's Complement",
+   "q": "What decimal value does the 4-bit two's complement code 1011 represent?",
+   "answer": -5,
+   "explain": "The MSB is 1, so the value is negative: -(2^4 - 1011) = -(16 - 11) = -5."
+  },
+  {
+   "type": "mc",
+   "category": "Two's Complement",
+   "q": "What range of integers can n bits represent in two's complement?",
+   "choices": [
+    "-2^(n-1) ... 2^(n-1) - 1",
+    "-(2^(n-1) - 1) ... 2^(n-1) - 1",
+    "-2^n ... 2^n - 1",
+    "0 ... 2^n - 1"
+   ],
+   "answer": 0,
+   "explain": "That gives 2^n values in total. For n = 4 the range is -8 ... 7, so there is one more negative number than positive. (0 ... 2^n - 1 is the unsigned range.)"
+  },
+  {
+   "type": "num",
+   "category": "Two's Complement",
+   "q": "What is the most negative number representable in 16-bit two's complement?",
+   "answer": -32768,
+   "explain": "-2^(n-1) = -2^15 = -32768, coded as 1000000000000000."
+  },
+  {
+   "type": "text",
+   "category": "Two's Complement",
+   "q": "Negate the 8-bit two's complement code 01011000 (88). Give the 8-bit result.",
+   "answer": ["10101000", "1010 1000"],
+   "explain": "Flip all bits: 10100111, then add 1: 10101000. Another shortcut: keep the trailing 0s and the first 1 from the right (1000), then flip the rest (0101 becomes 1010). Check: 256 - 88 = 168 = 10101000."
+  },
+  {
+   "type": "mc",
+   "category": "Two's Complement",
+   "q": "Which shortcut for computing -x from the code of x is easiest to implement in hardware?",
+   "choices": [
+    "Flip all the bits of x, then add 1",
+    "Flip all the bits of x",
+    "Flip only the MSB of x",
+    "Shift x left one position, then flip the MSB"
+   ],
+   "answer": 0,
+   "explain": "Negation is 'flip all bits and add 1'. Flipping alone gives -x - 1. Flipping only the MSB is sign-magnitude thinking and does not work in two's complement."
+  },
+  {
+   "type": "text",
+   "category": "Two's Complement",
+   "q": "Compute (-2) + (-3) in 4-bit two's complement. Give the 4-bit result.",
+   "answer": ["1011"],
+   "explain": "1110 + 1101 = 11011. Dropping the overflow bit leaves 1011, the code for -5. Plain bit-wise addition works without knowing which operands are negative."
+  },
+  {
+   "type": "num",
+   "category": "Two's Complement",
+   "q": "In 4-bit two's complement, compute 4 + (-7). What decimal value does the result represent?",
+   "answer": -3,
+   "explain": "-7 is coded as 16 - 7 = 9. Then 4 + 9 = 13, and 13 mod 16 = 13 = 1101, the code for -3."
+  },
+  {
+   "type": "multi",
+   "category": "Two's Complement",
+   "q": "Which of these 4-bit two's complement additions overflow (give a wrong signed result)?",
+   "choices": [
+    "0101 + 0111 (5 + 7)",
+    "1001 + 1101 (-7 + -3)",
+    "0110 + 1110 (6 + -2)",
+    "1110 + 1011 (-2 + -5)"
+   ],
+   "answer": [0, 1],
+   "explain": "5 + 7 gives 1100 = -4: two positives produced a negative. -7 + -3 gives (1)0110 = 6: two negatives produced a positive. 6 + -2 = 0100 = 4 and -2 + -5 = 1001 = -7 are correct, even though both produce a carry out that is discarded."
+  },
+  {
+   "type": "mc",
+   "category": "Two's Complement",
+   "q": "How do you detect overflow when adding two's complement numbers?",
+   "choices": [
+    "Adding two positives gives a negative result, or adding two negatives gives a positive result",
+    "A carry comes out of the MSB",
+    "The result is negative",
+    "The two operands have different signs"
+   ],
+   "answer": 0,
+   "explain": "A carry out of the MSB is not a reliable sign: 6 + (-2) produces one and is still correct. Overflow is shown when the result's sign is wrong given the operands' signs. Operands with different signs can never overflow."
+  },
+  {
+   "type": "multi",
+   "category": "Two's Complement",
+   "q": "Why was the sign-magnitude scheme (MSB = sign, other bits = magnitude) rejected in favor of two's complement?",
+   "choices": [
+    "It has two codes for zero (+0 and -0)",
+    "code(x) + code(-x) != code(0)",
+    "The codes do not increase monotonically with x",
+    "It cannot represent any negative numbers",
+    "It needs n+1 bits to store an n-bit value"
+   ],
+   "answer": [0, 1, 2],
+   "explain": "Sign-magnitude has a -0, its codes for x and -x do not add to code(0), and its codes are not monotonic, so it needs extra hardware. Two's complement fixes all three problems."
+  },
+  {
+   "type": "tf",
+   "category": "Two's Complement",
+   "q": "With two's complement, arithmetic on signed integers can be done by the same hardware that does arithmetic on unsigned integers.",
+   "answer": true,
+   "explain": "Signed addition is just regular addition modulo 2^n, the same bit-wise operation. That is the main reason two's complement is used."
+  },
+  {
+   "type": "mc",
+   "category": "Two's Complement",
+   "q": "How is x - y computed in a two's complement system?",
+   "choices": [
+    "As x + (-y), where -y is obtained by flipping y's bits and adding 1",
+    "With a dedicated subtractor circuit using borrow bits",
+    "As x + !y",
+    "As !x + !y"
+   ],
+   "answer": 0,
+   "explain": "x - y = x + (-y), and negation is flip-and-add-1, so subtraction needs no hardware beyond an adder. x + !y is off by one: it equals x - y - 1."
+  },
+  {
+   "type": "text",
+   "category": "Two's Complement",
+   "q": "What is the 16-bit two's complement code for -1?",
+   "answer": ["1111111111111111", "1111 1111 1111 1111"],
+   "explain": "2^16 - 1 = 65535 = sixteen 1s. Equivalently, flip 0000000000000001 to get 1111111111111110, then add 1."
+  },
+  {
+   "type": "tf",
+   "category": "Two's Complement",
+   "q": "In two's complement, every positive number's code starts with 0 and every negative number's code starts with 1.",
+   "answer": true,
+   "explain": "The MSB works as a sign indicator, which is why the ALU's ng output can be read straight from the MSB of out."
+  },
+  {
+   "type": "mc",
+   "category": "Two's Complement",
+   "q": "In 4-bit two's complement, what do you get by applying 'flip all bits, then add 1' to 1000 (-8)?",
+   "choices": [
+    "1000 (still -8), because +8 is outside the 4-bit range",
+    "0111 (7)",
+    "0000 (0)",
+    "1001 (-7)"
+   ],
+   "answer": 0,
+   "explain": "Flipping 1000 gives 0111, and adding 1 gives 1000. The 4-bit range is -8 ... 7, so +8 cannot be represented and the negation overflows back to -8."
+  },
+  {
+   "type": "mc",
+   "category": "Adder Chips",
+   "q": "The HalfAdder's two outputs are identical to which standard gates?",
+   "choices": [
+    "sum = Xor(a, b), carry = And(a, b)",
+    "sum = Or(a, b), carry = And(a, b)",
+    "sum = Xor(a, b), carry = Or(a, b)",
+    "sum = And(a, b), carry = Xor(a, b)"
+   ],
+   "answer": 0,
+   "explain": "Truth table: 0+0 = 00, 0+1 = 01, 1+0 = 01, 1+1 = 10 (carry, sum). sum is 1 when exactly one input is 1 (Xor), and carry is 1 only when both are 1 (And)."
+  },
+  {
+   "type": "mc",
+   "category": "Adder Chips",
+   "q": "A FullAdder gets a = 1, b = 0, c = 1. What are its outputs?",
+   "choices": [
+    "sum = 0, carry = 1",
+    "sum = 1, carry = 0",
+    "sum = 1, carry = 1",
+    "sum = 0, carry = 0"
+   ],
+   "answer": 0,
+   "explain": "1 + 0 + 1 = 2 = binary 10. sum is the LSB (0) and carry is the MSB (1)."
+  },
+  {
+   "type": "tf",
+   "category": "Adder Chips",
+   "q": "A FullAdder with a = b = c = 1 outputs sum = 1 and carry = 1.",
+   "answer": true,
+   "explain": "1 + 1 + 1 = 3 = binary 11, so sum (LSB) = 1 and carry (MSB) = 1."
+  },
+  {
+   "type": "mc",
+   "category": "Adder Chips",
+   "q": "A FullAdder can be built from two HalfAdders plus one more simple gate that combines the two half-adder carries. Which gate is it?",
+   "choices": ["Or", "And", "Not", "Nand"],
+   "answer": 0,
+   "explain": "HA1 adds a and b, giving s1 and c1. HA2 adds s1 and c, giving sum and c2. The final carry is 1 if either half adder produced a carry: carry = Or(c1, c2). (c1 and c2 are never both 1, so Xor would also work, but Or is the natural choice.)"
+  },
+  {
+   "type": "mc",
+   "category": "Adder Chips",
+   "q": "How can an n-bit adder be built?",
+   "choices": [
+    "As an array of full adders, each one's carry feeding the next more-significant position",
+    "As n half adders working independently with no connections between them",
+    "As n Xor gates, one per bit position",
+    "As one full adder applied to all n bits at once"
+   ],
+   "answer": 0,
+   "explain": "Each step adds three bits (two input bits plus the incoming carry) and passes its carry up the significance ladder from the LSB to the MSB."
+  },
+  {
+   "type": "mc",
+   "category": "Adder Chips",
+   "q": "Why is the straightforward multi-bit adder slow, and what technique addresses this?",
+   "choices": [
+    "The carry must ripple from the LSB pair to the MSB pair; carry look-ahead logic reduces the delay",
+    "The bits must be added one at a time by a clock; pipelining fixes it",
+    "Xor gates are slow; replacing them with Nand gates fixes it",
+    "Overflow detection takes time; ignoring overflow fixes it"
+   ],
+   "answer": 0,
+   "explain": "The column additions run in parallel, but each carry depends on the previous column, so there is a long propagation delay. Carry look-ahead techniques reduce it. Addition is so common that this kind of speedup improves performance across the whole computer."
+  },
+  {
+   "type": "tf",
+   "category": "Adder Chips",
+   "q": "In a 16-bit adder, the bit-wise additions are computed in parallel, while the carry propagation happens sequentially.",
+   "answer": true,
+   "explain": "Every column's gates are wired at the same time, but a column's correct output depends on the carry from the column to its right, so carries settle one after another."
+  },
+  {
+   "type": "mc",
+   "category": "Adder Chips",
+   "q": "Which single HDL part correctly implements Inc16 (out = in + 1)?",
+   "choices": [
+    "Add16(a=in, b[0]=true, out=out);",
+    "Add16(a=in, b=true, out=out);",
+    "Add16(a=in, b[15]=true, out=out);",
+    "Add16(a=in, b=false, out=out);"
+   ],
+   "answer": 0,
+   "explain": "b[0]=true sets only the LSB, and unassigned bits default to 0, so b = 0000000000000001. b=true sets all 16 bits (= -1), which makes out = in - 1. b[15]=true adds -32768, and b=false adds 0."
+  },
+  {
+   "type": "text",
+   "category": "Adder Chips",
+   "q": "Inc16 receives in = 1111111111111111. What is out (16 bits)?",
+   "answer": ["0000000000000000", "0000 0000 0000 0000"],
+   "explain": "1111111111111111 + 1 = 1 0000000000000000. The carry out of the MSB is ignored, so out is all 0s. In two's complement this is -1 + 1 = 0."
+  },
+  {
+   "type": "mc",
+   "category": "Adder Chips",
+   "q": "How do the Add16 and Inc16 chips handle overflow?",
+   "choices": [
+    "It is neither detected nor handled; the most significant carry is simply dropped",
+    "It is detected and reported on an extra 1-bit output",
+    "The result is clamped to the largest representable value",
+    "The chip outputs all 1s to signal an error"
+   ],
+   "answer": 0,
+   "explain": "Both chips do integer two's complement addition with overflow neither detected nor handled. Dropping the carry gives addition mod 2^16, which is exactly what signed two's complement arithmetic needs."
+  },
+  {
+   "type": "mc",
+   "category": "Hack ALU",
+   "q": "In what order does the Hack ALU apply its control bits?",
+   "choices": [
+    "zx then nx on x, and zy then ny on y; then f selects x+y or x&y; then no optionally negates the output",
+    "nx then zx on x, and ny then zy on y; then f; then no",
+    "f first, then zx/nx/zy/ny on the result, then no",
+    "no first, then f, then zx/nx/zy/ny"
+   ],
+   "answer": 0,
+   "explain": "Presetting: zero, then negate, each input. Compute: f = 1 gives x+y, f = 0 gives x&y. Postsetting: no = 1 gives out = !out. The order matters, since zeroing then negating is how the ALU makes all 1s (-1)."
+  },
+  {
+   "type": "num",
+   "category": "Hack ALU",
+   "q": "The Hack ALU has six 1-bit control inputs. How many different functions could these bits potentially select?",
+   "answer": 64,
+   "explain": "2^6 = 64 combinations. Only 18 of them give the documented, useful functions (0, 1, -1, x, y, !x, !y, -x, -y, x+1, y+1, x-1, y-1, x+y, x-y, y-x, x&y, x|y)."
+  },
+  {
+   "type": "text",
+   "category": "Hack ALU",
+   "q": "Which control bits (zx nx zy ny f no, as a 6-character string) make the Hack ALU compute x+y?",
+   "answer": ["000010", "0 0 0 0 1 0"],
+   "explain": "Leave x and y unchanged (zx = nx = zy = ny = 0), pick addition (f = 1), and do not negate the output (no = 0)."
+  },
+  {
+   "type": "mc",
+   "category": "Hack ALU",
+   "q": "What does the Hack ALU compute with control bits 001110 (zx nx zy ny f no)?",
+   "choices": ["x-1", "x+1", "-x", "!x"],
+   "answer": 0,
+   "explain": "x is unchanged. y is zeroed and then negated, giving 111...1 = -1. f = 1 adds: x + (-1). no = 0 leaves the result as is, so out = x - 1."
+  },
+  {
+   "type": "mc",
+   "category": "Hack ALU",
+   "q": "What does the Hack ALU compute with control bits 111111?",
+   "choices": ["1", "-1", "0", "-2"],
+   "answer": 0,
+   "explain": "x becomes !0 = -1 and y becomes !0 = -1. f = 1 gives -1 + -1 = -2 = 111...10. no = 1 flips that to 000...01 = 1."
+  },
+  {
+   "type": "mc",
+   "category": "Hack ALU",
+   "q": "The control bits 010101 make the ALU compute x|y. Which identity makes this work?",
+   "choices": [
+    "x|y = !(!x & !y)",
+    "x|y = !(x & y)",
+    "x|y = !x + !y",
+    "x|y = !(!x + !y)"
+   ],
+   "answer": 0,
+   "explain": "nx = 1 and ny = 1 negate both inputs, f = 0 Ands them, and no = 1 negates the result: !(!x & !y), which equals x|y by De Morgan's law."
+  },
+  {
+   "type": "num",
+   "category": "Hack ALU",
+   "q": "x = 30, y = 20, and the control bits are 000111 (zx=0 nx=0 zy=0 ny=1 f=1 no=1). What decimal value does out have?",
+   "answer": -10,
+   "explain": "y becomes !20 = -21. f = 1 gives 30 + (-21) = 9. no = 1 gives !9 = -10. This row computes y - x = 20 - 30 = -10."
+  },
+  {
+   "type": "mc",
+   "category": "Hack ALU",
+   "q": "When the ALU outputs out = -10, what are zr and ng?",
+   "choices": [
+    "zr = 0, ng = 1",
+    "zr = 1, ng = 1",
+    "zr = 0, ng = 0",
+    "zr = 1, ng = 0"
+   ],
+   "answer": 0,
+   "explain": "zr = 1 only if out = 0, and ng = 1 only if out < 0. -10 is nonzero and negative."
+  },
+  {
+   "type": "tf",
+   "category": "Hack ALU",
+   "q": "In the Hack ALU, f = 1 selects x&y and f = 0 selects x+y.",
+   "answer": false,
+   "explain": "It is the other way around: f = 1 means out = x + y (two's complement addition), and f = 0 means out = x & y (bit-wise And)."
+  },
+  {
+   "type": "text",
+   "category": "Hack ALU",
+   "q": "Using 4-bit values x = 0101 (5) and y = 0011 (3), what 4-bit output does the ALU produce for control bits 010011?",
+   "answer": ["0010"],
+   "explain": "nx = 1 gives x = 1010. y stays 0011. f = 1 gives 1010 + 0011 = 1101. no = 1 gives 0010 = 2, which is x - y = 5 - 3."
+  },
+  {
+   "type": "mc",
+   "category": "Hack ALU",
+   "q": "How do the control bits 001100 make the ALU output x?",
+   "choices": [
+    "y is zeroed and then negated into all 1s, and f = 0 computes x & 111...1 = x",
+    "y is zeroed, and f = 1 computes x + 0 = x",
+    "x is negated twice, once by nx and once by no",
+    "f = 0 bypasses y and passes x straight through"
+   ],
+   "answer": 0,
+   "explain": "zy = 1 and ny = 1 turn y into 111...1. f = 0 Ands: x & 111...1 = x. no = 0. Zeroing y and adding would also give x, but these bits have ny = 1 and f = 0, which means And with all 1s."
+  },
+  {
+   "type": "multi",
+   "category": "Hack ALU",
+   "q": "Which of these are among the 18 documented Hack ALU functions?",
+   "choices": ["y-x", "x|y", "x*y", "!y", "x Xor y", "x-1"],
+   "answer": [0, 1, 3, 5],
+   "explain": "The 18 are: 0, 1, -1, x, y, !x, !y, -x, -y, x+1, y+1, x-1, y-1, x+y, x-y, y-x, x&y, x|y. The ALU has no multiplication and no Xor function."
+  },
+  {
+   "type": "tf",
+   "category": "Hack ALU",
+   "q": "The Hack ALU detects arithmetic overflow and reports it on the ng output.",
+   "answer": false,
+   "explain": "Overflow is neither detected nor handled. ng only reports whether out < 0, i.e., whether the MSB of out is 1."
+  },
+  {
+   "type": "mc",
+   "category": "ALU Design & HDL",
+   "q": "Which identity explains the ALU's -x row (control bits 001111)?",
+   "choices": [
+    "-x = !(x + 111...1)",
+    "-x = !x",
+    "-x = x + 111...1",
+    "-x = !x & 111...1"
+   ],
+   "answer": 0,
+   "explain": "zy, ny make y = 111...1 (= -1). f adds: x - 1. no negates: !(x - 1). Since !z = -z - 1, !(x - 1) = -(x - 1) - 1 = -x. Example: 0100 + 1111 = (1)0011, and !0011 = 1100 = -4."
+  },
+  {
+   "type": "mc",
+   "category": "ALU Design & HDL",
+   "q": "Which identity explains the ALU's x+1 row (control bits 011111)?",
+   "choices": [
+    "x + 1 = !(!x + 111...1)",
+    "x + 1 = !x + 111...1",
+    "x + 1 = !(x & 111...1)",
+    "x + 1 = x + !0 + 1"
+   ],
+   "answer": 0,
+   "explain": "nx makes x = !x, zy and ny make y = -1, f adds, and no negates: !(!x - 1). Example with x = 1001 (-7): !x = 0110, 0110 + 1111 = (1)0101, !0101 = 1010 = -6 = x + 1."
+  },
+  {
+   "type": "text",
+   "category": "ALU Design & HDL",
+   "q": "Use the identity x - y = !(!x + y) on 4-bit values x = 0010 (2) and y = 1011 (-5). Give the 4-bit result.",
+   "answer": ["0111"],
+   "explain": "!x = 1101. 1101 + 1011 = (1)1000, and dropping the overflow bit leaves 1000. !1000 = 0111 = 7, which equals 2 - (-5)."
+  },
+  {
+   "type": "mc",
+   "category": "ALU Design & HDL",
+   "q": "When implementing the ALU, the ng output (out < 0) can be taken directly from:",
+   "choices": [
+    "out[15], the most significant bit of out",
+    "out[0], the least significant bit of out",
+    "An Or of all 16 bits of out",
+    "An And of all 16 bits of out"
+   ],
+   "answer": 0,
+   "explain": "In two's complement every negative number's code starts with 1, so out < 0 exactly when the MSB, out[15], is 1."
+  },
+  {
+   "type": "mc",
+   "category": "ALU Design & HDL",
+   "q": "Which logic correctly computes the ALU's zr output (zr = 1 iff out == 0)?",
+   "choices": [
+    "Not of an Or over all 16 bits of out",
+    "An And over all 16 bits of out",
+    "Not(out[15])",
+    "out[0]"
+   ],
+   "answer": 0,
+   "explain": "out is 0 only when every bit is 0. An Or over all bits is 1 if any bit is 1, so negating it gives 1 exactly when all bits are 0."
+  },
+  {
+   "type": "mc",
+   "category": "ALU Design & HDL",
+   "q": "Deciding which functions the ALU should compute is a hardware/software trade-off. Which statement describes it?",
+   "choices": [
+    "Hardware implementations are faster but more expensive; software implementations are slower but less expensive",
+    "Hardware implementations are slower but cheaper; software implementations are faster but more expensive",
+    "Hardware and software implementations cost the same, but hardware is faster",
+    "Functions left out of the ALU can never be computed"
+   ],
+   "answer": 0,
+   "explain": "Functions the ALU does not implement can be added later in software. Hack chooses a simple ALU and leaves the rest to software."
+  },
+  {
+   "type": "tf",
+   "category": "ALU Design & HDL",
+   "q": "The Hack ALU has no multiplication, division, or floating-point arithmetic; these are meant to be implemented in software (at the operating-system level).",
+   "answer": true,
+   "explain": "The design keeps the ALU hardware limited and does as much as possible in software. Multiplication and division can be built efficiently out of addition."
+  },
+  {
+   "type": "text",
+   "category": "ALU Design & HDL",
+   "q": "z is an 8-bit bus connected in a part as: chipPart(..., z[0..2]=true, z[6..7]=true). Write the value of z from bit 7 down to bit 0.",
+   "answer": ["11000111", "1100 0111"],
+   "explain": "Bits 0-2 and 6-7 are set to 1. Unassigned bits (3, 4, 5) default to 0. Reading from bit 7 to bit 0: 11000111."
+  },
+  {
+   "type": "mc",
+   "category": "ALU Design & HDL",
+   "q": "In HDL, how do you connect a 16-bit input pin x of a chip part to the constant 0000000000000000?",
+   "choices": ["x=false", "x=0", "x=true", "x[0]=false"],
+   "answer": 0,
+   "explain": "false is the all-0s constant and true is the all-1s constant for a pin or bus of any width. x[0]=false only names bit 0 (the other bits would also default to 0, but x=false is the direct way)."
+  },
+  {
+   "type": "mc",
+   "category": "ALU Design & HDL",
+   "q": "Inside a chip with 8-bit inputs x and y, what does Add16(a[0..7]=x, a[8..15]=y, b=z, out=...) do?",
+   "choices": [
+    "Builds Add16's a input with x as its low 8 bits and y as its high 8 bits",
+    "Adds x and y and stores the 16-bit result in a",
+    "Builds a with y as its low 8 bits and x as its high 8 bits",
+    "Is invalid, because 8-bit buses cannot connect to a 16-bit pin"
+   ],
+   "answer": 0,
+   "explain": "Sub-bussing lets you assign n-bit values to slices of a bus. Bit 0 is the LSB, so a[0..7] = x is the low half and a[8..15] = y is the high half."
+  },
+  {
+   "type": "tf",
+   "category": "ALU Design & HDL",
+   "q": "Writing out[0..3]=t1 in a chip part's connections creates a 4-bit internal pin t1 that carries the low 4 bits of the part's output.",
+   "answer": true,
+   "explain": "You can create internal bus pins of any width n by connecting them to a sub-bus of a part's output. Here t1 gets bits 0-3 of out."
+  }
+ ]
+}

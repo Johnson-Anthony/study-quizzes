@@ -1,0 +1,351 @@
+{
+  "title": "X86ASM 05: Hello World in Assembly",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "System calls",
+      "q": "In the end, how does a function like C's printf get text onto the terminal?",
+      "choices": [
+        "It makes a system call that asks the kernel to write the data",
+        "It writes the characters straight into video memory",
+        "It jumps into the terminal program's code",
+        "It leaves the string in RAX for the terminal to read"
+      ],
+      "answer": 0,
+      "explain": "After formatting the string, printf talks to the kernel (the operating system) with a system call asking it to write the bytes."
+    },
+    {
+      "type": "multi",
+      "category": "System calls",
+      "q": "Which pieces of information does the kernel need from you for a write system call?",
+      "choices": [
+        "Which service you want (write)",
+        "Where to write to (e.g., standard output)",
+        "The address of the data to write",
+        "How many bytes to write",
+        "A format string describing the data",
+        "The total size of the data segment"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "You tell the kernel what to do (write), where (standard output), what (the address of the string), and how much (the byte count). The string is already in its final form, so no format string is needed."
+    },
+    {
+      "type": "tf",
+      "category": "System calls",
+      "q": "In assembly, you run the syscall instruction first and then pass it the arguments, the same way a C function call reads.",
+      "answer": false,
+      "explain": "At the low level it's the other way around: you load the arguments into registers first and then run syscall."
+    },
+    {
+      "type": "mc",
+      "category": "System calls",
+      "q": "Why does a system call need a code in RAX, when an ordinary function's arguments start at RDI?",
+      "choices": [
+        "There is one syscall instruction for hundreds of kernel services, so the code in RAX says which service you want",
+        "RAX is the only register the kernel can read",
+        "RDI can't hold plain numbers, only addresses",
+        "The kernel reads its arguments in reverse, ending at RAX"
+      ],
+      "answer": 0,
+      "explain": "In C you would call write(...) by name. In assembly there's only the one syscall instruction, so the service number (the 'function') goes in RAX and the real arguments start at RDI."
+    },
+    {
+      "type": "text",
+      "category": "Argument registers",
+      "q": "On Linux x86-64, which register holds the system call number?",
+      "answer": ["rax", "RAX", "%rax"],
+      "explain": "The kernel expects the system call code in RAX."
+    },
+    {
+      "type": "mc",
+      "category": "Argument registers",
+      "q": "Which register holds the first argument?",
+      "choices": ["RDI", "RSI", "RAX", "RDX"],
+      "answer": 0,
+      "explain": "The first argument always goes in RDI. For a system call, RAX holds the call number and is not counted as an argument."
+    },
+    {
+      "type": "mc",
+      "category": "Argument registers",
+      "q": "Which sequence gives the argument-register order taught in this lesson, first through sixth?",
+      "choices": [
+        "RDI, RSI, RDX, RCX, R8, R9",
+        "RSI, RDI, RDX, RCX, R8, R9",
+        "RAX, RBX, RCX, RDX, R8, R9",
+        "RDI, RSI, RCX, RDX, R9, R8"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "RDI, RSI, RDX, RCX, R8, R9, and the stack after that. This is the order for ordinary function calls. One caveat: for Linux system calls the kernel takes the 4th argument in R10, not RCX, because the syscall instruction itself overwrites RCX. The first three (RDI, RSI, RDX) are the same either way."
+    },
+    {
+      "type": "mc",
+      "category": "Argument registers",
+      "q": "Once all six argument registers are in use, where do any further arguments go?",
+      "choices": ["On the stack", "In RAX", "In the data segment", "In R10 through R15, in order"],
+      "answer": 0,
+      "explain": "Arguments after the sixth are passed on the stack."
+    },
+    {
+      "type": "tf",
+      "category": "Argument registers",
+      "q": "When making a system call, you can put the arguments in any registers you like, as long as you're consistent.",
+      "answer": false,
+      "explain": "Inside your own code you can do what you want, but the kernel expects a fixed register order. If you don't follow it, the kernel can't tell what you're asking for."
+    },
+    {
+      "type": "num",
+      "category": "The write syscall",
+      "q": "What value goes into RAX to ask for the write system call?",
+      "answer": 1,
+      "explain": "write is system call number 1, so you use mov rax, 1."
+    },
+    {
+      "type": "num",
+      "category": "The write syscall",
+      "q": "To write to standard output (the terminal), what value goes into RDI?",
+      "answer": 1,
+      "explain": "Standard output is 1. Writing there makes the output show up in the terminal."
+    },
+    {
+      "type": "mc",
+      "category": "The write syscall",
+      "q": "For the write system call, which register holds the address of the string?",
+      "choices": ["RSI", "RDI", "RDX", "RAX"],
+      "answer": 0,
+      "explain": "It's the second argument, so it goes in RSI. RDI holds where to write and RDX holds the length."
+    },
+    {
+      "type": "mc",
+      "category": "The write syscall",
+      "q": "For the write system call, which register holds the number of bytes to write?",
+      "choices": ["RDX", "RSI", "RCX", "RDI"],
+      "answer": 0,
+      "explain": "The length is the third argument, so it goes in RDX."
+    },
+    {
+      "type": "mc",
+      "category": "The write syscall",
+      "q": "What does lea rsi, [hello_string] put into RSI?",
+      "choices": [
+        "The address of the string's first byte",
+        "The first character itself, 'h'",
+        "The length of the string",
+        "All the characters of the string packed together"
+      ],
+      "answer": 0,
+      "explain": "lea (load effective address) puts the address of the label, which is where the first byte of the string is stored. The kernel starts reading there."
+    },
+    {
+      "type": "text",
+      "category": "The write syscall",
+      "q": "With the registers set up, which single instruction hands control to the kernel to carry out the request?",
+      "answer": ["syscall", "SYSCALL"],
+      "explain": "syscall triggers the system call using the values already in the registers."
+    },
+    {
+      "type": "mc",
+      "category": "The write syscall",
+      "q": "The string \"hello world\" is in memory and RSI points to it, but RDX is set to 3. What gets printed?",
+      "choices": ["hel", "hello world", "Nothing; the call fails", "hello world plus 3 extra bytes"],
+      "answer": 0,
+      "explain": "The kernel writes exactly the number of bytes given in RDX, starting at the address in RSI, so only the first 3 characters print."
+    },
+    {
+      "type": "mc",
+      "category": "Strings and length",
+      "q": "Where does a string literal like \"hello world\" go in the program?",
+      "choices": [
+        "The data segment, where it's referred to by its address",
+        "Directly inside RAX",
+        "Inside the syscall instruction",
+        "Into a new register created for it"
+      ],
+      "answer": 0,
+      "explain": "The string sits in the data segment of RAM. You pass its address to the kernel, not the characters themselves."
+    },
+    {
+      "type": "tf",
+      "category": "Strings and length",
+      "q": ".ascii \"hello\" stores the same bytes as writing the string out one character at a time with .byte.",
+      "answer": true,
+      "explain": "Each character is just one byte. .ascii is a shorter way to write the same individual bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Strings and length",
+      "q": "In hello_len = . - hello_string, what does the '.' stand for?",
+      "choices": [
+        "The current position (address), which is right after the end of the string",
+        "The address where the program starts",
+        "The first character of the string",
+        "A wildcard meaning 'any length'"
+      ],
+      "answer": 0,
+      "explain": "'.' is the current location. Subtracting the start address (hello_string) from the end address gives the number of bytes in the string."
+    },
+    {
+      "type": "mc",
+      "category": "Strings and length",
+      "q": "How is the definition of hello_len written differently from the label hello_string?",
+      "choices": [
+        "It uses '=' instead of ':'",
+        "It uses ':' instead of '='",
+        "It has to be put inside .ascii",
+        "It has to start with a '.'"
+      ],
+      "answer": 0,
+      "explain": "hello_string: is a label that marks an address. hello_len = . - hello_string assigns a computed value instead."
+    },
+    {
+      "type": "tf",
+      "category": "Strings and length",
+      "q": "hello_len is an assembly-time value: the assembler works it out, so you don't have to count the characters by hand.",
+      "answer": true,
+      "explain": "The assembler computes the length when it builds the program. You then load it into RDX, as in mov rdx, hello_len."
+    },
+    {
+      "type": "num",
+      "category": "Strings and length",
+      "q": "s1 is defined as .ascii \"Hello world!\\n\". What value will s1_len = . - s1 have, in bytes?",
+      "answer": 13,
+      "explain": "\"Hello world!\" is 12 characters, counting the space and the '!'. The \\n newline adds 1 more byte, for 13."
+    },
+    {
+      "type": "mc",
+      "category": "Strings and length",
+      "q": "Two strings print back to back as \"Hello world!You big beautiful world\". What's the simplest fix to put the second string on its own line?",
+      "choices": [
+        "Add \\n to the end of the first string",
+        "Add a space to the length in RDX",
+        "Write the second string to RSI instead of RDI",
+        "Use .byte instead of .ascii"
+      ],
+      "answer": 0,
+      "explain": "A newline character (\\n) at the end of the first string makes a line break. If you use the '. - s1' trick, the length updates by itself."
+    },
+    {
+      "type": "mc",
+      "category": "Exiting cleanly",
+      "q": "After printing, the program crashed with a segmentation violation. Why?",
+      "choices": [
+        "The CPU kept running past the end of the code into empty memory, and the kernel shut the program down",
+        "The string was too long for the write call",
+        "RSI held the string's address instead of the string itself",
+        "The data segment was full"
+      ],
+      "answer": 0,
+      "explain": "Nothing told the OS the program was finished, so execution kept going into memory it shouldn't touch. The kernel caught that and killed the program. The fix is to make an exit system call."
+    },
+    {
+      "type": "num",
+      "category": "Exiting cleanly",
+      "q": "What system call number goes into RAX to exit the program?",
+      "answer": 60,
+      "explain": "exit is system call 60."
+    },
+    {
+      "type": "text",
+      "category": "Exiting cleanly",
+      "q": "Write the exit system call number (60 in decimal) in hexadecimal.",
+      "answer": ["3C", "3c", "0x3C", "0x3c", "3Ch", "3ch"],
+      "explain": "60 = 3*16 + 12, which is 0x3C. That's what a debugger shows in RAX."
+    },
+    {
+      "type": "mc",
+      "category": "Exiting cleanly",
+      "q": "For the exit system call, which register holds the exit code?",
+      "choices": ["RDI", "RAX", "RSI", "RDX"],
+      "answer": 0,
+      "explain": "The exit code is the first argument, so it goes in RDI. RAX holds 60."
+    },
+    {
+      "type": "mc",
+      "category": "Exiting cleanly",
+      "q": "A program writes to stdout, then sets RAX to 60 and runs syscall without touching RDI. It exits with code 1. Why?",
+      "choices": [
+        "RDI still holds 1 from the write call (standard output), so that becomes the exit code",
+        "Exit code 1 is always returned when the exit code is left out",
+        "The write call failed and the kernel put 1 in RDI",
+        "60 in RAX means 'exit with code 1'"
+      ],
+      "answer": 0,
+      "explain": "RDI was set to 1 for standard output and never changed. The exit call reads RDI as the exit code."
+    },
+    {
+      "type": "tf",
+      "category": "Exiting cleanly",
+      "q": "An exit code of 0 tells the operating system (or whatever program launched yours) that the program finished normally.",
+      "answer": true,
+      "explain": "0 means success. Nonzero codes signal that something went wrong."
+    },
+    {
+      "type": "num",
+      "category": "Exiting cleanly",
+      "q": "Exit codes run from 0 up to what maximum value?",
+      "answer": 255,
+      "explain": "Exit codes range from 0 to 255."
+    },
+    {
+      "type": "mc",
+      "category": "Exiting cleanly",
+      "q": "What does xor rdi, rdi do?",
+      "choices": [
+        "Sets RDI to 0",
+        "Sets RDI to all 1 bits",
+        "Leaves RDI unchanged",
+        "Swaps RDI with RAX"
+      ],
+      "answer": 0,
+      "explain": "XORing any value with itself gives 0. It's a common idiom for clearing a register and works the same as mov rdi, 0."
+    },
+    {
+      "type": "mc",
+      "category": "Exiting cleanly",
+      "q": "To exit with code 99, what should RAX and RDI hold right before syscall?",
+      "choices": [
+        "RAX = 60, RDI = 99",
+        "RAX = 99, RDI = 60",
+        "RAX = 1, RDI = 99",
+        "RAX = 60, RSI = 99"
+      ],
+      "answer": 0,
+      "explain": "RAX holds the call number (60 = exit) and RDI, the first argument, holds the exit code."
+    },
+    {
+      "type": "mc",
+      "category": "Registers across syscalls",
+      "q": "After one write call, you want to print a second string. Why do you have to set RAX back to 1?",
+      "choices": [
+        "The system call returns a value that replaces what was in RAX",
+        "The kernel clears every register after a system call",
+        "RAX counts up by one after each system call",
+        "Each write call has to use a different call number"
+      ],
+      "answer": 0,
+      "explain": "The kernel hands back a return value in RAX, so the 1 you loaded is gone. Load 1 again before the second syscall."
+    },
+    {
+      "type": "tf",
+      "category": "Registers across syscalls",
+      "q": "In the lesson's two-string program, RDI still held 1 after the first write system call.",
+      "answer": true,
+      "explain": "RDI wasn't changed by the call. Only RAX was. Setting RDI to 1 again is redundant but harmless."
+    },
+    {
+      "type": "multi",
+      "category": "Registers across syscalls",
+      "q": "The first string has already been written. Which registers must you load (or reload) before the syscall that writes a second, different string s2?",
+      "choices": [
+        "RAX with 1",
+        "RSI with the address of s2",
+        "RDX with s2_len",
+        "RCX with the address of s1",
+        "R8 with the exit code"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "RAX has to be reset because the first call's return value replaced it. RSI and RDX need the new string's address and length. RDI still holds 1, so reloading it is optional."
+    }
+  ]
+}

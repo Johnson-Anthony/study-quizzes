@@ -1,0 +1,550 @@
+{
+  "title": "X86ASM 24: Writing malloc() from Scratch (Bump Allocator)",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Why use an allocator",
+      "topic": "Pages and syscall overhead",
+      "q": "Why does a user-space allocator get memory from the kernel in large chunks instead of calling brk for every small request?",
+      "choices": [
+        "The kernel works in page-sized units (commonly 4096 bytes), and every system call is expensive: the kernel has to save and restore the process state",
+        "brk can only be called once per process, so the allocator has to request everything up front",
+        "The kernel rejects any request smaller than one megabyte",
+        "Memory returned by brk can't be written until malloc formats it into blocks"
+      ],
+      "answer": 0,
+      "explain": "The kernel thinks in pages, so asking for 2 or 16 bytes still costs a whole page. Each brk call also means a trip into the kernel: it saves the registers, handles the request, and restores everything. An allocator asks for pages once and then hands out small pieces inside the program, without going back to the kernel."
+    },
+    {
+      "type": "tf",
+      "category": "Why use an allocator",
+      "topic": "malloc is user space",
+      "q": "malloc is a kernel feature, so every call to malloc traps into the kernel.",
+      "answer": false,
+      "explain": "malloc is ordinary user-space library code. It only makes a system call (such as brk) when it has to get more pages from the kernel. Most calls are served from memory the program already has."
+    },
+    {
+      "type": "multi",
+      "category": "Why use an allocator",
+      "topic": "Cost of a system call",
+      "q": "Which of the following does the kernel do while handling a brk memory request?",
+      "choices": [
+        "Save the program's registers and state into the process control block",
+        "Look at the request and work out which pages of memory will cover it",
+        "Reload the program's saved state and return control to it",
+        "Round the requested size up to an 8-byte boundary for the program's individual objects",
+        "Search malloc's list of freed blocks for one to reuse"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A brk call saves process state into the PCB, works out the pages needed, then restores the state and returns. 8-byte alignment of objects and reusing freed blocks are the user-space allocator's jobs, not the kernel's."
+    },
+    {
+      "type": "num",
+      "category": "brk and the heap",
+      "topic": "brk syscall number",
+      "q": "What value goes in RAX to make the brk system call on x86-64 Linux?",
+      "answer": 12,
+      "explain": "brk is system call number 12 on x86-64 Linux. Put 12 in RAX and the desired break address in RDI, then execute syscall."
+    },
+    {
+      "type": "mc",
+      "category": "brk and the heap",
+      "topic": "brk(0)",
+      "q": "What does calling brk with an argument of 0 return?",
+      "choices": [
+        "0 if the call succeeded",
+        "The current program break, which is where the heap starts before it has been grown",
+        "The number of bytes currently on the heap",
+        "An error code, because 0 is not a valid address"
+      ],
+      "answer": 1,
+      "explain": "brk(0) asks for nothing and just reports the current program break. The allocator saves this as the heap's start address before asking for any memory."
+    },
+    {
+      "type": "mc",
+      "category": "brk and the heap",
+      "topic": "ASLR",
+      "q": "On one machine the initial program break is the same on every run (for example 0x402000). On another machine it changes on every run. What explains this?",
+      "choices": [
+        "Leftover heap fragmentation from earlier runs",
+        "brk returns uninitialized garbage when no memory has been requested yet",
+        "Address space layout randomization (ASLR) is on for the second machine, which makes addresses harder for an attacker to predict",
+        "The kernel picks a different page size on every run"
+      ],
+      "answer": 2,
+      "explain": "When ASLR is on, the layout of the process (including where the heap starts) is randomized on each run. This makes addresses hard for an attacker to predict. When ASLR is off, the starting break stays the same."
+    },
+    {
+      "type": "text",
+      "category": "brk and the heap",
+      "topic": "Page size in hex",
+      "q": "A page is 4096 bytes. Write that value in hexadecimal.",
+      "answer": ["0x1000", "1000", "1000h", "0x1000h", "$1000"],
+      "explain": "4096 = 16^3 = 0x1000. To grow the heap by one page you add 0x1000 to the current break."
+    },
+    {
+      "type": "tf",
+      "category": "Registers and calls",
+      "topic": "brk wrapper",
+      "q": "A small `brk` helper that just does `mov rax, 12`, `syscall`, `ret` works correctly as long as the caller puts the desired break address in RDI before calling it.",
+      "answer": true,
+      "explain": "The wrapper doesn't touch RDI, so the caller's value goes straight through as the syscall argument. The wrapper only sets the syscall number and returns. The new break comes back in RAX."
+    },
+    {
+      "type": "mc",
+      "category": "Bump allocation",
+      "topic": "Heap bookkeeping",
+      "q": "A bump allocator keeps three quadword globals: heap start, heap end, and heap pointer. What does the heap pointer hold?",
+      "choices": [
+        "The address where the heap started, as returned by brk(0)",
+        "The current program break, which is the end of usable heap memory",
+        "The address of the next byte not yet handed out. It is returned to the caller and then moved forward by the request size",
+        "The number of allocations made so far"
+      ],
+      "answer": 2,
+      "explain": "The heap pointer marks the border between memory already handed out and free memory. malloc returns its current value, then moves it forward so the next caller gets memory that doesn't overlap."
+    },
+    {
+      "type": "mc",
+      "category": "Bump allocation",
+      "topic": "Return value",
+      "q": "Here is a minimal bump malloc (RDI = bytes requested):\n\n    mov rax, [heap_pointer]\n    add rdi, rax\n    mov [heap_pointer], rdi\n    ret\n\nWhat does the caller get back in RAX?",
+      "choices": [
+        "The heap pointer's value from before the call, which is the start of the caller's block",
+        "The heap pointer's value after the call, which is the end of the caller's block",
+        "The number of bytes requested",
+        "The heap end address"
+      ],
+      "answer": 0,
+      "explain": "RAX gets the old heap pointer, which is the start of the new block. The sum (old pointer + size) is calculated in RDI and stored back as the new heap pointer. RAX is not changed after that."
+    },
+    {
+      "type": "num",
+      "category": "Bump allocation",
+      "topic": "Consecutive allocations",
+      "q": "A bump allocator (no alignment) starts with the heap pointer at heap start H. The program calls malloc(32) and then malloc(64). How many bytes past H is the pointer returned by malloc(64)?",
+      "answer": 32,
+      "explain": "The first caller gets H and owns bytes 0 to 31. The pointer then moves forward 32 bytes (0x20), so the second caller gets H + 32."
+    },
+    {
+      "type": "num",
+      "category": "Bump allocation",
+      "topic": "Odd addresses without alignment",
+      "q": "A bump allocator with NO alignment starts at heap start H. The program calls malloc(128), then malloc(1), then malloc(3). How many bytes past H is the pointer returned by malloc(3)? (Give a decimal number.)",
+      "answer": 129,
+      "explain": "malloc(128) gets H+0, malloc(1) gets H+128, and malloc(3) gets H+129 (0x81). That address is odd, which is why the allocator needs alignment."
+    },
+    {
+      "type": "tf",
+      "category": "Bump allocation",
+      "topic": "No reuse",
+      "q": "A bump allocator can reuse memory from earlier allocations once the program no longer needs them.",
+      "answer": false,
+      "explain": "A bump allocator only ever moves its pointer forward. Every caller gets the next piece of memory, and memory that was handed out is never given out again."
+    },
+    {
+      "type": "mc",
+      "category": "Bump allocation",
+      "topic": "Where bump allocators fit",
+      "q": "Where is a simple bump allocator a reasonable choice?",
+      "choices": [
+        "A long-running server that allocates and frees huge numbers of objects",
+        "Boot code and system start-up, where simple, cheap allocation is enough and memory doesn't need careful management",
+        "Any program that has to free memory and use it again",
+        "Programs that need memory blocks of different sizes merged back together after use"
+      ],
+      "answer": 1,
+      "explain": "Bump allocators are simple and cheap. That makes them a good fit for boot or start-up code that doesn't need to reclaim memory. Programs that free and reuse a lot of memory need a more capable allocator."
+    },
+    {
+      "type": "multi",
+      "category": "Bump allocation",
+      "topic": "Missing features",
+      "q": "Which features does a general-purpose allocator have that a basic bump allocator lacks?",
+      "choices": [
+        "A free() operation",
+        "Reusing blocks that were freed",
+        "Splitting a large free block to fit a smaller request",
+        "Combining (coalescing) neighboring free blocks",
+        "Returning a pointer to the requested memory"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "A bump allocator already returns pointers. What it lacks is everything to do with getting memory back: free, block reuse, splitting, and coalescing."
+    },
+    {
+      "type": "mc",
+      "category": "Growing the heap",
+      "topic": "Rounding up to pages",
+      "q": "The number of pages needed to cover an overflow is calculated as (overflow + 4095) / 4096 using integer division. Why add 4095 instead of 4096?",
+      "choices": [
+        "4096 would overflow a 64-bit register",
+        "Adding page_size - 1 rounds any remainder up to a whole page, and an overflow that is already an exact multiple of the page size doesn't get an extra page",
+        "The kernel reserves the last byte of every page",
+        "div requires the dividend to be odd"
+      ],
+      "answer": 1,
+      "explain": "Adding page_size - 1 before dividing turns integer division into rounding up. If you added a full page instead, an exact multiple such as 4096 would come out as 2 pages instead of 1."
+    },
+    {
+      "type": "num",
+      "category": "Growing the heap",
+      "topic": "Pages needed",
+      "q": "A request goes 8000 bytes past the current heap end. The page size is 4096 bytes. How many pages must the allocator ask the kernel for?",
+      "answer": 2,
+      "explain": "(8000 + 4095) / 4096 = 12095 / 4096, which is 2 in integer division. One page (4096 bytes) isn't enough, so the request rounds up to two."
+    },
+    {
+      "type": "text",
+      "category": "Growing the heap",
+      "topic": "New break address",
+      "q": "The heap end is 0x5000. A request goes 5000 bytes (decimal) past the heap end, and pages are 0x1000 bytes. The allocator rounds up to whole pages, multiplies by the page size, adds the result to the heap end, and passes that to brk. What address does it pass to brk? (Answer in hex.)",
+      "answer": ["0x7000", "7000", "7000h", "0x7000h"],
+      "explain": "(5000 + 4095) / 4096 = 2 pages. 2 x 0x1000 = 0x2000 bytes, and 0x5000 + 0x2000 = 0x7000. Remember that the kernel expects a byte address, not a page count."
+    },
+    {
+      "type": "mc",
+      "category": "Growing the heap",
+      "topic": "Clearing RDX before div",
+      "q": "Why must RDX be cleared before `div rcx` when dividing a 64-bit value in RAX?",
+      "choices": [
+        "div treats RDX:RAX as one 128-bit dividend, and RDX holds the upper 64 bits",
+        "div reads its divisor from RDX",
+        "RDX counts how many times div repeats",
+        "Clearing RDX sets the flag that makes the division unsigned"
+      ],
+      "answer": 0,
+      "explain": "The 64-bit div divides the 128-bit number made of RDX (high half) and RAX (low half). If RDX isn't zero, the dividend is the wrong number, and the division may even fault."
+    },
+    {
+      "type": "mc",
+      "category": "Registers and calls",
+      "topic": "div clobbers RDX",
+      "q": "A value was stored in RDX before rounding up with `xor rdx, rdx` / `div rcx`. After the division the value is wrong. Why, and what fixes it?",
+      "choices": [
+        "div sets RDX to all ones on success. Use idiv instead",
+        "div writes the quotient to RAX and the remainder to RDX, overwriting the value. Keep the value in a register div doesn't touch, such as R8, or save it on the stack",
+        "xor rdx, rdx only clears the low 32 bits. Use mov rdx, 0",
+        "div swaps RAX and RDX. Swap them back with xchg"
+      ],
+      "answer": 1,
+      "explain": "The value is lost twice: RDX is zeroed for the 128-bit dividend, and div then writes the remainder into RDX. Store the value somewhere else, such as R8, and move it back afterward."
+    },
+    {
+      "type": "mc",
+      "category": "Growing the heap",
+      "topic": "Off-by-one in the capacity check",
+      "q": "malloc calculates RAX = heap_pointer + size and compares it to heap_end to decide whether the request fits. With `jl` (\"fits if less than\"), a request that exactly fills the heap was reported as missing 0 bytes and needing 0 pages. Which jump correctly means \"fits\"?",
+      "choices": [
+        "jl",
+        "jg",
+        "jge",
+        "jle"
+      ],
+      "answer": 3,
+      "explain": "Ending exactly at heap_end still fits, so the test has to be less than OR EQUAL. With jl, an exact fit fell through to the grow path with an overflow of zero."
+    },
+    {
+      "type": "mc",
+      "category": "Growing the heap",
+      "topic": "Forgetting to store heap end",
+      "q": "An allocator reports that every request, even 32 bytes, is missing a huge number of bytes and pages. heap_start and heap_pointer were set correctly after the brk calls. What is the most likely cause?",
+      "choices": [
+        "The page size constant is in decimal instead of hex",
+        "The new break returned by brk was printed but never stored in heap_end, so heap_end is still 0 and every end address is greater than it",
+        "The heap pointer is moved forward before it is returned",
+        "brk was called with RDI = 0"
+      ],
+      "answer": 1,
+      "explain": "If heap_end stays 0, every pointer + size is far above it. The capacity check always fails, and the \"overflow\" is almost the entire address. After growing the heap, the new break in RAX has to be written to heap_end."
+    },
+    {
+      "type": "mc",
+      "category": "Self-initialization",
+      "topic": "Detecting first call",
+      "q": "A self-initializing malloc has to notice its first call and set up the heap. How can it tell it hasn't been initialized?",
+      "choices": [
+        "The kernel sets a flag in RFLAGS the first time a process calls malloc",
+        "The caller passes a negative size on the first call",
+        "heap_end is still 0, because globals in .data (set to 0) or .bss start out zero, and a real heap end is never 0",
+        "RSP is zero before the first heap allocation"
+      ],
+      "answer": 2,
+      "explain": "The bookkeeping globals start at zero. If the capacity check fails and heap_end is 0, no heap exists yet, so malloc calls brk(0) and sets up the heap. Otherwise it only grows the heap."
+    },
+    {
+      "type": "tf",
+      "category": "Self-initialization",
+      "topic": "No malloc_init",
+      "q": "A well-designed allocator should set up the heap on the first call to malloc, instead of requiring callers to run a separate initialization function such as malloc_init first.",
+      "answer": true,
+      "explain": "Callers should be able to just call malloc. Making them initialize the library first is an extra burden, and forgetting it causes bugs. The first call can check whether setup has happened and do it if needed."
+    },
+    {
+      "type": "mc",
+      "category": "Self-initialization",
+      "topic": "Initial heap state",
+      "q": "During initialization, brk(0) returns address A. What should heap_start, heap_end, and heap_pointer be set to right after that?",
+      "choices": [
+        "All three to A, because the heap is empty: start, end, and next free byte are the same address",
+        "heap_start = A, heap_end = A + 4096, heap_pointer = 0",
+        "heap_start = 0, heap_end = A, heap_pointer = A",
+        "heap_start = A, heap_end = 0, heap_pointer = A + 8"
+      ],
+      "answer": 0,
+      "explain": "Before any growth there are no heap bytes, so start = end = pointer = A. The normal grow-heap path then moves the end forward by whole pages to fit the request."
+    },
+    {
+      "type": "mc",
+      "category": "Self-initialization",
+      "topic": "qword ptr",
+      "q": "Why does an instruction like `cmp qword ptr [heap_end], 0` need the `qword ptr` size keyword?",
+      "choices": [
+        "It makes the comparison unsigned",
+        "Nothing else in the instruction gives the operand size. There's no register, and an immediate could be 1, 2, 4, or 8 bytes, so the size must be stated",
+        "It tells the assembler to put heap_end in the .bss section",
+        "It makes the CPU fetch heap_end atomically"
+      ],
+      "answer": 1,
+      "explain": "When one operand is a register, the register gives the size. Memory compared with an immediate gives no size, so you have to say whether it's a byte, word, dword, or qword."
+    },
+    {
+      "type": "mc",
+      "category": "Alignment",
+      "topic": "Why 8-byte alignment",
+      "q": "Why should a general-purpose allocator on x86-64 return addresses that are multiples of 8?",
+      "choices": [
+        "The kernel refuses brk addresses that aren't multiples of 8",
+        "Memory fetches match the 64-bit (8-byte) data bus. Since the allocator doesn't know what the caller will store, it aligns for the most restrictive common type so that an 8-byte value fits in one fetch",
+        "printf can only print addresses that end in 0 or 8",
+        "The CPU can't execute instructions at addresses that aren't multiples of 8"
+      ],
+      "answer": 1,
+      "explain": "An 8-byte value that starts on an 8-byte boundary fits in one memory fetch. Since malloc doesn't know what the caller will store, it aligns for the largest common data type (ignoring wider SIMD types)."
+    },
+    {
+      "type": "num",
+      "category": "Alignment",
+      "topic": "Rounding a request (8)",
+      "q": "With 8-byte alignment, how many bytes does a malloc(43) request actually reserve?",
+      "answer": 48,
+      "explain": "(43 + 7) & ~7 = 50 & ~7 = 48, the next multiple of 8. Other examples: 1 becomes 8, 17 becomes 24, and 16 stays 16."
+    },
+    {
+      "type": "num",
+      "category": "Alignment",
+      "topic": "Rounding a request (16)",
+      "q": "The alignment constant is changed from 8 to 16. How many bytes does malloc(17) now reserve?",
+      "answer": 32,
+      "explain": "(17 + 15) & ~15 = 32 & ~15 = 32. With 16-byte alignment, 1 and 3 both become 16, and 17 becomes 32 instead of 24."
+    },
+    {
+      "type": "mc",
+      "category": "Alignment",
+      "topic": "Bitwise round-up formula",
+      "q": "For an alignment A that is a power of two, which expression rounds size n up to the next multiple of A (and leaves n unchanged if it is already a multiple)?",
+      "choices": [
+        "n & ~(A - 1)",
+        "(n + A) & ~(A - 1)",
+        "(n + (A - 1)) & ~(A - 1)",
+        "(n - (A - 1)) & (A - 1)"
+      ],
+      "answer": 2,
+      "explain": "Adding A - 1 pushes n up to or past the next multiple without going beyond it. The mask ~(A - 1) clears the low bits, which leaves exactly that multiple. n & ~(A - 1) alone rounds down, and adding a full A moves already-aligned sizes up one step too far."
+    },
+    {
+      "type": "tf",
+      "category": "Alignment",
+      "topic": "Adding A vs A-1",
+      "q": "If you added the full alignment A (instead of A - 1) before masking with ~(A - 1), sizes that were already aligned, such as 16 with A = 8, would be pushed up to the next multiple and waste memory.",
+      "answer": true,
+      "explain": "(16 + 8) & ~7 = 24 instead of 16. Adding only A - 1 reaches the next multiple only when n isn't aligned already."
+    },
+    {
+      "type": "text",
+      "category": "Alignment",
+      "topic": "Building the mask",
+      "q": "The mask ~(alignment - 1) is built by loading alignment - 1 into RCX and flipping every bit. Which x86 instruction flips every bit of a register?",
+      "answer": ["not", "NOT", "not rcx", "NOT RCX"],
+      "explain": "`not rcx` turns 0b111 (for alignment 8) into ...11111000. `and rax, rcx` then clears the low three bits of the padded size."
+    },
+    {
+      "type": "num",
+      "category": "Alignment",
+      "topic": "Aligned bump sequence",
+      "q": "A bump allocator with 8-byte alignment starts with its pointer at heap start H. The program calls malloc(3), then malloc(17), then malloc(1). How many bytes past H is the pointer returned by malloc(1)?",
+      "answer": 32,
+      "explain": "malloc(3) reserves 8 bytes at H+0. malloc(17) reserves 24 bytes at H+8. malloc(1) gets H+32 (0x20). Every address ends in 0 or 8 in hex."
+    },
+    {
+      "type": "tf",
+      "category": "Alignment",
+      "topic": "Assembly-time constants",
+      "q": "Writing `alignment = 8` in a GNU assembler source file reserves 8 bytes of storage in the data section.",
+      "answer": false,
+      "explain": "`alignment = 8` defines an assembly-time constant, similar to a #define in C. It reserves no memory. In Intel syntax it is used as an immediate, for example `add rax, offset alignment - 1`."
+    },
+    {
+      "type": "mc",
+      "category": "Error handling",
+      "topic": "malloc(0)",
+      "q": "If a bump malloc with the alignment formula doesn't check for malloc(0), what happens?",
+      "choices": [
+        "It reserves one full page",
+        "It reserves 8 bytes, the minimum aligned size",
+        "The size rounds to 0, so it returns an address without reserving anything (on the very first call it doesn't even initialize). It should be rejected as an invalid request",
+        "The CPU raises a divide-by-zero exception"
+      ],
+      "answer": 2,
+      "explain": "(0 + 7) & ~7 = 0, so nothing is reserved and the pointer doesn't move. Size 0 should go straight to an error path (for example, jump if the size is <= 0)."
+    },
+    {
+      "type": "mc",
+      "category": "Error handling",
+      "topic": "Detecting brk failure",
+      "q": "How can malloc tell whether the kernel actually granted a request to grow the heap?",
+      "choices": [
+        "brk sets the carry flag on failure",
+        "brk always returns 0 when it fails",
+        "Save the requested new break before the call and compare it with the break returned in RAX. If the returned break is lower than requested, the heap wasn't extended, so report an error",
+        "brk puts -1 in RDI on failure"
+      ],
+      "answer": 2,
+      "explain": "brk always returns the actual current break. If the kernel refused, that break is below the address you asked for, so compare the two and branch to the error path."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and locals",
+      "topic": "Unbalanced push on an error path",
+      "q": "malloc pushes RDI and normally pops it later. On one failure path it jumps away before the pop, to an error routine that prints a message and runs `ret`. What goes wrong?",
+      "choices": [
+        "Nothing. ret always uses the address saved by call, wherever RSP is",
+        "ret pops whatever is on top of the stack, which is the saved RDI value, and jumps to it as if it were a return address",
+        "The push is undone automatically when execution leaves the label",
+        "printf detects the extra stack entry and removes it"
+      ],
+      "answer": 1,
+      "explain": "ret jumps to whatever value is on top of the stack. Because the push was never matched, that value is the saved RDI instead of the return address, so execution jumps to an invalid address and usually crashes. Matching pushes and pops across many branches is hard to keep right, which is why local variables are a better approach."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and locals",
+      "topic": "Local variable instead of push/pop",
+      "q": "malloc is rewritten with a stack frame: it stores the request in [rbp-16] once and later uses `mov rdi, [rbp-16]` wherever it used to `pop rdi`. What is the main benefit?",
+      "choices": [
+        "Memory access through RBP is faster than through RSP",
+        "There are no pushes and pops to keep matched across branches, any path can reload the value, and the code shows clearly which value is being restored",
+        "It lets malloc skip the function epilogue",
+        "It makes the value survive after malloc returns"
+      ],
+      "answer": 1,
+      "explain": "A local variable at a fixed offset from RBP can be reloaded any number of times from any branch. You no longer have to track which push goes with which pop, and `[rbp-16]` reads clearly as \"the requested size\"."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and locals",
+      "topic": "Stack allocation size",
+      "q": "malloc needs only one 8-byte local, but its prologue does `sub rsp, 16`. Why 16?",
+      "choices": [
+        "The stack is kept 16-byte aligned by convention, so local space is rounded up to 16 bytes (enough for two 8-byte locals)",
+        "Each 8-byte local needs 8 bytes of padding",
+        "RBP takes up 8 of those 16 bytes",
+        "sub can only subtract multiples of 16 from RSP"
+      ],
+      "answer": 0,
+      "explain": "The calling convention keeps RSP 16-byte aligned, so local space is rounded up to a multiple of 16. That leaves room for a second 8-byte local if one is needed later."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and locals",
+      "topic": "Function epilogue",
+      "q": "malloc now starts with `push rbp`, `mov rbp, rsp`, `sub rsp, 16`, but returns with a plain `ret`, and the program segfaults. What sequence should come before returning?",
+      "choices": [
+        "add rsp, 8; ret",
+        "pop rbp; mov rsp, rbp; ret",
+        "mov rsp, rbp; pop rbp; ret",
+        "push rbp; ret"
+      ],
+      "answer": 2,
+      "explain": "`mov rsp, rbp` removes the locals, `pop rbp` restores the caller's base pointer, and then `ret` finds the correct return address. Without these steps, ret takes a local or the saved RBP as its return address. Every return path needs the epilogue, including the error path."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and locals",
+      "topic": "Updating the local after alignment",
+      "q": "malloc stores the raw request in [rbp-16] at entry, then rounds the size up to the alignment in RDI. Why must it write the aligned size back to [rbp-16]?",
+      "choices": [
+        "Later code reloads the size from [rbp-16]. If the local still held the raw request, those paths would allocate the unaligned size",
+        "The epilogue checks [rbp-16] to choose the return address",
+        "The kernel reads [rbp-16] during brk",
+        "Aligned values can't stay in RDI across a cmp"
+      ],
+      "answer": 0,
+      "explain": "Once the local is where the request size is stored, every reload depends on it. Keeping it updated with the aligned size keeps all paths consistent."
+    },
+    {
+      "type": "mc",
+      "category": "Registers and calls",
+      "topic": "printf clobbers registers",
+      "q": "Debug printf calls are added inside malloc while RDI holds the requested size. Why must the size be saved before printing?",
+      "choices": [
+        "printf is a function call that may overwrite registers, and the format string itself has to go in RDI, so the size would be lost",
+        "printf reads its format string from the stack and pops RDI",
+        "printf only works if the stack is empty",
+        "RDI is read-only while printf runs"
+      ],
+      "answer": 0,
+      "explain": "RDI is printf's first argument (the format string), and a called function may freely change other registers such as RAX, RCX, and RDX. Save the value first (with a push, or better, a local variable) and restore it afterward."
+    },
+    {
+      "type": "mc",
+      "category": "Registers and calls",
+      "topic": "printf argument registers",
+      "q": "printf is called with a format string and three values to print. Which register holds the third value?",
+      "choices": [
+        "RSI",
+        "RDX",
+        "RCX",
+        "R8"
+      ],
+      "answer": 2,
+      "explain": "The arguments go in RDI (format string), then RSI, RDX, and RCX. So the first value is in RSI, the second in RDX, and the third in RCX."
+    },
+    {
+      "type": "mc",
+      "category": "Control flow",
+      "topic": "Happy path falls through",
+      "q": "malloc first used `cmp rax, [heap_end]` / `jle malloc_continue`, jumping away when the request fit. It is restructured so the normal case falls through and only problems jump away. What replaces the jle?",
+      "choices": [
+        "jl malloc_continue",
+        "jge malloc_allocate",
+        "jg malloc_out_of_space, with the allocation code placed directly after it",
+        "jmp malloc_out_of_space"
+      ],
+      "answer": 2,
+      "explain": "The opposite of jle is jg. Jumping only when the request goes past heap_end sends the unusual case (grow the heap) elsewhere, and a successful allocation falls straight through."
+    },
+    {
+      "type": "tf",
+      "category": "Control flow",
+      "topic": "Rejoining the happy path",
+      "q": "After the restructuring, the grow-heap code sits below the allocation code. So after growing the heap it needs an explicit jump back to the allocation code, and the initialization code needs an explicit jump to the grow step instead of falling off into whatever comes next.",
+      "answer": true,
+      "explain": "Out-of-line branches have to rejoin the main path explicitly. Without the jump after initialization, execution fell into unrelated code. The finished flow is: out of space, then initialize if heap_end is 0, then grow, then jump back to allocate."
+    },
+    {
+      "type": "mc",
+      "category": "Control flow",
+      "topic": "Inverting a branch",
+      "q": "The initialization check originally read `cmp qword ptr [heap_end], 0` / `jne malloc_initialized` (skip setup when already initialized). It is rewritten so that it jumps only when setup is needed. Which instruction replaces jne?",
+      "choices": [
+        "je malloc_init",
+        "jg malloc_init",
+        "jle malloc_initialized",
+        "jne malloc_init"
+      ],
+      "answer": 0,
+      "explain": "The opposite of jne is je. If heap_end equals 0, jump to the initialization code. Otherwise fall through to the grow-heap code, which handles the normal case where the heap is already set up."
+    }
+  ]
+}

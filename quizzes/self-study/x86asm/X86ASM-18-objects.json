@@ -1,0 +1,260 @@
+{
+  "title": "X86ASM 18: Objects in Assembly",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Object memory layout",
+      "q": "In this lesson, what does \"object\" mean when we talk about objects in assembly?",
+      "choices": [
+        "A group of data bytes treated as one unit, like a C struct",
+        "A class with inheritance and polymorphism built into the CPU",
+        "A special memory segment the assembler creates for each struct",
+        "An instruction that allocates memory on the heap"
+      ],
+      "answer": 0,
+      "explain": "Here an object is just data grouped together as one unit, like a struct. Full OOP features such as inheritance and polymorphism are not part of it."
+    },
+    {
+      "type": "mc",
+      "category": "Object memory layout",
+      "q": "A point struct has two 4-byte ints, x then y, and starts at base address B. At what address does the y member start?",
+      "choices": ["B", "B + 2", "B + 4", "B + 8"],
+      "answer": 2,
+      "fixed": true,
+      "explain": "x takes bytes 0-3 (offset 0), so y starts right after it at offset 4 and takes bytes 4-7."
+    },
+    {
+      "type": "tf",
+      "category": "Object memory layout",
+      "q": "Bytes in memory carry built-in information about which struct or object they belong to.",
+      "answer": false,
+      "explain": "Memory is just a sequence of bytes. The bytes only form an object because the programmer (or the compiler's tables) agrees on how to group them and read them."
+    },
+    {
+      "type": "mc",
+      "category": "Object memory layout",
+      "q": "On x86-64 (little-endian), the 4-byte value 0x0123 is stored in memory. Which byte sequence appears, starting from the lowest address?",
+      "choices": ["01 23 00 00", "00 00 01 23", "23 01 00 00", "00 00 23 01"],
+      "answer": 2,
+      "explain": "Little-endian puts the least significant byte first, so 0x00000123 is stored as 23 01 00 00. That is why values look backwards in a memory viewer, and why leading zeros look like trailing zeros."
+    },
+    {
+      "type": "num",
+      "category": "Object memory layout",
+      "q": "A struct holds two 4-byte ints followed by one 8-byte value. How many bytes is the whole struct?",
+      "answer": 16,
+      "explain": "4 + 4 + 8 = 16 bytes. The members sit at offsets 0, 4, and 8."
+    },
+    {
+      "type": "mc",
+      "category": "Data directives and registers",
+      "q": "In the GNU assembler (GAS) for x86-64, how many bytes does the .long directive emit for each value?",
+      "choices": ["1", "2", "4", "8"],
+      "answer": 2,
+      "fixed": true,
+      "explain": "In GAS, .long emits 4 bytes, even though a C long is often 8 bytes on 64-bit systems."
+    },
+    {
+      "type": "text",
+      "category": "Data directives and registers",
+      "q": "Which GNU assembler directive emits an 8-byte value (for example, a 64-bit memory address)?",
+      "answer": [".quad", "quad"],
+      "explain": ".quad emits an 8-byte value. It is used for the 8-byte member and for storing label addresses such as start or points."
+    },
+    {
+      "type": "tf",
+      "category": "Data directives and registers",
+      "q": "To define two 4-byte values in a row with GAS, you must write the .long directive twice. One line like `.long 123, 456` is not allowed.",
+      "answer": false,
+      "explain": "You can list several values after one directive, separated by commas. `.long 123, 456` emits two 4-byte values one after the other."
+    },
+    {
+      "type": "mc",
+      "category": "Data directives and registers",
+      "q": "Why can't the address of a label like `start` be stored in a 4-byte .long field on x86-64?",
+      "choices": [
+        "Memory addresses on 64-bit systems are 64 bits (8 bytes) wide",
+        "Labels can only be stored in the text segment",
+        "The assembler forbids labels inside data directives",
+        "Addresses must be stored in big-endian order"
+      ],
+      "answer": 0,
+      "explain": "A 64-bit address needs 8 bytes, so it needs an 8-byte (.quad) field."
+    },
+    {
+      "type": "mc",
+      "category": "Data directives and registers",
+      "q": "A struct member is a 4-byte int. Why load it into ECX instead of RCX?",
+      "choices": [
+        "ECX is the lower 4 bytes of RCX, so the load reads exactly 4 bytes and gets only that member",
+        "ECX is faster because it lives in a separate register file",
+        "RCX cannot be used with bracketed memory operands",
+        "ECX loads the address while RCX loads the value"
+      ],
+      "answer": 0,
+      "explain": "The register size sets how many bytes are read. An 8-byte register like RCX would read 8 bytes, which here takes in the next member too."
+    },
+    {
+      "type": "tf",
+      "category": "Data directives and registers",
+      "q": "Loading from the start of an 8-byte point object (two 4-byte ints) into RCX puts both x and y into the register at once.",
+      "answer": true,
+      "explain": "RCX is 8 bytes and the object is 8 bytes, so the whole object fits. To get a single member you use a 4-byte register and the member's offset."
+    },
+    {
+      "type": "tf",
+      "category": "Arrays of objects",
+      "q": "An array of structs is one contiguous block of memory. The elements sit right next to each other with no separators or terminators between them.",
+      "answer": true,
+      "explain": "Unlike null-terminated strings, an array of objects has nothing between elements. Each object starts right where the previous one ends."
+    },
+    {
+      "type": "multi",
+      "category": "Arrays of objects",
+      "q": "Which pieces of information do you need to find the start of element i in an array of objects?",
+      "choices": [
+        "The base address of the array",
+        "The stride (size of each object)",
+        "The index of the element you want",
+        "The total number of elements in the array",
+        "The current value of the stack pointer"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Element address = base + index * stride. The array's length isn't needed to find an element, and nothing in memory records the base for you, so a label or the compiler's tables must keep track of it."
+    },
+    {
+      "type": "text",
+      "category": "Arrays of objects",
+      "q": "What is the term for the size of each object in an array, i.e. how far you move in bytes to get from one element to the next?",
+      "answer": ["stride", "the stride"],
+      "explain": "The stride is the element size. For a struct of two 4-byte ints it is 8."
+    },
+    {
+      "type": "num",
+      "category": "Arrays of objects",
+      "q": "An array holds 8-byte point objects. What is the byte offset from the base to the start of the element at index 4?",
+      "answer": 32,
+      "explain": "index * stride = 4 * 8 = 32 bytes (0x20 in hex)."
+    },
+    {
+      "type": "num",
+      "category": "Arrays of objects",
+      "q": "An array holds point objects {int x; int y} with 4-byte ints. What is the byte offset from the array base to points[4].y?",
+      "answer": 36,
+      "explain": "Element start = 4 * 8 = 32, and y is at member offset 4, so 32 + 4 = 36."
+    },
+    {
+      "type": "num",
+      "category": "Arrays of objects",
+      "q": "An array holds 16-byte objects laid out as (int, int, 8-byte value). What is the byte offset from the array base to the 8-byte member of the element at index 3?",
+      "answer": 56,
+      "explain": "3 * 16 = 48 to reach the element, plus member offset 8, gives 56."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays of objects",
+      "q": "An array of 16-byte objects (int, int, 8-byte value) starts at 0x402000. At what address is the 8-byte member of the element at index 1?",
+      "choices": ["0x402008", "0x402010", "0x402018", "0x402020"],
+      "answer": 2,
+      "fixed": true,
+      "explain": "0x402000 + 1 * 16 (0x10) = 0x402010 is the element start. Adding member offset 8 gives 0x402018."
+    },
+    {
+      "type": "mc",
+      "category": "LEA vs MOV",
+      "q": "(Intel syntax) What is the difference between `mov rcx, [points + rax]` and `lea rcx, [points + rax]`?",
+      "choices": [
+        "mov loads the bytes stored at the computed address; lea loads the computed address itself without reading memory",
+        "lea loads the bytes stored at the address; mov loads the address itself",
+        "They are identical; lea is just a shorter encoding",
+        "mov computes the address at assembly time; lea computes it at run time"
+      ],
+      "answer": 0,
+      "explain": "With brackets, mov dereferences: it reads memory at that address. lea (load effective address) only does the address arithmetic and puts the address in the register."
+    },
+    {
+      "type": "tf",
+      "category": "LEA vs MOV",
+      "q": "The lea instruction reads memory at the address it computes.",
+      "answer": false,
+      "explain": "lea never reads memory. It only stores the computed address in the destination register."
+    },
+    {
+      "type": "mc",
+      "category": "LEA vs MOV",
+      "q": "(Intel syntax) After `lea rcx, [points + rax]`, RCX holds the address of a point object made of two 4-byte ints. Which instruction loads the second member (y) into a register?",
+      "choices": [
+        "mov edx, [rcx + 4]",
+        "lea edx, [rcx + 4]",
+        "mov rdx, [rcx + 8]",
+        "mov edx, [rcx]"
+      ],
+      "answer": 0,
+      "explain": "y is at offset 4. You dereference [rcx + 4] with mov and use a 4-byte register (EDX) to match the 4-byte member. lea would give only the address, and [rcx] is the x member."
+    },
+    {
+      "type": "mc",
+      "category": "LEA vs MOV",
+      "q": "(Intel syntax) A routine should jump to the function pointer stored at offset 8 of the object whose address is in RDI. It wrongly does `lea rax, [rdi + 8]` and then `jmp rax`. What happens?",
+      "choices": [
+        "It jumps to the address of the field itself (into the data), not to the function stored in the field",
+        "It works correctly, because lea and mov are interchangeable here",
+        "It jumps to address 8",
+        "The assembler rejects lea with a register base"
+      ],
+      "answer": 0,
+      "explain": "lea gives the field's address. To get the function pointer stored there you need `mov rax, [rdi + 8]`."
+    },
+    {
+      "type": "mc",
+      "category": "Function pointers",
+      "q": "Under the System V ABI calling convention, which register holds the first argument passed to a function?",
+      "choices": ["RAX", "RDI", "RSI", "RCX"],
+      "answer": 1,
+      "explain": "System V passes the first integer/pointer argument in RDI. It's a convention you choose to follow, not something the CPU enforces."
+    },
+    {
+      "type": "mc",
+      "category": "Function pointers",
+      "q": "An object's 8-byte member holds the address of a data array instead of code, and the program does `jmp` to that address. What happens?",
+      "choices": [
+        "The CPU decodes the data bytes as if they were instructions, runs garbage, and likely crashes",
+        "The CPU sees that the bytes are data and skips them",
+        "The assembler refuses to build the program",
+        "The jump is silently ignored and execution goes on with the next instruction"
+      ],
+      "answer": 0,
+      "explain": "The CPU doesn't know which bytes are code and which are data. A jump makes the decoder treat whatever is there as instructions, which here led to a bad dereference and a crash."
+    },
+    {
+      "type": "tf",
+      "category": "Function pointers",
+      "q": "If each object stores a different function address in the same member (for example bark for a dog object, meow for a cat object), one shared routine that jumps through that member will run different code for each object.",
+      "answer": true,
+      "explain": "This is the function-pointer pattern: the calling code is the same, but the behavior depends on the address stored in each object, much like methods in OOP."
+    },
+    {
+      "type": "mc",
+      "category": "Function pointers",
+      "q": "make_noise expects an object's address in RDI and jumps to the function pointer at offset 8. The objects are 16 bytes each, in an array starting at 0x402000. To run the function of the object at index 1, what should RDI hold?",
+      "choices": ["0x402001", "0x402008", "0x402010", "0x402018"],
+      "answer": 2,
+      "fixed": true,
+      "explain": "RDI should hold the object's start address: 0x402000 + 1 * 16 = 0x402010. make_noise adds the offset 8 itself."
+    },
+    {
+      "type": "mc",
+      "category": "Function pointers",
+      "q": "Which register setup is correct for the Linux x86-64 write system call that prints a string to the terminal (stdout)?",
+      "choices": [
+        "rax = 1, rdi = 1, rsi = address of the string, rdx = length",
+        "rax = 1, rdi = address of the string, rsi = length, rdx = 1",
+        "rax = 4, rbx = 1, rcx = address of the string, rdx = length",
+        "rax = 0, rdi = 1, rsi = length, rdx = address of the string"
+      ],
+      "answer": 0,
+      "explain": "write is system call 1 (in RAX). RDI is the file descriptor (1 = stdout), RSI points to the buffer, and RDX is the byte count. Then you run syscall."
+    }
+  ]
+}

@@ -1,0 +1,331 @@
+{
+  "title": "X86ASM 19: Building a Command Table",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Command table layout",
+      "q": "In the tiny shell's command table, what does each entry consist of?",
+      "choices": [
+        "The command name's characters stored inline, followed by a 1-byte handler number",
+        "An 8-byte pointer to the command's name string, followed by an 8-byte pointer to its handler code",
+        "An 8-byte pointer to the handler, followed by the length of the command name",
+        "A single 8-byte handler pointer; the command name is worked out from the entry's position"
+      ],
+      "answer": 1,
+      "explain": "Each entry is a small structure of two pointers: first the address of the command string (e.g. s_cmd_echo), then the address of the code that handles it (e.g. select.echo). The table is an array of these structures."
+    },
+    {
+      "type": "num",
+      "category": "Command table layout",
+      "q": "How many bytes long is each entry in the command table?",
+      "answer": 16,
+      "explain": "Each entry holds two 8-byte pointers (string pointer + function pointer), so 8 + 8 = 16 bytes."
+    },
+    {
+      "type": "text",
+      "category": "Command table layout",
+      "q": "Which GNU as data directive emits each 8-byte pointer in the command table? (Include the leading dot.)",
+      "answer": [".quad", "quad"],
+      "explain": ".quad emits an 8-byte (quadword) value, the size of a pointer. Separating values with commas puts each new quad right after the previous one."
+    },
+    {
+      "type": "mc",
+      "category": "Command table layout",
+      "q": "Why is every pointer in the table stored as 8 bytes?",
+      "choices": [
+        "Addresses on x86-64 are 64 bits (8 bytes) wide",
+        "Command names are padded out to 8 characters",
+        "strcmp can only compare 8 bytes at a time",
+        "The data section has to be a multiple of 8 bytes"
+      ],
+      "answer": 0,
+      "explain": "Both fields of an entry are addresses, and an address on x86-64 takes 8 bytes. That is why .quad is used and why the stride is 16 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Command table layout",
+      "q": "How does the lookup loop know it has reached the end of the command table?",
+      "choices": [
+        "The table's total length is loaded into a counter register before the loop starts",
+        "strcmp returns a negative value once it runs past the last entry",
+        "A final entry holding zero works as a null terminator: when the string pointer loaded from an entry is 0, the loop stops",
+        "The assembler puts a guard value after every array in the data section"
+      ],
+      "answer": 2,
+      "explain": "A zero entry is placed after the last real command. At the top of each iteration the loop loads the string pointer and compares it to 0; if it is 0, no command matched. (Keeping a count and looping that many times would also work, but this design uses a sentinel.)"
+    },
+    {
+      "type": "num",
+      "category": "Command table layout",
+      "q": "The table lists echo, help, exit in that order, starting at the label `commands`. At what byte offset from `commands` is the pointer to exit's handler stored?",
+      "answer": 40,
+      "explain": "Entries start at offsets 0 (echo), 16 (help) and 32 (exit). Inside an entry, the handler pointer comes 8 bytes after the string pointer, so exit's handler pointer is at 32 + 8 = 40."
+    },
+    {
+      "type": "num",
+      "category": "Command table layout",
+      "q": "Same table: echo, help, exit, then the null terminator entry. At what byte offset from `commands` does the null terminator entry start?",
+      "answer": 48,
+      "explain": "Three 16-byte entries take up offsets 0 through 47, so the terminating zero entry starts at 3 x 16 = 48."
+    },
+    {
+      "type": "mc",
+      "category": "Command table layout",
+      "q": "You want to add a command `clear` handled by a new label `select.clear`. What change does the table-driven design need?",
+      "choices": [
+        "Add another strcmp / je block to the lookup loop",
+        "Define the string \"clear\" with .asciz and add a .quad pair (string pointer, select.clear) to the table before the null entry; the loop stays the same",
+        "Change the loop's 16-byte stride to 24 bytes to make room for the new entry",
+        "Add the new pair after the null entry so it is checked last"
+      ],
+      "answer": 1,
+      "explain": "Commands now live in data, so a new command only needs a string and a table entry. It has to go before the zero terminator, because the loop stops when it reaches that terminator. The stride stays 16 because every entry is still two pointers."
+    },
+    {
+      "type": "tf",
+      "category": "Dereferencing and addressing",
+      "q": "`lea r10, [commands]` reads the first 8 bytes stored at `commands` into R10.",
+      "answer": false,
+      "explain": "lea only calculates the address and never reads memory. After it runs, R10 holds the address of the table. The 8 bytes stored there are read later by `mov rax, [r10]`."
+    },
+    {
+      "type": "mc",
+      "category": "Dereferencing and addressing",
+      "q": "R10 points at the start of a table entry. What does `mov rax, [r10]` put in RAX?",
+      "choices": [
+        "The address of the table entry itself",
+        "The first character of the command name",
+        "The address of that entry's command-name string",
+        "The address of the handler function"
+      ],
+      "answer": 2,
+      "explain": "The brackets dereference R10: the CPU goes to that memory location and reads the 8 bytes stored there. The first 8 bytes of an entry are the string pointer, so RAX ends up with the address of the command string. The handler pointer is 8 bytes further on."
+    },
+    {
+      "type": "mc",
+      "category": "Dereferencing and addressing",
+      "q": "Why does the loop load the user's command with `mov rdi, [tokens]` (with brackets) rather than using the address `tokens` directly?",
+      "choices": [
+        "tokens is an array of pointers, and its first 8 bytes hold the address where the first token's string starts",
+        "tokens holds the command's characters directly, and the brackets copy them into RDI",
+        "In Intel syntax every label has to be written in brackets",
+        "tokens holds the length of the command, which strcmp needs in RDI"
+      ],
+      "answer": 0,
+      "explain": "tokenize fills tokens with 8-byte pointers into the input buffer. The label tokens is the address of that array, so you have to dereference it to get the pointer to the first token, which is the command string strcmp should compare."
+    },
+    {
+      "type": "num",
+      "category": "Dereferencing and addressing",
+      "q": "Starting from the label `tokens`, how many memory reads (dereferences) does it take to get to the first character of the command the user typed?",
+      "answer": 2,
+      "explain": "First read: the 8-byte pointer stored at tokens (the address of the command string). Second read: the byte at that address, which is the first character. In the shell, the loop does the first read and strcmp does the byte reads."
+    },
+    {
+      "type": "multi",
+      "category": "Dereferencing and addressing",
+      "q": "R10 points at the start of the entry that matched. Which instruction sequences correctly jump to that command's handler?",
+      "choices": [
+        "`add r10, 8` then `mov rax, [r10]` then `jmp rax`",
+        "`mov rax, [r10 + 8]` then `jmp rax`",
+        "`add r10, 8` then `jmp r10`",
+        "`lea rax, [r10 + 8]` then `jmp rax`",
+        "`mov rax, [r10]` then `jmp rax`"
+      ],
+      "answer": [0, 1],
+      "explain": "The handler's address is stored 8 bytes into the entry, so you have to read it from memory before jumping. The first two sequences do this, the second in a single instruction. `jmp r10` and `lea rax, [r10 + 8]` jump to the data slot that holds the pointer, not to the code it points at. `mov rax, [r10]` reads the string pointer, not the handler pointer."
+    },
+    {
+      "type": "tf",
+      "category": "Dereferencing and addressing",
+      "q": "An offset and a dereference can be done in one instruction, as in `mov rax, [r10 + 8]`, instead of an `add` followed by `mov rax, [r10]`.",
+      "answer": true,
+      "explain": "x86 memory operands can include a displacement, so the CPU adds the offset as part of calculating the address. That is shorter and more efficient than a separate add. The video splits it into two steps only to make it clearer."
+    },
+    {
+      "type": "mc",
+      "category": "Lookup loop",
+      "q": "The loop runs `cmp rax, 0` at two different points. What does each one check?",
+      "choices": [
+        "First whether the user typed anything, then whether the handler address is valid",
+        "Both check whether strcmp found a match, once per argument",
+        "First for the null terminator entry (no commands left), then whether strcmp reported a match",
+        "First whether the carry flag needs clearing, then whether the tokens array has ended"
+      ],
+      "answer": 2,
+      "explain": "The first compare checks the string pointer just loaded from the table: 0 means the end of the table was reached, so jump to command-not-found. The second checks strcmp's return value: 0 means the strings matched, so jump to the found code."
+    },
+    {
+      "type": "mc",
+      "category": "Lookup loop",
+      "q": "If strcmp reports that the user's command does NOT match the current entry, what does the loop do next?",
+      "choices": [
+        "Adds 8 to R10 and jumps back to the top of the loop",
+        "Adds 16 to R10 and jumps back to the top of the loop",
+        "Jumps straight to the unsupported-command message",
+        "Adds 1 to R10 and calls strcmp again"
+      ],
+      "answer": 1,
+      "explain": "Each entry is 16 bytes, so adding 16 moves R10 to the start of the next entry, which is that entry's string pointer. Adding 8 would land on the current entry's handler pointer."
+    },
+    {
+      "type": "mc",
+      "category": "Lookup loop",
+      "q": "The loop keeps its position in the table in R10 across `call strcmp`. Why would keeping it in RSI break the loop?",
+      "choices": [
+        "RSI can't be used inside brackets as a memory address",
+        "RSI only holds 32-bit values",
+        "strcmp takes its second string pointer in RSI and increments it as it walks the characters, so the table position would be lost",
+        "The call instruction always sets RSI to zero"
+      ],
+      "answer": 2,
+      "explain": "strcmp uses RDI and RSI as its arguments and runs `inc rdi` / `inc rsi` on each character, and it also overwrites RAX and DL. R10 is not touched by strcmp, so the loop's position survives the call."
+    },
+    {
+      "type": "num",
+      "category": "Lookup loop",
+      "q": "The table order is echo, help, exit. A user types `exit`. How many times is strcmp called during the lookup?",
+      "answer": 3,
+      "explain": "The loop checks entries in order: echo (no match), help (no match), exit (match). That is three calls before it jumps to the exit handler."
+    },
+    {
+      "type": "num",
+      "category": "Lookup loop",
+      "q": "Same table. A user types `ls`, which isn't supported. How many times is strcmp called before the unsupported-command message is printed?",
+      "answer": 3,
+      "explain": "strcmp is called for echo, help and exit, and all three fail. On the next iteration the loop loads the null entry, sees 0 and jumps to command-not-found without calling strcmp again."
+    },
+    {
+      "type": "mc",
+      "category": "String comparison",
+      "q": "Which registers does the course's strcmp take its two string pointers in?",
+      "choices": [
+        "RAX and RDX",
+        "RDI and RSI",
+        "R10 and R15",
+        "RCX and RDX"
+      ],
+      "answer": 1,
+      "explain": "strcmp is written with its arguments in RDI (s1) and RSI (s2), the same registers used for the first two arguments elsewhere in the course. The loop loads the user's command into RDI and the table's string pointer into RSI before the call."
+    },
+    {
+      "type": "mc",
+      "category": "String comparison",
+      "q": "What does the course's strcmp return in RAX when the two strings are identical?",
+      "choices": [
+        "1",
+        "-1",
+        "The length of the strings",
+        "0"
+      ],
+      "answer": 3,
+      "explain": "strcmp clears RAX, compares a byte at a time, and finishes with `sub al, dl`. When the strings match, both final bytes are the 0 terminator, so the result is 0."
+    },
+    {
+      "type": "mc",
+      "category": "String comparison",
+      "q": "When does strcmp stop comparing characters?",
+      "choices": [
+        "When the current bytes differ, or when both strings reach their 0 terminator",
+        "After comparing a fixed 8 bytes",
+        "As soon as it reaches a space character",
+        "Only when it reaches the end of the 128-byte buffer"
+      ],
+      "answer": 0,
+      "explain": "Each pass loads one byte from each string. If they differ it jumps to the end. If they are equal and the byte is 0, both strings ended together, so it also finishes. Otherwise it moves both pointers forward and repeats."
+    },
+    {
+      "type": "tf",
+      "category": "String comparison",
+      "q": "In the original if/else version, putting `je` right after `call strcmp` works without a separate `cmp`, because strcmp ends with `sub al, dl`, which sets the zero flag when the final bytes are equal.",
+      "answer": true,
+      "explain": "sub sets the flags from its result, and ret doesn't change them. So ZF is still set when control returns if the strings matched. The table loop adds an explicit `cmp rax, 0` anyway, which makes the check clearer."
+    },
+    {
+      "type": "mc",
+      "category": "Tokens array",
+      "q": "`select.echo` runs `lea rdi, [tokens + 8]` before calling echo. What does RDI hold?",
+      "choices": [
+        "A pointer to the 8th character of the user's input",
+        "The address of the \"echo\" string in the data section",
+        "The address of the second slot in the tokens array, so echo walks the argument pointers that come after the command name",
+        "The characters of the first argument"
+      ],
+      "answer": 2,
+      "explain": "tokens[0] (offset 0) points to the command name. Each slot is 8 bytes, so tokens + 8 is the address of the slot holding the first argument's pointer. echo starts there and prints each token until it reaches a 0 pointer."
+    },
+    {
+      "type": "mc",
+      "category": "Tokens array",
+      "q": "How does tokenize mark the end of the tokens array?",
+      "choices": [
+        "It stores the number of tokens in the first slot",
+        "It writes an 8-byte zero (qword 0) after the last token pointer",
+        "It writes a newline character after the last token",
+        "It fills the remaining slots with 0xbb"
+      ],
+      "answer": 1,
+      "explain": "At tokenize.end it runs `mov qword ptr [r15], 0`. That is the same null-terminator idea the command table uses: loops such as echo and print_tokens stop when they load a 0 pointer."
+    },
+    {
+      "type": "mc",
+      "category": "Tokens array",
+      "q": "How does tokenize turn one input line into separate strings that strcmp can compare?",
+      "choices": [
+        "It copies each word into its own new buffer",
+        "It records the start address of each word in tokens and writes a 0 byte over the space after each word, so every word becomes its own null-terminated string inside the original buffer",
+        "It changes each space into a newline and keeps one pointer to the whole line",
+        "It hashes each word and stores the hash values in tokens"
+      ],
+      "answer": 1,
+      "explain": "tokenize skips spaces, saves the current address as a token pointer, uses findend to move to the next space or 0, then writes a 0 byte there with `mov byte ptr [rdi], 0`. Each word is now a separate C-style string that strcmp can stop at."
+    },
+    {
+      "type": "mc",
+      "category": "Tokens array",
+      "q": "Why does the echo loop run `add r15, 8` on each iteration?",
+      "choices": [
+        "Each element of the tokens array is an 8-byte pointer",
+        "Each word the user types is at most 8 characters long",
+        "print uses 8 bytes of stack on each call",
+        "The space string is 8 bytes long"
+      ],
+      "answer": 0,
+      "explain": "R15 walks the tokens array, and each element is a 64-bit address. Adding 8 moves to the next token pointer. This is the same reasoning as the command table's 16-byte stride, where each entry is two 8-byte pointers."
+    },
+    {
+      "type": "mc",
+      "category": "Design and efficiency",
+      "q": "What is the main advantage of the command table over the explicit if/else chain of strcmp calls?",
+      "choices": [
+        "Each command lookup takes constant time",
+        "It uses no memory in the data section",
+        "Commands are stored as data, so one loop handles any number of them and adding a command only means adding an entry",
+        "It no longer needs string comparison"
+      ],
+      "answer": 2,
+      "explain": "With 20 or 30 commands, the if/else chain becomes a long run of repeated code. The table turns that code into data that one generic loop processes. The lookup still compares strings, and it still checks entries one by one."
+    },
+    {
+      "type": "tf",
+      "category": "Design and efficiency",
+      "q": "Replacing the if/else chain with the table loop makes command lookup much faster when there are many commands.",
+      "answer": false,
+      "explain": "The loop still checks entries in order. In the worst case (the last command, or a command that isn't in the table) it compares the input against every string. With hundreds of commands that is still a linear scan."
+    },
+    {
+      "type": "mc",
+      "category": "Design and efficiency",
+      "q": "Which data structure is suggested for finding a command's handler without scanning the whole table?",
+      "choices": [
+        "A hash table (dictionary): hash the input string and go directly to the handler",
+        "A linked list of commands sorted by length",
+        "A stack that the handlers are pushed onto",
+        "A second if/else chain checked in reverse order"
+      ],
+      "answer": 0,
+      "explain": "A hash table maps the hashed input string straight to its handler. A collision might cost an extra step or two, but lookup is much faster and more predictable than checking every entry."
+    }
+  ]
+}

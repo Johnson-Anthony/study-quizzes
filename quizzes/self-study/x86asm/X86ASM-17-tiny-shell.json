@@ -1,0 +1,501 @@
+{
+  "title": "X86ASM 17: Building a Tiny Shell in Assembly",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Reading input",
+      "topic": "readline",
+      "q": "readline is called with rdi = buf and rsi = bufsize. Its first instruction is `lea rdx, [rsi - 1]`. Why does it request one byte less than the buffer size?",
+      "choices": [
+        "To leave room for the null terminator it writes after the data",
+        "Because the read syscall always adds a newline byte of its own",
+        "Because lea cannot load a value without an offset",
+        "To skip the first byte of the buffer, which holds the length"
+      ],
+      "answer": 0,
+      "explain": "After the syscall, readline writes a 0 byte at [rsi + rax]. Capping the read at bufsize - 1 makes sure that terminator still fits inside the buffer."
+    },
+    {
+      "type": "num",
+      "category": "Reading input",
+      "topic": "readline",
+      "q": "buf is declared with `.skip 128, 0xaa` and readline is called with rsi = bufsize. What is the largest number of bytes the read syscall is asked to read (the value placed in rdx)?",
+      "answer": 127,
+      "explain": "bufsize is 128, and `lea rdx, [rsi - 1]` gives 127."
+    },
+    {
+      "type": "mc",
+      "category": "Reading input",
+      "topic": "readline",
+      "q": "In readline, the syscall runs with rax = 0 and rdi = 0. What does that do?",
+      "choices": [
+        "Calls read on file descriptor 0 (standard input)",
+        "Calls write on file descriptor 0 (standard output)",
+        "Calls exit with status 0",
+        "Clears the buffer to zeros"
+      ],
+      "answer": 0,
+      "explain": "Syscall number 0 is read, and file descriptor 0 is stdin. rsi (the buffer) and rdx (the max byte count) are the other arguments."
+    },
+    {
+      "type": "mc",
+      "category": "Reading input",
+      "topic": "readline",
+      "q": "After the read syscall, readline executes `mov byte ptr [rsi + rax], 0`. What does this do?",
+      "choices": [
+        "Writes a null terminator right after the bytes that were read, since rax holds the byte count",
+        "Clears the first byte of the buffer so it can be reused",
+        "Sets the return value of readline to 0",
+        "Writes a 0 at the very end of the 128-byte buffer no matter how much was read"
+      ],
+      "answer": 0,
+      "explain": "The read syscall returns the number of bytes read in rax. rsi still points to the buffer, so [rsi + rax] is the first byte after the input, and that is where the 0 terminator goes."
+    },
+    {
+      "type": "mc",
+      "category": "Reading input",
+      "topic": "empty input",
+      "q": "Right after calling readline, the shell does `cmp rax, 0` followed by `je` back to the start label. What is this for?",
+      "choices": [
+        "If zero bytes were read, skip tokenizing and go straight back to waiting for input",
+        "If the string matched a command, restart the loop",
+        "If the buffer overflowed, start over",
+        "If rax is zero, the exit command was typed"
+      ],
+      "answer": 0,
+      "explain": "readline passes along the read syscall's return value, the number of bytes read. With empty input there is nothing to tokenize, so the shell returns to the top of the loop."
+    },
+    {
+      "type": "num",
+      "category": "Data layout",
+      "topic": "assembler directives",
+      "q": "The code says `buf: .skip 128, 0xaa` followed immediately by `bufsize = . - buf`. What value does bufsize get?",
+      "answer": 128,
+      "explain": "`.` is the current location counter, which is just past the 128 reserved bytes. Subtracting the address of buf gives 128."
+    },
+    {
+      "type": "mc",
+      "category": "Data layout",
+      "topic": "assembler directives",
+      "q": "What does `tokens: .skip 128, 0xbb` do?",
+      "choices": [
+        "Reserves 128 bytes, each filled with 0xBB, labeled tokens",
+        "Reserves 0xBB bytes, each filled with 128",
+        "Skips over the next 128 instructions",
+        "Defines a 128-character string \"0xbb\""
+      ],
+      "answer": 0,
+      "explain": ".skip size, fill reserves size bytes set to the fill value. Filling buf with 0xAA and tokens with 0xBB makes it easy to see each region and what has been written into it in the memory viewer."
+    },
+    {
+      "type": "text",
+      "category": "Data layout",
+      "topic": "memory addresses",
+      "q": "buf starts at address 0x402000 and is 128 bytes long, and tokens is placed directly after it. At what address does tokens start? (Give it in hex.)",
+      "answer": ["0x402080", "402080", "402080h", "0x00402080"],
+      "explain": "128 decimal is 0x80, so tokens starts at 0x402000 + 0x80 = 0x402080."
+    },
+    {
+      "type": "mc",
+      "category": "Data layout",
+      "topic": "debugging",
+      "q": "The memview helper temporarily points rsp at buf and then runs `int3`. What does int3 do?",
+      "choices": [
+        "Triggers a breakpoint trap, pausing execution so memory and registers can be inspected",
+        "Makes system call number 3",
+        "Multiplies rsp by 3",
+        "Waits for 3 bytes of keyboard input"
+      ],
+      "answer": 0,
+      "explain": "int3 is the one-byte breakpoint instruction. Pointing rsp at buf first makes the playground's stack view show the buf/tokens region, so it works as a memory viewer."
+    },
+    {
+      "type": "tf",
+      "category": "Tokenizing",
+      "topic": "tokenize",
+      "q": "tokenize copies each word of the input into the tokens array.",
+      "answer": false,
+      "explain": "tokens holds only pointers (8-byte addresses) into the original buffer. The words stay where they are in buf. tokenize just writes 0 bytes into buf to end each word."
+    },
+    {
+      "type": "mc",
+      "category": "Tokenizing",
+      "topic": "tokenize",
+      "q": "How does tokenize split the single input string into separate strings?",
+      "choices": [
+        "It overwrites the space after each word with a 0 byte and stores a pointer to the start of each word",
+        "It inserts a newline after each word",
+        "It shifts each word into its own 8-byte slot in tokens",
+        "It replaces every letter with its ASCII code"
+      ],
+      "answer": 0,
+      "explain": "When findend stops on a space, tokenize does `mov byte ptr [rdi], 0`, which ends that word as a null-terminated string. The word's start address was already saved with `mov [r15], rdi`."
+    },
+    {
+      "type": "text",
+      "category": "Tokenizing",
+      "topic": "tokenize trace",
+      "q": "The input \"hello there friends\" is stored starting at 0x402000. After tokenize runs, the first entry in tokens is 0x402000. What address is in the second entry? (Give it in hex.)",
+      "answer": ["0x402006", "402006", "402006h", "0x00402006"],
+      "explain": "\"hello\" takes offsets 0-4 and the space at offset 5 becomes 0. \"there\" starts at offset 6, which is 0x402006."
+    },
+    {
+      "type": "text",
+      "category": "Tokenizing",
+      "topic": "tokenize trace",
+      "q": "Same input, \"hello there friends\" at 0x402000. What address is in the third entry of tokens? (Give it in hex.)",
+      "answer": ["0x40200C", "0x40200c", "40200C", "40200c", "40200Ch", "40200ch", "0x0040200C", "0x0040200c"],
+      "explain": "\"there\" takes offsets 6-10 and the space at offset 11 becomes 0. \"friends\" starts at offset 12 = 0xC, so the address is 0x40200C."
+    },
+    {
+      "type": "multi",
+      "category": "Tokenizing",
+      "topic": "findend",
+      "q": "According to the code, which bytes make findend stop advancing (that is, mark the end of a token)?",
+      "choices": [
+        "A space character ' '",
+        "A 0 (null) byte",
+        "A newline character",
+        "A tab character"
+      ],
+      "answer": [0, 1],
+      "explain": "findend compares only against ' ' and 0. Tabs and newlines are not checked, so they would end up inside a token."
+    },
+    {
+      "type": "tf",
+      "category": "Tokenizing",
+      "topic": "skipwhite",
+      "q": "With the given tokenize, the input \"echo   hi\" (three spaces between the words) produces an empty token between \"echo\" and \"hi\".",
+      "answer": false,
+      "explain": "At the top of each loop pass, tokenize calls skipwhite, which steps past every consecutive space before the next token is recorded. So no empty tokens are created."
+    },
+    {
+      "type": "mc",
+      "category": "Tokenizing",
+      "topic": "array terminator",
+      "q": "How does code that walks the tokens array (like print_tokens or echo) know where the array ends?",
+      "choices": [
+        "tokenize writes a qword 0 (null pointer) after the last token pointer",
+        "The first entry holds the token count",
+        "It always stops after 16 entries",
+        "It stops when it hits a 0xBB byte"
+      ],
+      "answer": 0,
+      "explain": "tokenize.end does `mov qword ptr [r15], 0`. Loops load each entry and stop when it is 0."
+    },
+    {
+      "type": "mc",
+      "category": "Tokenizing",
+      "topic": "array of pointers",
+      "q": "Why does each entry in the tokens array take 8 bytes?",
+      "choices": [
+        "Each entry is a 64-bit memory address (a pointer to a string)",
+        "Each token is limited to 8 characters",
+        "Each entry stores the token's length and its first character",
+        "x86-64 can only write 8 bytes at a time"
+      ],
+      "answer": 0,
+      "explain": "On a 64-bit system an address is 64 bits = 8 bytes, so an array of character pointers uses 8 bytes per element."
+    },
+    {
+      "type": "num",
+      "category": "Tokenizing",
+      "topic": "array of pointers",
+      "q": "tokens is 128 bytes. How many 8-byte entries fit in it (counting the slot used by the terminating null pointer)?",
+      "answer": 16,
+      "explain": "128 / 8 = 16. One entry is needed for the 0 terminator, which leaves room for 15 token pointers."
+    },
+    {
+      "type": "mc",
+      "category": "String comparison",
+      "topic": "dereferencing",
+      "q": "To compare the first token against s_command_exit, the code loads tokens into rdi and then does `mov rdi, [rdi]` before calling strcmp. Why is the second instruction needed?",
+      "choices": [
+        "tokens holds pointers, so it has to be dereferenced to get the address of the actual string",
+        "It clears rdi to 0 before the comparison",
+        "It converts the string to uppercase",
+        "It moves to the second token in the array"
+      ],
+      "answer": 0,
+      "explain": "Without the dereference, strcmp would compare the raw pointer bytes stored in tokens. The brackets read the 8-byte value at tokens (for example 0x402000), which is the start of the first word."
+    },
+    {
+      "type": "mc",
+      "category": "String comparison",
+      "topic": "strcmp",
+      "q": "Where does strcmp leave its result, and what value means the strings are equal?",
+      "choices": [
+        "In al (the low byte of rax); 0 means equal",
+        "In al; 1 means equal",
+        "In rdi; 0 means equal",
+        "In the carry flag; set means equal"
+      ],
+      "answer": 0,
+      "explain": "strcmp ends with `sub al, dl` and ret. The result is the difference between the two bytes where it stopped, which is 0 when the strings match."
+    },
+    {
+      "type": "num",
+      "category": "String comparison",
+      "topic": "strcmp trace",
+      "q": "strcmp is called with s1 = \"hello\" and s2 = \"exit\". What value ends up in al? (ASCII: 'e' = 0x65, 'h' = 0x68)",
+      "answer": 3,
+      "explain": "The first bytes already differ: 'h' - 'e' = 0x68 - 0x65 = 3. This is the nonzero value seen when a non-matching word was typed."
+    },
+    {
+      "type": "num",
+      "category": "String comparison",
+      "topic": "strcmp trace",
+      "q": "strcmp is called with s1 = \"help\" and s2 = \"hello\". What value ends up in al? (ASCII: 'l' = 0x6C, 'p' = 0x70)",
+      "answer": 4,
+      "explain": "'h', 'e', 'l' match. At index 3, 'p' (0x70) vs 'l' (0x6C) differ, so al = 0x70 - 0x6C = 4."
+    },
+    {
+      "type": "num",
+      "category": "String comparison",
+      "topic": "strncmp trace",
+      "q": "strncmp is called with s1 = \"help\", s2 = \"hello\", rdx = 3. What value ends up in al?",
+      "answer": 0,
+      "explain": "rcx starts at 3 and is decremented at the top of each pass. Indexes 0, 1, 2 ('h', 'e', 'l') match. After the third comparison rcx is 0, so it jumps to snc.done with al = dl = 'l', and sub gives 0."
+    },
+    {
+      "type": "mc",
+      "category": "String comparison",
+      "topic": "strcmp",
+      "q": "In strcmp, after `cmp al, dl` / `jne sc.done`, the code checks only `cmp al, 0`, not dl. Why is checking al enough?",
+      "choices": [
+        "Execution only reaches that check if al == dl, so if al is 0 then dl is 0 too and both strings ended together",
+        "dl can never be 0",
+        "The jne already checked dl for 0",
+        "Only s1 is null-terminated; s2 has a known length"
+      ],
+      "answer": 0,
+      "explain": "The jne exits on any mismatch. Past it, the bytes are equal, so one null check covers both strings."
+    },
+    {
+      "type": "tf",
+      "category": "String comparison",
+      "topic": "flags",
+      "q": "Because strcmp's last arithmetic instruction is `sub al, dl` and `ret` does not change flags, a `je` right after `call strcmp` will branch when the strings matched.",
+      "answer": true,
+      "explain": "sub sets ZF when the result is 0, and ret leaves the flags alone, so the caller can branch on equality right away."
+    },
+    {
+      "type": "mc",
+      "category": "Command dispatch",
+      "topic": "jmp vs call",
+      "q": "In an early version, the shell did a conditional jump to echo, and echo ended with `ret`. The text printed, then the program crashed. Why?",
+      "choices": [
+        "A jump does not push a return address, so ret popped something that was not a valid return address",
+        "ret can only be used inside syscalls",
+        "echo overwrote the tokens array",
+        "Conditional jumps clear the stack"
+      ],
+      "answer": 0,
+      "explain": "Only call pushes the return address that ret pops. Reaching code with jmp/je and then running ret sends execution to whatever value is on top of the stack."
+    },
+    {
+      "type": "mc",
+      "category": "Command dispatch",
+      "topic": "launcher functions",
+      "q": "Why does the shell conditionally jump to a small \"launcher\" (like select_echo or select_help), which then calls the real command function and jumps back to start?",
+      "choices": [
+        "Conditional jumps cannot push a return address. The launcher uses call so the command can end with ret and can be called from anywhere",
+        "Launchers run faster than direct calls",
+        "The assembler does not allow call right after strcmp",
+        "It saves memory by sharing one copy of each string"
+      ],
+      "answer": 0,
+      "explain": "There is no conditional call. Branching to a launcher that does `call echo` and then `jmp start` keeps echo and help as proper functions that return."
+    },
+    {
+      "type": "mc",
+      "category": "Command dispatch",
+      "topic": "unsupported commands",
+      "q": "What happens when the first token matches none of exit, echo, or help?",
+      "choices": [
+        "Execution falls through every comparison, loads s_nocommand, calls println, then jumps back to start",
+        "The program exits with a nonzero code",
+        "echo runs by default",
+        "strcmp crashes because no string matched"
+      ],
+      "answer": 0,
+      "explain": "Each strcmp/je block skips its jump when there is no match. After the last one, the code prints the unsupported-command message and loops."
+    },
+    {
+      "type": "mc",
+      "category": "Command dispatch",
+      "topic": "loop structure",
+      "q": "Which order describes one pass of the shell's main loop?",
+      "choices": [
+        "Read a line -> skip if empty -> tokenize -> compare first token with each command -> run the matching command (or print unsupported) -> jump back to start",
+        "Tokenize -> read a line -> run every command -> exit",
+        "Compare commands -> read a line -> tokenize -> print tokens",
+        "Read a line -> run echo -> tokenize -> check for exit"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "The shell reads input, splits it into tokens, checks the first token against each command, runs the matching command, and repeats."
+    },
+    {
+      "type": "tf",
+      "category": "Command dispatch",
+      "topic": "scalability",
+      "q": "The chain of hand-written strcmp/je blocks (one per command) scales well to dozens of commands.",
+      "answer": false,
+      "explain": "Each command adds another copied block, which works for a few commands but gets unmanageable at 30 or 100."
+    },
+    {
+      "type": "mc",
+      "category": "Command dispatch",
+      "topic": "dispatch table",
+      "q": "What is the more scalable design proposed to replace the if/else-if chain?",
+      "choices": [
+        "An array of structs, each holding a pointer to a command-name string and a pointer to its function, searched in a loop",
+        "One very long string with every command name joined together",
+        "A separate program for each command",
+        "Sorting the tokens array alphabetically"
+      ],
+      "answer": 0,
+      "explain": "Loop over (string pointer, function pointer) pairs, strcmp the token against each name, and on a match call or jump through the function pointer. Adding a command then only needs a new entry."
+    },
+    {
+      "type": "mc",
+      "category": "Echo command",
+      "topic": "echo arguments",
+      "q": "Before calling echo, select_echo sets things up so echo starts at tokens + 8. Why + 8?",
+      "choices": [
+        "Entry 0 is the command name \"echo\". The arguments start at entry 1, which is 8 bytes later",
+        "The first 8 characters of the input are always skipped",
+        "tokens + 8 holds the number of arguments",
+        "8 is the length of the string \"echo\" plus padding"
+      ],
+      "answer": 0,
+      "explain": "Each entry is an 8-byte pointer. tokens + 0 points to \"echo\", and tokens + 8 points to the first word that should be printed."
+    },
+    {
+      "type": "mc",
+      "category": "Echo command",
+      "topic": "register choice",
+      "q": "Inside echo, the current position in the tokens array is kept in r15 instead of rdi. Why?",
+      "choices": [
+        "rdi is used constantly as an argument (to print, slen, etc.) and gets overwritten, so it can't reliably hold a value across those calls",
+        "r15 is the only register that can be dereferenced",
+        "rdi cannot hold 64-bit values",
+        "The syscall instruction requires r15"
+      ],
+      "answer": 0,
+      "explain": "Each iteration loads rdi with the string to print (and later with the space string). A separate register keeps the array position intact through the loop."
+    },
+    {
+      "type": "num",
+      "category": "Echo command",
+      "topic": "echo loop",
+      "q": "In echo's loop, how many bytes is r15 advanced each iteration to reach the next token pointer?",
+      "answer": 8,
+      "explain": "Each array element is an 8-byte pointer, so `add r15, 8` moves to the next element."
+    },
+    {
+      "type": "mc",
+      "category": "Echo command",
+      "topic": "null check",
+      "q": "Typing just \"echo\" with no arguments originally crashed the shell. What caused it, and how was it fixed?",
+      "choices": [
+        "echo assumed tokens + 8 held a valid string pointer, but it was the 0 terminator. The fix is to compare the loaded pointer with 0 and skip printing if it is null",
+        "strcmp failed on a one-word input. The fix was to use strncmp",
+        "readline returned a negative number. The fix was to clear rax",
+        "The newline string was missing. The fix was to add .asciz"
+      ],
+      "answer": 0,
+      "explain": "With only one token, tokens + 8 is the qword 0 terminator, and printing from address 0 crashes. Checking `cmp rdi, 0` / `je` to the return path fixes this and also gives the loop its stopping condition."
+    },
+    {
+      "type": "mc",
+      "category": "Echo command",
+      "topic": "output formatting",
+      "q": "How does echo put spaces between the words it prints, and a newline at the end?",
+      "choices": [
+        "After printing each token, it loads the space string and calls print. On reaching the null entry, it prints the newline string before returning",
+        "tokenize leaves the spaces in place, so they print automatically",
+        "It joins all tokens into one buffer with spaces and makes a single write",
+        "println adds the spaces automatically"
+      ],
+      "answer": 0,
+      "explain": "Each space is printed with its own write syscall, which is admittedly wasteful. String concatenation is left for later."
+    },
+    {
+      "type": "num",
+      "category": "Syscalls & output",
+      "topic": "exit",
+      "q": "What syscall number does the exit function put in rax?",
+      "answer": 60,
+      "explain": "exit does `xor rdi, rdi` (exit status 0), `mov rax, 60`, then syscall."
+    },
+    {
+      "type": "mc",
+      "category": "Syscalls & output",
+      "topic": "exit",
+      "q": "In the exit function, what does `xor rdi, rdi` do?",
+      "choices": [
+        "Sets rdi to 0, so the process exits with status 0",
+        "Swaps rdi with itself to flush it to memory",
+        "Sets rdi to all 1 bits, signaling an error",
+        "Selects standard output"
+      ],
+      "answer": 0,
+      "explain": "XORing a register with itself always gives 0. For the exit syscall, rdi is the exit status."
+    },
+    {
+      "type": "mc",
+      "category": "Syscalls & output",
+      "topic": "print",
+      "q": "print starts with `push rdi`, `call slen`, `pop rsi`. What does this push/pop pair do?",
+      "choices": [
+        "Saves the string pointer across the call to slen and then puts it straight into rsi, where write expects the buffer address",
+        "Reverses the string before printing",
+        "Allocates 8 bytes of output buffer on the stack",
+        "Stores the string length in rsi"
+      ],
+      "answer": 0,
+      "explain": "slen gets the pointer in rdi and returns the length in rax. Popping the saved pointer into rsi and moving rax into rdx sets up write's buffer and count arguments."
+    },
+    {
+      "type": "multi",
+      "category": "Syscalls & output",
+      "topic": "write syscall",
+      "q": "Which statements correctly describe how print sets up the write syscall?",
+      "choices": [
+        "rax = 1 selects the write syscall",
+        "rdi = 1 selects standard output",
+        "rsi holds the address of the string",
+        "rdx holds the length returned by slen",
+        "rdi holds the address of the string",
+        "The length passed in rdx includes the null terminator"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "write takes rax = 1, rdi = fd, rsi = buffer, rdx = count. slen counts bytes until the 0, without counting the 0 itself, so the terminator is not printed."
+    },
+    {
+      "type": "mc",
+      "category": "Syscalls & output",
+      "topic": "null-terminated strings",
+      "q": "Command strings like s_command_exit are declared with .asciz. Why does that matter?",
+      "choices": [
+        ".asciz adds a 0 byte at the end, which strcmp and slen need to find where the string stops",
+        ".asciz converts the text to uppercase",
+        ".asciz stores the string as 8-byte pointers",
+        ".asciz makes the string read-only"
+      ],
+      "answer": 0,
+      "explain": "strcmp stops on a 0 byte and slen counts up to one. Without the terminator (for example, using a directive that doesn't add one), they would keep reading into whatever bytes follow."
+    },
+    {
+      "type": "tf",
+      "category": "Syscalls & output",
+      "topic": "println",
+      "q": "println prints a string followed by a newline using a single write syscall.",
+      "answer": false,
+      "explain": "println makes two write syscalls: one for the string (length from slen) and a second for 1 byte from the newline string."
+    }
+  ]
+}

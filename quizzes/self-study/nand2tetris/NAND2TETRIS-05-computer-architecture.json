@@ -1,0 +1,845 @@
+{
+  "title": "Computer Architecture (Chapter 5)",
+  "course": "NAND2TETRIS",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Stored program and von Neumann architecture",
+      "q": "What is the core idea of the stored program concept?",
+      "choices": [
+        "The program's instructions are kept in the computer's memory, just like data, so the same fixed hardware can run any program loaded into it",
+        "The program's logic is built into the hardware, so each machine is designed for one task",
+        "Programs are kept on punched cards that the ALU reads one at a time",
+        "Each program gets its own dedicated processor"
+      ],
+      "answer": 0,
+      "explain": "The hardware runs a fixed set of simple instructions. The program itself sits in memory as software, so loading a different program makes the same hardware behave differently. Mechanical computers built before 1930 had the program's logic built into the hardware."
+    },
+    {
+      "type": "tf",
+      "category": "Stored program and von Neumann architecture",
+      "q": "In the von Neumann architecture, memory holds only the data being manipulated; the instructions come from somewhere else.",
+      "answer": false,
+      "explain": "The stored program concept is at the heart of the von Neumann architecture: memory holds both the data and the instructions that tell the computer what to do."
+    },
+    {
+      "type": "multi",
+      "category": "Stored program and von Neumann architecture",
+      "q": "Which of these are the main parts of the von Neumann architecture?",
+      "choices": [
+        "A central processing unit (CPU)",
+        "A memory device",
+        "An input device",
+        "An output device",
+        "A graphics card",
+        "A hard-wired program module"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The CPU works with a memory, takes data from an input device, and sends data to an output device. The program lives in memory, not in a separate hard-wired module."
+    },
+    {
+      "type": "mc",
+      "category": "Stored program and von Neumann architecture",
+      "q": "Both the universal Turing machine (1936) and the von Neumann machine (1945) use the stored program idea. How do they differ in role?",
+      "choices": [
+        "The Turing machine is an abstract model used mainly in theoretical computer science; the von Neumann machine is a practical architecture and the blueprint of almost all computers today",
+        "The von Neumann machine is an abstract model used for proofs; the Turing machine is the blueprint of modern hardware",
+        "Both are practical architectures; the Turing machine is just the older one",
+        "Only the von Neumann machine has a notion of a stored program"
+      ],
+      "answer": 0,
+      "explain": "The Turing machine is used to study the logical foundations of computation. The von Neumann machine is the practical blueprint that real computers, including Hack, follow."
+    },
+    {
+      "type": "multi",
+      "category": "Stored program and von Neumann architecture",
+      "q": "Which of these machines go with the milestone 'punched cards / software: programmable!'?",
+      "choices": [
+        "Pascal's calculator (Pascaline, 1652)",
+        "Leibniz's calculator (1673)",
+        "Jacquard's mechanical loom (1804)",
+        "Babbage's mechanical calculator (1837)"
+      ],
+      "answer": [2, 3],
+      "explain": "Punched cards, an early form of software, are what made machines programmable. The 19th-century examples are Jacquard's loom and Babbage's calculator. Pascal's and Leibniz's 17th-century calculators only did fixed arithmetic."
+    },
+    {
+      "type": "tf",
+      "category": "Stored program and von Neumann architecture",
+      "q": "Leibniz's 1673 calculator could multiply and divide as well as add and subtract, while Pascal's calculator could only add and subtract.",
+      "answer": true,
+      "explain": "Pascal's calculator (1652) could add and subtract. Leibniz's calculator added multiplication and division."
+    },
+    {
+      "type": "multi",
+      "category": "CPU components and registers",
+      "q": "Which three main hardware elements does a CPU use to execute instructions?",
+      "choices": [
+        "An Arithmetic-Logic Unit (ALU)",
+        "A set of registers",
+        "A control unit",
+        "The instruction memory",
+        "The keyboard memory map"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The ALU does the arithmetic and logic, the registers hold values close to the ALU, and the control unit decodes instructions and decides what to fetch next. Instruction memory is outside the CPU."
+    },
+    {
+      "type": "mc",
+      "category": "CPU components and registers",
+      "q": "What is the control unit responsible for?",
+      "choices": [
+        "Doing the arithmetic and logical operations",
+        "Decoding the binary instruction, telling the ALU, registers and memory how to execute it, and working out which instruction to fetch next",
+        "Holding intermediate results next to the ALU",
+        "Refreshing the screen from its memory map"
+      ],
+      "answer": 1,
+      "explain": "An instruction is a binary code (typically 16, 32 or 64 bits). The control unit decodes it into signals for the other hardware and works out which instruction comes next."
+    },
+    {
+      "type": "multi",
+      "category": "CPU components and registers",
+      "q": "Which of these are benefits of having high-speed registers inside the CPU?",
+      "choices": [
+        "They avoid slow memory accesses that involve separate chips, an address bus and a data bus",
+        "They allow thinner instruction formats, because naming one of a few registers takes only a few bits",
+        "They help keep a fast ALU from starving while it waits on a slow data store",
+        "They make the ALU a clocked (sequential) chip",
+        "They remove the need for a program counter"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Registers save memory accesses and allow shorter instructions, which means faster throughput. The ALU stays combinational, and a program counter is still needed."
+    },
+    {
+      "type": "num",
+      "category": "CPU components and registers",
+      "q": "In the 16-bit Hack platform, how many machine instructions does it take to do Memory[addr]=0 for an arbitrary address addr?",
+      "answer": 2,
+      "explain": "The address doesn't fit in the same instruction as the operation. You need @addr (which sets A and selects M) and then M=0: two instructions and two clock cycles. A CPU-register operation like D=0 takes one."
+    },
+    {
+      "type": "mc",
+      "category": "CPU components and registers",
+      "q": "A program computes (a − b) · c. Where is the most sensible place to keep the intermediate value (a − b)?",
+      "choices": [
+        "In the program counter",
+        "In the instruction memory",
+        "In a data register inside the CPU",
+        "In the keyboard memory map"
+      ],
+      "answer": 2,
+      "explain": "Data registers give the CPU short-term storage right next to the ALU. That beats sending the temporary value out to memory and reading it back."
+    },
+    {
+      "type": "mc",
+      "category": "CPU components and registers",
+      "q": "In Hack, what does @17 followed by D=A do?",
+      "choices": [
+        "Sets D to the contents of Memory[17]",
+        "Sets D to 17. A is used as a data register here, and the fact that @17 also selected Memory[17] is ignored",
+        "Jumps to instruction 17",
+        "Sets Memory[17] to the value of D"
+      ],
+      "answer": 1,
+      "explain": "An address register is still a register, so it can also serve as a data register. To load Memory[17] into D you would write D=M instead."
+    },
+    {
+      "type": "tf",
+      "category": "CPU components and registers",
+      "q": "An address register's output is typically connected to a memory's address input, so putting a value in it has the side effect of selecting a memory register.",
+      "answer": true,
+      "explain": "That's why @17 makes M stand for Memory[17]. The next instruction can then read or write that register."
+    },
+    {
+      "type": "text",
+      "category": "CPU components and registers",
+      "q": "What is the term for a processor being denied the resources it needs to do its work, such as a fast ALU stuck waiting on slow memory?",
+      "answer": ["starvation", "processor starvation"],
+      "explain": "Without CPU-resident registers, a lightning-fast ALU would depend on a sluggish memory for every input and output, which can lead to starvation."
+    },
+    {
+      "type": "mc",
+      "category": "Fetch-execute cycle",
+      "q": "In the CPU's basic loop, what does the fetch step involve?",
+      "choices": [
+        "Writing the ALU output into memory",
+        "Decoding the instruction's jump bits",
+        "Supplying an address (from the program counter) to the memory, which then emits the instruction stored there",
+        "Loading the program from disk into memory"
+      ],
+      "answer": 2,
+      "explain": "The PC always emits the address of the next instruction. Fetch sends that address to memory and gets the instruction back. Execute then carries out the instruction and works out the next address."
+    },
+    {
+      "type": "mc",
+      "category": "Fetch-execute cycle",
+      "q": "When one memory holds both the program and the data, what problem does the fetch-execute cycle run into?",
+      "choices": [
+        "The memory has a single address input and a single output, so it can't take the instruction address and the data address at the same time, and its output can't be both the instruction and the data",
+        "The ALU can't add and subtract in the same cycle",
+        "The program counter can only count to 15",
+        "Memory can be read but never written"
+      ],
+      "answer": 0,
+      "explain": "There are two possible fixes: a two-cycle machine with one memory, or a one-cycle machine with two memories."
+    },
+    {
+      "type": "mc",
+      "category": "Fetch-execute cycle",
+      "q": "In the two-cycle, one-memory machine, what happens during the fetch cycle?",
+      "choices": [
+        "A data value is loaded from memory and the instruction is executed",
+        "The instruction is loaded from memory into the instruction register",
+        "Both memories are accessed at the same time",
+        "The program counter is reset to 0"
+      ],
+      "answer": 1,
+      "explain": "Fetch cycle: the instruction address goes to memory and the output is stored in the instruction register. Execute cycle: the data address goes to memory, the data value is loaded, and the instruction runs."
+    },
+    {
+      "type": "multi",
+      "category": "Fetch-execute cycle",
+      "q": "In the two-cycle, one-memory design, which components does the fetch/execute bit control?",
+      "choices": [
+        "A Mux that chooses between the instruction address and the data address for the memory's address input",
+        "A DMux that routes the memory's output either to the instruction register or to the data path",
+        "The ALU's six control bits",
+        "The keyboard register"
+      ],
+      "answer": [0, 1],
+      "explain": "The fetch/execute bit sets the Mux to the instruction address and the DMux to the instruction register while fetching. While executing, it sets them to the data address and the data path."
+    },
+    {
+      "type": "multi",
+      "category": "Fetch-execute cycle",
+      "q": "Which of these are disadvantages of the single-cycle, two-memory (Harvard) architecture?",
+      "choices": [
+        "It needs two memory chips",
+        "Instructions and data live in separate address spaces",
+        "Each instruction takes two clock cycles",
+        "It needs an instruction register to hold the fetched instruction",
+        "The architecture is complicated"
+      ],
+      "answer": [0, 1],
+      "explain": "Its advantages are a simple architecture and fast processing. The two-cycle, one-memory design is the one that needs two cycles and an instruction register."
+    },
+    {
+      "type": "tf",
+      "category": "Fetch-execute cycle",
+      "q": "Hack follows the Harvard-style variant: instruction memory and data memory are separate physical units, and both are accessed in the same cycle.",
+      "answer": true,
+      "explain": "Hack has a ROM32K instruction memory and a separate data Memory chip with its own address space, which allows single-cycle fetch-execute."
+    },
+    {
+      "type": "mc",
+      "category": "Fetch-execute cycle",
+      "q": "Hack splits its address space into instruction memory and data memory to get a single-cycle fetch-execute. What price does it pay for this simpler hardware?",
+      "choices": [
+        "Every instruction needs an instruction register",
+        "The ALU has to be sequential",
+        "Programs can't be changed dynamically",
+        "The screen can't be memory-mapped"
+      ],
+      "answer": 2,
+      "explain": "The program sits in a separate read-only instruction memory, so a running program can't modify or load code."
+    },
+    {
+      "type": "multi",
+      "category": "Hack CPU interface",
+      "q": "Which of these are inputs of the Hack CPU chip?",
+      "choices": [
+        "outM[16]",
+        "inM[16]",
+        "writeM",
+        "instruction[16]",
+        "pc[15]",
+        "reset"
+      ],
+      "answer": [1, 3, 5],
+      "explain": "Inputs: inM (from data memory), instruction (from instruction memory), and reset. Outputs: outM, writeM, addressM (to data memory) and pc (to instruction memory)."
+    },
+    {
+      "type": "num",
+      "category": "Hack CPU interface",
+      "q": "How many bits wide is the Hack CPU's addressM output?",
+      "answer": 15,
+      "explain": "addressM[15] covers the data memory's 15-bit address space. The pc output is also 15 bits, matching the 32K instruction memory."
+    },
+    {
+      "type": "mc",
+      "category": "Hack CPU interface",
+      "q": "Which CPU outputs are combinational and which are clocked?",
+      "choices": [
+        "addressM and pc are combinational; outM and writeM are clocked",
+        "outM and writeM are combinational; addressM and pc are clocked",
+        "All four outputs are combinational",
+        "All four outputs are clocked"
+      ],
+      "answer": 1,
+      "explain": "outM and writeM change as soon as the instruction executes. addressM and pc are affected by the instruction too, but they only take their new values in the next time step."
+    },
+    {
+      "type": "tf",
+      "category": "Hack CPU interface",
+      "q": "When writeM is 0, outM is guaranteed to be 0.",
+      "answer": false,
+      "explain": "When writeM is 0, any value may appear on outM. Memory ignores it because nothing is being written."
+    },
+    {
+      "type": "mc",
+      "category": "Hack CPU interface",
+      "q": "What does the CPU's inM input carry?",
+      "choices": [
+        "The next instruction to execute",
+        "The current value of the D register",
+        "The value of M: the data-memory register currently selected by A (RAM[A])",
+        "The address of the next instruction"
+      ],
+      "answer": 2,
+      "explain": "inM and outM are the values that 'M' refers to in Hack syntax. inM is read from Memory[A]."
+    },
+    {
+      "type": "mc",
+      "category": "Hack CPU interface",
+      "q": "What does the Hack CPU do when its reset input is 1?",
+      "choices": [
+        "Sets pc to 0, so the first instruction of the program runs next",
+        "Clears the A and D registers to 0",
+        "Erases the data memory",
+        "Runs the current instruction again"
+      ],
+      "answer": 0,
+      "explain": "With reset = 0, the CPU uses the ALU output and the jump directive to compute the next address. With reset = 1, it sets pc to 0."
+    },
+    {
+      "type": "mc",
+      "category": "Hack CPU interface",
+      "q": "Which statement correctly describes the roles of Hack's D and A registers?",
+      "choices": [
+        "D holds only data values. A can hold a data value, an address in instruction memory, or an address in data memory",
+        "A holds only addresses; D holds both data and instruction addresses",
+        "Both hold only data; all addresses come from the PC",
+        "D holds the current instruction and A holds the next one"
+      ],
+      "answer": 0,
+      "explain": "Which role A plays depends on context: data (D=A), a data-memory address (M), or a jump target in instruction memory."
+    },
+    {
+      "type": "mc",
+      "category": "Instruction format and decoding",
+      "q": "In the 16-bit instruction format ixxaccccccdddjjj, what does the i-bit (opcode) tell you?",
+      "choices": [
+        "Whether the ALU works on A or on M",
+        "Whether the instruction is an A-instruction (0) or a C-instruction (1)",
+        "Whether the instruction is an A-instruction (1) or a C-instruction (0)",
+        "Whether a jump is taken"
+      ],
+      "answer": 1,
+      "explain": "The MSB is the opcode. If it's 0, the whole 16-bit word is a constant loaded into A. If it's 1, the remaining bits are control bits."
+    },
+    {
+      "type": "mc",
+      "category": "Instruction format and decoding",
+      "q": "In a C-instruction, what does the single a-bit select?",
+      "choices": [
+        "Whether the ALU's second operand is the A register (a = 0) or inM, the M value (a = 1)",
+        "Whether the ALU's second operand is inM (a = 0) or the A register (a = 1)",
+        "Whether the result is stored in A",
+        "Whether the instruction is an A- or C-instruction"
+      ],
+      "answer": 0,
+      "explain": "The a-bit drives the Mux16 in front of the ALU. That's why each comp has an A version and an M version, like D+A and D+M."
+    },
+    {
+      "type": "mc",
+      "category": "Instruction format and decoding",
+      "q": "In the format ixxaccccccdddjjj, which bits code the comp part of a C-instruction?",
+      "choices": [
+        "The six c-bits only",
+        "The three d-bits",
+        "The a-bit and the six c-bits",
+        "The x-bits and the a-bit"
+      ],
+      "answer": 2,
+      "explain": "The a-bit and c-bits code comp, the d-bits code dest, and the j-bits code jump. The x-bits aren't used."
+    },
+    {
+      "type": "num",
+      "category": "Instruction format and decoding",
+      "q": "The CPU executes the instruction 0000000000000101. What value does the A register hold afterward?",
+      "answer": 5,
+      "explain": "The opcode is 0, so this is an A-instruction (@5). The CPU loads its 16-bit value into A."
+    },
+    {
+      "type": "num",
+      "category": "Instruction format and decoding",
+      "q": "What is the largest constant an A-instruction can load into the A register?",
+      "answer": 32767,
+      "explain": "An A-instruction is 0 followed by a 15-bit value, so it ranges from 0 to 2^15 − 1 = 32767."
+    },
+    {
+      "type": "text",
+      "category": "Instruction format and decoding",
+      "q": "Translate the C-instruction 1110001100001000 into Hack assembly.",
+      "answer": ["M=D", "M = D"],
+      "explain": "111 | a=0 | cccccc=001100 (comp D) | ddd=001 (dest M) | jjj=000 (no jump), so it's M=D."
+    },
+    {
+      "type": "mc",
+      "category": "Instruction format and decoding",
+      "q": "Which Hack assembly instruction is the binary 1111110000010000?",
+      "choices": ["D=A", "D=M", "M=D", "A=M"],
+      "answer": 1,
+      "explain": "a=1 and c=110000 give comp M (with a=0 it would be A). ddd=010 gives dest D, and jjj=000 means no jump."
+    },
+    {
+      "type": "mc",
+      "category": "CPU control logic",
+      "q": "In D=D+1;JMP (binary 1110011111010111), what do the dest bits enable?",
+      "choices": [
+        "ddd = 111: A, D and M all receive the ALU output",
+        "ddd = 011: D and M receive the ALU output",
+        "ddd = 010: only the A register loads the ALU output",
+        "ddd = 010: only the D register loads the ALU output; A doesn't load and writeM is 0"
+      ],
+      "answer": 3,
+      "explain": "The d-bits go to the load bits of A and D and to writeM, so only the enabled destinations take the ALU output. Here d1 = 0, d2 = 1, d3 = 0."
+    },
+    {
+      "type": "multi",
+      "category": "CPU control logic",
+      "q": "In the proposed Hack CPU implementation, which destinations receive the ALU output at the same time, each enabled or disabled by its own control bit?",
+      "choices": [
+        "The D register",
+        "The A register (through the Mux16 in front of it)",
+        "The outM output to data memory",
+        "The PC's input",
+        "The instruction memory"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The ALU output goes to D, A and outM at once, and each one's control bit decides whether it commits. The PC's input comes from the A register."
+    },
+    {
+      "type": "tf",
+      "category": "CPU control logic",
+      "q": "In the proposed CPU implementation, the Mux16 in front of the A register passes the incoming instruction through for an A-instruction, and the ALU output for a C-instruction.",
+      "answer": true,
+      "explain": "The opcode bit drives this Mux16. For an A-instruction, the instruction itself (a constant) goes into A. For a C-instruction, A is set up to take the ALU output."
+    },
+    {
+      "type": "multi",
+      "category": "CPU control logic",
+      "q": "In which cases should the A register's load bit be asserted?",
+      "choices": [
+        "The instruction is an A-instruction",
+        "The instruction is a C-instruction whose d1 (A destination) bit is 1",
+        "The instruction is a C-instruction whose d3 (M destination) bit is 1",
+        "The instruction is a C-instruction whose jump bits aren't all 0"
+      ],
+      "answer": [0, 1],
+      "explain": "A loads on every A-instruction (@xxx) and on any C-instruction that names A as a destination. Writing to M or jumping only reads A."
+    },
+    {
+      "type": "mc",
+      "category": "CPU control logic",
+      "q": "When should the CPU assert writeM?",
+      "choices": [
+        "Whenever bit 3 of the instruction is 1, even for an A-instruction",
+        "When the current instruction is a C-instruction with d3 (the M destination bit) set",
+        "Whenever the A register gets a new value",
+        "Whenever inM isn't zero"
+      ],
+      "answer": 1,
+      "explain": "writeM tells data memory to store outM at addressM. That only happens when a C-instruction names M as a destination. In an A-instruction the same bit is just part of the constant."
+    },
+    {
+      "type": "num",
+      "category": "CPU control logic",
+      "q": "How many c-bits does a C-instruction send to the ALU's control inputs?",
+      "answer": 6,
+      "explain": "The six c-bits go straight to the ALU's six control bits and decide which function it computes."
+    },
+    {
+      "type": "multi",
+      "category": "CPU control logic",
+      "q": "For the C-instruction AM=M+1 (no jump), which control signals does the CPU assert?",
+      "choices": [
+        "The A register's load bit",
+        "The D register's load bit",
+        "writeM",
+        "The PC's load bit (jump)"
+      ],
+      "answer": [0, 2],
+      "explain": "AM is dest 101: d1 = 1 (A), d2 = 0 (D), d3 = 1 (M, which sets writeM). With no jump the PC just increments."
+    },
+    {
+      "type": "mc",
+      "category": "Program counter and jumps",
+      "q": "Which pseudo-code correctly describes how the Hack PC is updated?",
+      "choices": [
+        "if reset: PC ← 0; else if J = 1: PC ← A; else PC ← PC + 1",
+        "if J = 1: PC ← A; else if reset: PC ← 0; else PC ← PC + 1",
+        "if reset: PC ← A; else PC ← PC + 1",
+        "if reset: PC ← 0; else if J = 1: PC ← D; else PC ← PC + 1"
+      ],
+      "answer": 0,
+      "explain": "Reset comes first. Otherwise the PC loads A (which already holds the jump target) when the jump condition is true, and increments when it isn't."
+    },
+    {
+      "type": "mc",
+      "category": "Program counter and jumps",
+      "q": "How does a Hack program carry out 'jump to n', where n is the address of an instruction?",
+      "choices": [
+        "With one C-instruction that has n coded in its j-bits",
+        "With @n to set A to n, then a C-instruction with a jump directive, e.g. 0;JMP",
+        "By writing n into RAM[0] and then running 0;JMP",
+        "By loading n into D and then running D;JMP"
+      ],
+      "answer": 1,
+      "explain": "A jump always goes to the instruction A points to. Feeding A into the PC and asserting the PC's load bit makes PC = A instead of PC++."
+    },
+    {
+      "type": "mc",
+      "category": "Program counter and jumps",
+      "q": "What do the ALU's zr and ng outputs mean?",
+      "choices": [
+        "zr = 1 if out < 0; ng = 1 if out = 0",
+        "zr = 1 if out = 0; ng = 1 if out < 0",
+        "zr zeroes the x input; ng negates the output",
+        "zr = 1 if out > 0; ng = 1 if out ≠ 0"
+      ],
+      "answer": 1,
+      "explain": "The CPU combines zr and ng with the instruction's j-bits to decide whether the jump condition holds."
+    },
+    {
+      "type": "mc",
+      "category": "Program counter and jumps",
+      "q": "In the jump field, j1 stands for out < 0, j2 for out = 0, and j3 for out > 0. Which Boolean expression gives the jump condition J?",
+      "choices": [
+        "(j1 AND zr) OR (j2 AND ng) OR j3",
+        "j1 AND j2 AND j3",
+        "(j1 AND ng) OR (j2 AND zr) OR (j3 AND NOT zr AND NOT ng)",
+        "(j1 OR j2 OR j3) AND zr"
+      ],
+      "answer": 2,
+      "explain": "Each j-bit enables one condition: negative (ng), zero (zr), or positive (neither zr nor ng). The jump happens if any enabled condition holds. For example, JMP = 111 always jumps and null = 000 never does."
+    },
+    {
+      "type": "multi",
+      "category": "Program counter and jumps",
+      "q": "A C-instruction uses JNE (jump bits 101). For which ALU outputs does it jump?",
+      "choices": ["-3", "0", "5", "1"],
+      "answer": [0, 2, 3],
+      "explain": "JNE jumps when out ≠ 0, meaning out < 0 (j1) or out > 0 (j3). Only an output of 0 doesn't jump."
+    },
+    {
+      "type": "tf",
+      "category": "Program counter and jumps",
+      "q": "A C-instruction with jump field JGE (011) jumps when the ALU output is exactly 0.",
+      "answer": true,
+      "explain": "JGE means out ≥ 0. Here j2 = 1 and zr = 1, so the condition holds."
+    },
+    {
+      "type": "mc",
+      "category": "Program counter and jumps",
+      "q": "A C-instruction has jump bits 110 (JLE), and the ALU output gives zr = 0 and ng = 0. What happens next?",
+      "choices": [
+        "No jump: the output is positive, so the PC increments",
+        "Jump: PC is set to A",
+        "Jump: PC is set to 0",
+        "No jump, and the PC keeps its current value"
+      ],
+      "answer": 0,
+      "explain": "zr = 0 and ng = 0 mean out > 0. JLE jumps only if out ≤ 0, and j3 (the positive case) is 0, so the PC just goes to PC + 1."
+    },
+    {
+      "type": "mc",
+      "category": "Program counter and jumps",
+      "q": "Why is the CPU's reset input wired straight to the PC's reset input?",
+      "choices": [
+        "Resetting the PC also clears the data memory",
+        "It keeps the A register from loading a constant",
+        "The PC can only count up after it has been reset",
+        "The program is stored in instruction memory starting at address 0, so setting PC to 0 starts (or restarts) it"
+      ],
+      "answer": 3,
+      "explain": "Asserting reset gives PC = 0, so the computer fetches and runs the program's first instruction."
+    },
+    {
+      "type": "mc",
+      "category": "Memory-mapped I/O",
+      "q": "What is the basic idea of memory-mapped I/O?",
+      "choices": [
+        "The CPU has special instructions for each type of I/O device",
+        "I/O devices are wired straight to the ALU's inputs and outputs",
+        "Each I/O device gets its own area of memory (its memory map) that mirrors the device's state, so programs use the device by reading and writing ordinary memory registers",
+        "I/O devices share the instruction memory with the program"
+      ],
+      "answer": 2,
+      "explain": "The keyboard's memory map always shows which key is pressed, and the screen always shows what's in its memory map. Device and memory are refreshed several times per second, so the response looks instant."
+    },
+    {
+      "type": "multi",
+      "category": "Memory-mapped I/O",
+      "q": "Which of these are consequences or requirements of memory-mapped I/O?",
+      "choices": [
+        "The CPU design can stay independent of the number, nature or make of the I/O devices",
+        "Connecting a new device means giving it a new memory map and noting its base address",
+        "A device's data has to be serialized onto a 1-D sequence of memory registers, e.g. a 2-D screen onto a vector of words",
+        "Each new device needs new instructions added to the CPU",
+        "Devices can only be reached through special I/O instructions"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "It also depends on agreed protocols, such as which binary code stands for which key, which is why standards matter. The CPU doesn't change when devices are added."
+    },
+    {
+      "type": "num",
+      "category": "Memory-mapped I/O",
+      "q": "The Hack screen has 256 rows of 512 black-and-white pixels. How many 16-bit words of the Screen memory map does each row take up?",
+      "answer": 32,
+      "explain": "512 / 16 = 32. The full screen is 256 × 32 = 8192 words, which is the 8K Screen chip."
+    },
+    {
+      "type": "num",
+      "category": "Memory-mapped I/O",
+      "q": "Which data-memory address holds the word with the pixel at row 3, column 37? (The Screen memory map starts at address 16384.)",
+      "answer": 16482,
+      "explain": "The word is Screen[r*32 + c/16] = Screen[96 + 2] = Screen[98], using integer division. Adding the base address: 16384 + 98 = 16482."
+    },
+    {
+      "type": "num",
+      "category": "Memory-mapped I/O",
+      "q": "In the Screen word that holds the pixel at row 3, column 37, which bit controls that pixel? (Count from the LSB as bit 0.)",
+      "answer": 5,
+      "explain": "The pixel is bit c % 16 = 37 % 16 = 5, counting from LSB to MSB."
+    },
+    {
+      "type": "tf",
+      "category": "Memory-mapped I/O",
+      "q": "Writing a 1 to a bit of the Screen memory map turns the matching pixel on the physical screen black.",
+      "answer": true,
+      "explain": "1 = black and 0 = white. The Screen chip works like ordinary RAM, with the side effect of continuously refreshing the physical display."
+    },
+    {
+      "type": "mc",
+      "category": "Memory-mapped I/O",
+      "q": "What does the Hack Keyboard chip output when no key is pressed?",
+      "choices": ["-1", "0", "The scan-code of the last key pressed", "32767"],
+      "answer": 1,
+      "explain": "Keyboard is a 16-bit register that outputs the scan-code of the key currently held down, or 0 if no key is pressed."
+    },
+    {
+      "type": "num",
+      "category": "Data memory and address space",
+      "q": "At which data-memory address does the Screen memory map begin (in decimal)?",
+      "answer": 16384,
+      "explain": "RAM16K uses 0–16383, so the Screen starts at 16384 (0x4000) and runs to 24575 (0x5FFF)."
+    },
+    {
+      "type": "num",
+      "category": "Data memory and address space",
+      "q": "At which data-memory address is the Keyboard memory map (in decimal)?",
+      "answer": 24576,
+      "explain": "That's 0x6000. The Keyboard is a single 16-bit register right after the Screen."
+    },
+    {
+      "type": "mc",
+      "category": "Data memory and address space",
+      "q": "Which hex range of the Hack data memory maps to RAM16K?",
+      "choices": ["0x0000–0x5FFF", "0x4000–0x5FFF", "0x0000–0x3FFF", "0x0000–0x7FFF"],
+      "answer": 2,
+      "explain": "0x0000–0x3FFF (0–16383) is RAM, 0x4000–0x5FFF is the Screen, 0x6000 is the Keyboard, and anything above 0x6000 is invalid."
+    },
+    {
+      "type": "num",
+      "category": "Data memory and address space",
+      "q": "A program reads Memory address 17000. Which address inside the Screen chip gets accessed?",
+      "answer": 616,
+      "explain": "17000 is in the Screen range (16384–24575), so the Screen chip gets 17000 − 16384 = 616. Address 16384 itself would be Screen address 0."
+    },
+    {
+      "type": "mc",
+      "category": "Data memory and address space",
+      "q": "The Memory chip uses its two top address bits, address[14] and address[13], to pick the target chip-part. Which values select the Keyboard?",
+      "choices": [
+        "address[14] = 1, address[13] = 1",
+        "address[14] = 1, address[13] = 0",
+        "address[14] = 0, address[13] = 1",
+        "address[14] = 0, address[13] = 0"
+      ],
+      "answer": 0,
+      "explain": "0x6000 as 15 bits is 110 0000 0000 0000, so address[14] = 1 and address[13] = 1. If address[14] = 0 it's RAM16K, and if address[14] = 1 with address[13] = 0 it's the Screen."
+    },
+    {
+      "type": "multi",
+      "category": "Data memory and address space",
+      "q": "Which chip-parts make up the Hack data Memory chip?",
+      "choices": ["RAM16K", "Screen", "Keyboard", "ROM32K", "The PC register"],
+      "answer": [0, 1, 2],
+      "explain": "The data memory combines RAM16K, Screen and Keyboard into one address space. ROM32K is the separate instruction memory."
+    },
+    {
+      "type": "tf",
+      "category": "Data memory and address space",
+      "q": "'Random Access Memory' means any register you select can be reached in the same access time, whatever the memory's size and wherever the register sits in it.",
+      "answer": true,
+      "explain": "You select a register by supplying its address, and then you get immediate access to its contents, to read it or write it."
+    },
+    {
+      "type": "num",
+      "category": "Data memory and address space",
+      "q": "How many valid addresses does the Hack data memory have?",
+      "answer": 24577,
+      "explain": "16384 RAM + 8192 Screen + 1 Keyboard = 24577, which is addresses 0 through 24576. Anything above 0x6000 is invalid."
+    },
+    {
+      "type": "mc",
+      "category": "Instruction memory and the Computer chip",
+      "q": "How is the Hack instruction memory implemented?",
+      "choices": [
+        "As a read/write RAM16K chip shared with the data",
+        "As a read-only ROM32K chip: 32K 16-bit registers with a 15-bit address input",
+        "As a ROM of 16K 32-bit registers with a 14-bit address input",
+        "As the upper half of the data memory, from 0x4000 up"
+      ],
+      "answer": 1,
+      "explain": "ROM32K outputs ROM32K[address], which is taken as the current instruction. It's assumed to come pre-loaded with a Hack program."
+    },
+    {
+      "type": "multi",
+      "category": "Instruction memory and the Computer chip",
+      "q": "Which of these connections are part of the Hack Computer chip's implementation?",
+      "choices": [
+        "ROM32K out → CPU instruction",
+        "CPU pc → ROM32K address",
+        "Memory out → CPU inM",
+        "CPU outM, writeM, addressM → Memory in, load, address",
+        "CPU outM → ROM32K",
+        "Memory out → ROM32K address"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The PC selects the next instruction from ROM, which feeds the CPU. The CPU reads M from Memory and writes back via outM, writeM and addressM. Nothing writes into the ROM."
+    },
+    {
+      "type": "mc",
+      "category": "Instruction memory and the Computer chip",
+      "q": "How do you start running the program stored in the Hack Computer?",
+      "choices": [
+        "Set reset to 0, then to 1",
+        "Write the program's first instruction into RAM[0]",
+        "Set reset to 1, then back to 0",
+        "Set the PC to the program's last address"
+      ],
+      "answer": 2,
+      "explain": "reset = 1 sends the PC to 0, so the first instruction runs. With reset = 0 the program keeps running from there."
+    },
+    {
+      "type": "text",
+      "category": "Instruction memory and the Computer chip",
+      "q": "What is the only input of the topmost Hack Computer chip?",
+      "answer": ["reset"],
+      "explain": "Computer has just the reset input. After that it's up to the software, which can draw on the screen and read the keyboard."
+    },
+    {
+      "type": "mc",
+      "category": "Instruction memory and the Computer chip",
+      "q": "In a physical Hack computer, how do you run a different program?",
+      "choices": [
+        "Have the running program write the new code into the ROM",
+        "Copy the program into RAM16K and jump to it",
+        "Feed the program in through the keyboard memory map",
+        "Replace the ROM chip with one that holds the new program"
+      ],
+      "answer": 3,
+      "explain": "The instruction memory is a ROM that comes pre-loaded with the program, so a physical machine changes programs by swapping the chip."
+    },
+    {
+      "type": "tf",
+      "category": "Instruction memory and the Computer chip",
+      "q": "A running Hack program can overwrite instructions in its own instruction memory.",
+      "answer": false,
+      "explain": "Instruction memory is read-only and separate from data memory. The CPU can only write to data memory, through outM, writeM and addressM."
+    },
+    {
+      "type": "mc",
+      "category": "Perspective",
+      "q": "How do dedicated computers differ from general-purpose computers?",
+      "choices": [
+        "A dedicated computer runs one program burned into its ROM (e.g. in phones, game consoles and cameras), but it uses the same architectural ideas",
+        "Dedicated computers have no CPU or program counter",
+        "Dedicated computers keep their programs in RAM so they can switch quickly",
+        "Dedicated computers don't use the stored program concept"
+      ],
+      "answer": 0,
+      "explain": "General-purpose computers are built to switch easily between programs. Both kinds use stored programs, fetch-decode-execute logic, a CPU, registers and a program counter."
+    },
+    {
+      "type": "tf",
+      "category": "Perspective",
+      "q": "Unlike Hack, most general-purpose computers use a single address space for both instructions and data.",
+      "answer": true,
+      "explain": "So they use two-cycle logic. In the fetch cycle the instruction is read into an instruction register, and in the execute cycle the data address goes to the same memory."
+    },
+    {
+      "type": "multi",
+      "category": "Perspective",
+      "q": "Which performance techniques of industrial-strength computers does the Hack design leave out?",
+      "choices": [
+        "Memory hierarchies (cache)",
+        "Pipelining",
+        "Instruction prefetching",
+        "Parallelism",
+        "Memory-mapped I/O"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Most of the effort in real hardware design goes into performance. Hack skips those techniques, but it does use memory-mapped I/O."
+    },
+    {
+      "type": "mc",
+      "category": "Perspective",
+      "q": "What separates the CISC and RISC approaches to processor performance?",
+      "choices": [
+        "CISC goes for rich, elaborate instruction sets; RISC uses simpler instruction sets so the hardware can be as fast as possible",
+        "RISC goes for rich instruction sets; CISC uses simpler ones",
+        "CISC uses memory-mapped I/O; RISC doesn't",
+        "RISC computers don't follow the von Neumann architecture"
+      ],
+      "answer": 0,
+      "explain": "CISC is Complex Instruction Set Computing and RISC is Reduced Instruction Set Computing. These are two historical schools of hardware design aimed at better performance."
+    },
+    {
+      "type": "mc",
+      "category": "Perspective",
+      "q": "Where does Hack stand in the CISC vs RISC debate?",
+      "choices": [
+        "It's a typical CISC machine",
+        "It's a typical RISC machine with hardware acceleration",
+        "It mixes both, with a strong instruction set and pipelining",
+        "It stays out of the debate, with neither a strong instruction set nor special hardware acceleration"
+      ],
+      "answer": 3,
+      "explain": "Hack is deliberately minimal and doesn't take a side."
+    },
+    {
+      "type": "mc",
+      "category": "Perspective",
+      "q": "How do most modern computers handle the screen differently from Hack?",
+      "choices": [
+        "They use no memory for the screen at all",
+        "The CPU sends high-level graphics instructions to a graphics card, which draws shapes with its own chip-set",
+        "Each pixel is still a single black-or-white bit, drawn by the CPU",
+        "The keyboard controller drives the screen"
+      ],
+      "answer": 1,
+      "explain": "That frees the CPU from drawing circles and polygons itself. Each pixel is still set by memory-resident bits, but several bits per pixel encode brightness levels of the three primary colors."
+    },
+    {
+      "type": "tf",
+      "category": "Perspective",
+      "q": "Typical computers differ from Hack mainly in quantity (more registers, more data types, stronger ALUs, richer instruction sets), not in their basic paradigm.",
+      "answer": true,
+      "explain": "Hack and typical computers all follow the von Neumann architecture."
+    }
+  ]
+}

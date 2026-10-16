@@ -1,0 +1,376 @@
+{
+  "title": "X86ASM 12: Converting Integers to Strings (itoa)",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "num",
+      "category": "ASCII digit conversion",
+      "q": "What is the decimal ASCII code of the character '0'?",
+      "answer": 48,
+      "explain": "'0' is 48 (0x30) in ASCII. The digit characters '0' to '9' are 48 to 57 in order."
+    },
+    {
+      "type": "mc",
+      "category": "ASCII digit conversion",
+      "q": "RAX holds the integer 7 (a single digit). Which operation turns it into the ASCII code for the character '7'?",
+      "choices": ["Add 48 (the code for '0')", "Subtract 48", "Add decimal 30", "Multiply by 10"],
+      "answer": 0,
+      "explain": "Add the code of '0' to the digit: 48 + 7 = 55, which is '7'. The debugger shows this constant as 0x30, which is hex for 48. It is not decimal 30."
+    },
+    {
+      "type": "tf",
+      "category": "ASCII digit conversion",
+      "q": "In GNU as Intel syntax, `add rdx, '0'` and `add rdx, 48` assemble to the same operation.",
+      "answer": true,
+      "explain": "The assembler replaces the quoted character with its ASCII value, 48. Writing '0' documents what the constant means, so it doesn't look like a magic number."
+    },
+    {
+      "type": "text",
+      "category": "ASCII digit conversion",
+      "q": "A naive program adds '0' to the whole number 20 and prints the resulting byte. Which character appears?",
+      "answer": ["D", "'D'"],
+      "explain": "20 + 48 = 68, which is ASCII 'D'. Adding '0' only works for one digit at a time (0-9). Bigger values must be split into digits first."
+    },
+    {
+      "type": "num",
+      "category": "ASCII digit conversion",
+      "q": "After adding '0' to a remainder of 3, the debugger shows RDX = 0x33. What is 0x33 in decimal?",
+      "answer": 51,
+      "explain": "3*16 + 3 = 51, which is the ASCII code for '3'."
+    },
+    {
+      "type": "mc",
+      "category": "Extracting digits with div",
+      "q": "You divide 123 by 10 over and over and keep each remainder. In what order do the remainders come out?",
+      "choices": ["3, 2, 1", "1, 2, 3", "12, 1, 0", "3, 12, 123"],
+      "answer": 0,
+      "explain": "123/10 = 12 remainder 3, 12/10 = 1 remainder 2, 1/10 = 0 remainder 1. The least significant digit comes out first, so the digits appear in reverse."
+    },
+    {
+      "type": "tf",
+      "category": "Extracting digits with div",
+      "q": "The remainder of dividing a number by 10 is its least significant (rightmost) decimal digit.",
+      "answer": true,
+      "explain": "For example, 5352 mod 10 = 2. The quotient, 535, holds the remaining digits."
+    },
+    {
+      "type": "mc",
+      "category": "Extracting digits with div",
+      "q": "After `div rbx` runs (unsigned 64-bit divide), where are the quotient and the remainder?",
+      "choices": ["Quotient in RAX, remainder in RDX", "Quotient in RDX, remainder in RAX", "Quotient in RBX, remainder in RDX", "Quotient in RAX, remainder in RBX"],
+      "answer": 0,
+      "explain": "div implicitly divides RDX:RAX by its operand. The quotient goes into RAX, and the remainder (the digit we want) goes into RDX."
+    },
+    {
+      "type": "mc",
+      "category": "Extracting digits with div",
+      "q": "Why does the loop run `xor rdx, rdx` before every `div rbx`?",
+      "choices": [
+        "RDX is the upper half of the 128-bit dividend RDX:RAX, and it still holds the previous remainder plus '0', which would corrupt the division",
+        "div only works when every register except RAX is zero",
+        "It clears the zero flag so that jne works",
+        "It resets RDI to the start of the buffer"
+      ],
+      "answer": 0,
+      "explain": "div uses RDX:RAX as the dividend. From the last iteration, RDX still holds the digit's ASCII code. If RDX isn't cleared, the dividend is wrong."
+    },
+    {
+      "type": "tf",
+      "category": "Extracting digits with div",
+      "q": "`xor rdx, rdx` leaves RDX holding the same value as `mov rdx, 0`.",
+      "answer": true,
+      "explain": "Any value XORed with itself is 0, so both instructions zero RDX."
+    },
+    {
+      "type": "mc",
+      "category": "Extracting digits with div",
+      "q": "In the itoa loop, which condition ends the loop after the current digit is stored?",
+      "choices": ["The quotient in RAX is 0", "The remainder in RDX is 0", "RDI has reached the start of buf", "Exactly 10 iterations have run"],
+      "answer": 0,
+      "explain": "`cmp rax, 0` / `jne _itoa_loop` keeps looping while digits remain in the quotient. A quotient of 0 means the last digit was just written."
+    },
+    {
+      "type": "tf",
+      "category": "Extracting digits with div",
+      "q": "It would also be correct to stop the loop as soon as the remainder in RDX is 0.",
+      "answer": false,
+      "explain": "For an input like 10, the first remainder is 0 but the digit '1' is still left. A remainder of 0 just means that digit is a zero. Only a quotient of 0 means you're done."
+    },
+    {
+      "type": "num",
+      "category": "Extracting digits with div",
+      "q": "How many times does the body of _itoa_loop execute for the input 5352?",
+      "answer": 4,
+      "explain": "Each pass produces one digit. 5352 -> 535 r2 -> 53 r5 -> 5 r3 -> 0 r5, so there are 4 passes."
+    },
+    {
+      "type": "text",
+      "category": "Extracting digits with div",
+      "q": "What digit string does _itoa produce for the input 0 (ignore the newline)?",
+      "answer": ["0", "\"0\""],
+      "explain": "The loop body runs before the test (do-while style). 0/10 = 0 remainder 0, so '0' is written, then RAX = 0 ends the loop."
+    },
+    {
+      "type": "num",
+      "category": "Extracting digits with div",
+      "q": "Before the first division, the debugger shows RAX = 0x7B. What decimal value is being converted?",
+      "answer": 123,
+      "explain": "0x7B = 7*16 + 11 = 123. Likewise, after the first division RAX shows 0xC (12), and RBX holds 0xA (10)."
+    },
+    {
+      "type": "mc",
+      "category": "Buffers and addressing",
+      "q": "Why does itoa start writing at an offset into the buffer (e.g. buf + 32) and move left, instead of starting at buf?",
+      "choices": [
+        "The digits come out least significant first, so writing right to left puts them in reading order, and the bytes before the start point give room to grow",
+        "The first 32 bytes of a .data section are reserved by the OS",
+        "div can only access addresses that are multiples of 32",
+        "The null terminator has to be at the lowest address"
+      ],
+      "answer": 0,
+      "explain": "Writing each new digit one byte to the left of the last one reverses the order automatically. No separate reversal step is needed."
+    },
+    {
+      "type": "mc",
+      "category": "Buffers and addressing",
+      "q": "Which single instruction puts the address buf + 32 into RDI?",
+      "choices": ["lea rdi, [buf + 32]", "mov rdi, [buf + 32]", "mov byte ptr [rdi], 32", "add rdi, [buf]"],
+      "answer": 0,
+      "explain": "lea evaluates the address expression in the brackets and stores the address itself. `mov rdi, [buf + 32]` would load the data stored at that address."
+    },
+    {
+      "type": "tf",
+      "category": "Buffers and addressing",
+      "q": "`lea rdi, [buf + 32]` reads 8 bytes from memory at buf + 32.",
+      "answer": false,
+      "explain": "lea only computes the address. It never touches memory."
+    },
+    {
+      "type": "tf",
+      "category": "Buffers and addressing",
+      "q": "Given `buf: .skip 1024` in .data, the label buf has the value 1024.",
+      "answer": false,
+      "explain": "A label is just an address. Here buf names the start of 1024 reserved bytes."
+    },
+    {
+      "type": "text",
+      "category": "Buffers and addressing",
+      "q": "RDI is 0x4020 at the top of the loop. What is RDI (in hex) right after `dec rdi`?",
+      "answer": ["0x401F", "0x401f", "401F", "401f"],
+      "explain": "Decrementing moves the pointer down one byte, to one slot earlier in memory: 0x4020 - 1 = 0x401F."
+    },
+    {
+      "type": "mc",
+      "category": "Buffers and addressing",
+      "q": "Inside the loop, why does `dec rdi` come before the digit is stored with `mov [rdi], dl`?",
+      "choices": [
+        "RDI still points at the last byte written (newline, null, or the previous digit), so it has to move left first or that byte gets overwritten",
+        "div requires RDI to be decremented",
+        "dec sets the flags that jne tests",
+        "Stores must always go to odd addresses"
+      ],
+      "answer": 0,
+      "explain": "Each iteration first moves the pointer one byte left, then writes the new digit there. The bytes already written stay intact."
+    },
+    {
+      "type": "num",
+      "category": "Buffers and addressing",
+      "q": "RSI = buf + 32, so the null goes at buf+32 and the newline at buf+31. How many digit characters fit before a write would land below buf?",
+      "answer": 31,
+      "explain": "Digits fill buf+30 down to buf+0, which is 31 bytes. A large 64-bit value in binary can need up to 64 digits, so the offset bounds how much room the caller gives."
+    },
+    {
+      "type": "mc",
+      "category": "Operand size",
+      "q": "Why does `mov [rdi], 0` give an 'ambiguous operand size' error?",
+      "choices": [
+        "Neither the immediate 0 nor the memory operand says whether to write 1, 2, 4, or 8 bytes",
+        "You can't write 0 to memory",
+        "RDI can't be used as a pointer",
+        "Immediate values have to be written in hex"
+      ],
+      "answer": 0,
+      "explain": "Memory is byte-addressable, but a store can write 1, 2, 4, or 8 bytes. With no register operand to imply a size, the assembler needs a size specifier such as `byte ptr`."
+    },
+    {
+      "type": "multi",
+      "category": "Operand size",
+      "q": "Which of these store exactly one zero byte at the address in RDI?",
+      "choices": [
+        "mov byte ptr [rdi], 0",
+        "mov dl, 0 followed by mov [rdi], dl",
+        "mov [rdi], 0",
+        "mov [rdi], rdx (with RDX = 0)",
+        "mov rdi, 0"
+      ],
+      "answer": [0, 1],
+      "explain": "`byte ptr` states the size, and a 1-byte register like DL implies it. `mov [rdi], 0` is ambiguous. `mov [rdi], rdx` writes 8 bytes. `mov rdi, 0` changes the register, not memory."
+    },
+    {
+      "type": "tf",
+      "category": "Operand size",
+      "q": "`mov [rdi], dl` needs a `byte ptr` size specifier to assemble.",
+      "answer": false,
+      "explain": "DL is a 1-byte register, so the store size is implied."
+    },
+    {
+      "type": "mc",
+      "category": "Operand size",
+      "q": "If the loop stored each digit with `mov [rdi], rdx` instead of `mov [rdi], dl`, what would be printed for 123?",
+      "choices": [
+        "Only '1': each 8-byte store also writes 7 zero bytes over the characters to its right",
+        "123 followed by a newline, the same as before",
+        "321",
+        "The assembler rejects it as ambiguous"
+      ],
+      "answer": 0,
+      "explain": "RDX holds a small value (e.g. 0x31), so its upper 7 bytes are zero. The last store, at the leftmost position, zeroes the bytes after it, and strlen stops after one character."
+    },
+    {
+      "type": "tf",
+      "category": "Operand size",
+      "q": "Memory is byte-addressable: each address refers to a single byte.",
+      "answer": true,
+      "explain": "That's why a store needs a stated or implied width. It starts at one address and covers 1, 2, 4, or 8 consecutive bytes."
+    },
+    {
+      "type": "mc",
+      "category": "String termination",
+      "q": "Why must the string itoa builds end with a 0 byte?",
+      "choices": [
+        "_strlen counts bytes until it finds 0, and _print uses that count as the write length",
+        "The write syscall stops at a 0 byte by itself",
+        "div needs a 0 after the dividend",
+        "A 0 byte prints as a newline"
+      ],
+      "answer": 0,
+      "explain": "Without a terminator, _strlen would keep counting into whatever bytes follow."
+    },
+    {
+      "type": "mc",
+      "category": "String termination",
+      "q": "From lowest address to highest, how should the final buffer for 123 be laid out?",
+      "choices": ["'1' '2' '3' '\\n' 0", "'1' '2' '3' 0 '\\n'", "0 '\\n' '3' '2' '1'", "'3' '2' '1' '\\n' 0"],
+      "answer": 0,
+      "explain": "The 0 goes at the starting address (highest), the newline just before it, then the digits right to left."
+    },
+    {
+      "type": "mc",
+      "category": "String termination",
+      "q": "The code stores the newline at the starting address and the 0 one byte before it (the two are swapped). What happens?",
+      "choices": [
+        "The digits print but the newline doesn't, because _strlen stops at the 0 before reaching it",
+        "Only the newline prints",
+        "Nothing prints at all",
+        "The program crashes in div"
+      ],
+      "answer": 0,
+      "explain": "The terminator has to be the last byte. Anything after it is never counted, so it's never printed."
+    },
+    {
+      "type": "num",
+      "category": "String termination",
+      "q": "With RSI = buf + 32 and input 123, what value does _strlen return for the string _itoa returns?",
+      "answer": 4,
+      "explain": "The string is \"123\\n\": three digits plus the newline. The 0 terminator isn't counted."
+    },
+    {
+      "type": "num",
+      "category": "String termination",
+      "q": "With RSI = buf + 32 and input 123, _itoa returns buf + N. What is N?",
+      "answer": 28,
+      "explain": "0 at buf+32, '\\n' at 31, '3' at 30, '2' at 29, '1' at 28. RDI ends on the first character, buf+28."
+    },
+    {
+      "type": "mc",
+      "category": "Calling conventions and the stack",
+      "q": "Under the System V convention used here, which registers hold the first argument, the second argument, and the return value?",
+      "choices": ["RDI, RSI, RAX", "RAX, RBX, RDX", "RSI, RDI, RAX", "RDI, RSI, RDX"],
+      "answer": 0,
+      "explain": "_itoa gets the number in RDI and the buffer end in RSI, and returns the string's address in RAX."
+    },
+    {
+      "type": "mc",
+      "category": "Calling conventions and the stack",
+      "q": "Why does _itoa run `mov rax, rdi` just before `ret`?",
+      "choices": [
+        "RDI now points at the first character, and return values go in RAX",
+        "It restores the original number for the caller",
+        "ret jumps to the address in RAX",
+        "It clears RAX for the next call"
+      ],
+      "answer": 0,
+      "explain": "The caller needs to know where the string starts, and the convention returns values in RAX."
+    },
+    {
+      "type": "mc",
+      "category": "Calling conventions and the stack",
+      "q": "Why is `mov rdi, rax` placed between `call _itoa` and `call _print`?",
+      "choices": [
+        "_itoa returns the string address in RAX, but _print expects its argument in RDI",
+        "_print returns its result in RDI",
+        "It saves the number to convert it again later",
+        "syscall needs RDI equal to RAX"
+      ],
+      "answer": 0,
+      "explain": "The return value comes back in RAX and arguments go out in RDI, so the result has to be moved between calls."
+    },
+    {
+      "type": "tf",
+      "category": "Calling conventions and the stack",
+      "q": "Passing the buffer pointer in RSI, instead of hard-coding buf + 32 inside _itoa, lets the caller decide where the string is written.",
+      "answer": true,
+      "explain": "The conversion function doesn't need to know where it's writing. It just assumes the caller gave it enough space before RSI."
+    },
+    {
+      "type": "mc",
+      "category": "Calling conventions and the stack",
+      "q": "_start does `mov rdi, 23451`, then `push rdi`, calls _itoa and _print, and later does `pop rdi` before calling _itob. What does the push/pop pair do?",
+      "choices": [
+        "Saves the original number, because RDI is overwritten (by _itoa and by `mov rdi, rax`) before _itob needs it",
+        "Lines up the newline character",
+        "Passes the number to _print on the stack",
+        "Clears RDI before the second call"
+      ],
+      "answer": 0,
+      "explain": "The stack holds the value while the calls in between use RDI. pop puts it back, so the number is loaded only once."
+    },
+    {
+      "type": "mc",
+      "category": "Binary and other bases",
+      "q": "Starting from _itoa, what is the one change needed to make a function that outputs the number in binary?",
+      "choices": ["Divide by 2 instead of 10 (mov rbx, 2)", "Add '1' instead of '0'", "Shift RDI by 2 instead of 1", "Compare RAX with 2 instead of 0"],
+      "answer": 0,
+      "explain": "Binary is base 2 with digits 0 and 1. Repeated division by 2 gives remainders 0/1, and adding '0' turns them into '0'/'1'."
+    },
+    {
+      "type": "text",
+      "category": "Binary and other bases",
+      "q": "What digit string does _itob produce for the input 10?",
+      "answer": ["1010"],
+      "explain": "10 -> 5 r0 -> 2 r1 -> 1 r0 -> 0 r1. Reading the remainders in reverse gives 1010."
+    },
+    {
+      "type": "text",
+      "category": "Binary and other bases",
+      "q": "What digit string does _itob produce for the character 'A' (ASCII 65)?",
+      "answer": ["1000001"],
+      "explain": "65 = 64 + 1, so the result is a 1, five 0s, and a 1: 1000001."
+    },
+    {
+      "type": "num",
+      "category": "Binary and other bases",
+      "q": "How many times does _itob_loop execute for the input 255?",
+      "answer": 8,
+      "explain": "255 is 11111111 in binary, so there are 8 digits and one iteration per digit."
+    },
+    {
+      "type": "multi",
+      "category": "Binary and other bases",
+      "q": "If the only change to _itoa is the divisor in RBX, which divisors produce correct digit strings for any input?",
+      "choices": ["2", "8", "10", "16"],
+      "answer": [0, 1, 2],
+      "explain": "For bases up to 10, every remainder is 0-9, and adding '0' maps it to a digit character. In base 16, remainders 10-15 become ':' through '?' instead of 'A'-'F' (e.g. 255 would print '??')."
+    }
+  ]
+}

@@ -1,0 +1,270 @@
+{
+  "title": "X86ASM 13: Reading from the Terminal",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "The read system call",
+      "q": "On x86-64 Linux, which value must be placed in rax before the syscall instruction to ask the kernel to read?",
+      "choices": ["0", "1", "3", "60"],
+      "answer": 0,
+      "explain": "The kernel checks rax for the system call number when syscall runs. 0 is read, 1 is write, and 60 is exit."
+    },
+    {
+      "type": "mc",
+      "category": "The read system call",
+      "q": "For the read system call, which register holds the file descriptor to read from?",
+      "choices": ["rax", "rdi", "rsi", "rdx"],
+      "answer": 1,
+      "explain": "rdi holds the first argument, the file descriptor. rsi holds the buffer address and rdx holds the maximum byte count."
+    },
+    {
+      "type": "num",
+      "category": "The read system call",
+      "q": "What file descriptor number is standard input, which is connected to the terminal's keyboard input?",
+      "answer": 0,
+      "explain": "Standard input is file descriptor 0. Standard output, used when echoing back, is file descriptor 1."
+    },
+    {
+      "type": "mc",
+      "category": "The read system call",
+      "q": "In a read system call, what should rsi contain?",
+      "choices": [
+        "The number of bytes to read",
+        "The address of the first byte of the buffer where the kernel should store the data",
+        "The value of the first character typed",
+        "The file descriptor to read from"
+      ],
+      "answer": 1,
+      "explain": "rsi gets the address of the buffer's start, for example via lea rsi, [buff]. The kernel writes the incoming bytes starting at that address."
+    },
+    {
+      "type": "tf",
+      "category": "The read system call",
+      "q": "True or false: the value in rdx for a read call is an exact count, so if rdx is 4096 the call will not return until 4096 bytes have been typed.",
+      "answer": false,
+      "explain": "rdx is the most bytes you will accept in one call. If the user types 5 bytes, read returns those 5."
+    },
+    {
+      "type": "mc",
+      "category": "Buffers and memory",
+      "q": "Why must the buffer be at least as large as the byte count passed in rdx to read?",
+      "choices": [
+        "The kernel refuses any read call whose rdx is smaller than the buffer",
+        "The kernel may write up to rdx bytes starting at rsi, so a smaller buffer could be overrun",
+        "rdx is also used as the buffer's address",
+        "The buffer size decides which file descriptor is used"
+      ],
+      "answer": 1,
+      "explain": "The kernel trusts your count. If more bytes are available, it can write up to rdx of them, so the buffer has to have room for all of them."
+    },
+    {
+      "type": "text",
+      "category": "Buffers and memory",
+      "q": "Fill in the GNU as directive that reserves 4096 bytes for a buffer labeled buff in the data section:  buff: ____ 4096",
+      "answer": [".skip", "skip"],
+      "explain": "buff: .skip 4096 reserves 4096 bytes, which start out as zeros. The label buff names the first of those bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Buffers and memory",
+      "q": "4096 bytes (4 KB) is a common buffer size. What does that size correspond to?",
+      "choices": [
+        "One page of memory",
+        "The size of one register",
+        "The size of the stack",
+        "The largest value a 16-bit register can hold"
+      ],
+      "answer": 0,
+      "explain": "4096 bytes is one page of memory, a size you will see over and over."
+    },
+    {
+      "type": "tf",
+      "category": "Buffers and memory",
+      "q": "True or false: the directive  buff: .skip 4096, 0xFF  reserves 4096 bytes and fills every one of them with 0xFF instead of zero.",
+      "answer": true,
+      "explain": "The optional second operand of .skip sets the fill value. Without it, the space is filled with zeros."
+    },
+    {
+      "type": "tf",
+      "category": "Buffers and memory",
+      "q": "True or false: the label buff stands for the whole range of 4096 bytes, so the write call can find out from the label alone how many bytes to print.",
+      "answer": false,
+      "explain": "A label is a single address, the first byte of the buffer. The length has to be passed separately in rdx."
+    },
+    {
+      "type": "num",
+      "category": "Buffers and memory",
+      "q": "After running  mov rdx, 4096, a debugger shows rdx in hexadecimal. What decimal value does the hex value 0x1000 stand for?",
+      "answer": 4096,
+      "explain": "0x1000 = 1 x 16^3 = 4096."
+    },
+    {
+      "type": "mc",
+      "category": "Return values",
+      "q": "After a successful read system call, where is the number of bytes actually read found?",
+      "choices": ["rdi", "rsi", "rdx", "rax"],
+      "answer": 3,
+      "explain": "Under the System V ABI convention used on Linux, rax is the return-value register. read puts the byte count there, replacing the 0 you loaded."
+    },
+    {
+      "type": "num",
+      "category": "Return values",
+      "q": "After a read system call, rax holds 0xF. How many bytes did the kernel write into the buffer? (Answer in decimal.)",
+      "answer": 15,
+      "explain": "0xF in hexadecimal is 15 in decimal. That is the number of bytes read from standard input."
+    },
+    {
+      "type": "mc",
+      "category": "Echoing with write",
+      "q": "To echo the input back to the terminal with the write system call, which pair of values is correct?",
+      "choices": [
+        "rax = 0, rdi = 1",
+        "rax = 1, rdi = 0",
+        "rax = 1, rdi = 1",
+        "rax = 60, rdi = 1"
+      ],
+      "answer": 2,
+      "explain": "write is system call 1, and standard output is file descriptor 1. rsi points at the buffer and rdx holds the length."
+    },
+    {
+      "type": "mc",
+      "category": "Echoing with write",
+      "q": "This code runs right after a read syscall to echo the input:\n\nmov rax, 1\nmov rdi, 1\nlea rsi, [buff]\nmov rdx, rax\nsyscall\n\nWhat is wrong with it?",
+      "choices": [
+        "Nothing; it prints exactly what was typed",
+        "rax is overwritten with 1 before it is copied into rdx, so only 1 byte gets printed; mov rdx, rax must come first",
+        "rsi should hold the length and rdx the buffer address",
+        "rdi should be 0 to write to the terminal"
+      ],
+      "answer": 1,
+      "explain": "read's byte count sits in rax only until something overwrites it. Copy it into rdx before putting the write syscall number in rax. In assembly you often have to juggle registers in the right order like this."
+    },
+    {
+      "type": "mc",
+      "category": "Echoing with write",
+      "q": "When echoing input, why load rdx with the value read returned instead of 4096?",
+      "choices": [
+        "write only accepts lengths under 256",
+        "Only the bytes the kernel actually wrote are the user's input; printing 4096 would also print the unused rest of the buffer",
+        "4096 would make write read from the keyboard again",
+        "rdx must always equal rax for any system call"
+      ],
+      "answer": 1,
+      "explain": "The return value of read tells you how many bytes of the buffer are real input. That count is exactly the length to give write."
+    },
+    {
+      "type": "mc",
+      "category": "Exiting the program",
+      "q": "Which register setup, followed by syscall, ends the program with exit code 0?",
+      "choices": [
+        "rax = 0, rdi = 60",
+        "rax = 60, rdi = 0",
+        "rax = 1, rdi = 0",
+        "rax = 60, rdi = 1"
+      ],
+      "answer": 1,
+      "explain": "rax = 60 is the exit system call, and rdi holds the exit status, here 0."
+    },
+    {
+      "type": "mc",
+      "category": "Exiting the program",
+      "q": "A program does its read syscall and then has no more instructions. Why does it crash?",
+      "choices": [
+        "read always fails unless it is followed by write",
+        "The CPU keeps executing whatever bytes come after the last instruction, which is code you never wrote, and ends up touching an invalid memory location",
+        "The kernel kills any program that reads without echoing",
+        "The buffer is freed automatically and the program faults"
+      ],
+      "answer": 1,
+      "explain": "Nothing stops execution at the end of your code. Without an exit system call, the program falls through into undefined code and crashes."
+    },
+    {
+      "type": "mc",
+      "category": "Looping forever",
+      "q": "To make the program read and echo lines over and over, which instruction should go at the bottom to get back to the read_line label?",
+      "choices": ["call read_line", "jmp read_line", "ret", "syscall"],
+      "answer": 1,
+      "explain": "jmp just moves execution to the label and leaves the stack alone. call pushes a return address every time it runs."
+    },
+    {
+      "type": "multi",
+      "category": "Looping forever",
+      "q": "A student loops with  call read_line  at the bottom of the loop, and there is no ret anywhere. Which statements are true?",
+      "choices": [
+        "Each call pushes the address of the next instruction onto the stack",
+        "The stack grows by one return address on every pass through the loop",
+        "Given enough passes, the stack will eventually overflow and the program will crash",
+        "call does not touch the stack, so it behaves exactly like jmp here",
+        "The pushed return addresses are popped automatically when read finishes"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "call always pushes a return address. With no ret to pop it, the addresses keep piling up until the stack overflows. jmp avoids this."
+    },
+    {
+      "type": "mc",
+      "category": "Looping forever",
+      "q": "Why is an infinite read/echo loop acceptable in this program instead of a runaway CPU hog?",
+      "choices": [
+        "The kernel limits a program to 100 iterations",
+        "Each pass waits in the read system call until the user enters input",
+        "jmp automatically sleeps for one second",
+        "The stack fills up and stops the loop safely"
+      ],
+      "answer": 1,
+      "explain": "read blocks until input is available, so each pass waits for the user, much like a real terminal echo loop."
+    },
+    {
+      "type": "mc",
+      "category": "Appending a newline",
+      "q": "Right after read, rsi still points to the start of the buffer and rax holds the byte count. Which instruction stores a newline (0x0A) right after the last byte read, without overwriting any input?",
+      "choices": [
+        "mov byte ptr [rsi], 0x0A",
+        "mov byte ptr [rax], 0x0A",
+        "mov byte ptr [rsi + rax], 0x0A",
+        "mov byte ptr [rsi + rax + 1], 0x0A"
+      ],
+      "answer": 2,
+      "explain": "The input fills offsets 0 through rax-1, so offset rax (address rsi + rax) is the first free byte. [rsi] would overwrite the first character, and [rax] is not an address inside the buffer."
+    },
+    {
+      "type": "mc",
+      "category": "Appending a newline",
+      "q": "Writing  mov [rsi + rax], 0x0A  gives an \"ambiguous operand size\" error. What fixes it?",
+      "choices": [
+        "Swap the operands",
+        "Add byte ptr before the memory operand so the assembler knows to write a single byte",
+        "Use lea instead of mov",
+        "Put the newline in rdx first"
+      ],
+      "answer": 1,
+      "explain": "Neither a memory operand nor an immediate has a size of its own, so the assembler can't tell whether to write 1, 2, 4, or 8 bytes. byte ptr says to write one byte."
+    },
+    {
+      "type": "mc",
+      "category": "Appending a newline",
+      "q": "A student stores the newline at [rsi + rax] correctly, then does  mov rdx, rax  and calls write. The output still has no line break. Why?",
+      "choices": [
+        "The newline was written to the wrong buffer",
+        "rdx still holds the original count, so write stops one byte before the newline; the count needs to go up by 1",
+        "write strips newlines from its output",
+        "byte ptr stops the newline from being printed"
+      ],
+      "answer": 1,
+      "explain": "If 5 characters were read, the buffer now holds 6 meaningful bytes, but write was told to print only 5. Add 1 to the count to include the newline."
+    },
+    {
+      "type": "multi",
+      "category": "Appending a newline",
+      "q": "rax holds the number of bytes read, and a newline has been stored right after them. Which ways set rdx to the correct length for write?",
+      "choices": [
+        "inc rax  then  mov rdx, rax",
+        "lea rdx, [rax + 1]",
+        "mov rdx, [rax + 1]",
+        "mov rdx, rax  then  dec rdx"
+      ],
+      "answer": [0, 1],
+      "explain": "Both inc-then-mov and lea rdx, [rax + 1] give count + 1. lea only computes the value in the brackets and never reads memory. mov rdx, [rax + 1] would load from memory at address rax + 1, and dec makes the length shorter, not longer."
+    }
+  ]
+}

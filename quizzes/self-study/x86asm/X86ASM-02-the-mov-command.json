@@ -1,0 +1,197 @@
+{
+  "title": "X86ASM 02: The MOV Command",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "MOV semantics",
+      "q": "These two instructions run in order:\n\nmov rax, 5\nmov rbx, rax\n\nWhat do RAX and RBX hold afterwards?",
+      "choices": ["RAX = 5, RBX = 5", "RAX = 0, RBX = 5", "RAX = 5, RBX = 0", "RAX = 0, RBX = 0"],
+      "answer": 0,
+      "explain": "MOV copies. The first instruction puts 5 in RAX. The second copies RAX into RBX, and RAX keeps its 5."
+    },
+    {
+      "type": "tf",
+      "category": "MOV semantics",
+      "q": "After `mov rbx, rax`, the value is gone from RAX because it was moved into RBX.",
+      "answer": false,
+      "explain": "Despite the name, MOV is a copy. The source register still holds its value."
+    },
+    {
+      "type": "mc",
+      "category": "MOV semantics",
+      "q": "In the instruction `mov rbx, rax`, which operand is the destination?",
+      "choices": ["rbx, the first operand", "rax, the second operand", "Both: the values are swapped", "Neither: the result goes to the instruction pointer"],
+      "answer": 0,
+      "explain": "In this syntax the form is `mov destination, source`, so this reads as 'move into RBX the value in RAX'."
+    },
+    {
+      "type": "text",
+      "category": "MOV semantics",
+      "q": "Write one instruction that copies the value in RAX into RBX.",
+      "answer": ["mov rbx, rax", "mov rbx,rax", "MOV RBX, RAX", "MOV RBX,RAX", "mov RBX, RAX"],
+      "explain": "Write `mov`, then the destination register, a comma, and the source: `mov rbx, rax`."
+    },
+    {
+      "type": "num",
+      "category": "MOV semantics",
+      "q": "After `mov rcx, 0x1234`, what value does RCX hold, written in decimal?",
+      "answer": 4660,
+      "explain": "0x1234 = 1*4096 + 2*256 + 3*16 + 4 = 4096 + 512 + 48 + 4 = 4660. The immediate is written in hex but it is the same number."
+    },
+    {
+      "type": "mc",
+      "category": "MOV semantics",
+      "q": "Which of these is NOT a valid use of MOV?",
+      "choices": ["Putting an immediate decimal value in a register", "Putting an immediate hex value in a register", "Copying one general-purpose register into another", "Loading a value from a memory address into a register", "Writing a value straight into RIP"],
+      "answer": 4,
+      "fixed": true,
+      "explain": "MOV can take immediates (decimal or hex), registers, and memory loads. RIP cannot be a MOV destination, and the assembler rejects it."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax & comments",
+      "q": "Why are values in assembly so often written in hexadecimal?",
+      "choices": ["Hex converts easily to other representations, binary in particular", "The CPU can only store hex values", "Decimal immediates are a syntax error", "Hex values run faster than decimal ones"],
+      "answer": 0,
+      "explain": "Each hex digit maps to exactly 4 bits, so hex is easy to convert to binary. Decimal immediates such as `mov rax, 5` are still allowed."
+    },
+    {
+      "type": "multi",
+      "category": "Syntax & comments",
+      "q": "In the GNU assembler syntax used here, which of these lines are comments?",
+      "choices": ["# this is a comment", "/* this is a comment */", "; this is a comment", "-- this is a comment", "% this is a comment"],
+      "answer": [0, 1],
+      "explain": "This assembler accepts a pound sign (#) or a C-style /* ... */ comment. Other assemblers and architectures use other symbols, so comment syntax is not universal."
+    },
+    {
+      "type": "tf",
+      "category": "Syntax & comments",
+      "q": "A C-style comment such as /* note */ can go in the middle of a line of code.",
+      "answer": true,
+      "explain": "The /* ... */ form has an explicit end marker, so it can sit inside a line and the instruction still assembles and runs."
+    },
+    {
+      "type": "tf",
+      "category": "Syntax & comments",
+      "q": "The leading zeros in a memory address are required: `[0x00401000]` works but `[0x401000]` does not.",
+      "answer": false,
+      "explain": "Leading zeros are optional. Both refer to the same address."
+    },
+    {
+      "type": "mc",
+      "category": "Memory loads",
+      "q": "What do the square brackets do in `mov rdx, [0x401000]`?",
+      "choices": ["They make MOV go to address 0x401000 in memory and load what is stored there", "They load the number 0x401000 itself into RDX", "They write RDX's value to address 0x401000", "They mark 0x401000 as a comment"],
+      "answer": 0,
+      "explain": "Brackets mean the operand is a memory address to look up. MOV goes to that address and brings back the contents instead of using the number itself."
+    },
+    {
+      "type": "mc",
+      "category": "Memory loads",
+      "q": "What is the difference between `mov rdx, 0x401000` and `mov rdx, [0x401000]`?",
+      "choices": ["The first puts the number 0x401000 in RDX. The second puts the data stored at address 0x401000 in RDX.", "They do exactly the same thing", "The first reads memory and the second uses an immediate value", "The second writes RDX to memory"],
+      "answer": 0,
+      "explain": "Without brackets the operand is an immediate value. With brackets it is an address, and MOV loads the data stored there."
+    },
+    {
+      "type": "num",
+      "category": "Memory loads",
+      "q": "How many bytes does `mov rdx, [address]` read from memory, given that RDX is a 64-bit register?",
+      "answer": 8,
+      "explain": "A 64-bit register holds 8 bytes, so the load reads 8 bytes starting at that address."
+    },
+    {
+      "type": "tf",
+      "category": "Memory loads",
+      "q": "When bytes are loaded from memory into a register, they appear in the register in the same order they sit in memory, reading left to right.",
+      "answer": false,
+      "explain": "They come out backwards. The byte at the lowest address ends up at the right-hand (least significant) end of the register's value."
+    },
+    {
+      "type": "mc",
+      "category": "Memory loads",
+      "q": "Starting at address 0x401000, memory holds these bytes, lowest address first:\n\n48 C7 C0 05 00 00 00 48\n\nWhat value is in RDX after `mov rdx, [0x401000]`?",
+      "choices": ["0x4800000005C0C748", "0x48C7C00500000048", "0x48C7C005", "0x05C0C748"],
+      "answer": 0,
+      "explain": "All 8 bytes are loaded and they appear backwards. The first byte (48) ends up on the right, and the last byte (48) ends up on the left: 0x4800000005C0C748."
+    },
+    {
+      "type": "mc",
+      "category": "Memory loads",
+      "q": "The bytes at 0x401000 are the 7-byte machine code for `mov rax, 5` (48 C7 C0 05 00 00 00), followed by the next instruction. Why does `mov rdx, [0x401000]` also pick up the first byte of the next instruction?",
+      "choices": ["The load reads 8 bytes to fill the 64-bit register, and the first instruction is only 7 bytes long", "MOV always reads one extra byte as a checksum", "The instruction pointer adds the next byte automatically", "The brackets make MOV read until it reaches a zero byte"],
+      "answer": 0,
+      "explain": "A load into a 64-bit register reads 8 bytes no matter where instructions begin or end. Seven bytes belong to `mov rax, 5`, so the eighth comes from the next instruction."
+    },
+    {
+      "type": "mc",
+      "category": "Special registers",
+      "q": "What does the instruction pointer (RIP) hold?",
+      "choices": ["The address of the next instruction to execute, which the CPU uses to track its place", "The result of the most recent MOV", "The address of the top of the stack", "A count of how many instructions have run"],
+      "answer": 0,
+      "explain": "RIP points to where execution is. It updates on its own and steps forward through the code with each instruction."
+    },
+    {
+      "type": "mc",
+      "category": "Special registers",
+      "q": "What happens when you try to assemble `mov rip, 0x401000`?",
+      "choices": ["The assembler rejects it with an 'operand type mismatch for mov' error", "RIP is set and execution jumps to 0x401000", "It assembles, but RIP ignores the write", "It assembles into a comment"],
+      "answer": 0,
+      "explain": "RIP is protected and cannot be a MOV destination. The assembler reports an operand type mismatch."
+    },
+    {
+      "type": "mc",
+      "category": "Special registers",
+      "q": "If MOV cannot write to RIP, how does a program change where execution goes?",
+      "choices": ["With dedicated control-flow instructions that modify RIP", "By copying the new address into RSP", "By putting the address in a comment", "There is no way. Execution can only go forward."],
+      "answer": 0,
+      "explain": "Other instructions exist to modify RIP, and they are how control flow works. A plain MOV into RIP is not allowed."
+    },
+    {
+      "type": "multi",
+      "category": "Special registers",
+      "q": "Which registers should you avoid writing to unless you are doing it deliberately for a specific reason?",
+      "choices": ["RSP (stack pointer)", "RBP (base pointer)", "RIP (instruction pointer)", "RAX", "RCX", "R15"],
+      "answer": [0, 1, 2],
+      "explain": "RSP and RBP belong to the stack, and RIP controls execution (MOV can't write it at all). The others, such as RAX, RCX, and R15, are general purpose and can be written freely."
+    },
+    {
+      "type": "tf",
+      "category": "Special registers",
+      "q": "MOV can write to the stack pointer RSP, but doing so carelessly can cause problems once real programs use the stack.",
+      "answer": true,
+      "explain": "Unlike RIP, RSP and RBP can be written with MOV. Because they manage the stack, you should only write to them on purpose."
+    },
+    {
+      "type": "tf",
+      "category": "Execution & debugging",
+      "q": "When a debugger pauses a program, the highlighted instruction (the one RIP points to) has already been executed.",
+      "answer": false,
+      "explain": "The highlighted instruction is the next one to run and has not executed yet. Stepping runs it and moves the highlight forward."
+    },
+    {
+      "type": "mc",
+      "category": "Execution & debugging",
+      "q": "A program contains only `mov rax, 5` and `mov rbx, rax`. Both instructions work, but the program then dies with a segmentation fault. Why?",
+      "choices": ["The program never exits, so execution runs past the last instruction into memory it doesn't own", "MOV can't copy between two 64-bit registers", "Putting 5 in RAX is illegal", "Every MOV causes a segmentation fault"],
+      "answer": 0,
+      "explain": "With no exit, the CPU keeps going past the code, like a car driving off a cliff. It reaches memory the program doesn't own, and the operating system reports a segmentation fault (SIGSEGV)."
+    },
+    {
+      "type": "multi",
+      "category": "Execution & debugging",
+      "q": "What does a disassembly view show for each instruction?",
+      "choices": ["The memory address where the instruction lives", "The raw machine code bytes, in hex", "The instruction in assembly form, e.g. mov rbx, rax", "How many times the instruction has run"],
+      "answer": [0, 1, 2],
+      "explain": "Each entry shows the instruction's address, its machine code in hex, and the matching assembly instruction."
+    },
+    {
+      "type": "tf",
+      "category": "Execution & debugging",
+      "q": "Assembly instructions go through an intermediary compiler that may change them before the CPU executes them.",
+      "answer": false,
+      "explain": "The assembler translates assembly instructions directly into the machine instructions the CPU executes, with no intermediary compiler."
+    }
+  ]
+}

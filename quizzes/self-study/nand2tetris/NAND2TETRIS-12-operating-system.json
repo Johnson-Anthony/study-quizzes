@@ -1,0 +1,523 @@
+{
+  "title": "Nand2Tetris 12: Operating System",
+  "course": "NAND2TETRIS",
+  "questions": [
+    {
+      "type": "multi",
+      "category": "OS overview",
+      "q": "Which of the following system services does the Jack OS implement?",
+      "choices": ["Memory management (objects, arrays)", "I/O device drivers", "A file system", "Multi-tasking", "Networking", "Security"],
+      "answer": [0, 1],
+      "explain": "Of the system services, the Jack OS implements only memory management and I/O device drivers. A file system, UI management (shell/windows), multi-tasking, networking and security are all left out."
+    },
+    {
+      "type": "multi",
+      "category": "OS overview",
+      "q": "Which of the following does the Jack OS provide as language extensions (as opposed to system services)?",
+      "choices": ["Mathematical operations such as abs and sqrt", "Abstract data types such as String and Array", "Graphics output such as drawLine and drawCircle", "Memory management", "I/O device drivers"],
+      "answer": [0, 1, 2],
+      "explain": "The language extensions are math operations, abstract data types (String, Array), input functions, textual output and graphics output. Memory management and I/O drivers count as system services."
+    },
+    {
+      "type": "mc",
+      "category": "OS overview",
+      "q": "Which of these is NOT one of the eight Jack OS classes?",
+      "choices": ["Sys", "Keyboard", "Array", "Process"],
+      "answer": 3,
+      "explain": "The eight classes are Math, Memory, Screen, Output, Keyboard, String, Array and Sys. There is no process class, since the Jack OS has no multi-tasking."
+    },
+    {
+      "type": "multi",
+      "category": "OS overview",
+      "q": "A Jack program reads two side lengths and prints the hypotenuse, using a helper function Main.hypot. Which of these calls are OS services?",
+      "choices": ["Keyboard.readInt(...)", "Output.printString(...)", "Math.sqrt((x*x) + (y*y))", "Main.hypot(a, b)"],
+      "answer": [0, 1, 2],
+      "explain": "Keyboard, Output and Math are OS classes. Main.hypot is a function the program defines itself."
+    },
+    {
+      "type": "tf",
+      "category": "OS overview",
+      "q": "On the Hack platform, OS functions run in a special protected mode and get more hardware resources than user-level code.",
+      "answer": false,
+      "explain": "OS code is privileged on typical computers, but on Hack the OS code and user-level code are treated exactly the same way."
+    },
+    {
+      "type": "multi",
+      "category": "OS overview",
+      "q": "On typical (non-Hack) computers, OS code is considered privileged. What does that involve?",
+      "choices": ["Accessing OS services requires a permission mechanism more elaborate than a simple function call", "OS functions execute in a special protected mode", "OS functions receive more hardware resources", "OS functions must be written directly in machine language"],
+      "answer": [0, 1, 2],
+      "explain": "Privileged OS code means an elaborate permission mechanism, a protected execution mode and extra hardware resources. Nothing requires OS code to be written in machine language. The Jack OS, for example, is written in Jack."
+    },
+    {
+      "type": "mc",
+      "category": "OS overview",
+      "q": "You want to implement an existing OS made of n highly inter-dependent modules, and you have executable versions of all n. What strategy do the slides recommend?",
+      "choices": ["Implement each module separately, using the remaining n-1 executable modules to support it", "Implement all n modules first, then test them together", "Implement modules strictly in dependency order, starting with the module that depends on nothing", "Replace the other n-1 modules with empty stubs while developing each one"],
+      "answer": 0,
+      "explain": "This reverse-engineering strategy lets you build and test each module in isolation, with the other modules fully working. The slides note that many versions of Unix were developed this way."
+    },
+
+    {
+      "type": "mc",
+      "category": "Multiplication",
+      "q": "The naive multiply(x, y) adds x to a running sum y times. Its running time is proportional to:",
+      "choices": ["The value of y", "The number of bits in y (log2 y)", "The number of 1-bits in y", "A constant, independent of y"],
+      "answer": 0,
+      "explain": "Repeated addition loops y times, so the work grows with the value of y itself, which can be up to about 32767 on Hack."
+    },
+    {
+      "type": "mc",
+      "category": "Multiplication",
+      "q": "The long multiplication algorithm loops over the bits of y, adding a shifted copy of x whenever the bit is 1. Its running time is proportional to:",
+      "choices": ["The number of digits (bits) in y, i.e. log2 y", "The value of y", "The value of x * y", "The square of the value of y"],
+      "answer": 0,
+      "explain": "The loop runs once per bit, so the cost grows with log2 y. Because the word length is fixed (16 bits), this is effectively O(1)."
+    },
+    {
+      "type": "multi",
+      "category": "Multiplication",
+      "q": "Trace long multiplication on multiply(27, 9). Which values of xShifted get added to sum?",
+      "choices": ["27", "54", "108", "216"],
+      "fixed": true,
+      "answer": [0, 3],
+      "explain": "9 = 1001 in binary. xShifted takes the values 27, 54, 108, 216 for i = 0..3. Only bits 0 and 3 are 1, so sum = 27 + 216 = 243."
+    },
+    {
+      "type": "num",
+      "category": "Multiplication",
+      "q": "When long multiplication computes multiply(x, 11), how many times does it execute sum = sum + xShifted?",
+      "answer": 3,
+      "explain": "11 = 1011 in binary, which has three 1-bits. The addition happens only on iterations where the i'th bit of y is 1. xShifted is doubled on every iteration regardless."
+    },
+    {
+      "type": "tf",
+      "category": "Multiplication",
+      "q": "If x and y are two's complement values, the long multiplication algorithm works as-is, with no special handling for negative inputs.",
+      "answer": true,
+      "explain": "The slides state that the algorithm works as-is for two's complement inputs. Division, by contrast, divides |x| by |y| and then sets the sign."
+    },
+    {
+      "type": "mc",
+      "category": "Multiplication",
+      "q": "If the true product x*y does not fit in n bits, what does the long multiplication algorithm return?",
+      "choices": ["The correct answer modulo 2^n", "Zero", "An error code via Sys.error", "The largest representable n-bit value"],
+      "answer": 0,
+      "explain": "Overflowed bits are simply lost, so the result is always correct modulo 2^n."
+    },
+    {
+      "type": "num",
+      "category": "Multiplication",
+      "q": "To implement the helper bit(x, i), the slides suggest a static array twoToThe in class Math, built in Math.init. What is twoToThe[10]?",
+      "answer": 1024,
+      "explain": "twoToThe[i] = 2^i for i = 0..15, so twoToThe[10] = 1024. ANDing x with twoToThe[i] tells you whether bit i is set, without any bit shifting."
+    },
+    {
+      "type": "mc",
+      "category": "Multiplication",
+      "q": "The multiplication and division algorithms use O(N) additions, and each addition takes O(N) operations, for O(N^2) overall. Why is this still essentially O(1) on Hack?",
+      "choices": ["N, the number of bits, is fixed at 16", "Hack performs every addition in zero time", "The algorithms skip all zero bits, so they run in constant time", "The results are cached in the twoToThe array"],
+      "answer": 0,
+      "explain": "N is the word size, which is fixed at 16, so the work is bounded by a constant. Asymptotically faster algorithms exist, but they only pay off when the number of bits is very large."
+    },
+
+    {
+      "type": "mc",
+      "category": "Division and square root",
+      "q": "The naive divide(x, y) repeatedly subtracts y and counts how many subtractions it does. Its running time is proportional to:",
+      "choices": ["The value of x (more precisely x / y)", "log2 x", "The number of 1-bits in y", "A constant"],
+      "answer": 0,
+      "explain": "Repeated subtraction loops once per unit of the quotient, so for small y the run time grows with the value of x. Long division, and the recursive algorithm, run in time proportional to log2 x."
+    },
+    {
+      "type": "mc",
+      "category": "Division and square root",
+      "q": "The recursive algorithm is: if (y > x) return 0; q = divide(x, 2*y); if ((x - 2*q*y) < y) return 2*q else return 2*q + 1. For divide(175, 3), the inner call divide(175, 6) returns 29. What does divide(175, 3) return?",
+      "choices": ["2*q = 58, because 175 - 2*29*3 = 1 is less than 3", "2*q + 1 = 59, because 175 - 2*29*3 = 1 is less than 3", "2*q + 1 = 59, because 175 - 2*29*3 = 1 is positive", "2*q = 58, because 29 is odd"],
+      "answer": 0,
+      "explain": "x - 2*q*y = 175 - 174 = 1. That leftover is less than y = 3, so there is no room for another y, and the result is 2*q = 58 (remainder 1)."
+    },
+    {
+      "type": "num",
+      "category": "Division and square root",
+      "q": "Using the same recursive algorithm, divide(45, 4) makes the call divide(45, 8), which returns 5. What does divide(45, 4) return?",
+      "answer": 11,
+      "explain": "q = 5, and x - 2*q*y = 45 - 40 = 5. That is not less than y = 4, so one more y fits and the result is 2*q + 1 = 11."
+    },
+    {
+      "type": "mc",
+      "category": "Division and square root",
+      "q": "The recursive divide keeps doubling y, which can overflow. How is this detected and handled?",
+      "choices": ["Overflow makes y negative, so the first statement becomes: if (y > x) or (y < 0) return 0", "Overflow makes x negative, so the function returns x", "Sys.error is called whenever 2*y exceeds 32767", "The recursion depth is capped at 16 calls"],
+      "answer": 0,
+      "explain": "Doubling a large positive 16-bit value wraps it to a negative number. Checking y < 0 alongside y > x ends the recursion correctly."
+    },
+    {
+      "type": "mc",
+      "category": "Division and square root",
+      "q": "How does the division implementation handle signed (possibly negative) inputs?",
+      "choices": ["Divide |x| by |y|, then set the quotient's sign", "It works as-is on two's complement values", "It returns 0 for any negative input", "It converts both inputs to 32-bit values first"],
+      "answer": 0,
+      "explain": "Division assumes x >= 0 and y > 0, so negative inputs are handled by dividing their absolute values and fixing the sign afterward. Multiplication is the operation that works as-is on two's complement values."
+    },
+    {
+      "type": "multi",
+      "category": "Division and square root",
+      "q": "Which properties of the square root function let it be computed with binary search?",
+      "choices": ["Its inverse function (x^2) can be computed efficiently", "It is monotonically increasing", "Its result is always even", "It can be computed with a single bit shift"],
+      "answer": [0, 1],
+      "explain": "Monotonicity means you can test a candidate y and know which direction to search, and squaring makes each test cheap. Together these allow a binary search for y with y^2 <= x < (y+1)^2."
+    },
+    {
+      "type": "multi",
+      "category": "Division and square root",
+      "q": "sqrt(x) for 16-bit numbers sets y = 0, then for j = 7 down to 0: if (y + 2^j)^2 <= x then y = y + 2^j. Running sqrt(50), which values of j cause y to be updated?",
+      "choices": ["j = 4", "j = 3", "j = 2", "j = 1", "j = 0"],
+      "fixed": true,
+      "answer": [2, 3, 4],
+      "explain": "For j = 7..3, (2^j)^2 is at least 64, which is more than 50, so y stays 0. j = 2: 16 <= 50, y = 4. j = 1: 6^2 = 36 <= 50, y = 6. j = 0: 7^2 = 49 <= 50, y = 7. The result is 7."
+    },
+    {
+      "type": "mc",
+      "category": "Division and square root",
+      "q": "In sqrt, computing (y + 2^j)^2 can overflow. How should the update condition be changed?",
+      "choices": ["Use: (y + 2^j)^2 <= x and (y + 2^j)^2 > 0", "Use: (y + 2^j)^2 < x and y < 0", "Start j at n instead of n/2 - 1", "Compare y + 2^j against x / 2 instead of squaring"],
+      "answer": 0,
+      "explain": "An overflowed square wraps to a negative (or zero) value, which would wrongly pass the <= x test. Also requiring the square to be positive rejects those cases."
+    },
+
+    {
+      "type": "mc",
+      "category": "Memory management",
+      "q": "Memory.init executes let ram = 0; where ram is a static Array. Why does this let peek and poke reach any RAM word?",
+      "choices": ["Accessing ram[addr] compiles to code that accesses address 0 + addr, which is RAM[addr]", "Setting ram to 0 clears all of RAM so it can be reused", "It points ram at the heap base address, 2048", "It turns off array bounds checking in the compiler"],
+      "answer": 0,
+      "explain": "Jack is weakly typed, so assigning 0 to an Array variable compiles without complaint. After that, ram[addr] is base 0 + addr, and peek and poke become one-liners on the ram array."
+    },
+    {
+      "type": "num",
+      "category": "Memory management",
+      "q": "A simple heap manager starts with heap = freeList = 2048. alloc(size) does block = freeList; freeList = freeList + size; return block. A program calls Memory.alloc(5), then Memory.alloc(4). What base address does the second call return?",
+      "answer": 2053,
+      "explain": "The first call returns 2048 and moves freeList to 2053. The second call returns 2053 and moves freeList to 2057."
+    },
+    {
+      "type": "tf",
+      "category": "Memory management",
+      "q": "In the simple heap manager (where alloc just advances freeList), deAlloc returns the block to the free list so it can be reused.",
+      "answer": false,
+      "explain": "In the simple scheme deAlloc does nothing, so memory is never recycled. The real heap manager keeps a linked list of free segments to fix this."
+    },
+    {
+      "type": "mc",
+      "category": "Memory management",
+      "q": "The freeList holds segments of sizes 4, 9, 6 and 12, in that order. A segment is 'possible' for alloc(size) if segment.size >= size + 2. For alloc(4), which segment does each heuristic choose?",
+      "choices": ["First fit: the 9-word segment; best fit: the 6-word segment", "First fit: the 4-word segment; best fit: the 4-word segment", "First fit: the 9-word segment; best fit: the 12-word segment", "First fit: the 6-word segment; best fit: the 9-word segment"],
+      "answer": 0,
+      "explain": "alloc(4) needs a segment of at least 6 words. First fit takes the first possible segment in list order (9). Best fit takes the smallest possible segment (6)."
+    },
+    {
+      "type": "num",
+      "category": "Memory management",
+      "q": "For alloc(10), how many words does the linked-list heap manager carve out of the chosen segment?",
+      "answer": 12,
+      "explain": "It carves a block of size + 2 words. The 2 extra words are bookkeeping overhead (the next and size fields), and alloc returns the base address of the block's data part."
+    },
+    {
+      "type": "mc",
+      "category": "Memory management",
+      "q": "In the linked-list heap manager, what does deAlloc(object) do?",
+      "choices": ["Appends the object's block to the end of the freeList", "Immediately merges the block with adjacent free segments", "Writes 0 into every word of the block", "Nothing; memory is never recycled"],
+      "answer": 0,
+      "explain": "deAlloc just appends the freed block to the freeList. Merging segments is a separate defragmentation step."
+    },
+    {
+      "type": "mc",
+      "category": "Memory management",
+      "q": "What problem grows the more a program recycles memory with deAlloc, and what is the suggested fix?",
+      "choices": ["The freeList becomes fragmented into many small segments; periodically defragment it", "The stack overflows into the heap; enlarge the stack", "The freeList becomes circular; add a cycle-detection pass", "Allocated blocks get overwritten; zero each block on alloc"],
+      "answer": 0,
+      "explain": "Each deAlloc appends another (often small) segment, so the freeList becomes fragmented. Periodic defragmentation of the freeList fixes this."
+    },
+    {
+      "type": "num",
+      "category": "Memory management",
+      "q": "In the proposed Memory.init, heap = 2048 and the whole heap starts as one free segment: heap[0] = 0 (next) and heap[1] = its length. What length value is stored in heap[1]?",
+      "answer": 14334,
+      "explain": "The heap runs from 2048 up to 16383 (the I/O memory maps start at 16384), which is 14336 words. Subtracting the 2 bookkeeping words leaves 14334."
+    },
+    {
+      "type": "mc",
+      "category": "Memory management",
+      "q": "When Jack code creates an object with new, what code does the compiler generate to get memory for it?",
+      "choices": ["A call to Memory.alloc(n), where n is the size needed", "A call to Array.new(n), which reserves space on the stack", "A push onto the VM stack segment", "A call to Memory.poke at the next free heap address"],
+      "answer": 0,
+      "explain": "Object construction calls Memory.alloc(n) to get a heap block. Recycling an object's memory uses Memory.deAlloc(obj)."
+    },
+
+    {
+      "type": "num",
+      "category": "Screen graphics",
+      "q": "drawPixel(x, y) computes address = 32*y + x/16 and modifies the word at RAM[16384 + address]. For drawPixel(100, 10), which RAM address is modified?",
+      "answer": 16710,
+      "explain": "32*10 + 100/16 = 320 + 6 = 326 (integer division), and 16384 + 326 = 16710."
+    },
+    {
+      "type": "num",
+      "category": "Screen graphics",
+      "q": "For drawPixel(100, 10), which bit of that 16-bit word is set to the current color?",
+      "answer": 4,
+      "explain": "The bit index is x % 16 = 100 % 16 = 4. Setting a single bit is done with 16-bit logical operations (AND/OR with a mask)."
+    },
+    {
+      "type": "mc",
+      "category": "Screen graphics",
+      "q": "Why does the drawPixel address formula multiply y by 32?",
+      "choices": ["Each 512-pixel screen row occupies 512 / 16 = 32 sixteen-bit words", "The screen has 32 rows", "Each character is 32 pixels wide", "The screen memory map starts 32 words after 16384"],
+      "answer": 0,
+      "explain": "The screen is 256 rows of 512 black-and-white pixels, and each RAM word holds 16 pixels, so one row takes 32 words."
+    },
+    {
+      "type": "mc",
+      "category": "Screen graphics",
+      "q": "drawLine (for north-east lines) avoids computing the slope test b/a > dy/dx directly. What does it track instead?",
+      "choices": ["diff = a*dy - b*dx: if diff < 0 go right (a++, diff += dy), otherwise go up (b++, diff -= dx)", "diff = a*dx - b*dy: if diff < 0 go up (b++), otherwise go right (a++)", "The slope dy/dx, recomputed each step with Math.divide", "The distance from the current pixel to the line, computed with Math.sqrt"],
+      "answer": 0,
+      "explain": "b/a > dy/dx is equivalent to a*dy < b*dx, i.e. diff < 0. Each step changes diff by +dy or -dx, so drawLine needs only addition and subtraction."
+    },
+    {
+      "type": "mc",
+      "category": "Screen graphics",
+      "q": "Tracing the optimized drawLine from (0,0) to (3,2) with a = b = diff = 0: after drawing the first pixel, which way does it move?",
+      "choices": ["Up (b++), because diff = 0 is not less than 0", "Right (a++), because diff = 0", "Diagonally (both a++ and b++)", "Nowhere; the loop ends after one pixel"],
+      "answer": 0,
+      "explain": "The rule is: if diff < 0 go right, otherwise go up. With diff = 0 it goes up, and diff becomes 0 - dx = -3."
+    },
+    {
+      "type": "num",
+      "category": "Screen graphics",
+      "q": "With dx = 3 and dy = 2, the loop runs while (a <= dx) and (b <= dy). How many pixels does drawLine draw in total?",
+      "answer": 6,
+      "explain": "Trace: (0,0) up, (0,1) right, (1,1) right, (2,1) up, (2,2) right, (3,2) up. Then b = 3 > dy and the loop ends after 6 pixels (dx + dy + 1)."
+    },
+    {
+      "type": "mc",
+      "category": "Screen graphics",
+      "q": "drawCircle(x, y, r) draws, for each dy from -r to r, a horizontal line from (x - sqrt(r^2 - dy^2), y + dy) to (x + sqrt(r^2 - dy^2), y + dy). For drawCircle(100, 100, 5) and dy = 3, which line is drawn?",
+      "choices": ["From (96, 103) to (104, 103)", "From (97, 103) to (103, 103)", "From (95, 103) to (105, 103)", "From (98, 103) to (102, 103)"],
+      "answer": 0,
+      "explain": "sqrt(25 - 9) = sqrt(16) = 4, so the line spans x = 96..104 at y = 103. Stacking these lines produces a filled circle."
+    },
+    {
+      "type": "mc",
+      "category": "Screen graphics",
+      "q": "Why is drawCircle's radius limited to r <= 181?",
+      "choices": ["Larger r makes r^2 overflow 16-bit arithmetic: 181^2 = 32761 fits, but 182^2 = 33124 > 32767", "The screen is only 181 pixels tall", "Math.sqrt only accepts arguments up to 181", "drawLine cannot draw lines longer than 181 pixels"],
+      "answer": 0,
+      "explain": "The algorithm computes r^2 - dy^2, and 181 is the largest r whose square fits in a signed 16-bit value."
+    },
+    {
+      "type": "mc",
+      "category": "Screen graphics",
+      "q": "What distinguishes a vector graphics file from a bitmap graphics file?",
+      "choices": ["It stores drawing commands such as drawLine(3,0,11,0) and drawRectangle(3,1,9,5)", "It stores the image as rows of 0/1 pixel values", "It stores only the image's color palette", "It stores a compressed copy of the screen memory map"],
+      "answer": 0,
+      "explain": "A vector file is a list of drawing primitives, so it can easily be scaled, stored, transmitted and turned into a bitmap. A bitmap file lists pixel values row by row."
+    },
+    {
+      "type": "tf",
+      "category": "Screen graphics",
+      "q": "On the Hack-Jack platform, graphics work like line drawing is offloaded from the CPU to a dedicated graphics processor (GPU).",
+      "answer": false,
+      "explain": "Most modern computers use a GPU, but Hack-Jack has no such separation: the CPU runs the OS's Screen functions directly."
+    },
+
+    {
+      "type": "num",
+      "category": "Text output and fonts",
+      "q": "Each Hack font character occupies a frame 8 pixels wide. How many character columns fit across the 512-pixel-wide screen?",
+      "answer": 64,
+      "explain": "512 / 8 = 64. This is how Output turns the 256 x 512 pixel grid into a 23 x 64 character grid."
+    },
+    {
+      "type": "num",
+      "category": "Text output and fonts",
+      "q": "Each Hack font character frame is 11 pixels high. How many full text rows fit on the 256-pixel-tall screen?",
+      "answer": 23,
+      "explain": "256 / 11 = 23.27, so 23 full rows fit (rows 0..22)."
+    },
+    {
+      "type": "mc",
+      "category": "Text output and fonts",
+      "q": "Each 11 x 8 Hack font frame contains 2 empty right columns and 1 empty bottom row. What are they for?",
+      "choices": ["Spacing between adjacent characters", "Room to draw the cursor", "Storing the character's code", "Parity bits for error detection"],
+      "answer": 0,
+      "explain": "The empty columns and bottom row keep neighboring characters from touching. Another row is kept for 'squiggles' that dip below the line, as in Q."
+    },
+    {
+      "type": "mc",
+      "category": "Text output and fonts",
+      "q": "In calls like Output.create(0, 63,63,63,63,63,63,63,63,63,0,0), each argument after the index is one row of the bitmap. Why is 63 the largest row value?",
+      "choices": ["Only 6 of a row's 8 pixel columns are ever drawn (the 2 right columns are spacing), and 6 bits max out at 63", "Characters are 6 pixels high", "The Hack character set has 63 printable characters", "63 is the code for '?', which marks unknown characters"],
+      "answer": 0,
+      "explain": "63 = 111111 in binary, which is all 6 drawable pixels on. This call builds the solid black square used for non-printable characters."
+    },
+    {
+      "type": "num",
+      "category": "Text output and fonts",
+      "q": "How many row values does Output.create take to define one character's bitmap (not counting the character index)?",
+      "answer": 11,
+      "explain": "Each character is 11 pixels high, so its bitmap is an 11-element array, stored in the static charMaps array at the character's index."
+    },
+    {
+      "type": "mc",
+      "category": "Text output and fonts",
+      "q": "When Output prints the backspace character, what happens to the cursor?",
+      "choices": ["It moves one column left", "It moves to the beginning of the next line", "A black square is displayed and the cursor moves right", "It stays where it is"],
+      "answer": 0,
+      "explain": "newLine moves the cursor to the start of the next line, and backspace moves it one column left. Any other character has its bitmap displayed, and the cursor moves one column right."
+    },
+    {
+      "type": "num",
+      "category": "Text output and fonts",
+      "q": "In the Hack character set, '0' has code 48 and the digits are consecutive. What is the code for '7'?",
+      "answer": 55,
+      "explain": "48 + 7 = 55. The same fact converts a digit character to its integer value: subtract 48."
+    },
+    {
+      "type": "num",
+      "category": "Text output and fonts",
+      "q": "What is the Hack character code for newline?",
+      "answer": 128,
+      "explain": "The non-printable keys start at 128: newline 128, backspace 129, then the arrow keys (left 130, up 131, right 132, down 133), and so on."
+    },
+    {
+      "type": "tf",
+      "category": "Text output and fonts",
+      "q": "Output.moveCursor(i, j) moves the cursor to row j, column i.",
+      "answer": false,
+      "explain": "It moves the cursor to the j'th column of the i'th row, and erases the character that was there."
+    },
+
+    {
+      "type": "num",
+      "category": "Keyboard input",
+      "q": "At what RAM address is the Hack keyboard memory map (a single 16-bit register)?",
+      "answer": 24576,
+      "explain": "The screen memory map takes 16384..24575, and the one-word keyboard map comes right after it at 24576."
+    },
+    {
+      "type": "text",
+      "category": "Keyboard input",
+      "q": "RAM[24576] holds 0000000000110100. Which key is being pressed?",
+      "answer": ["4", "'4'", "the 4 key", "4 key", "digit 4"],
+      "explain": "110100 in binary is 32 + 16 + 4 = 52, which is the Hack code for the digit '4'."
+    },
+    {
+      "type": "mc",
+      "category": "Keyboard input",
+      "q": "What does Keyboard.keyPressed() return when no key is being pressed?",
+      "choices": ["0", "-1", "128", "Nothing; it waits until a key is pressed"],
+      "answer": 0,
+      "explain": "keyPressed doesn't wait. It reads the keyboard register (e.g. with Memory.peek(24576)), which holds 0 when no key is down."
+    },
+    {
+      "type": "mc",
+      "category": "Keyboard input",
+      "q": "Which sequence matches Keyboard.readChar()?",
+      "choices": ["Display the cursor; wait until a key is pressed; record its code c; wait until the key is released; display c and advance the cursor; return c", "Wait until a key is pressed; return its code c immediately, then display it", "Display the cursor; wait until a key is released; then wait until a key is pressed; return c without echoing it", "Read keyPressed() once; if it is nonzero, display it; return it"],
+      "answer": 0,
+      "explain": "readChar busy-waits while keyPressed() == 0, records c, and then busy-waits while keyPressed() != 0. Only after the key is released does it echo c and advance the cursor."
+    },
+    {
+      "type": "text",
+      "category": "Keyboard input",
+      "q": "During Keyboard.readLine, the user types c, a, t, backspace, r, newline. What string is returned?",
+      "answer": ["car", "\"car\""],
+      "explain": "readLine appends ordinary characters. On backspace it removes the last character from str and calls Output.backSpace. On newline it displays the newline and returns str. So the result is 'cat' minus 't' plus 'r' = 'car'."
+    },
+    {
+      "type": "num",
+      "category": "Keyboard input",
+      "q": "Keyboard.readInt(message) reads a line and returns its integer value up to the first non-numeric character. If the user types 1, 2, x, 5, newline, what is returned?",
+      "answer": 12,
+      "explain": "The digits 1 and 2 build the value 12. Parsing stops at 'x', so the 5 is ignored."
+    },
+    {
+      "type": "mc",
+      "category": "Keyboard input",
+      "q": "How should Keyboard.keyPressed be implemented?",
+      "choices": ["Use Memory.peek to read the keyboard memory map", "Call readChar and throw away the echoed character", "Ask Output for the last character it printed", "Use Memory.poke to request a key from the keyboard"],
+      "answer": 0,
+      "explain": "The keyboard register at RAM[24576] always holds the code of the key currently pressed (or 0), so a single Memory.peek is all keyPressed needs."
+    },
+
+    {
+      "type": "num",
+      "category": "Strings, arrays and Sys",
+      "q": "let s = String.new(10); then s = s.appendChar(97); s = s.appendChar(98); s = s.appendChar(99). What does s.length() return?",
+      "answer": 3,
+      "explain": "new(maxLength) sets the maximum capacity, but length() returns the actual length: 3 characters, 'abc'."
+    },
+    {
+      "type": "num",
+      "category": "Strings, arrays and Sys",
+      "q": "A String s holds \"42ab7\". What does s.intValue() return?",
+      "answer": 42,
+      "explain": "intValue returns the integer value of the string up to the first non-numeric character, so parsing stops at 'a'."
+    },
+    {
+      "type": "num",
+      "category": "Strings, arrays and Sys",
+      "q": "string2Int sets val = 0, then for each character does val = val * 10 + d, where d is that digit's integer value. For the string \"4072\", what is val after the first three characters?",
+      "answer": 407,
+      "explain": "0*10 + 4 = 4, then 4*10 + 0 = 40, then 40*10 + 7 = 407. (After the last character it is 4072.)"
+    },
+    {
+      "type": "mc",
+      "category": "Strings, arrays and Sys",
+      "q": "Which describes the int2String(val) algorithm from the slides (used by String.setInt)?",
+      "choices": ["Recursive: if val < 10, return the digit character as a string; otherwise return int2String(val / 10) with the character for val % 10 appended", "Iterative: repeatedly append val % 10 to an empty string, then reverse the string", "Look up val in a precomputed table of digit strings", "Repeatedly subtract powers of 10 from val, counting each subtraction"],
+      "answer": 0,
+      "explain": "The recursion converts the higher digits first and then appends the last digit, so the digits come out in the right order without a reversal step."
+    },
+    {
+      "type": "mc",
+      "category": "Strings, arrays and Sys",
+      "q": "What do String.newLine(), String.backSpace() and String.doubleQuote() return, respectively?",
+      "choices": ["128, 129, 34", "10, 8, 34", "13, 8, 39", "128, 129, 39"],
+      "answer": 0,
+      "explain": "These are the Hack character codes: newline = 128, backspace = 129, double quote = 34."
+    },
+    {
+      "type": "tf",
+      "category": "Strings, arrays and Sys",
+      "q": "In the OS Array class, new(size) must be implemented as a function, not as a constructor.",
+      "answer": true,
+      "explain": "Array.new is declared as a function that returns an Array. Its counterpart, dispose, is implemented with Memory.deAlloc."
+    },
+    {
+      "type": "mc",
+      "category": "Strings, arrays and Sys",
+      "q": "Which sequence correctly describes how a Jack program gets started (bootstrapping)?",
+      "choices": ["On reset the computer executes ROM[0]; that code sets SP = 256 and calls Sys.init; Sys.init initializes the OS classes and calls Main.main()", "On reset Main.main() runs first, and it calls Sys.init when it needs OS services", "Sys.init sets SP = 256, then the hardware jumps to ROM[0], which calls Main.main()", "The VM places Main.main() at ROM[0], and Sys.init runs only after Main.main() returns"],
+      "answer": 0,
+      "explain": "Hardware contract: reset runs ROM[0]. VM contract: the code at ROM[0] sets SP = 256 and calls Sys.init. OS contract: Sys.init initializes the OS and calls Main.main(). Jack contract: execution starts at Main.main()."
+    },
+    {
+      "type": "mc",
+      "category": "Strings, arrays and Sys",
+      "q": "Sys.init calls the init functions of Memory, Math, Screen, Output and Keyboard, then Main.main(). What does it call after Main.main() returns?",
+      "choices": ["Sys.halt()", "Main.main() again", "Sys.error(0)", "Nothing; control returns to ROM[0]"],
+      "answer": 0,
+      "explain": "Sys.init ends with Sys.halt(), which is implemented as an infinite loop, so the machine stops doing useful work once the program finishes."
+    },
+    {
+      "type": "tf",
+      "category": "Strings, arrays and Sys",
+      "q": "Sys.error(errorCode) prints the code in the format ERR<errorCode> and then returns to the caller.",
+      "answer": false,
+      "explain": "Sys.error prints ERR<errorCode> and then halts. It does not return."
+    }
+  ]
+}

@@ -1,0 +1,608 @@
+{
+  "title": "Virtual Machine I: Stack Arithmetic",
+  "course": "NAND2TETRIS",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Compilation model",
+      "q": "In a two-tier compilation model, what does the compiler itself output?",
+      "choices": [
+        "Machine-level binary instructions for the target computer",
+        "Intermediate VM code (bytecode) that runs on an abstract virtual machine",
+        "Assembly code for the target computer",
+        "A list of OS calls for the hardware to execute"
+      ],
+      "answer": 1,
+      "explain": "The compiler emits VM code for an abstract virtual machine. A separate VM translator then turns that VM code into the machine language of each host platform."
+    },
+    {
+      "type": "multi",
+      "category": "Compilation model",
+      "q": "Compared with one-tier compilation, which of these are drawbacks of the two-tier model?",
+      "choices": [
+        "It needs a separate VM translator for each target hardware platform",
+        "It tends to produce less efficient machine code",
+        "It needs a separate full compiler for each target hardware platform",
+        "The compiled program can run on only one platform"
+      ],
+      "answer": [0, 1],
+      "explain": "Two-tier compilation costs one VM translator per platform (much simpler to write than a compiler) and somewhat less efficient code. In return you get 'compile once, run everywhere'. Needing a whole compiler per platform is the one-tier drawback."
+    },
+    {
+      "type": "tf",
+      "category": "Compilation model",
+      "q": "One-tier compilers, such as those for C/C++, produce efficient, target-specific code, but you need a separate compiler or compilation for each target platform.",
+      "answer": true,
+      "explain": "That is the one-tier trade-off: efficient code tied to one platform, so each platform needs its own compiler or compilation."
+    },
+    {
+      "type": "text",
+      "category": "Compilation model",
+      "q": "What is the intermediate VM code called in Java and Python?",
+      "answer": ["bytecode", "byte code", "byte-code"],
+      "explain": "Java and Python call it bytecode. C#/.NET calls its equivalent IL."
+    },
+    {
+      "type": "mc",
+      "category": "Compilation model",
+      "q": "On the Hack/Jack platform, which chain shows how a Jack program becomes executable code?",
+      "choices": [
+        "Jack → compiler → VM code → VM translator → assembly → assembler → binary",
+        "Jack → VM translator → VM code → compiler → assembly → assembler → binary",
+        "Jack → compiler → assembly → VM translator → VM code → assembler → binary",
+        "Jack → assembler → VM code → compiler → binary"
+      ],
+      "answer": 0,
+      "explain": "The compiler turns .jack files into .vm files. The VM translator turns those into a .asm file, and the assembler turns that into .hack binary that runs on the Hack computer."
+    },
+    {
+      "type": "mc",
+      "category": "Compilation model",
+      "q": "Which way of implementing the VM is used by Java, C#, Python, and Jack?",
+      "choices": [
+        "Native: add hardware modules for the stack and primitive instructions for the VM commands",
+        "Emulation: a high-level program models the stack and segments as ADTs",
+        "Translation: each VM command becomes machine instructions that work on the host RAM",
+        "None: the source code is run directly, with no VM layer"
+      ],
+      "answer": 2,
+      "explain": "Translation turns each VM command into machine-language instructions and uses an addressing contract to place the stack and segments in dedicated RAM areas. The VM translator in this chapter works this way."
+    },
+    {
+      "type": "tf",
+      "category": "Compilation model",
+      "q": "VM translators are generally much harder to write than compilers.",
+      "answer": false,
+      "explain": "It is the other way around: VM translators are much simpler than compilers. That is why needing one VM translator per platform is an acceptable cost."
+    },
+    {
+      "type": "mc",
+      "category": "Compilation model",
+      "q": "How does a VM emulator differ from a VM translator?",
+      "choices": [
+        "An emulator uses a high-level language to execute VM commands; a translator converts them into a target machine language",
+        "An emulator converts VM commands into a target machine language; a translator executes them directly",
+        "An emulator compiles Jack into VM code; a translator converts VM code into Jack",
+        "They are two names for the same program"
+      ],
+      "answer": 0,
+      "explain": "Both implement the VM abstraction. The emulator runs VM programs directly and shows how the stack and segments sit in the host RAM. The translator produces machine code for a real platform."
+    },
+    {
+      "type": "mc",
+      "category": "Stack arithmetic",
+      "q": "The stack holds 4, 9, 2 (bottom to top, 2 on top). After sub, what does it hold, bottom to top?",
+      "choices": ["4, 7", "4, -7", "-5, 2", "6"],
+      "answer": 0,
+      "explain": "sub pops y = 2 (the top) and x = 9 (the value below it), then pushes x - y = 7. The 4 is untouched."
+    },
+    {
+      "type": "num",
+      "category": "Stack arithmetic",
+      "q": "Starting with an empty stack, run: push constant 3; push constant 10; sub. What value is on top of the stack?",
+      "answer": -7,
+      "explain": "x is the value pushed first (3) and y is the top (10). sub computes x - y = 3 - 10 = -7."
+    },
+    {
+      "type": "num",
+      "category": "Stack arithmetic",
+      "q": "Memory holds x = 6 and y = 3. Run: push constant 20; push x; sub; push y; neg; add; pop d. What is d?",
+      "answer": 11,
+      "explain": "20 - 6 = 14. Pushing y and applying neg gives -3. 14 + (-3) = 11, and pop d stores it in d."
+    },
+    {
+      "type": "mc",
+      "category": "Stack arithmetic",
+      "q": "Which VM sequence computes x - (y + 3)?",
+      "choices": [
+        "push x; push y; push 3; add; sub",
+        "push x; push y; sub; push 3; add",
+        "push y; push 3; add; push x; sub",
+        "push x; push 3; push y; sub; sub"
+      ],
+      "answer": 0,
+      "explain": "Push x, then compute y + 3 on top of it, then sub gives x - (y + 3). The second choice computes (x - y) + 3, the third (y + 3) - x, and the fourth x - (3 - y)."
+    },
+    {
+      "type": "num",
+      "category": "Stack arithmetic",
+      "q": "Starting with an empty stack, run: push constant 5; push constant 6; push constant 7; add; neg. What value is on top of the stack?",
+      "answer": -13,
+      "explain": "add pops 6 and 7 and pushes 13, leaving 5, 13. neg replaces the top with -13."
+    },
+    {
+      "type": "mc",
+      "category": "Stack arithmetic",
+      "q": "What does the stack pointer SP hold?",
+      "choices": [
+        "The address of the topmost stack value",
+        "The address just after the topmost stack value (the next free slot)",
+        "The number of values currently on the stack",
+        "Always the stack's base address, 256"
+      ],
+      "answer": 1,
+      "explain": "SP points to the RAM address just after the one holding the topmost value. That is why push writes to RAM[SP] and then increments SP, while pop decrements SP first."
+    },
+    {
+      "type": "tf",
+      "category": "Stack arithmetic",
+      "q": "Every high-level arithmetic or logical expression can be translated into a sequence of VM commands operating on a stack.",
+      "answer": true,
+      "explain": "This is why a stack machine is a suitable compilation target: any such expression becomes a sequence of pushes, operations, and pops."
+    },
+    {
+      "type": "multi",
+      "category": "Arithmetic-logical commands",
+      "q": "Which of these commands pop two operands from the stack?",
+      "choices": ["add", "neg", "gt", "not", "and", "eq"],
+      "answer": [0, 2, 4, 5],
+      "explain": "add, sub, eq, gt, lt, and, and or are binary. neg and not are unary: they pop one value and push one result."
+    },
+    {
+      "type": "tf",
+      "category": "Arithmetic-logical commands",
+      "q": "After push constant 3; push constant 8; gt, the value on top of the stack is true.",
+      "answer": false,
+      "explain": "gt computes x > y, where x is the value pushed first (3) and y is the top (8). 3 > 8 is false."
+    },
+    {
+      "type": "mc",
+      "category": "Arithmetic-logical commands",
+      "q": "In the Hack implementation of the VM, how are true and false represented?",
+      "choices": [
+        "true = 1, false = 0",
+        "true = -1, false = 0",
+        "true = 0, false = -1",
+        "true = 1, false = -1"
+      ],
+      "answer": 1,
+      "explain": "true is -1 (all bits set in 16-bit two's complement) and false is 0."
+    },
+    {
+      "type": "num",
+      "category": "Arithmetic-logical commands",
+      "q": "x = 4 and y = 9. Run: push x; push constant 7; lt; push y; push constant 8; eq; or. Using the Hack representation of booleans, what value is left on the stack?",
+      "answer": -1,
+      "explain": "4 < 7 is true, and 9 == 8 is false. true or false is true, which is -1 in the Hack implementation."
+    },
+    {
+      "type": "text",
+      "category": "Arithmetic-logical commands",
+      "q": "Which VM command replaces the top value y with -y?",
+      "answer": ["neg"],
+      "explain": "neg is the unary arithmetic command that computes -y. Do not confuse it with not, which is the logical complement."
+    },
+    {
+      "type": "mc",
+      "category": "Arithmetic-logical commands",
+      "q": "What does every arithmetic-logical VM command do?",
+      "choices": [
+        "Pops as many operands as it needs, computes the operation, and pushes the result onto the stack",
+        "Reads the top operands without removing them and pushes the result above them",
+        "Pops its operands and stores the result in temp 0",
+        "Pops its operands and writes the result into the local segment"
+      ],
+      "answer": 0,
+      "explain": "An n-argument operation pops n values, computes the function on them, and pushes the one result back onto the stack."
+    },
+    {
+      "type": "multi",
+      "category": "Arithmetic-logical commands",
+      "q": "According to the VM command table, which of these commands return an integer rather than a boolean?",
+      "choices": ["add", "sub", "neg", "eq", "and", "not"],
+      "answer": [0, 1, 2],
+      "explain": "add, sub, and neg return integers. eq, gt, lt, and, or, and not are listed as returning booleans."
+    },
+    {
+      "type": "num",
+      "category": "Memory segments",
+      "q": "How many virtual memory segments does the VM architecture have?",
+      "answer": 8,
+      "explain": "The eight segments are local, argument, this, that, constant, static, temp, and pointer."
+    },
+    {
+      "type": "mc",
+      "category": "Memory segments",
+      "q": "A class declares static int s1, s2. Its method bar(int x, int y) declares var int a, b, c. Assume the compiler maps variables to segments in declaration order, starting at index 0. Which VM code implements a = s2 - x?",
+      "choices": [
+        "push static 1; push argument 0; sub; pop local 0",
+        "push static 2; push argument 1; sub; pop local 1",
+        "push argument 0; push static 1; sub; pop local 0",
+        "push static 1; push local 0; sub; pop argument 0"
+      ],
+      "answer": 0,
+      "explain": "s2 is static 1, x is argument 0, and a is local 0. Push s2 first so that sub computes s2 - x, then pop the result into a. The third choice computes x - s2."
+    },
+    {
+      "type": "mc",
+      "category": "Memory segments",
+      "q": "What is the temp segment for?",
+      "choices": [
+        "Temporary variables the compiler generates that don't come from the source code",
+        "Local variables declared inside a subroutine",
+        "Static variables of a class",
+        "The base addresses of the this and that segments"
+      ],
+      "answer": 0,
+      "explain": "Compilers sometimes need scratch variables of their own. temp is a fixed 8-entry segment, temp 0 through temp 7, for that purpose."
+    },
+    {
+      "type": "mc",
+      "category": "Memory segments",
+      "q": "Which segment holds the base addresses of the this and that segments, and comes into play when compiling code for objects and arrays?",
+      "choices": ["temp", "pointer", "static", "constant"],
+      "answer": 1,
+      "explain": "pointer has two entries. pointer 0 corresponds to THIS and pointer 1 to THAT."
+    },
+    {
+      "type": "mc",
+      "category": "Memory segments",
+      "q": "What does push constant i do?",
+      "choices": [
+        "Pushes the integer i itself",
+        "Pushes the value stored at RAM[i]",
+        "Pushes entry i of the static segment",
+        "Pushes the value at address SP + i"
+      ],
+      "answer": 0,
+      "explain": "The constant segment stands for the integers 0, 1, 2, ..., so constant i supplies the value i. No memory is read."
+    },
+    {
+      "type": "tf",
+      "category": "Memory segments",
+      "q": "In the VM abstraction, all eight segments are accessed the same way: push/pop segment i, where i is a non-negative integer.",
+      "answer": true,
+      "explain": "All segments look and behave the same to VM code. Only their implementation on the host RAM differs."
+    },
+    {
+      "type": "mc",
+      "category": "Memory segments",
+      "q": "How many entries do the temp and pointer segments have?",
+      "choices": [
+        "temp 8, pointer 2",
+        "temp 2, pointer 8",
+        "temp 16, pointer 2",
+        "temp 8, pointer 4"
+      ],
+      "answer": 0,
+      "explain": "temp has 8 entries (temp 0 to temp 7). pointer has 2 (pointer 0 and pointer 1)."
+    },
+    {
+      "type": "num",
+      "category": "Standard mapping",
+      "q": "In the standard VM mapping on Hack, at what RAM address does the stack start?",
+      "answer": 256,
+      "explain": "The stack occupies RAM[256] through RAM[2047]."
+    },
+    {
+      "type": "num",
+      "category": "Standard mapping",
+      "q": "In the standard mapping, which RAM address holds temp 4?",
+      "answer": 9,
+      "explain": "temp i is stored at RAM[5 + i], so temp 4 is at RAM[9]."
+    },
+    {
+      "type": "mc",
+      "category": "Standard mapping",
+      "q": "Which RAM range holds the static variables?",
+      "choices": ["5–12", "13–15", "16–255", "256–2047"],
+      "answer": 2,
+      "explain": "5–12 is temp, 13–15 is the general-purpose registers R13–R15, 16–255 is static, and 256–2047 is the stack."
+    },
+    {
+      "type": "mc",
+      "category": "Standard mapping",
+      "q": "In order, what do RAM[0] through RAM[4] hold?",
+      "choices": [
+        "SP, LCL, ARG, THIS, THAT",
+        "SP, ARG, LCL, THIS, THAT",
+        "LCL, ARG, THIS, THAT, SP",
+        "SP, THIS, THAT, LCL, ARG"
+      ],
+      "answer": 0,
+      "explain": "RAM[0] = SP, RAM[1] = LCL, RAM[2] = ARG, RAM[3] = THIS, RAM[4] = THAT."
+    },
+    {
+      "type": "mc",
+      "category": "Standard mapping",
+      "q": "What are R13–R15 (RAM[13]–RAM[15]) for in the standard mapping?",
+      "choices": [
+        "General-purpose registers the generated code can use for any purpose",
+        "The first three entries of the temp segment",
+        "The base addresses of local, argument, and this",
+        "Backup copies of the stack pointer"
+      ],
+      "answer": 0,
+      "explain": "R13–R15 are predefined symbols that can be used for any purpose, for example to hold an address while translating pop."
+    },
+    {
+      "type": "text",
+      "category": "Standard mapping",
+      "q": "When translating the file Bar.vm, which assembly symbol does push static 5 refer to?",
+      "answer": ["Bar.5", "@Bar.5", "bar.5"],
+      "explain": "Static variable i in file Xxx.vm becomes the assembly symbol Xxx.i, so here it is Bar.5."
+    },
+    {
+      "type": "mc",
+      "category": "Standard mapping",
+      "q": "Which program assigns the actual RAM addresses to the Xxx.i static symbols?",
+      "choices": [
+        "The Hack assembler, which allocates variables starting at address 16",
+        "The VM translator, which hard-codes addresses starting at 256",
+        "The compiler, when it compiles the class",
+        "The OS, at run time"
+      ],
+      "answer": 0,
+      "explain": "The VM translator only emits symbols such as Foo.3. The assembler later maps new variable symbols to RAM[16], RAM[17], and so on, which is exactly the static range."
+    },
+    {
+      "type": "tf",
+      "category": "Standard mapping",
+      "q": "The standard mapping is the only possible way to realize the VM on the Hack platform.",
+      "answer": false,
+      "explain": "The VM can be implemented in many ways. The standard mapping is a recommendation, and following it keeps you compatible with tools that use the same standard, such as VM emulators, OS routines, and test scripts."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing push/pop",
+      "q": "Which pseudocode implements pop local i?",
+      "choices": [
+        "addr ← LCL + i; SP--; RAM[addr] ← RAM[SP]",
+        "addr ← LCL + i; RAM[addr] ← RAM[SP]; SP--",
+        "addr ← LCL + i; SP++; RAM[addr] ← RAM[SP]",
+        "addr ← LCL + i; RAM[SP] ← RAM[addr]; SP++"
+      ],
+      "answer": 0,
+      "explain": "SP points one past the top value, so pop must decrement SP before reading RAM[SP]. The last choice is push local i."
+    },
+    {
+      "type": "num",
+      "category": "Implementing push/pop",
+      "q": "SP = 260, LCL = 1500, and RAM[259] = 42. After pop local 3, which RAM address holds 42?",
+      "answer": 1503,
+      "explain": "addr = LCL + 3 = 1503. SP drops to 259, and RAM[1503] ← RAM[259] = 42."
+    },
+    {
+      "type": "num",
+      "category": "Implementing push/pop",
+      "q": "SP = 300, ARG = 400, and RAM[402] = 17. After push argument 2, what is the value of SP?",
+      "answer": 301,
+      "explain": "push writes RAM[300] ← RAM[ARG + 2] = 17 and then increments SP to 301."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing push/pop",
+      "q": "push constant 17 translates to: @17, D=A, @SP, A=M, M=D, @SP, M=M+1. What do the instructions @SP, A=M accomplish?",
+      "choices": [
+        "They point A at the next free stack slot, so that M=D writes 17 there",
+        "They increment the stack pointer",
+        "They load the top stack value into D",
+        "They set SP to 17"
+      ],
+      "answer": 0,
+      "explain": "@SP selects RAM[0]. A=M then loads the address stored in SP, so M now refers to RAM[SP], the next free slot. The final @SP, M=M+1 does the SP++."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing push/pop",
+      "q": "Which Hack assembly sequence correctly does 'SP--; D ← RAM[SP]', the first half of a pop?",
+      "choices": [
+        "@SP, M=M-1, A=M, D=M",
+        "@SP, A=M, D=M, @SP, M=M-1",
+        "@SP, M=M+1, A=M, D=M",
+        "@SP, M=M-1, D=M"
+      ],
+      "answer": 0,
+      "explain": "Decrement SP first, then use its new value as the address and read that cell into D. The second choice reads the empty slot above the top, the third moves SP the wrong way, and the fourth puts the address itself into D, not the value."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing push/pop",
+      "q": "How does the implementation of push/pop temp i differ from that of push/pop local i?",
+      "choices": [
+        "temp uses the fixed address 5 + i; local uses the base address stored in LCL plus i",
+        "temp uses the base address stored in RAM[5]; local uses the fixed address 1 + i",
+        "They are identical: both read a base pointer from RAM",
+        "temp values live on the stack; local values live in the static area"
+      ],
+      "answer": 0,
+      "explain": "temp is a fixed block at RAM[5..12], so push/pop temp i accesses RAM[5 + i] directly. local can be anywhere in RAM, so its base address must be read from LCL first."
+    },
+    {
+      "type": "mc",
+      "category": "Implementing push/pop",
+      "q": "What does pop pointer 1 do?",
+      "choices": [
+        "Pops the top value into THAT (RAM[4]), which sets the base address of the that segment",
+        "Pops the top value into THIS (RAM[3])",
+        "Pops the top value into RAM[THAT + 1]",
+        "Pops the top value into temp 1"
+      ],
+      "answer": 0,
+      "explain": "pointer is not stored anywhere of its own. pointer 0 means THIS and pointer 1 means THAT, so pop pointer 1 means pop THAT."
+    },
+    {
+      "type": "tf",
+      "category": "Implementing push/pop",
+      "q": "push/pop for argument, this, and that are implemented exactly like local, except that the base pointer is ARG, THIS, or THAT.",
+      "answer": true,
+      "explain": "All four use addr ← segmentPointer + i, with LCL, ARG, THIS, or THAT as the segment pointer, and then move the value between RAM[addr] and the stack."
+    },
+    {
+      "type": "mc",
+      "category": "VM translator design",
+      "q": "For the command push local 3, what do the Parser routines return?",
+      "choices": [
+        "commandType() = C_PUSH, arg1() = \"local\", arg2() = 3",
+        "commandType() = C_PUSH, arg1() = \"push\", arg2() = 3",
+        "commandType() = C_ARITHMETIC, arg1() = \"local\", arg2() = 3",
+        "commandType() = C_PUSH, arg1() = \"local 3\", no arg2()"
+      ],
+      "answer": 0,
+      "explain": "The command keyword determines the type (C_PUSH). arg1 is the segment name as a string and arg2 is the index as an int."
+    },
+    {
+      "type": "text",
+      "category": "VM translator design",
+      "q": "For the command add, what string does the Parser's arg1() return?",
+      "answer": ["add", "\"add\""],
+      "explain": "For C_ARITHMETIC commands, arg1 returns the command itself (add, sub, neg, ...)."
+    },
+    {
+      "type": "multi",
+      "category": "VM translator design",
+      "q": "For which command types may the Parser's arg2() be called?",
+      "choices": ["C_PUSH", "C_POP", "C_ARITHMETIC", "C_FUNCTION", "C_CALL", "C_RETURN"],
+      "answer": [0, 1, 3, 4],
+      "explain": "Only push, pop, function, and call have a second, integer argument. (arg1 should not be called for C_RETURN, since return has no arguments.)"
+    },
+    {
+      "type": "mc",
+      "category": "VM translator design",
+      "q": "In the proposed translator design, what does the VMTranslator module do?",
+      "choices": [
+        "Runs the process: creates a Parser for the input and a CodeWriter for the output, then loops over the input commands",
+        "Splits each VM command into its parts",
+        "Writes the assembly code for each command",
+        "Assembles the generated .asm file into binary"
+      ],
+      "answer": 0,
+      "explain": "The Parser reads and splits commands, the CodeWriter generates assembly, and the VMTranslator coordinates the two."
+    },
+    {
+      "type": "text",
+      "category": "VM translator design",
+      "q": "Which CodeWriter routine writes the assembly code for the sub command?",
+      "answer": ["writeArithmetic", "writeArithmetic()", "WriteArithmetic", "writearithmetic"],
+      "explain": "writeArithmetic(command) handles arithmetic-logical commands. writePushPop(command, segment, index) handles push and pop."
+    },
+    {
+      "type": "tf",
+      "category": "VM translator design",
+      "q": "To parse a VM command, the Parser needs to know what the command does.",
+      "answer": false,
+      "explain": "Parsing deals only with syntax. The Parser identifies the command type and arguments, and the CodeWriter handles meaning."
+    },
+    {
+      "type": "mc",
+      "category": "VM translator design",
+      "q": "Translating Foo.vm produces which output file?",
+      "choices": ["Foo.asm", "Foo.hack", "Foo.out", "Foo.cmp"],
+      "answer": 0,
+      "explain": "The VM translator emits Hack assembly into fileName.asm. The assembler later turns that into .hack binary."
+    },
+    {
+      "type": "tf",
+      "category": "VM translator design",
+      "q": "The Parser ignores white space and // comments in the .vm file.",
+      "answer": true,
+      "explain": "Comments, indentation, and white space are allowed in VM files and are skipped during parsing."
+    },
+    {
+      "type": "mc",
+      "category": "Jack and the OS",
+      "q": "What are the primitive data types of the basic Jack language?",
+      "choices": [
+        "int, boolean, char",
+        "int, float, boolean",
+        "int, char, String",
+        "int, boolean, char, float"
+      ],
+      "answer": 0,
+      "explain": "Jack has only int, boolean, and char. Other types are built as classes. This is why Point.distance returns an int, not a float."
+    },
+    {
+      "type": "mc",
+      "category": "Jack and the OS",
+      "q": "In Jack, what is a function, as opposed to a method or a constructor?",
+      "choices": [
+        "A static subroutine that operates on no particular object",
+        "A subroutine that operates on the current object",
+        "A subroutine that creates a new object",
+        "A subroutine that only the OS can provide"
+      ],
+      "answer": 0,
+      "explain": "Constructors create new objects, methods operate on the current object, and functions are static and operate on no particular object."
+    },
+    {
+      "type": "tf",
+      "category": "Jack and the OS",
+      "q": "A Jack constructor must explicitly return the memory address of the newly created object, which is denoted this.",
+      "answer": true,
+      "explain": "That is why Point.new ends with 'return this;'."
+    },
+    {
+      "type": "mc",
+      "category": "Jack and the OS",
+      "q": "When a Jack program creates an object with new, how is a place in RAM found for it?",
+      "choices": [
+        "An OS routine finds and allocates the memory",
+        "The compiler picks a fixed address at compile time",
+        "The VM translator reserves space on the stack",
+        "The assembler allocates it starting at address 16"
+      ],
+      "answer": 0,
+      "explain": "The compiler does not know where the object will go. It generates a call to an OS memory-management routine that finds the space at run time."
+    },
+    {
+      "type": "text",
+      "category": "Jack and the OS",
+      "q": "The Jack OS is written in Jack itself, much as Unix was developed in C. What is this development strategy called?",
+      "answer": ["bootstrapping", "bootstrap"],
+      "explain": "Bootstrapping means using a language to build the system software that the language itself relies on."
+    },
+    {
+      "type": "mc",
+      "category": "Jack and the OS",
+      "q": "In the Point class, how do the field variables x and y differ from the static variable pointCount?",
+      "choices": [
+        "Each Point object has its own x and y; pointCount is one class-level variable shared by all Points",
+        "x and y are shared by all Points; each Point has its own pointCount",
+        "Fields are stored on the stack; static variables are stored in temp",
+        "There is no difference; field and static mean the same thing"
+      ],
+      "answer": 0,
+      "explain": "Fields (also called properties or instance variables) belong to each object. A static variable belongs to the class as a whole, and the VM keeps it in the static segment."
+    },
+    {
+      "type": "num",
+      "category": "Jack and the OS",
+      "q": "p1 = Point.new(1,2), p2 = Point.new(3,4), and p3 = p1.plus(p2). What does p1.distance(p3) return?",
+      "answer": 5,
+      "explain": "p3 = (4,6), so dx = 1 - 4 = -3 and dy = 2 - 6 = -4. sqrt(9 + 16) = 5."
+    },
+    {
+      "type": "mc",
+      "category": "Jack and the OS",
+      "q": "What are the compiler's two main tasks?",
+      "choices": [
+        "Syntax analysis and code generation",
+        "Memory allocation and garbage collection",
+        "Assembly and linking",
+        "Emulating VM commands and drawing on the screen"
+      ],
+      "answer": 0,
+      "explain": "The Jack compiler first analyzes the program's syntax, then generates VM code from it."
+    }
+  ]
+}

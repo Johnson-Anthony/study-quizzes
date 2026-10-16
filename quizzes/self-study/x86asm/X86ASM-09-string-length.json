@@ -1,0 +1,375 @@
+{
+  "title": "X86ASM 09: String Length Function",
+  "course": "X86ASM",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Null terminators and string storage",
+      "q": "How do C-style strings mark where they end?",
+      "choices": [
+        "A single byte with the value 0 placed right after the last character",
+        "A length byte stored just before the first character",
+        "A newline character placed after the last character",
+        "The assembler leaves an unused gap after each string"
+      ],
+      "answer": 0,
+      "explain": "A byte with the value zero, called the null terminator, follows the last character. Code that measures the string walks forward until it finds that 0."
+    },
+    {
+      "type": "tf",
+      "category": "Null terminators and string storage",
+      "q": "Strings declared one after another in the data segment with .ascii are stored back to back in memory, with nothing between them.",
+      "answer": true,
+      "explain": "Data is laid out in order. With .ascii, the byte after the '!' of one string is simply the first character of the next string."
+    },
+    {
+      "type": "tf",
+      "category": "Null terminators and string storage",
+      "q": "If strings have no null terminator, a loop that reaches the last character of one string can't tell that the next byte belongs to a different string.",
+      "answer": true,
+      "explain": "The next byte is just another valid character, so nothing marks the boundary. The terminating 0 is what tells the loop to stop."
+    },
+    {
+      "type": "multi",
+      "category": "Null terminators and string storage",
+      "q": "Which of these GNU assembler directives automatically add a null terminator after the string?",
+      "choices": [".ascii", ".asciz", ".string", ".data"],
+      "answer": [1, 2],
+      "explain": ".asciz (the 'z' stands for zero) and .string both add a 0 byte at the end. .ascii does not, and .data just switches to the data section."
+    },
+    {
+      "type": "num",
+      "category": "Null terminators and string storage",
+      "q": "How many bytes does .asciz \"Hi!\" take up in memory?",
+      "answer": 4,
+      "explain": "It stores 3 characters ('H', 'i', '!') plus the 1-byte null terminator, for 4 bytes total. Its string length is still 3."
+    },
+    {
+      "type": "num",
+      "category": "Null terminators and string storage",
+      "q": "What is the numeric value of the null terminator byte?",
+      "answer": 0,
+      "explain": "The null terminator is just the integer 0, not the character '0' (which is 0x30)."
+    },
+    {
+      "type": "mc",
+      "category": "Loading a single byte",
+      "q": "A pointer register holds the address of a string. Why load the current character into BL instead of RBX?",
+      "choices": [
+        "The size of the destination register sets how many bytes are read, and BL takes exactly 1 byte (one character)",
+        "RBX can't be used as the destination of a memory load",
+        "BL automatically loads the last byte of the string instead of the first",
+        "Loading into RBX would overwrite the string in memory"
+      ],
+      "answer": 0,
+      "explain": "Loading into RBX reads 8 bytes, which is 8 characters. BL is the 1-byte low part of RBX, so it reads just the one character you want to compare with 0."
+    },
+    {
+      "type": "mc",
+      "category": "Loading a single byte",
+      "q": "In a mov instruction, what does wrapping the address register in parentheses/brackets in the source operand mean?",
+      "choices": [
+        "Read from memory at the address stored in the register",
+        "Copy the register's value (the address itself) into the destination",
+        "Write the destination's value to memory",
+        "Treat the register's value as a constant"
+      ],
+      "answer": 0,
+      "explain": "The parentheses/brackets mean a memory access: go to the address held in the register and load the bytes stored there."
+    },
+    {
+      "type": "text",
+      "category": "Loading a single byte",
+      "q": "Memory at the address in RAX starts with the bytes 46 69 72 73 (hex). A 1-byte load from that address into BL puts what hex value in BL?",
+      "answer": ["46", "0x46", "46h", "0X46"],
+      "explain": "A 1-byte destination takes only the first byte, 0x46, which is the ASCII code for 'F'."
+    },
+    {
+      "type": "tf",
+      "category": "Loading a single byte",
+      "q": "When 8 bytes of a string are loaded into RBX, the value looks backwards, with the first character's byte at the low-order end, because x86-64 is little-endian.",
+      "answer": true,
+      "explain": "Little-endian puts the byte at the lowest address in the least significant position, so 'F' (0x46) ends up at the right-hand end of the hex value."
+    },
+    {
+      "type": "multi",
+      "category": "Loading a single byte",
+      "q": "Which single-byte registers let you access each of the two lowest bytes of RAX separately?",
+      "choices": ["AH", "AL", "BL", "BH"],
+      "answer": [0, 1],
+      "explain": "AL is the lowest byte of RAX and AH is the byte just above it. BL and BH are the matching bytes of RBX."
+    },
+    {
+      "type": "mc",
+      "category": "The strlen loop",
+      "q": "After loading the current character into BL, what does the loop do next?",
+      "choices": [
+        "Compares BL with 0 and jumps to the exit if they are equal",
+        "Increments the pointer and then compares BL with 0",
+        "Adds BL to the counter",
+        "Compares BL with the first character of the string"
+      ],
+      "answer": 0,
+      "explain": "The loop checks for the null terminator first. If BL equals 0 the string has ended and it jumps out. Otherwise it keeps counting."
+    },
+    {
+      "type": "text",
+      "category": "The strlen loop",
+      "q": "Which conditional jump mnemonic jumps to the exit when the compare finds the character equal to 0?",
+      "answer": ["je", "JE", "jz", "JZ"],
+      "explain": "je (jump if equal) jumps when the last compare found its operands equal. jz is another name for the same instruction."
+    },
+    {
+      "type": "multi",
+      "category": "The strlen loop",
+      "q": "When the current character is NOT zero, which steps does the loop take before checking the next character?",
+      "choices": [
+        "Increment the counter (RCX)",
+        "Increment the pointer (RAX)",
+        "Jump back to the loop label",
+        "Reload the string's starting address into the pointer",
+        "Copy the counter into RAX"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "It counts the character, moves the pointer to the next byte, and jumps back to the loop. Reloading the start address would restart the scan, and copying the count into RAX belongs at the exit."
+    },
+    {
+      "type": "mc",
+      "category": "The strlen loop",
+      "q": "Why does the loop label go after the instruction that loads the string's address into the pointer, not before it?",
+      "choices": [
+        "Jumping back to it would otherwise reload the starting address every time, so the loop would check the first letter forever",
+        "Labels can't come before an address-loading instruction",
+        "It makes the counter start at 1 instead of 0",
+        "It keeps the null terminator from being counted"
+      ],
+      "answer": 0,
+      "explain": "Loading the address is one-time setup. If that code is inside the loop, the pointer never moves past the first character and the loop never ends."
+    },
+    {
+      "type": "text",
+      "category": "The strlen loop",
+      "q": "RAX = 0x402000 points at the 'F' of \"First!\", which has a null terminator after it. What address is in RAX when the loop finds the null terminator?",
+      "answer": ["0x402006", "402006", "0x00402006", "0X402006"],
+      "explain": "The six characters F, i, r, s, t, ! sit at 0x402000 through 0x402005, so the 0 byte is at 0x402006."
+    },
+    {
+      "type": "num",
+      "category": "The strlen loop",
+      "q": "Running the loop on \"First!\" (null-terminated), what is the counter when the loop exits?",
+      "answer": 6,
+      "explain": "Each of the 6 characters adds 1 to the counter. When the loop reaches the null terminator it jumps to the exit without adding 1."
+    },
+    {
+      "type": "mc",
+      "category": "The strlen loop",
+      "q": "What does this strlen function return if the first byte of the string is already 0 (an empty string)?",
+      "choices": ["0", "1", "-1", "It never finishes"],
+      "answer": 0,
+      "explain": "The compare finds 0 right away and jumps to the exit before the counter is ever incremented, so the count stays 0."
+    },
+    {
+      "type": "mc",
+      "category": "The strlen loop",
+      "q": "The loop increments both a counter and a pointer for each character. How could you drop one of those increments?",
+      "choices": [
+        "Advance only the pointer, then compute the length at the end by subtracting the starting address from the final pointer",
+        "Advance only the counter, and use it to read the next character without a pointer",
+        "Load 8 bytes at a time into RBX instead of 1",
+        "Increment the pointer by 2 on each pass"
+      ],
+      "answer": 0,
+      "explain": "Pointer subtraction works because the final pointer minus the start address equals the number of characters passed, so a separate counter isn't needed."
+    },
+    {
+      "type": "mc",
+      "category": "Passing arguments (System V ABI)",
+      "q": "Under the System V ABI on Linux, in what order are registers used for the first six integer/pointer arguments?",
+      "choices": [
+        "RDI, RSI, RDX, RCX, R8, R9",
+        "RAX, RBX, RCX, RDX, RSI, RDI",
+        "RSI, RDI, RDX, RCX, R8, R9",
+        "RDI, RSI, RCX, RDX, R8, R9"
+      ],
+      "answer": 0,
+      "explain": "The order is RDI, RSI, RDX, RCX, R8, R9."
+    },
+    {
+      "type": "text",
+      "category": "Passing arguments (System V ABI)",
+      "q": "Under the System V ABI, which register holds a function's first argument (for example, the string pointer passed to strlen)?",
+      "answer": ["RDI", "rdi", "%rdi"],
+      "explain": "RDI holds the first argument, so the caller puts the string's address in RDI before calling strlen."
+    },
+    {
+      "type": "text",
+      "category": "Passing arguments (System V ABI)",
+      "q": "Under the System V ABI, which register holds the third argument?",
+      "answer": ["RDX", "rdx", "%rdx"],
+      "explain": "The order is RDI (1st), RSI (2nd), RDX (3rd)."
+    },
+    {
+      "type": "mc",
+      "category": "Passing arguments (System V ABI)",
+      "q": "Under the System V ABI, where does a seventh argument go once all six argument registers are in use?",
+      "choices": ["On the stack", "In RAX", "In RBX", "In the instruction pointer"],
+      "answer": 0,
+      "explain": "The first six arguments use RDI, RSI, RDX, RCX, R8, R9. Any more are passed on the stack."
+    },
+    {
+      "type": "tf",
+      "category": "Passing arguments (System V ABI)",
+      "q": "The CPU enforces the System V ABI, so a function that takes its arguments in other registers won't run.",
+      "answer": false,
+      "explain": "The ABI is an agreement between programmers, not a hardware rule. Following it is recommended because your code will then work with other code that follows the same conventions."
+    },
+    {
+      "type": "tf",
+      "category": "Passing arguments (System V ABI)",
+      "q": "In your own assembly functions you can use any register however you like, including the instruction pointer.",
+      "answer": false,
+      "explain": "You can use the general registers however you like, but the instruction pointer controls which instruction runs next. It isn't a free register for your own data."
+    },
+    {
+      "type": "mc",
+      "category": "Passing arguments (System V ABI)",
+      "q": "The strlen loop uses RAX as its pointer, but the argument comes in through RDI. What should the function do?",
+      "choices": [
+        "Copy RDI into RAX once, in the setup code before the loop label",
+        "Copy RDI into RAX at the top of every loop pass",
+        "Copy RAX into RDI before the loop",
+        "Nothing, because RAX and RDI always hold the same value"
+      ],
+      "answer": 0,
+      "explain": "The function takes the argument from RDI and moves it into the register its loop was written to use. Doing that once, before the loop starts, is enough."
+    },
+    {
+      "type": "mc",
+      "category": "Passing arguments (System V ABI)",
+      "q": "The instruction that copies RDI into RAX is accidentally placed inside the loop, after the loop label. What happens?",
+      "choices": [
+        "RAX goes back to the start of the string on every pass, so the loop keeps checking the first character forever",
+        "The function returns the right length, just more slowly",
+        "The loop skips every other character",
+        "The function returns 0 right away"
+      ],
+      "answer": 0,
+      "explain": "Each pass puts the original address back into RAX, so the pointer never moves forward and the null terminator is never reached."
+    },
+    {
+      "type": "text",
+      "category": "Returning values, call and ret",
+      "q": "By System V ABI convention on Linux, which register holds a function's return value?",
+      "answer": ["RAX", "rax", "%rax"],
+      "explain": "RAX is the return register, so the caller looks there for the result once the function returns."
+    },
+    {
+      "type": "mc",
+      "category": "Returning values, call and ret",
+      "q": "At strlen_exit the count is in RCX. What must happen before ret?",
+      "choices": [
+        "Copy RCX into RAX",
+        "Copy RCX into RDI",
+        "Push RCX onto the stack",
+        "Nothing, because the caller reads RCX"
+      ],
+      "answer": 0,
+      "explain": "The return value belongs in RAX, so the count is copied from RCX into RAX just before returning."
+    },
+    {
+      "type": "mc",
+      "category": "Returning values, call and ret",
+      "q": "What does a call instruction push onto the stack?",
+      "choices": [
+        "The return address, which is the address of the instruction right after the call",
+        "The address of the call instruction itself",
+        "The address of the function being called",
+        "The value in RDI"
+      ],
+      "answer": 0,
+      "explain": "call pushes the address of the next instruction and then jumps to the function. Execution resumes at that address when the function returns."
+    },
+    {
+      "type": "text",
+      "category": "Returning values, call and ret",
+      "q": "A 5-byte call instruction starts at address 0x401008. What return address does it push onto the stack? (Answer in hex.)",
+      "answer": ["0x40100D", "0x40100d", "40100D", "40100d", "0X40100D"],
+      "explain": "The return address is the instruction right after the call: 0x401008 + 5 = 0x40100D."
+    },
+    {
+      "type": "mc",
+      "category": "Returning values, call and ret",
+      "q": "What happens when the function runs ret?",
+      "choices": [
+        "The return address is popped off the stack and execution continues at the instruction after the call",
+        "The program exits with the value in RAX as its exit code",
+        "Execution jumps back to the start of the function",
+        "RAX is pushed onto the stack for the caller"
+      ],
+      "answer": 0,
+      "explain": "ret takes the return address that call pushed, removes it from the stack, and continues from there."
+    },
+    {
+      "type": "tf",
+      "category": "Returning values, call and ret",
+      "q": "call and ret depend on the stack, so if the stack pointer has been pointed somewhere else (for example, at the data segment), function calls can break.",
+      "answer": true,
+      "explain": "call writes the return address at the stack pointer and ret reads it back from there. If RSP points somewhere it shouldn't, the return address may land in the wrong place or overwrite data."
+    },
+    {
+      "type": "num",
+      "category": "Exit syscall and debugging",
+      "q": "On Linux x86-64, what syscall number goes in RAX to exit the program?",
+      "answer": 60,
+      "explain": "Put 60 in RAX and the exit status in RDI, then run syscall."
+    },
+    {
+      "type": "mc",
+      "category": "Exit syscall and debugging",
+      "q": "When making the exit syscall, which register holds the exit status code (for example, 0 for a normal exit)?",
+      "choices": ["RDI", "RAX", "RSI", "RCX"],
+      "answer": 0,
+      "explain": "RAX holds the syscall number (60) and RDI holds the exit status the program reports."
+    },
+    {
+      "type": "tf",
+      "category": "Exit syscall and debugging",
+      "q": "If a program has no exit syscall, it ends cleanly after running its last instruction.",
+      "answer": false,
+      "explain": "The CPU keeps going past the last instruction and the program crashes. You need to ask the kernel to end the process with the exit syscall."
+    },
+    {
+      "type": "mc",
+      "category": "Exit syscall and debugging",
+      "q": "What does the instruction int 3 do?",
+      "choices": [
+        "Triggers a breakpoint interrupt that pauses execution so you can inspect registers",
+        "Exits the program with status 3",
+        "Calls the third function argument",
+        "Adds 3 to the instruction pointer"
+      ],
+      "answer": 0,
+      "explain": "int 3 is the breakpoint interrupt. Placed just before ret, it lets you run the whole loop at full speed and then check RAX."
+    },
+    {
+      "type": "mc",
+      "category": "Exit syscall and debugging",
+      "q": "strlen returns its length in RAX, and the program then runs its exit code. Once the program stops, RAX no longer shows the length. Why?",
+      "choices": [
+        "The exit code puts 60 into RAX, overwriting the return value",
+        "ret clears RAX",
+        "The null terminator resets RAX to 0",
+        "The return value was actually stored in RDI"
+      ],
+      "answer": 0,
+      "explain": "Setting up the exit syscall loads 60 into RAX, overwriting the returned length. Put a breakpoint before that point to see the return value."
+    },
+    {
+      "type": "num",
+      "category": "Exit syscall and debugging",
+      "q": "After strlen runs on a longer string, RAX shows 0x1E. What length is that in decimal?",
+      "answer": 30,
+      "explain": "0x1E = 1 x 16 + 14 = 30."
+    }
+  ]
+}
