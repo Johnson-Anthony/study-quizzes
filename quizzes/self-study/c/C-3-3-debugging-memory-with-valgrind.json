@@ -1,0 +1,414 @@
+{
+  "title": "3.3 Debugging Memory with Valgrind",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Memory error types",
+      "q": "Which region of a running program's memory does Valgrind's Memcheck tool primarily check for errors?",
+      "choices": [
+        "Heap memory allocated with malloc() and released with free()",
+        "Global data memory",
+        "The read-only code (text) segment",
+        "CPU registers"
+      ],
+      "answer": 0,
+      "explain": "Memcheck highlights heap memory errors. The heap is the memory a program allocates dynamically with malloc() and releases with free()."
+    },
+    {
+      "type": "multi",
+      "category": "Memory error types",
+      "q": "Which of the following kinds of errors can Valgrind's Memcheck detect?",
+      "choices": [
+        "Reading a value from uninitialized heap memory",
+        "Reading or writing at an unallocated heap location (e.g., array out-of-bounds)",
+        "Freeing memory that was already freed",
+        "Memory leaks",
+        "Out-of-bounds accesses to a global array"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Memcheck finds uninitialized reads, invalid reads and writes, double frees, and leaks in heap memory. It does not detect memory access errors in global data memory."
+    },
+    {
+      "type": "mc",
+      "category": "Memory error types",
+      "q": "What memory error does this code contain?\n\nint *ptr, x;\nptr = malloc(sizeof(int) * 10);\nx = ptr[3];",
+      "choices": [
+        "Reading from uninitialized memory",
+        "Writing to unallocated memory",
+        "Freeing already freed memory",
+        "A memory leak"
+      ],
+      "answer": 0,
+      "explain": "ptr[3] is inside the allocated block, but nothing was ever stored there, so the code reads an uninitialized value."
+    },
+    {
+      "type": "mc",
+      "category": "Memory error types",
+      "q": "What memory error does this code contain?\n\nptr = malloc(sizeof(int) * 10);\nptr = malloc(sizeof(int) * 5);",
+      "choices": [
+        "A memory leak of the first block of 10 ints",
+        "A double free",
+        "Reading from uninitialized memory",
+        "Writing to unallocated memory"
+      ],
+      "answer": 0,
+      "explain": "Reassigning ptr loses the only address of the first block. Nothing refers to that block anymore, so it can never be freed."
+    },
+    {
+      "type": "mc",
+      "category": "Memory error types",
+      "q": "What memory error does this code contain?\n\nfree(ptr);\nfree(ptr);",
+      "choices": [
+        "Freeing already freed memory",
+        "A memory leak",
+        "Reading from uninitialized memory",
+        "Nothing; the second call to free() is ignored"
+      ],
+      "answer": 0,
+      "explain": "The second call frees the same pointer again, so it frees memory that was already freed."
+    },
+    {
+      "type": "text",
+      "category": "Memory error types",
+      "q": "What do you call a chunk of allocated heap memory that no pointer variable in the program refers to anymore, so it can never be freed?",
+      "answer": ["memory leak", "a memory leak", "leak", "a leak"],
+      "explain": "A memory leak happens when a program loses the address of an allocated chunk of heap space."
+    },
+    {
+      "type": "tf",
+      "category": "Memory error types",
+      "q": "After ptr = malloc(sizeof(int) * 10);, the statement ptr[10] = 100; writes to valid, allocated memory.",
+      "answer": false,
+      "explain": "The block holds 10 ints at indices 0 through 9. Index 10 is past the end, so this writes to unallocated memory."
+    },
+    {
+      "type": "mc",
+      "category": "Memory error types",
+      "q": "What can happen if a program keeps leaking memory?",
+      "choices": [
+        "It can run out of heap space, and later calls to malloc() fail",
+        "The compiler refuses to build the program",
+        "free() starts freeing the wrong blocks automatically",
+        "The leaked memory is moved to the stack"
+      ],
+      "answer": 0,
+      "explain": "Leaks can eventually use up the heap, and then later calls to malloc() fail."
+    },
+    {
+      "type": "multi",
+      "category": "Why memory errors are hard",
+      "q": "Why are memory access errors often hard to find and fix?",
+      "choices": [
+        "They often don't cause a visible error right away; the symptom shows up later in execution",
+        "The symptom may appear in a part of the program that seems unrelated to the actual bug",
+        "The program may run correctly on some inputs and crash on others",
+        "The compiler reports them only as warnings, which are easy to miss"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Memory errors often show up later, in seemingly unrelated code, and only on some inputs. The compiler does not detect them, which is why runtime tools like Valgrind are useful."
+    },
+    {
+      "type": "tf",
+      "category": "Why memory errors are hard",
+      "q": "A program that runs fine on some inputs but crashes on others may have a memory access error.",
+      "answer": true,
+      "explain": "Behavior that changes with input, such as working on some inputs and crashing on others, is a classic sign of a memory access error."
+    },
+    {
+      "type": "tf",
+      "category": "Why memory errors are hard",
+      "q": "An invalid write to heap memory always crashes the program immediately, on the line that does the bad write.",
+      "answer": false,
+      "explain": "Invalid writes often have no immediate effect. They may corrupt other data and cause a crash later, or never visibly affect a run at all."
+    },
+    {
+      "type": "mc",
+      "category": "Why memory errors are hard",
+      "q": "In a large program, a heap write overruns one variable's block and corrupts another variable's data. What is usually the only connection between the two variables?",
+      "choices": [
+        "Their memory happens to be allocated close together in the heap",
+        "They have the same type",
+        "They are declared in the same function",
+        "One is a pointer to the other"
+      ],
+      "answer": 0,
+      "explain": "There may be no logical link between them. They are connected only because their memory addresses sit near each other in the heap, and that layout can change from run to run."
+    },
+    {
+      "type": "mc",
+      "category": "bigfish example",
+      "q": "bigfish was allocated with malloc(sizeof(int) * 10). Which indices does this loop write out of bounds?\n\nfor (i = 0; i < 13; i++) {\n    bigfish[i] = 66 + i;\n}",
+      "choices": [
+        "10, 11, and 12",
+        "11 and 12 only",
+        "Only 13",
+        "None; the loop stays in bounds"
+      ],
+      "answer": 0,
+      "explain": "The valid indices are 0 through 9. The loop runs up to i = 12, so it writes three indices past the end: 10, 11, and 12."
+    },
+    {
+      "type": "num",
+      "category": "bigfish example",
+      "q": "bigfish holds 10 ints. How many out-of-bounds writes does for (i = 0; i < 13; i++) bigfish[i] = 66 + i; perform?",
+      "answer": 3,
+      "explain": "The loop writes indices 0 through 12, which is 13 writes. Only 10 of them are in bounds, so 3 are out of bounds."
+    },
+    {
+      "type": "num",
+      "category": "bigfish example",
+      "q": "In the bigfish program, the loop for (i = 0; i < 13; i++) bigfish[i] = 66 + i; runs, and afterward littlefish[0] prints as 78 instead of 0. Which index of bigfish was written with the value 78?",
+      "answer": 12,
+      "explain": "66 + i = 78 gives i = 12. The out-of-bounds write to bigfish[12] landed on the memory of littlefish[0]."
+    },
+    {
+      "type": "mc",
+      "category": "bigfish example",
+      "q": "In the bigfish program, out-of-bounds writes to bigfish happen in a loop, but the program crashes later at free(littlefish). What is the most likely explanation?",
+      "choices": [
+        "The writes overwrote heap metadata that malloc() stores just before littlefish's block, and free() uses that metadata to decide how much memory to free",
+        "littlefish was never allocated, so freeing it crashes",
+        "free() checks whether array values are in range and rejects littlefish",
+        "bigfish was freed first, so littlefish became invalid"
+      ],
+      "answer": 0,
+      "explain": "malloc() can store metadata in the heap right before each allocated block. Overwriting the metadata for littlefish corrupts the information free() relies on, so the crash shows up at free(littlefish)."
+    },
+    {
+      "type": "tf",
+      "category": "bigfish example",
+      "q": "GDB shows the bigfish program crashing at free(littlefish), so the bug must be in how the program accesses littlefish.",
+      "answer": false,
+      "explain": "The crash happens at free(littlefish), but the cause is the out-of-bounds writes to bigfish. The program never accesses littlefish incorrectly."
+    },
+    {
+      "type": "tf",
+      "category": "bigfish example",
+      "q": "Every malloc() implementation stores its bookkeeping metadata in the heap immediately before each allocated block.",
+      "answer": false,
+      "explain": "Some implementations do this, but not all of them use this strategy."
+    },
+    {
+      "type": "mc",
+      "category": "bigfish example",
+      "q": "Valgrind reports this for the bigfish program:\n\nInvalid write\n at main (bigfish.c:27)\n Address is 0 bytes after a block of size 40 alloc'd\n   by main (bigfish.c:11)\n\nWhat does the \"block of size 40\" allocated at line 11 refer to?",
+      "choices": [
+        "The bigfish array: 10 ints of 4 bytes each",
+        "An array of 40 ints",
+        "The littlefish array",
+        "40 bytes of malloc metadata"
+      ],
+      "answer": 0,
+      "explain": "Line 11 is bigfish = malloc(sizeof(int) * 10), which with 4-byte ints is 40 bytes. The invalid write lands right after the end of that block."
+    },
+    {
+      "type": "multi",
+      "category": "bigfish example",
+      "q": "Which changes would fix the out-of-bounds write in the bigfish program?",
+      "choices": [
+        "Pass more bytes to malloc() when allocating bigfish",
+        "Change the loop bounds so the loop stops writing at index 9",
+        "Remove the call to free(littlefish)",
+        "Allocate littlefish before bigfish"
+      ],
+      "answer": [0, 1],
+      "explain": "The fix is to make the allocation big enough or keep the loop within the existing allocation. Removing free() or reordering the mallocs only hides the symptom."
+    },
+    {
+      "type": "mc",
+      "category": "Reading Valgrind output",
+      "q": "Every line of Valgrind output starts with a prefix such as ==31059==. What is 31059?",
+      "choices": [
+        "The process ID (PID) of the program being run",
+        "The number of errors found",
+        "The memory address of the error",
+        "The source line number of the error"
+      ],
+      "answer": 0,
+      "explain": "Valgrind starts each line of output with the process's ID number."
+    },
+    {
+      "type": "mc",
+      "category": "Reading Valgrind output",
+      "q": "Most Valgrind error messages have three parts: the type of error, a stack trace of where the error happened, and what else?",
+      "choices": [
+        "Where the heap memory near the error was allocated",
+        "The values of all local variables",
+        "The suggested fix for the error",
+        "The number of bytes of heap memory still in use"
+      ],
+      "answer": 0,
+      "explain": "The third part shows where the heap memory around the error was allocated, which is usually the allocation involved in the error."
+    },
+    {
+      "type": "num",
+      "category": "Reading Valgrind output",
+      "q": "Valgrind output:\n\n==31059== Invalid write of size 1\n==31059==    at 0x4006C5: foo (valgrindbadprog.c:29)\n==31059==    by 0x40079A: main (valgrindbadprog.c:56)\n==31059==  Address 0x52045c5 is 0 bytes after a block of size 5 alloc'd\n==31059==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/...)\n==31059==    by 0x400660: foo (valgrindbadprog.c:18)\n==31059==    by 0x40079A: main (valgrindbadprog.c:56)\n\nOn which source line did the invalid write happen?",
+      "answer": 29,
+      "explain": "The top line of the stack trace, at foo (valgrindbadprog.c:29), shows where the error happened."
+    },
+    {
+      "type": "num",
+      "category": "Reading Valgrind output",
+      "q": "Valgrind output:\n\n==31059== Invalid write of size 1\n==31059==    at 0x4006C5: foo (valgrindbadprog.c:29)\n==31059==    by 0x40079A: main (valgrindbadprog.c:56)\n==31059==  Address 0x52045c5 is 0 bytes after a block of size 5 alloc'd\n==31059==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/...)\n==31059==    by 0x400660: foo (valgrindbadprog.c:18)\n==31059==    by 0x40079A: main (valgrindbadprog.c:56)\n\nOn which source line was the heap block near the bad write allocated?",
+      "answer": 18,
+      "explain": "In the allocation section, the call to malloc() was made by foo at valgrindbadprog.c:18."
+    },
+    {
+      "type": "mc",
+      "category": "Reading Valgrind output",
+      "q": "In a Valgrind stack trace, what does the line \"by 0x40079A: main (valgrindbadprog.c:56)\" under \"at 0x4006C5: foo (valgrindbadprog.c:29)\" tell you?",
+      "choices": [
+        "foo() was called from main() at line 56",
+        "main() was called from foo() at line 56",
+        "A second, separate error happened at line 56",
+        "Line 56 allocated the memory involved in the error"
+      ],
+      "answer": 0,
+      "explain": "The trace lists the function where the error happened first, followed by its callers. The error was in foo() at line 29, and main() called foo() at line 56."
+    },
+    {
+      "type": "mc",
+      "category": "Reading Valgrind output",
+      "q": "What does \"Address 0x52045c5 is 0 bytes after a block of size 5 alloc'd\" mean?",
+      "choices": [
+        "The bad access was to the byte right after the end of a 5-byte heap block",
+        "The access was 5 bytes past the end of a block",
+        "The program allocated a 0-byte block",
+        "The address is 5 bytes before the start of a block"
+      ],
+      "answer": 0,
+      "explain": "\"0 bytes after\" means the access is right past the last valid byte of the 5-byte block. This is a typical off-by-one overrun."
+    },
+    {
+      "type": "mc",
+      "category": "Reading Valgrind output",
+      "q": "Valgrind reports an invalid write at line 29 in this code:\n\n18   c = (char *)malloc(sizeof(char) * 5);\n...\n28   for (i = 0; i <= 5; i++) {\n29       c[i] = str[i];\n30   }\n\nWhat causes the error?",
+      "choices": [
+        "The loop runs one time too many and writes c[5], which is past the end of c",
+        "str was never allocated",
+        "c should be cast to int * instead of char *",
+        "The loop never writes c[0]"
+      ],
+      "answer": 0,
+      "explain": "c holds 5 chars at indices 0 through 4. With i <= 5 the loop also writes c[5]. To fix it, change the loop bounds or allocate a larger array."
+    },
+    {
+      "type": "mc",
+      "category": "Using Memcheck",
+      "q": "Which gcc flag adds debugging information to the executable before you run it under Valgrind?",
+      "choices": ["-g", "-O2", "-Wall", "-c"],
+      "answer": 0,
+      "explain": "Compile with -g (e.g., gcc -g valgrindbadprog.c) so the executable includes debugging information."
+    },
+    {
+      "type": "tf",
+      "category": "Using Memcheck",
+      "q": "If you run valgrind ./a.out without naming a tool, Valgrind runs Memcheck.",
+      "answer": true,
+      "explain": "Memcheck is Valgrind's default tool."
+    },
+    {
+      "type": "text",
+      "category": "Using Memcheck",
+      "q": "Which Valgrind command-line option explicitly selects the Memcheck tool?",
+      "answer": ["--tool=memcheck"],
+      "explain": "--tool=memcheck selects Memcheck. The --tool option also selects Valgrind's other tools."
+    },
+    {
+      "type": "text",
+      "category": "Using Memcheck",
+      "q": "Which Valgrind option shows details about each individual memory leak?",
+      "answer": ["--leak-check=yes", "--leak-check=full"],
+      "explain": "--leak-check=yes shows details about individual memory leaks."
+    },
+    {
+      "type": "mc",
+      "category": "Using Memcheck",
+      "q": "When does Memcheck report memory access errors, and when does it report its memory leak summary?",
+      "choices": [
+        "Errors as they occur during execution; the leak summary at the end of execution",
+        "Both only at the end of execution",
+        "Both as they occur during execution",
+        "The leak summary first, then errors after the program exits"
+      ],
+      "answer": 0,
+      "explain": "Memcheck prints errors and warnings as they occur, then prints a summary of memory leaks when the program finishes."
+    },
+    {
+      "type": "mc",
+      "category": "Using Memcheck",
+      "q": "Valgrind reports both invalid reads/writes and memory leaks. Which should you usually fix first?",
+      "choices": [
+        "The invalid reads/writes and other access errors, unless leaks are making the program run out of heap memory",
+        "Memory leaks, because they are always the root cause",
+        "Whichever appears last in the output",
+        "Neither; Valgrind warnings are usually false positives"
+      ],
+      "answer": 0,
+      "explain": "Leaks matter, but the other memory access errors are much more critical to correctness. Fix those first, unless leaks are making the program run out of heap space and crash."
+    },
+    {
+      "type": "mc",
+      "category": "Using Memcheck",
+      "q": "For a non-interactive program, which command saves both Valgrind's output and the program's output to output.txt?",
+      "choices": [
+        "valgrind -v ./a.out >& output.txt",
+        "valgrind -v ./a.out < output.txt",
+        "valgrind -v output.txt ./a.out",
+        "gcc -g ./a.out > output.txt"
+      ],
+      "answer": 0,
+      "explain": ">& sends both standard output and standard error (where Valgrind writes its messages) to the file, which you can read after the program exits."
+    },
+    {
+      "type": "mc",
+      "category": "Using Memcheck",
+      "q": "The code around a Valgrind error doesn't make the cause clear. What is a good next step?",
+      "choices": [
+        "Use GDB with breakpoints near the reported lines to inspect the program's runtime state",
+        "Recompile without -g and run Valgrind again",
+        "Ignore the error if the program's output looks correct",
+        "Add more calls to free() at the end of main()"
+      ],
+      "answer": 0,
+      "explain": "Valgrind shows where the error is, and GDB shows the runtime state there. For example, a breakpoint at line 29 that prints i shows the out-of-bounds access when i is 5."
+    },
+    {
+      "type": "tf",
+      "category": "Valgrind scope and limits",
+      "q": "Valgrind detects memory access errors involving global data memory.",
+      "answer": false,
+      "explain": "Valgrind does not detect memory access errors in global data memory."
+    },
+    {
+      "type": "tf",
+      "category": "Valgrind scope and limits",
+      "q": "Valgrind detects stack memory errors in as much detail as heap memory errors.",
+      "answer": false,
+      "explain": "Valgrind can find some stack errors, such as uninitialized local variables or accesses beyond the bounds of the current stack, but not in as much detail as heap errors."
+    },
+    {
+      "type": "multi",
+      "category": "Valgrind scope and limits",
+      "q": "What can happen if a program writes past the end of an array declared statically on the stack?",
+      "choices": [
+        "Other local variables change value \"mysteriously\"",
+        "Saved state used to return from a function call is overwritten, crashing the program when the function returns",
+        "Valgrind always reports the exact array and index involved",
+        "The compiler automatically grows the array"
+      ],
+      "answer": [0, 1],
+      "explain": "Stack overruns can corrupt nearby locals or the saved return state, causing a crash at function return. Valgrind may not catch these errors."
+    },
+    {
+      "type": "mc",
+      "category": "Valgrind scope and limits",
+      "q": "Which Valgrind tool profiles cache behavior?",
+      "choices": ["Cachegrind", "Callgrind", "Massif", "Memcheck"],
+      "answer": 0,
+      "explain": "Cachegrind profiles cache behavior. Callgrind profiles code, Massif profiles memory use, and Memcheck finds memory errors."
+    }
+  ]
+}
