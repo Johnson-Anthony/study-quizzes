@@ -1,0 +1,180 @@
+{
+  "title": "2.3 - Pointers and Functions",
+  "course": "C",
+  "questions": [
+    {
+      "type": "tf",
+      "category": "Pass by value",
+      "q": "In C, every function argument is passed by value: the parameter gets a copy of its argument's value.",
+      "answer": true,
+      "explain": "C passes all arguments by value. Even with pass by pointer, the parameter gets a copy of the argument's value. That value just happens to be an address."
+    },
+    {
+      "type": "num",
+      "category": "Pass by value",
+      "q": "What does this program print?\n\n```c\n#include <stdio.h>\n\nvoid f(int a) {\n    a = 5;\n}\n\nint main(void) {\n    int b = 1;\n    f(b);\n    printf(\"%d\\n\", b);\n    return 0;\n}\n```",
+      "answer": 1,
+      "explain": "Parameter a gets a copy of b's value. Assigning 5 to a changes only the copy, so b is still 1."
+    },
+    {
+      "type": "tf",
+      "category": "Pass by value",
+      "q": "If a function assigns its pointer parameter to point to a different address, the caller's argument now points to that new address as well.",
+      "answer": false,
+      "explain": "The pointer parameter is a copy of the argument's address value. Changing where the parameter points does not change the argument's value."
+    },
+    {
+      "type": "num",
+      "category": "Pass by value",
+      "q": "What does this program print?\n\n```c\n#include <stdio.h>\n\nvoid g(int *p) {\n    int z = 7;\n    p = &z;\n    *p = 9;\n}\n\nint main(void) {\n    int x = 3;\n    g(&x);\n    printf(\"%d\\n\", x);\n    return 0;\n}\n```",
+      "answer": 3,
+      "explain": "p starts with x's address, but `p = &z;` points the copy at z instead. `*p = 9` then writes into z, not x, so x stays 3."
+    },
+    {
+      "type": "mc",
+      "category": "Pass by pointer pattern",
+      "q": "In the pass-by-pointer pattern, what value does the pointer parameter get?",
+      "choices": [
+        "A copy of the value stored in the caller's variable",
+        "The address of a storage location passed in by the caller",
+        "A new variable that is copied back to the caller when the function returns",
+        "The name of the caller's variable"
+      ],
+      "answer": 1,
+      "explain": "The parameter gets the value of an address, for example the address of one of the caller's local variables. Dereferencing it reaches that storage location."
+    },
+    {
+      "type": "mc",
+      "category": "Pass by pointer pattern",
+      "q": "Given `int change_value(int *input);` and `int x;`, which call lets change_value modify x?",
+      "choices": [
+        "`change_value(x);`",
+        "`change_value(&x);`",
+        "`change_value(*x);`",
+        "`change_value(int *x);`"
+      ],
+      "answer": 1,
+      "explain": "The parameter type is `int *`, so the argument must be the address of an int variable. `&x` is the address of x."
+    },
+    {
+      "type": "mc",
+      "category": "Pass by pointer pattern",
+      "q": "Inside `int change_value(int *input)`, which statement stores 100 in the caller's variable that input points to?",
+      "choices": [
+        "`input = 100;`",
+        "`*input = 100;`",
+        "`&input = 100;`",
+        "`int *input = 100;`"
+      ],
+      "answer": 1,
+      "explain": "Dereferencing with `*input` refers to the location input points to, so `*input = 100;` assigns 100 there. `input = 100;` would change the pointer itself."
+    },
+    {
+      "type": "mc",
+      "category": "Pass by pointer pattern",
+      "q": "If a function's parameter is declared `int *input`, what must the caller pass as the argument?",
+      "choices": [
+        "Any int value",
+        "The address of an int variable",
+        "The address of any variable, whatever its type",
+        "A pointer to a pointer to an int"
+      ],
+      "answer": 1,
+      "explain": "An `int *` parameter points to an int, so the address passed must be the address of an int variable."
+    },
+    {
+      "type": "multi",
+      "category": "Pass by pointer pattern",
+      "q": "Which statements about passing a pointer parameter are true?",
+      "choices": [
+        "Dereferencing the parameter lets the function change memory the caller can see after the function returns",
+        "The parameter gets a copy of the argument's value, which is an address",
+        "Assigning a new address to the parameter changes the caller's argument",
+        "The parameter and its argument refer to the same memory location"
+      ],
+      "answer": [0, 1, 3],
+      "explain": "The parameter holds a copy of the argument's address, so both refer to the same memory, and writing through `*param` changes it. Reassigning the parameter changes only the copy."
+    },
+    {
+      "type": "text",
+      "category": "Pass by pointer pattern",
+      "q": "Which operator do you put in front of a variable name to pass that variable's address to a function?",
+      "answer": ["&", "ampersand", "address-of", "address of", "the & operator", "address-of operator"],
+      "explain": "`&x` evaluates to the address of x, as in `change_value(&x);`."
+    },
+    {
+      "type": "num",
+      "category": "Tracing change_value",
+      "q": "Use this code for the next questions:\n\n```c\nint change_value(int *input) {\n    int val;\n\n    val = *input;\n\n    if (val < 100) {\n        *input = 100;\n    } else {\n        *input = val * 2;\n    }\n\n    return val;\n}\n```\n\nIn main, `x = 30;` and then `y = change_value(&x);`. What is the value of x after the call?",
+      "answer": 100,
+      "explain": "val gets 30, which is less than 100, so `*input = 100` writes 100 into x through the pointer."
+    },
+    {
+      "type": "num",
+      "category": "Tracing change_value",
+      "q": "Using the same change_value:\n\n```c\nint change_value(int *input) {\n    int val;\n    val = *input;\n    if (val < 100) {\n        *input = 100;\n    } else {\n        *input = val * 2;\n    }\n    return val;\n}\n```\n\nIn main, `x = 30;` and then `y = change_value(&x);`. What is the value of y?",
+      "answer": 30,
+      "explain": "The function returns val, which is the original value of x (30). So the program prints `x: 100 y: 30`."
+    },
+    {
+      "type": "num",
+      "category": "Tracing change_value",
+      "q": "Using the same change_value:\n\n```c\nint change_value(int *input) {\n    int val;\n    val = *input;\n    if (val < 100) {\n        *input = 100;\n    } else {\n        *input = val * 2;\n    }\n    return val;\n}\n```\n\nIn main, `x = 150;` and then `y = change_value(&x);`. What is the value of x after the call?",
+      "answer": 300,
+      "explain": "val gets 150, which is not less than 100, so `*input = val * 2` stores 300 in x."
+    },
+    {
+      "type": "num",
+      "category": "Tracing change_value",
+      "q": "Using the same change_value:\n\n```c\nint change_value(int *input) {\n    int val;\n    val = *input;\n    if (val < 100) {\n        *input = 100;\n    } else {\n        *input = val * 2;\n    }\n    return val;\n}\n```\n\nIn main, `x = 150;` and then `y = change_value(&x);`. What is the value of y?",
+      "answer": 150,
+      "explain": "change_value always returns the original value it read through the pointer, here 150."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing change_value",
+      "q": "In the change_value example, what does the statement `val = *input;` do?",
+      "choices": [
+        "Stores the address in input into val",
+        "Gives val the value stored at the location input points to",
+        "Makes input point to val",
+        "Copies val into the caller's variable"
+      ],
+      "answer": 1,
+      "explain": "`*input` dereferences the pointer, so val gets the int stored at that address (x's value in main)."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing change_value",
+      "q": "Just before change_value returns (called as `change_value(&x)` from main), where is the memory that its parameter input points to?",
+      "choices": [
+        "In change_value's own stack frame",
+        "In main's stack frame, where local variable x lives",
+        "In a temporary copy that is discarded when change_value returns",
+        "Nowhere; input stores an int value, not an address"
+      ],
+      "answer": 1,
+      "explain": "input holds the address of x, a local variable in main's stack frame. That is why writing through input changes x after the function returns."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays as parameters",
+      "q": "When an array is passed to a function, what does the array parameter get?",
+      "choices": [
+        "A copy of every element in the array",
+        "The base address of the passed array",
+        "Only the value of the first element",
+        "The number of elements in the array"
+      ],
+      "answer": 1,
+      "explain": "An array parameter gets the value of the array's base address, so it refers to the same elements as its argument."
+    },
+    {
+      "type": "tf",
+      "category": "Arrays as parameters",
+      "q": "A function can change the values stored in an array argument, and the caller sees those changes after the function returns.",
+      "answer": true,
+      "explain": "The parameter refers to the same array elements as the argument (it holds the base address), so changes to the elements are visible to the caller. Pass by pointer works the same way."
+    }
+  ]
+}

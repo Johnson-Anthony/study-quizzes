@@ -1,0 +1,410 @@
+{
+  "title": "2.9.5 C Libraries: Using, Compiling, and Linking",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Library structure",
+      "q": "A C library consists of which two parts?",
+      "choices": [
+        "A main() function and a Makefile",
+        "An API defined in header (.h) files, and an implementation usually provided in precompiled binary form",
+        "A .s assembly file and a .o object file",
+        "A shell script and an executable a.out"
+      ],
+      "answer": 1,
+      "explain": "The API (function prototypes, types, constants, globals) is in header files. The implementation is often precompiled into a .a archive or a .so shared object that gets linked into the executable."
+    },
+    {
+      "type": "tf",
+      "category": "Library structure",
+      "q": "A library's header files define what it exports to its users. They usually contain function prototypes and may also contain type, constant, or global variable declarations.",
+      "answer": true,
+      "explain": "Headers are the library's API: what users of the library can see and use."
+    },
+    {
+      "type": "tf",
+      "category": "Library structure",
+      "q": "A precompiled library file such as libsomelib.a or libsomelib.so can be run directly as a program.",
+      "answer": false,
+      "explain": "Library binaries are not executable programs. They provide executable code that gets linked into an executable file."
+    },
+    {
+      "type": "mc",
+      "category": "Library structure",
+      "q": "A library's implementation may include header files that are internal to it. How do those internal headers relate to the library's API?",
+      "choices": [
+        "They are the library's API",
+        "They replace the need for function prototypes",
+        "They are not part of the API, but they are part of well-designed, modular library code",
+        "They must be included by every program that uses the library"
+      ],
+      "answer": 2,
+      "explain": "Internal headers are used only inside the library's implementation and are not exported to users."
+    },
+    {
+      "type": "text",
+      "category": "Static vs dynamic linking",
+      "q": "What file extension does an archive file have when it contains several .o files that can be statically linked into an executable (for example, libsomelib.?)",
+      "answer": [".a", "a"],
+      "explain": "Archive files (.a) are statically linked at compile time."
+    },
+    {
+      "type": "mc",
+      "category": "Static vs dynamic linking",
+      "q": "Which library file can be dynamically linked into a running program at runtime?",
+      "choices": [
+        "libsomelib.a",
+        "libsomelib.o",
+        "libsomelib.so",
+        "libsomelib.h"
+      ],
+      "answer": 2,
+      "explain": "A shared object (.so) file is loaded and linked at runtime. A .a archive is statically linked at compile time."
+    },
+    {
+      "type": "tf",
+      "category": "Linking options",
+      "q": "A program that calls functions declared in string.h must add -lstring to the gcc command line.",
+      "answer": false,
+      "explain": "The string library is part of the standard C library (libc), and gcc links libc into every executable automatically. The program only needs #include <string.h>."
+    },
+    {
+      "type": "mc",
+      "category": "Linking options",
+      "q": "The readline library is installed as libreadline.so.8.0. Which gcc option links it in?",
+      "choices": [
+        "-llibreadline.so.8.0",
+        "-lreadline",
+        "-llibreadline",
+        "-lreadline.so"
+      ],
+      "answer": 1,
+      "explain": "The -l argument leaves off the lib prefix, the .so or .a suffix, and any version numbers. That lets gcc pick the most recent version found in the library path."
+    },
+    {
+      "type": "mc",
+      "category": "Linking options",
+      "q": "Linking the POSIX threads library is a special case. Which option do you use?",
+      "choices": [
+        "-lpthread.so",
+        "-pthread",
+        "-lposix",
+        "--threads"
+      ],
+      "answer": 1,
+      "explain": "The POSIX threads library is linked with -pthread, without the usual -l prefix. Example: gcc -o myprog myprog.c -pthread -lreadline"
+    },
+    {
+      "type": "mc",
+      "category": "Linking options",
+      "q": "Both a .so and a .a version of a library are available and you link with -lname. What happens by default, and how do you get static linking?",
+      "choices": [
+        "gcc always links statically. Use --dynamic to get dynamic linking.",
+        "gcc may choose to link dynamically. Ask for static linking explicitly, for example with --static.",
+        "gcc reports an ambiguity error. You must give the full file name.",
+        "gcc links both versions into the executable."
+      ],
+      "answer": 1,
+      "explain": "Because -l does not name an exact file, gcc can choose to link dynamically when both versions exist. Static linking must be requested, for example: gcc -o myprog myprog.c --static -pthread -lreadline"
+    },
+    {
+      "type": "mc",
+      "category": "Compilation steps",
+      "q": "Which compilation step runs first and expands directives such as #define and #include?",
+      "choices": [
+        "Compile step",
+        "Assembly step",
+        "Precompiler step",
+        "Link editing step"
+      ],
+      "answer": 2,
+      "explain": "The precompiler (preprocessor) step runs first. It handles the # directives."
+    },
+    {
+      "type": "mc",
+      "category": "Compilation steps",
+      "q": "What is the correct order of the C compilation steps, followed by the step that can happen at runtime?",
+      "choices": [
+        "precompiler, compile, assembly, link editing, runtime linking",
+        "compile, precompiler, link editing, assembly, runtime linking",
+        "precompiler, assembly, compile, link editing, runtime linking",
+        "compile, assembly, precompiler, runtime linking, link editing"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Source (.c) goes through the precompiler, then the compiler (.s), then the assembler (.o), then the link editor (a.out). Runtime linking happens only if shared objects were linked in."
+    },
+    {
+      "type": "mc",
+      "category": "Compilation steps",
+      "q": "Which gcc flag stops after the precompiler step so you can see its output?",
+      "choices": ["-c", "-S", "-E", "-g"],
+      "answer": 2,
+      "fixed": true,
+      "explain": "gcc -E myprog.c prints the preprocessed output. You can redirect it to a file to read it."
+    },
+    {
+      "type": "mc",
+      "category": "Compilation steps",
+      "q": "What does gcc -S myprog.c produce?",
+      "choices": [
+        "myprog.o, a relocatable binary object file",
+        "myprog.s, a text file containing the machine-specific assembly translation",
+        "a.out, a complete executable",
+        "Preprocessed C source printed to standard output"
+      ],
+      "answer": 1,
+      "explain": "The compile step turns C source into assembly code, a human-readable form of machine instructions. -S stops after this step."
+    },
+    {
+      "type": "mc",
+      "category": "Compilation steps",
+      "q": "Which gcc flag stops after the assembly step and produces myprog.o?",
+      "choices": ["-E", "-S", "-o", "-c"],
+      "answer": 3,
+      "fixed": true,
+      "explain": "gcc -c myprog.c produces the relocatable object file myprog.o."
+    },
+    {
+      "type": "tf",
+      "category": "Compilation steps",
+      "q": "A relocatable object file (.o) contains machine code instructions and is a complete program that can run on its own.",
+      "answer": false,
+      "explain": "A .o file contains machine code but is not a complete executable. It still has to go through link editing."
+    },
+    {
+      "type": "text",
+      "category": "Compilation steps",
+      "q": "What is the binary file format that gcc produces on Unix and Linux systems? Give the acronym.",
+      "answer": ["ELF", "Executable and Linkable Format"],
+      "explain": "ELF stands for Executable and Linkable Format."
+    },
+    {
+      "type": "text",
+      "category": "Compilation steps",
+      "q": "Which tool can disassemble the functions in a binary file such as myprog.o or a.out (used with the -d flag)?",
+      "answer": ["objdump", "objdump -d"],
+      "explain": "objdump -d myprog.o disassembles the functions in the object file."
+    },
+    {
+      "type": "mc",
+      "category": "Compilation steps",
+      "q": "In which step does the linker check that every symbol referenced in a .o file is defined in some .o, .a, or .so file?",
+      "choices": [
+        "Precompiler step",
+        "Compile step",
+        "Link editing step",
+        "Assembly step"
+      ],
+      "answer": 2,
+      "explain": "The link editing step combines .o files and libraries into a single executable. If it cannot find a symbol's definition, it fails with an undefined-symbol error."
+    },
+    {
+      "type": "mc",
+      "category": "Compilation steps",
+      "q": "At which step would you get an error because gcc cannot find a header file named in an #include directive?",
+      "choices": [
+        "Precompiler step",
+        "Assembly step",
+        "Link editing step",
+        "Runtime linking step"
+      ],
+      "answer": 0,
+      "explain": "#include is a preprocessor directive, so a missing header is reported during the precompiler step."
+    },
+    {
+      "type": "multi",
+      "category": "Compilation steps",
+      "q": "Which kinds of errors or warnings come from the compile step (C source to assembly)?",
+      "choices": [
+        "C language syntax errors",
+        "Undefined symbol warnings",
+        "Errors from missing definitions and function prototypes",
+        "A shared object file that cannot be found when the program starts",
+        "Syntax errors in preprocessor directives"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The compile step reports C syntax errors, undefined symbol warnings, and missing definition or prototype errors. A missing .so is reported at runtime. Bad preprocessor directive syntax is reported in the precompiler step."
+    },
+    {
+      "type": "mc",
+      "category": "Static vs dynamic linking",
+      "q": "When an executable is statically linked against a .a library, how does it get the library's code?",
+      "choices": [
+        "gcc copies the library functions into a.out, and calls to them are bound to those copies inside a.out",
+        "a.out records only the library's name, and the code is loaded when the program runs",
+        "The library's source code is recompiled every time the program runs",
+        "The operating system shares one copy of the .a file with all running programs"
+      ],
+      "answer": 0,
+      "explain": "Static linking embeds copies of the library functions in a.out. Calls are bound to the addresses where those copies sit in a.out."
+    },
+    {
+      "type": "mc",
+      "category": "Static vs dynamic linking",
+      "q": "In this material, what does binding a call to a library function mean?",
+      "choices": [
+        "Adding the function's prototype to a header file",
+        "Replacing the use of the function's name with the function's address in memory",
+        "Compiling the function into assembly code",
+        "Marking the function as extern"
+      ],
+      "answer": 1,
+      "explain": "Binding associates a name with a location in the program's memory. For a function call, the name is replaced with the function's address."
+    },
+    {
+      "type": "tf",
+      "category": "Static vs dynamic linking",
+      "q": "An a.out that was dynamically linked against a .so library contains a copy of that library's function code.",
+      "answer": false,
+      "explain": "A dynamically linked a.out only records which shared libraries it needs. The library code is loaded and linked at runtime."
+    },
+    {
+      "type": "mc",
+      "category": "Static vs dynamic linking",
+      "q": "When does dynamic linking of shared objects take place for a dynamically linked executable?",
+      "choices": [
+        "During the precompiler step",
+        "At runtime, before the program starts executing main",
+        "At runtime, the first time main returns",
+        "Only when the program is run under GDB"
+      ],
+      "answer": 1,
+      "explain": "When the program is launched, the system loads the needed .so files and links them in before main begins executing."
+    },
+    {
+      "type": "multi",
+      "category": "Static vs dynamic linking",
+      "q": "When a dynamically linked program starts, what does the dynamic linker do?",
+      "choices": [
+        "Examines the executable's list of shared object dependencies",
+        "Finds and loads the needed .so files into the running program",
+        "Updates relocation table entries to bind the program's uses of shared-object symbols to their locations in the loaded .so files",
+        "Permanently copies the library code into the a.out file on disk",
+        "Recompiles the library's .c files"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The dynamic linker reads the dependency list, loads the shared objects, and updates relocation entries. It does not change a.out on disk or recompile anything."
+    },
+    {
+      "type": "text",
+      "category": "Static vs dynamic linking",
+      "q": "Which utility lists the shared object dependencies of an executable file such as a.out?",
+      "answer": ["ldd", "ldd a.out"],
+      "explain": "ldd a.out lists the shared objects the executable needs."
+    },
+    {
+      "type": "mc",
+      "category": "Common errors",
+      "q": "In a header file, what does the extern prefix on the prototype extern int libraryfunc(int x, int y); mean?",
+      "choices": [
+        "The function can only be called from inside the header file",
+        "The function's definition is in another file, such as one of the library's .c files",
+        "The function is defined as a macro",
+        "The function must be linked statically"
+      ],
+      "answer": 1,
+      "explain": "extern says the function is defined elsewhere, not in the header. Here it is in the library's implementation."
+    },
+    {
+      "type": "mc",
+      "category": "Common errors",
+      "q": "A program calls libraryfunc without including its header. gcc prints: warning: implicit declaration of function libraryfunc. Why is this only a warning, not an error?",
+      "choices": [
+        "gcc assumes the function returns an int and keeps compiling",
+        "gcc finds the prototype automatically in /usr/include",
+        "The linker will supply the missing prototype",
+        "Function calls are never checked by the compiler"
+      ],
+      "answer": 0,
+      "explain": "Without a prototype, gcc assumes an int return type and continues. Don't ignore the warning: it usually means a header with the prototype was not included."
+    },
+    {
+      "type": "tf",
+      "category": "Common errors",
+      "q": "If a header that defines the constant MAX is not included, gcc only warns that MAX is undeclared and keeps compiling with a guessed value.",
+      "answer": false,
+      "explain": "The compiler cannot guess the value of a missing constant, so 'MAX undeclared (first use in this function)' is an error. 'Undeclared' messages often mean a header defining a constant or global variable is missing."
+    },
+    {
+      "type": "mc",
+      "category": "Common errors",
+      "q": "The header is included, but compiling gives: myprog.c:9: undefined reference to libraryfunc / collect2: error: ld returned 1 exit status. What is the most likely fix?",
+      "choices": [
+        "Add #include <examplelib.h>",
+        "Add -lexamplelib to the gcc command line",
+        "Set LD_LIBRARY_PATH before compiling",
+        "Compile with -E"
+      ],
+      "answer": 1,
+      "explain": "'undefined reference' comes from the linker (ld). It means the function's implementation was not found, so the library needs to be linked explicitly."
+    },
+    {
+      "type": "text",
+      "category": "Common errors",
+      "q": "Which component of the compiler reports 'undefined reference' errors (it appears in the message 'collect2: error: ... returned 1 exit status')?",
+      "answer": ["ld", "the linker", "linker", "ld (the linker)"],
+      "explain": "ld is the linker component of the compiler."
+    },
+    {
+      "type": "mc",
+      "category": "Library and include paths",
+      "q": "gcc reports: fatal error: examplelib.h: No such file or directory. The header is in /home/me/include. Which option fixes this?",
+      "choices": [
+        "-L/home/me/include",
+        "-I/home/me/include",
+        "-lexamplelib",
+        "export LD_LIBRARY_PATH=/home/me/include"
+      ],
+      "answer": 1,
+      "explain": "-I adds a directory to the header (include) search path."
+    },
+    {
+      "type": "mc",
+      "category": "Library and include paths",
+      "q": "Linking fails with: /usr/bin/ld: cannot find -lexamplelib. The file libexamplelib.so is in /home/me/lib. Which option fixes this?",
+      "choices": [
+        "-I/home/me/lib",
+        "-L/home/me/lib",
+        "--static",
+        "-pthread"
+      ],
+      "answer": 1,
+      "explain": "-L adds a directory to the linker's library search path. Example: gcc -I/home/me/include -o myprog myprog.c -L/home/me/lib -lexamplelib"
+    },
+    {
+      "type": "mc",
+      "category": "Library and include paths",
+      "q": "The program compiled and linked fine, but running it gives: error while loading shared libraries: libexamplelib.so: cannot open shared object file. What fixes this?",
+      "choices": [
+        "Recompile with -I pointing at the library directory",
+        "Add the library's directory to the LD_LIBRARY_PATH environment variable",
+        "Add #include <examplelib.h> to the program",
+        "Compile with -S"
+      ],
+      "answer": 1,
+      "explain": "The runtime (dynamic) linker uses LD_LIBRARY_PATH to find .so files. Example: export LD_LIBRARY_PATH=/home/me/lib:$LD_LIBRARY_PATH"
+    },
+    {
+      "type": "multi",
+      "category": "Library and include paths",
+      "q": "Where does gcc look for header files automatically, with no extra options?",
+      "choices": [
+        "/usr/include",
+        "The current working directory",
+        "Every directory listed in LD_LIBRARY_PATH",
+        "The user's home directory"
+      ],
+      "answer": [0, 1],
+      "explain": "Standard headers are commonly in /usr/include, and gcc also searches the current working directory. Other locations need -I. LD_LIBRARY_PATH is for finding .so files at runtime."
+    },
+    {
+      "type": "text",
+      "category": "Library and include paths",
+      "q": "On many systems, which standard directory holds library files that gcc searches automatically?",
+      "answer": ["/usr/lib", "/usr/lib/"],
+      "explain": "Standard libraries are commonly stored in /usr/lib, and gcc searches there by default."
+    }
+  ]
+}

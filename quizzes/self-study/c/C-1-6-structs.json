@@ -1,0 +1,276 @@
+{
+  "title": "1.6 Structs",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Struct basics",
+      "q": "What is the key difference between a C array and a C struct?",
+      "choices": [
+        "An array is an ordered collection of elements of the same type; a struct groups data elements that can have different types",
+        "An array can hold only numbers; a struct can hold only strings",
+        "Arrays are stored in memory; structs exist only at compile time",
+        "A struct is an ordered collection of elements of the same type; an array groups elements of different types"
+      ],
+      "answer": 0,
+      "explain": "Arrays hold elements of the same type, in order. Structs hold a heterogeneous collection of data, such as a char array, an int and a float, and treat it as a single unit."
+    },
+    {
+      "type": "tf",
+      "category": "Struct basics",
+      "q": "C supports classes, and `struct` is the keyword C uses to define one.",
+      "answer": false,
+      "explain": "C is not an object-oriented language and has no classes. A struct is like the data part of a class: it groups fields but has no methods."
+    },
+    {
+      "type": "mc",
+      "category": "Struct basics",
+      "q": "What is the correct order of steps for defining and using a struct type in a C program?",
+      "choices": [
+        "Declare variables of the struct type, define the struct type, access fields with dot notation",
+        "Define the struct type, declare variables of that type, access individual fields with dot notation",
+        "Define the struct type, access fields with dot notation, declare variables of that type",
+        "Access fields with dot notation, declare variables, define the struct type"
+      ],
+      "answer": 1,
+      "explain": "First define the new struct type, then declare variables of that type, then use dot (.) notation to read or set each variable's fields."
+    },
+    {
+      "type": "mc",
+      "category": "Defining and declaring",
+      "q": "Where should a struct type definition normally appear in a .c file?",
+      "choices": [
+        "Inside main, just before the variables that use it",
+        "Outside of any function, typically near the top of the file",
+        "Inside every function that uses the struct",
+        "Inside a comment block so the compiler can find it"
+      ],
+      "answer": 1,
+      "explain": "A struct type definition should appear outside of any function, usually near the top of the .c file, so the whole program can use the type."
+    },
+    {
+      "type": "text",
+      "category": "Defining and declaring",
+      "q": "Given the definition below, what is the full name of the new type, written the way you would write it in a variable declaration (no typedef is used)?\n\n```c\nstruct studentT {\n    char name[64];\n    int age;\n    float gpa;\n    int grad_yr;\n};\n```",
+      "answer": ["struct studentT"],
+      "explain": "The new type's name is two words: `struct studentT`. Types like int, char and float are a single word, but a struct type's name includes the `struct` keyword."
+    },
+    {
+      "type": "mc",
+      "category": "Defining and declaring",
+      "q": "Assume `struct studentT` has already been defined and no typedef is used. Which line correctly declares two variables of that type?",
+      "choices": [
+        "`studentT student1, student2;`",
+        "`struct studentT student1, student2;`",
+        "`struct student1, student2;`",
+        "`struct studentT {student1, student2};`"
+      ],
+      "answer": 1,
+      "explain": "The type name is `struct studentT`, so a declaration looks like `struct studentT student1, student2;`."
+    },
+    {
+      "type": "mc",
+      "category": "Defining and declaring",
+      "q": "Which struct type definition has correct syntax?",
+      "choices": [
+        "`struct point { int x; int y; };`",
+        "`struct point { int x; int y; }`",
+        "`struct point { int x, int y };`",
+        "`struct point ( int x; int y; );`"
+      ],
+      "answer": 0,
+      "explain": "The general form is `struct <name> { <type> <field>; ... };`. Fields go in braces, each one ends with a semicolon, and the closing brace is followed by a semicolon."
+    },
+    {
+      "type": "mc",
+      "category": "Field access",
+      "q": "`student1` is a `struct studentT` whose `name` field is declared as `char name[64];`. What is the C type of the expression `student1.name[3]`?",
+      "choices": [
+        "`struct studentT`",
+        "`char []` (array of characters)",
+        "`char`",
+        "`int`"
+      ],
+      "answer": 2,
+      "explain": "`student1.name` is a char array, so indexing into it with `[3]` gives one character, of type `char`."
+    },
+    {
+      "type": "mc",
+      "category": "Field access",
+      "q": "`student1` is a `struct studentT` whose `name` field is declared as `char name[64];`. What is the C type of the expression `student1.name`?",
+      "choices": [
+        "`struct studentT`",
+        "`char []` (array of characters)",
+        "`char`",
+        "`int`"
+      ],
+      "answer": 1,
+      "explain": "The `name` field is a character array. `student1` itself has type `struct studentT`, and one element such as `student1.name[3]` is a `char`."
+    },
+    {
+      "type": "text",
+      "category": "Field access",
+      "q": "Fill in the blank: to access the `age` field of a struct variable named `student1`, you write `student1___age`. What symbol goes in the blank?",
+      "answer": [".", "dot"],
+      "explain": "Fields are accessed with dot notation: `<variable name>.<field name>`, for example `student1.age`."
+    },
+    {
+      "type": "mc",
+      "category": "Field access",
+      "q": "`student1`'s `name` field is declared as `char name[64];`. Which statement correctly stores the string \"Kwame Salter\" in that field?",
+      "choices": [
+        "`student1.name = \"Kwame Salter\";`",
+        "`strcpy(student1.name, \"Kwame Salter\");`",
+        "`student1.name[] = \"Kwame Salter\";`",
+        "`strcpy(\"Kwame Salter\", student1.name);`"
+      ],
+      "answer": 1,
+      "explain": "`name` is a statically declared char array, so it can't be the target of `=`. Use `strcpy` with the destination first to copy the string's characters into the array."
+    },
+    {
+      "type": "tf",
+      "category": "Field access",
+      "q": "printf has a format placeholder that prints a whole `struct studentT` variable in one go.",
+      "answer": false,
+      "explain": "printf has no placeholder for a programmer-defined struct type. Pass each field separately, for example `%s` for name, `%d` for age, `%g` for gpa and `%d` for grad_yr."
+    },
+    {
+      "type": "multi",
+      "category": "Assignment and lvalues",
+      "q": "Given these declarations, which of the following assignment statements are valid C?\n\n```c\nstruct studentT {\n    char name[32];\n    int  age;\n    float gpa;\n    int  grad_yr;\n};\n\nstruct studentT student1, student2;\nint x;\nchar arr[10], ch;\n```",
+      "choices": [
+        "`x = 10;`",
+        "`x + 1 = 8;`",
+        "`student1.age = 18;`",
+        "`arr = \"hello\";`",
+        "`student2 = student1;`",
+        "`student1.name = student2.name;`",
+        "`arr[3] = ch;`"
+      ],
+      "answer": [0, 2, 4, 6],
+      "explain": "Single variables of base types, array elements, struct fields of base types and whole structs are lvalues. `x + 1` is not an lvalue. A statically declared array name (`arr`, `student1.name`) is not an lvalue because its base address can't be changed. Use strcpy to copy strings into it instead."
+    },
+    {
+      "type": "text",
+      "category": "Assignment and lvalues",
+      "q": "What is the term for an expression that can appear on the left side of an assignment statement because it represents a memory storage location?",
+      "answer": ["lvalue", "lvalues", "l-value", "l-values"],
+      "explain": "An lvalue represents a memory storage location, so it can be assigned to. Struct variables are lvalues, which is why `student2 = student1;` is valid."
+    },
+    {
+      "type": "mc",
+      "category": "Assignment and lvalues",
+      "q": "`student1` and `student2` are both `struct studentT` variables. What happens when `student2 = student1;` runs?",
+      "choices": [
+        "It is a compile error because structs must be copied field by field",
+        "student2 becomes another name for the same memory as student1",
+        "The contents of student1's memory (every field value, including every character of the name array) are copied into student2's memory",
+        "Only the non-array fields are copied, so name must be copied separately with strcpy"
+      ],
+      "answer": 2,
+      "explain": "Struct variables are lvalues, and a struct's value is the contents of its memory. Assigning one struct to another copies every field value into the other struct's own memory. The two variables stay separate."
+    },
+    {
+      "type": "mc",
+      "category": "Assignment and lvalues",
+      "q": "What do `student1.name` and `student2.name` contain after this code runs?\n\n```c\nstrcpy(student1.name, \"Kwame Salter\");\nstudent1.age = 20;\nstudent2 = student1;\nstrcpy(student2.name, \"Frances Allen\");\n```",
+      "choices": [
+        "student1.name is \"Kwame Salter\"; student2.name is \"Frances Allen\"",
+        "Both are \"Frances Allen\"",
+        "Both are \"Kwame Salter\"",
+        "student1.name is \"Frances Allen\"; student2.name is \"Kwame Salter\""
+      ],
+      "answer": 0,
+      "explain": "`student2 = student1;` copies student1's field values into student2's separate memory. The later strcpy changes only student2's name array, so student1 still holds \"Kwame Salter\"."
+    },
+    {
+      "type": "num",
+      "category": "Assignment and lvalues",
+      "q": "What value does `student2.age` hold after this code runs?\n\n```c\nstudent1.age = 18 + 2;\nstudent1.grad_yr = 2020;\nstudent2 = student1;\nstudent2.grad_yr = student1.grad_yr + 1;\n```",
+      "answer": 20,
+      "explain": "The struct assignment copies all of student1's fields, including age (20), into student2. Only grad_yr is changed afterward (to 2021), so student2.age is still 20."
+    },
+    {
+      "type": "mc",
+      "category": "Assignment and lvalues",
+      "q": "`name` is declared as `char name[64];` inside `struct studentT`. Why is `student1.name = student2.name;` invalid C?",
+      "choices": [
+        "`name` is a statically declared array, so it is not an lvalue: its base address can't be changed (use strcpy instead)",
+        "Struct fields can never appear on the left side of an assignment",
+        "Two different struct variables can't share any field names",
+        "The `name` fields become read-only once the struct variables are declared"
+      ],
+      "answer": 0,
+      "explain": "Fields of base types such as `student1.age` are lvalues, but the name of a statically declared array is not. Copying a string into the array needs `strcpy(student1.name, student2.name);`. Assigning the whole struct (`student1 = student2;`) is also valid."
+    },
+    {
+      "type": "num",
+      "category": "sizeof and memory layout",
+      "q": "A char is 1 byte, and an int and a float are 4 bytes each. What is the smallest value `sizeof(struct studentT)` can return for this struct?\n\n```c\nstruct studentT {\n    char name[64];\n    int age;\n    float gpa;\n    int grad_yr;\n};\n```",
+      "answer": 76,
+      "explain": "64 bytes for the name array, 4 for age, 4 for gpa and 4 for grad_yr: 64 + 4 + 4 + 4 = 76."
+    },
+    {
+      "type": "tf",
+      "category": "sizeof and memory layout",
+      "q": "`sizeof(struct studentT)` (fields: `char name[64]`, `int age`, `float gpa`, `int grad_yr`) is always exactly 76 bytes on every machine.",
+      "answer": false,
+      "explain": "It is at least 76 bytes, the sum of the field sizes, but on some machines the exact number can be larger."
+    },
+    {
+      "type": "num",
+      "category": "sizeof and memory layout",
+      "q": "The compiler treats each field as an offset from the start of the struct variable's memory. For the struct below, with 1-byte chars, 4-byte ints and no extra space between fields, at what byte offset does the `gpa` field start?\n\n```c\nstruct studentT {\n    char name[64];\n    int age;\n    float gpa;\n    int grad_yr;\n};\n```",
+      "answer": 68,
+      "explain": "To reach gpa, the compiler skips the 64-character name array and one int (age): 64 + 4 = 68."
+    },
+    {
+      "type": "tf",
+      "category": "sizeof and memory layout",
+      "q": "A struct variable's field names (such as \"age\" and \"gpa\") are stored in memory next to the field values.",
+      "answer": false,
+      "explain": "Only the field values are stored. To the compiler, a field is just a storage location at a known offset from the start of the struct's memory."
+    },
+    {
+      "type": "mc",
+      "category": "Passing structs to functions",
+      "q": "In C, how is a struct argument passed to a function's struct parameter?",
+      "choices": [
+        "By value: the parameter gets a copy of all the argument's field values",
+        "By reference: the parameter shares the argument's memory",
+        "Only the struct's starting address is passed",
+        "Only the fields that the function actually uses are copied"
+      ],
+      "answer": 0,
+      "explain": "In C, arguments of every type are passed by value. A struct's value is its whole memory contents, so the parameter gets its own copy of every field."
+    },
+    {
+      "type": "mc",
+      "category": "Passing structs to functions",
+      "q": "In main, `student.name` is \"Ruth\" and `student.age` is 17. What does this code print?\n\n```c\nint checkID(struct studentT s, int min_age) {\n    int ret = 1;\n    if (s.age < min_age) {\n        ret = 0;\n        s.age = min_age + 1;\n    }\n    printf(\"%s is %d years old\\n\", s.name, s.age);\n    return ret;\n}\n\n/* in main: */\ncan_vote = checkID(student, 18);\nif (can_vote) {\n    printf(\"%s is %d years old and can vote.\\n\", student.name, student.age);\n} else {\n    printf(\"%s is only %d years old and cannot vote.\\n\", student.name, student.age);\n}\n```",
+      "choices": [
+        "Ruth is 19 years old / Ruth is only 17 years old and cannot vote.",
+        "Ruth is 19 years old / Ruth is only 19 years old and cannot vote.",
+        "Ruth is 17 years old / Ruth is only 17 years old and cannot vote.",
+        "Ruth is 19 years old / Ruth is 19 years old and can vote."
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "17 < 18, so checkID returns 0 and sets its parameter's age to 19, then prints 19. The parameter s is a copy, so main's student.age stays 17, and main prints the \"cannot vote\" line with 17."
+    },
+    {
+      "type": "num",
+      "category": "Passing structs to functions",
+      "q": "What does this code print?\n\n```c\nvoid birthday(struct studentT s) {\n    s.age = s.age + 1;\n}\n\n/* in main: */\nstudent1.age = 20;\nbirthday(student1);\nprintf(\"%d\\n\", student1.age);\n```",
+      "answer": 20,
+      "explain": "birthday receives a copy of student1. Incrementing the parameter's age changes only the copy, so student1.age is still 20 in main."
+    },
+    {
+      "type": "tf",
+      "category": "Passing structs to functions",
+      "q": "A struct has a statically declared array field (`char name[64]`) and is passed to a function. The function then changes the parameter's array contents, for example with `strcpy(s.name, \"X\")`. After the function returns, the caller's struct shows the change.",
+      "answer": false,
+      "explain": "When a struct is passed, its entire memory contents, including every element of an array field, are copied into the parameter. Changes to the parameter's array affect only that copy and don't persist after the function returns."
+    }
+  ]
+}

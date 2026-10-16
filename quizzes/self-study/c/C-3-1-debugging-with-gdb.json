@@ -1,0 +1,309 @@
+{
+  "title": "3.1 Debugging with GDB",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Compiling and starting GDB",
+      "q": "Which gcc option adds the extra debugging information that GDB uses to find variables and functions and map machine code back to C source lines?",
+      "choices": ["-O2", "-o", "-g", "-c"],
+      "answer": 2,
+      "explain": "-g adds debugging information to the executable, e.g. gcc -g myprog.c."
+    },
+    {
+      "type": "tf",
+      "category": "Compiling and starting GDB",
+      "q": "When building a program for debugging, it is a good idea to also turn on optimizations like -O2, because optimized code maps more clearly back to the C source.",
+      "answer": false,
+      "explain": "Avoid optimizations when debugging. Optimized machine code often does not map clearly back to the C source, which makes it very hard to debug."
+    },
+    {
+      "type": "text",
+      "category": "Compiling and starting GDB",
+      "q": "Which variant of the debugging flag can sometimes give better results than -g by including extra debugging information?",
+      "answer": ["-g3", "g3"],
+      "explain": "Some users get better results with -g3, which can include extra debugging information."
+    },
+    {
+      "type": "tf",
+      "category": "Compiling and starting GDB",
+      "q": "Right after you run `gdb a.out` and see the (gdb) prompt, the program has not started running yet, so you can set breakpoints before it starts.",
+      "answer": true,
+      "explain": "GDB shows its prompt before running the program. The program only starts when you type `run`."
+    },
+    {
+      "type": "mc",
+      "category": "Compiling and starting GDB",
+      "q": "A program crashed and the operating system dumped a core file. How can GDB help?",
+      "choices": [
+        "GDB can open the core file together with the executable that produced it, and `where` shows the point of the crash",
+        "GDB can only use a core file if the program is still running",
+        "A core file holds only the program's source code, so GDB uses it in place of -g",
+        "Core files are only for Valgrind, not GDB"
+      ],
+      "answer": 0,
+      "explain": "A core file records the program's state when it crashed. Load it in GDB along with the executable (e.g. gdb core a.out), then use `where` to see where it crashed."
+    },
+    {
+      "type": "mc",
+      "category": "Compiling and starting GDB",
+      "q": "What is DDD?",
+      "choices": [
+        "A memory-error checker that replaces GDB",
+        "A GUI wrapper around a command-line debugger such as GDB that accepts the same commands",
+        "A gcc flag that turns on debug output",
+        "A GDB command that dumps the call stack"
+      ],
+      "answer": 1,
+      "explain": "The Data Display Debugger is a GUI front end for a command-line debugger like GDB. It accepts the same parameters and commands, and it adds menus."
+    },
+    {
+      "type": "mc",
+      "category": "Breakpoints and execution control",
+      "q": "When a running program reaches a breakpoint on a given line, what does GDB do?",
+      "choices": [
+        "Runs that line, then pauses",
+        "Pauses before running that line and prints the breakpoint number and source line",
+        "Ends the program and prints the call stack",
+        "Skips that line and keeps running"
+      ],
+      "answer": 1,
+      "explain": "GDB pauses before the breakpoint line runs, prints the breakpoint number and source line, and waits for commands."
+    },
+    {
+      "type": "text",
+      "category": "Breakpoints and execution control",
+      "q": "In GDB, what exact command starts a.out from the beginning with the command line arguments 100 and 200?",
+      "answer": ["run 100 200", "r 100 200"],
+      "explain": "Put the arguments after `run`, e.g. `run 100 200`."
+    },
+    {
+      "type": "mc",
+      "category": "Breakpoints and execution control",
+      "q": "You are paused at `if ( findAndReturnMax(arr, 5, max) != 0 ) {` and want to watch findAndReturnMax run line by line. Which command should you type?",
+      "choices": ["next", "cont", "step", "list"],
+      "answer": 2,
+      "explain": "`step` enters the function call and pauses before its first line. `next` would run the whole call as one step."
+    },
+    {
+      "type": "tf",
+      "category": "Breakpoints and execution control",
+      "q": "If the next line of C code contains a function call, `next` runs that whole call and its return as one step.",
+      "answer": true,
+      "explain": "`next` runs the full next line, including any function calls in it. Use `step` to go into the function."
+    },
+    {
+      "type": "mc",
+      "category": "Breakpoints and execution control",
+      "q": "Which command lets a paused program keep running until it hits the next breakpoint?",
+      "choices": ["run", "cont", "next", "frame"],
+      "answer": 1,
+      "explain": "`cont` continues from the current pause point until the next breakpoint. `run` restarts the program from the beginning."
+    },
+    {
+      "type": "multi",
+      "category": "Breakpoints and execution control",
+      "q": "Which of these are valid ways to set a breakpoint?",
+      "choices": ["break main", "break 27", "break findAndReturnMax", "cont 27"],
+      "answer": [0, 1, 2],
+      "explain": "`break` takes a function name (break main, break findAndReturnMax) or a source line number (break 27). `cont` only continues execution."
+    },
+    {
+      "type": "tf",
+      "category": "Inspecting variables and source",
+      "q": "After a `next`, the source line GDB prints has already been executed.",
+      "answer": false,
+      "explain": "The printed line is where the program is paused, so it is the line that will run next. It has not run yet."
+    },
+    {
+      "type": "mc",
+      "category": "Inspecting variables and source",
+      "q": "What does `display i` do that `print i` does not?",
+      "choices": [
+        "It shows i in hexadecimal",
+        "It changes i's value",
+        "It prints i automatically every time the program pauses at a breakpoint",
+        "It sets a breakpoint wherever i changes"
+      ],
+      "answer": 2,
+      "explain": "`display` makes GDB print the expression automatically each time a breakpoint is hit, e.g. in every loop iteration. `print` shows it only once."
+    },
+    {
+      "type": "mc",
+      "category": "Inspecting variables and source",
+      "q": "You typed `list` and GDB showed lines 29-38. What happens if you type `list` again?",
+      "choices": [
+        "It shows lines 29-38 again",
+        "It shows the next lines of source after those",
+        "It shows the call stack",
+        "It shows an error, because list only works once per pause"
+      ],
+      "answer": 1,
+      "explain": "Each later `list` shows the next lines of source. You can also give it a line number (list 11) or a function name (list findAndReturnMax)."
+    },
+    {
+      "type": "tf",
+      "category": "Inspecting variables and source",
+      "q": "After `step` enters findAndReturnMax, you can print that function's parameters and local variables (for example `print array1[0]` or `print max`).",
+      "answer": true,
+      "explain": "Once paused inside the function, its parameters and locals are in scope, and `print` can show them or expressions that use them."
+    },
+    {
+      "type": "mc",
+      "category": "Inspecting variables and source",
+      "q": "In main, `int arr[5] = { 17, 21, 44, 2, 60 };` has run. What does `print arr[3]` show?",
+      "choices": ["$1 = 44", "$1 = 2", "$1 = 60", "$1 = {17, 21, 44, 2, 60}"],
+      "answer": 1,
+      "explain": "`print` evaluates C expressions. arr[3] is the fourth element, 2. (`print arr` would show the whole array.)"
+    },
+    {
+      "type": "multi",
+      "category": "Call stack and frames",
+      "q": "Which GDB commands print the call stack?",
+      "choices": ["where", "bt", "frame", "list"],
+      "answer": [0, 1],
+      "explain": "`where` and `bt` (backtrace) both print the call stack. `frame` switches to a given stack frame, and `list` shows source code."
+    },
+    {
+      "type": "mc",
+      "category": "Call stack and frames",
+      "q": "`where` prints:\n#0  findAndReturnMax (array1=0x7fffffffe290, len=5, max=17) at badprog.c:21\n#1  0x0000555555554810 in main (argc=1, argv=0x7fffffffe398) at badprog.c:40\nWhich statement is correct?",
+      "choices": [
+        "main is at the top of the stack and paused at line 21",
+        "findAndReturnMax is at the top of the stack (frame 0), and main (frame 1) is at line 40, where it calls findAndReturnMax",
+        "findAndReturnMax has already returned to main",
+        "Frame 1 is the function currently running"
+      ],
+      "answer": 1,
+      "explain": "Frame 0 is the top of the stack, the function currently running. main is below it in frame 1, at line 40, where it calls findAndReturnMax."
+    },
+    {
+      "type": "mc",
+      "category": "Call stack and frames",
+      "q": "You are paused inside findAndReturnMax and want to check the values main passed to it. What should you do?",
+      "choices": [
+        "Type `frame 1` to switch to main's frame, then `print arr` and `print max`",
+        "Type `step` until main shows up",
+        "Type `run` again with a breakpoint at main",
+        "Nothing; main's local variables can't be inspected while another function is running"
+      ],
+      "answer": 0,
+      "explain": "`frame N` switches to that stack frame, so you can inspect the caller's locals and parameters without resuming the program."
+    },
+    {
+      "type": "tf",
+      "category": "Call stack and frames",
+      "q": "`frame 1` resumes the program until control returns to the caller in frame 1.",
+      "answer": false,
+      "explain": "`frame` does not run any code. It only switches the context GDB uses, so you can inspect that frame's variables."
+    },
+    {
+      "type": "num",
+      "category": "Debugging logic bugs",
+      "q": "badprog.c's findAndReturnMax loops with `for (i=1; i <= len; i++)` and reads array1[i]. It is called with a 5-element array and len = 5. What is the largest index i it reads?",
+      "answer": 5,
+      "tolerance": 0,
+      "explain": "The loop runs while i <= 5, so the last iteration reads array1[5]. The valid indexes are only 0-4."
+    },
+    {
+      "type": "mc",
+      "category": "Debugging logic bugs",
+      "q": "With `display array1[i]` turned on, the last breakpoint hit shows i = 5 and array1[i] = 32767, but 32767 is not in the array. What does this show?",
+      "choices": [
+        "The array was initialized wrong in main",
+        "The loop reads past the end of the array; 32767 is just whatever is in memory there",
+        "GDB cannot show array elements reliably",
+        "32767 is the correct maximum"
+      ],
+      "answer": 1,
+      "explain": "Index 5 is outside a 5-element array, so the loop reads past its end. The loop condition should be i < len."
+    },
+    {
+      "type": "mc",
+      "category": "Debugging logic bugs",
+      "q": "Which loop header fixes the out-of-bounds bug in findAndReturnMax (array length len, starting from i = 1 because max starts as array1[0])?",
+      "choices": [
+        "for (i=1; i <= len; i++)",
+        "for (i=1; i < len; i++)",
+        "for (i=1; i <= len + 1; i++)",
+        "for (i=0; i <= len; i++)"
+      ],
+      "answer": 1,
+      "explain": "The loop must stop before index len, so the condition should be i < len."
+    },
+    {
+      "type": "mc",
+      "category": "Debugging logic bugs",
+      "q": "findAndReturnMax(int *array1, int len, int max) sets max to 60 (a breakpoint at line 30 shows this). Yet after it returns, `print max` in main shows 17. Why?",
+      "choices": [
+        "max was passed by value, so the function changed only its own copy, and the function returns 0, not max",
+        "The breakpoint at line 30 reset max",
+        "The loop never ran",
+        "main's arr holds different values than array1"
+      ],
+      "answer": 0,
+      "explain": "The max parameter is a copy of main's max. Changing it inside the function does not change main's variable, and the function returns 0 instead of max."
+    },
+    {
+      "type": "multi",
+      "category": "Debugging logic bugs",
+      "q": "Which changes would let main get the maximum that findAndReturnMax computes?",
+      "choices": [
+        "Have findAndReturnMax return its max value, and use that return value in main",
+        "Add a pass-by-pointer parameter that the function uses to update main's max",
+        "Change the parameter name from max to result",
+        "Set a breakpoint on the return statement"
+      ],
+      "answer": [0, 1],
+      "explain": "The function needs to send the value back, either as its return value or through a pointer to main's max. Renaming the parameter or adding breakpoints changes nothing."
+    },
+    {
+      "type": "tf",
+      "category": "Debugging crashes",
+      "q": "When a program crashes while running under GDB, GDB pauses it at the point of the crash so you can examine its state.",
+      "answer": true,
+      "explain": "GDB takes control at the crash, e.g. 'Program received signal SIGSEGV', and you can then use where, list, print, frame, and so on."
+    },
+    {
+      "type": "text",
+      "category": "Debugging crashes",
+      "q": "Name the signal GDB reports when a program crashes with a segmentation fault.",
+      "answer": ["SIGSEGV", "sigsegv"],
+      "explain": "GDB prints 'Program received signal SIGSEGV, Segmentation fault.'"
+    },
+    {
+      "type": "mc",
+      "category": "Debugging crashes",
+      "q": "segfaulter crashes at `array[i] = i;` in initfunc. `print i` shows 1, `print array[i]` says 'Cannot access memory at address 0x4', and `print array` shows (int *) 0x0. What caused the crash?",
+      "choices": [
+        "i is out of range",
+        "array is a NULL pointer, and array[i] dereferences it",
+        "len is too small",
+        "The program was not compiled with -g"
+      ],
+      "answer": 1,
+      "explain": "The array's base address is 0 (NULL). Dereferencing a null pointer through array[i] crashes the program."
+    },
+    {
+      "type": "mc",
+      "category": "Debugging crashes",
+      "q": "After `frame 1` in segfaulter, main's code shows `int *arr = NULL;` followed by `initfunc(arr, 100)`, and `print arr` shows 0x0. What is the fix?",
+      "choices": [
+        "Change the loop in initfunc to start at i = 0",
+        "Pass 0 instead of 100 as len",
+        "Allocate memory for arr with malloc() before calling initfunc",
+        "Compile with -O2"
+      ],
+      "answer": 2,
+      "explain": "main passes a NULL pointer because arr was never allocated. Allocating space for arr with malloc() fixes the crash."
+    },
+    {
+      "type": "multi",
+      "category": "Debugging crashes",
+      "q": "Right after a crash in GDB, which commands are most useful for finding where it happened?",
+      "choices": ["where", "list", "run", "quit"],
+      "answer": [0, 1],
+      "explain": "`where` shows the call stack, with the function and line of the crash. `list` shows the source code around that point."
+    }
+  ]
+}

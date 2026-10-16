@@ -1,0 +1,456 @@
+{
+  "title": "2.5 Arrays in C",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Static 1D arrays",
+      "q": "Where are statically declared arrays allocated in memory?",
+      "choices": [
+        "Local arrays on the stack; global arrays in the data region",
+        "All statically declared arrays on the heap",
+        "Local arrays on the heap; global arrays on the stack",
+        "All statically declared arrays in the data region"
+      ],
+      "answer": 0,
+      "explain": "Statically declared arrays live on the stack if they are local variables, or in the data region if they are global variables. The heap is used for malloc'ed arrays."
+    },
+    {
+      "type": "tf",
+      "category": "Static 1D arrays",
+      "q": "When an array is passed to a function, C copies every element into the parameter, so changes made through the parameter do not affect the caller's array.",
+      "answer": false,
+      "explain": "C copies only the base address into the parameter. The parameter and the argument refer to the same memory, so modifying elements through the parameter modifies the argument array."
+    },
+    {
+      "type": "mc",
+      "category": "Static 1D arrays",
+      "q": "Given `float averages[30]; char name[20];`, a loop for i = 0..9 sets `averages[i] = 0.0 + i;` and `name[i] = 'a' + i;`, then `name[10] = '\\0';`. What does `printf(\"%g %c %s\\n\", averages[3], name[3], name);` print?",
+      "choices": [
+        "3 d abcdefghij",
+        "3 c abcdefghij",
+        "4 d abcdefghijk",
+        "3 d abc"
+      ],
+      "answer": 0,
+      "explain": "averages[3] is 3.0, which %g prints as 3. name[3] is 'a' + 3 = 'd'. name holds the 10 characters 'a' through 'j', followed by the null terminator."
+    },
+    {
+      "type": "mc",
+      "category": "Static 1D arrays",
+      "q": "In the example above, why is `name[10] = '\\0';` assigned after the loop fills name[0] through name[9]?",
+      "choices": [
+        "It terminates the characters so name can be used as a C-style string",
+        "It frees the unused elements name[10] through name[19]",
+        "It tells the compiler the array's capacity is 10",
+        "It resets the loop counter"
+      ],
+      "answer": 0,
+      "explain": "C-style strings end with a null character. Without it, %s and string functions would not know where the string ends."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamic 1D arrays",
+      "q": "Which call correctly allocates a dynamically allocated array of 50 ints and stores its address in `int *p_array`?",
+      "choices": [
+        "p_array = malloc(sizeof(int) * 50);",
+        "p_array = malloc(50);",
+        "p_array = malloc(sizeof(50));",
+        "p_array = malloc(int, 50);"
+      ],
+      "answer": 0,
+      "explain": "malloc takes the total number of bytes to allocate. Use sizeof to get the size of one element, then multiply by the number of elements."
+    },
+    {
+      "type": "tf",
+      "category": "Dynamic 1D arrays",
+      "q": "A single call to malloc allocates a contiguous chunk of heap space of the requested size.",
+      "answer": true,
+      "explain": "One malloc call returns the starting address of one contiguous block of heap memory. That is why a malloc'ed 1D array can be indexed like a static array."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamic 1D arrays",
+      "q": "What should a program check right after calling malloc?",
+      "choices": [
+        "Whether the returned pointer is NULL, meaning the allocation failed",
+        "Whether the returned memory has been initialized to 0",
+        "Whether the returned pointer is on the stack",
+        "Whether sizeof returned a negative value"
+      ],
+      "answer": 0,
+      "explain": "malloc returns NULL when it fails. Always check the return value and handle the error, for example by printing a message and calling exit(1)."
+    },
+    {
+      "type": "multi",
+      "category": "Dynamic 1D arrays",
+      "q": "When a program is finished with a dynamically allocated array pointed to by `p_array`, which steps are good practice?",
+      "choices": [
+        "Call free(p_array) to release the heap space",
+        "Set p_array = NULL after freeing it",
+        "Call malloc(0) on the pointer",
+        "Let the stack reclaim the heap space when the function returns"
+      ],
+      "answer": [0, 1],
+      "explain": "Heap space is not reclaimed automatically when a function returns, so it must be freed. Setting the pointer to NULL afterward keeps it from being used by accident to reach memory that has already been freed."
+    },
+    {
+      "type": "tf",
+      "category": "Dynamic 1D arrays",
+      "q": "Elements of a dynamically allocated 1D array can be accessed with the same [] notation used for statically declared arrays.",
+      "answer": true,
+      "explain": "The pointer holds the base address of the contiguous block, so p_array[i] works just as it does for a static array."
+    },
+    {
+      "type": "num",
+      "category": "Array memory layout",
+      "q": "`int iarray[6];` has base address 1230 and each int is 4 bytes. What is the address of iarray[4]?",
+      "answer": 1246,
+      "explain": "Element i is at base + i * sizeof(int) = 1230 + 4 * 4 = 1246."
+    },
+    {
+      "type": "num",
+      "category": "Array memory layout",
+      "q": "`char carray[4];` has base address 1280 and each char is 1 byte. What is the address of carray[3]?",
+      "answer": 1283,
+      "explain": "Element i is at base + i * sizeof(char) = 1280 + 3 * 1 = 1283."
+    },
+    {
+      "type": "num",
+      "category": "Array memory layout",
+      "q": "An array of doubles (8 bytes each) starts at address 2000. What is the address of element [5]?",
+      "answer": 2040,
+      "explain": "The address of element i depends on the element size: 2000 + 5 * 8 = 2040."
+    },
+    {
+      "type": "tf",
+      "category": "Array memory layout",
+      "q": "If a function declares `int iarray[6];` followed by `char carray[4];`, carray is guaranteed to start at the address right after the last byte of iarray.",
+      "answer": false,
+      "explain": "The elements within each array are contiguous, but separate local variables are not guaranteed to be placed next to each other on the stack. There may be a gap between them."
+    },
+    {
+      "type": "mc",
+      "category": "Array memory layout",
+      "q": "Why is it common to write `#define N 20` and declare `int array[N];` instead of `int array[20];`?",
+      "choices": [
+        "It makes the code easier to read and easier to update if the size changes",
+        "It allocates the array on the heap instead of the stack",
+        "It lets the array grow automatically at runtime",
+        "It is required whenever an array is passed to a function"
+      ],
+      "answer": 0,
+      "explain": "A constant is an alias for a literal value. Using one name for the size makes the code clearer and lets you change the size in one place."
+    },
+    {
+      "type": "mc",
+      "category": "Static 2D arrays",
+      "q": "What does the declaration `int matrix[50][100];` create?",
+      "choices": [
+        "A 2D array of ints with 50 rows and 100 columns",
+        "A 2D array of ints with 100 rows and 50 columns",
+        "Two 1D arrays, one of 50 ints and one of 100 ints",
+        "A 1D array of 50 pointers, each pointing to 100 ints on the heap"
+      ],
+      "answer": 0,
+      "explain": "Dimensions are given as [rows][columns], so matrix has 50 rows and 100 columns."
+    },
+    {
+      "type": "num",
+      "category": "Static 2D arrays",
+      "q": "How many int elements does `int matrix[50][100];` contain?",
+      "answer": 5000,
+      "explain": "50 rows times 100 columns = 5000 elements."
+    },
+    {
+      "type": "mc",
+      "category": "Static 2D arrays",
+      "q": "Given `short little[10][10];`, what does `little[8][4]` refer to?",
+      "choices": [
+        "The short value in row 8, column 4",
+        "The short value in row 4, column 8",
+        "The 84th element of the array",
+        "The address of row 8 plus 4 bytes"
+      ],
+      "answer": 0,
+      "explain": "The first index is the row and the second index is the column."
+    },
+    {
+      "type": "mc",
+      "category": "Static 2D arrays",
+      "q": "Which nested loop correctly sets every element of `int matrix[50][100];` to 0?",
+      "choices": [
+        "for (i = 0; i < 50; i++) for (j = 0; j < 100; j++) matrix[i][j] = 0;",
+        "for (i = 0; i < 100; i++) for (j = 0; j < 50; j++) matrix[i][j] = 0;",
+        "for (i = 0; i <= 50; i++) for (j = 0; j <= 100; j++) matrix[i][j] = 0;",
+        "for (i = 0; i < 50; i++) matrix[i] = 0;"
+      ],
+      "answer": 0,
+      "explain": "The outer loop goes over rows (0 to 49) and the inner loop goes over columns (0 to 99). The second choice runs past the row bounds, and the third goes one past both bounds."
+    },
+    {
+      "type": "mc",
+      "category": "2D array parameters",
+      "q": "Which parameter declaration lets a function accept the argument `int matrix[50][100]`?",
+      "choices": [
+        "int m[][100]",
+        "int m[][]",
+        "int m[50][]",
+        "int **m"
+      ],
+      "answer": 0,
+      "explain": "The first dimension can be left out, but every other dimension must be given. int m[][] and int m[50][] leave out the column size. int ** is a different type (it matches the array-of-arrays method)."
+    },
+    {
+      "type": "mc",
+      "category": "2D array parameters",
+      "q": "Why must the column dimension be included in a statically declared 2D array parameter?",
+      "choices": [
+        "So the compiler can calculate the offset from the base address to the start of each row",
+        "So the function can check that row indexes are in bounds",
+        "So the function receives a copy of the array instead of its address",
+        "So the compiler can allocate the array on the heap"
+      ],
+      "answer": 0,
+      "explain": "In row-major layout, row i starts i * (number of columns) elements after the base address. The compiler needs the column count to compute that offset."
+    },
+    {
+      "type": "tf",
+      "category": "2D array parameters",
+      "q": "With `#define COLS 100` and `void init_matrix(int m[][COLS], int rows)`, both `int matrix[50][COLS]` and `int bigger[90][COLS]` can be passed to init_matrix.",
+      "answer": true,
+      "explain": "Both arrays have the column dimension the parameter requires. The number of rows can differ and is passed separately as rows."
+    },
+    {
+      "type": "mc",
+      "category": "2D array parameters",
+      "q": "When a statically declared 2D array `arr` is passed to a function, what value does the parameter get?",
+      "choices": [
+        "The base address of the array, &arr[0][0]",
+        "A copy of every element in arr",
+        "A copy of row 0 only",
+        "The total number of elements in arr"
+      ],
+      "answer": 0,
+      "explain": "As with 1D arrays, the parameter gets the base address, so the function can change the values stored in the caller's array."
+    },
+    {
+      "type": "mc",
+      "category": "2D memory layout",
+      "q": "What does it mean that statically allocated 2D arrays are stored in row-major order?",
+      "choices": [
+        "All of row 0's elements come first in memory, then all of row 1's, and so on",
+        "All of column 0's elements come first in memory, then all of column 1's, and so on",
+        "Each row is stored in a separate, non-contiguous block",
+        "The longest row is stored first"
+      ],
+      "answer": 0,
+      "explain": "Row-major means rows are stored one after another, each row's elements contiguous, with each row followed immediately by the next."
+    },
+    {
+      "type": "mc",
+      "category": "2D memory layout",
+      "q": "For `int arr[3][4];`, which element comes immediately after arr[0][3] in memory?",
+      "choices": [
+        "arr[1][0]",
+        "arr[0][4]",
+        "arr[1][3]",
+        "arr[0][0]"
+      ],
+      "answer": 0,
+      "explain": "arr[0][3] is the last element of row 0. In row-major order, row 1 starts right after it."
+    },
+    {
+      "type": "num",
+      "category": "2D memory layout",
+      "q": "`int arr[3][4];` has base address 1000 and ints are 4 bytes. What is the address of arr[1][2]?",
+      "answer": 1024,
+      "explain": "arr[1][2] is (1 * 4 + 2) = 6 elements past the base. 1000 + 6 * 4 = 1024."
+    },
+    {
+      "type": "tf",
+      "category": "2D memory layout",
+      "q": "The base address of a statically allocated 2D array is the address of its [0][0] element.",
+      "answer": true,
+      "explain": "The array starts at &arr[0][0], and the rest of the elements follow contiguously in row-major order."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamic 2D: single malloc",
+      "q": "Using the single-malloc method, which call allocates an N x M 2D array of ints?",
+      "choices": [
+        "two_d_array = malloc(sizeof(int) * N * M);",
+        "two_d_array = malloc(sizeof(int *) * N);",
+        "two_d_array = malloc(N * M);",
+        "two_d_array = malloc(sizeof(int) * N);"
+      ],
+      "answer": 0,
+      "explain": "One malloc call requests the total bytes for all N x M ints. Choice 2 is the first step of the array-of-arrays method, and choices 3 and 4 request the wrong number of bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamic 2D: single malloc",
+      "q": "In the single-malloc method, what type should the 2D array variable have when the elements are ints?",
+      "choices": [
+        "int *",
+        "int **",
+        "int [][]",
+        "int"
+      ],
+      "answer": 0,
+      "explain": "malloc returns the base address of a contiguous block of ints, so the variable is a pointer to the element type, int *, just like a 1D array."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamic 2D: single malloc",
+      "q": "An N x M array of ints was allocated with a single malloc into `int *two_d_array`. How do you access row i, column j?",
+      "choices": [
+        "two_d_array[i*M + j]",
+        "two_d_array[i][j]",
+        "two_d_array[i*N + j]",
+        "two_d_array[j*N + i]"
+      ],
+      "answer": 0,
+      "explain": "Each row has M elements, so row i starts at offset i*M and column j is j past that. [i][j] does not compile for an int * holding ints, and the other two use the wrong formula."
+    },
+    {
+      "type": "tf",
+      "category": "Dynamic 2D: single malloc",
+      "q": "After allocating a 2D array with a single malloc, the compiler knows where each row begins, so [i][j] syntax can be used.",
+      "answer": false,
+      "explain": "The compiler sees only a 1D block of memory and has no idea of rows or columns. The programmer must compute the offset i*M + j."
+    },
+    {
+      "type": "num",
+      "category": "Dynamic 2D: single malloc",
+      "q": "A 5 x 6 int array (N = 5 rows, M = 6 columns) is allocated with a single malloc. What 1D index holds row 3, column 2?",
+      "answer": 20,
+      "explain": "i*M + j = 3 * 6 + 2 = 20."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamic 2D: single malloc",
+      "q": "Which function header can initialize a 2D int array allocated with a single malloc?",
+      "choices": [
+        "void init2D(int *arr, int rows, int cols)",
+        "void init2D(int **arr, int rows, int cols)",
+        "void init2D(int arr[][], int rows, int cols)",
+        "void init2D(int *arr)"
+      ],
+      "answer": 0,
+      "explain": "The base address is an int *, and the function needs both dimensions to compute arr[i*cols + j]. Leaving out rows and cols would leave it unable to compute offsets or know the bounds."
+    },
+    {
+      "type": "multi",
+      "category": "Dynamic 2D: single malloc",
+      "q": "Which are advantages of allocating a 2D array with a single malloc rather than as an array of arrays?",
+      "choices": [
+        "Only one call to malloc is needed",
+        "All elements are contiguous in memory",
+        "Each access needs only one level of indirection from the pointer variable",
+        "Elements can be accessed with [i][j] syntax"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The single-malloc method is the more memory-efficient one: one allocation, all elements contiguous, one level of indirection. It does not allow [i][j] syntax; the array-of-arrays method does."
+    },
+    {
+      "type": "num",
+      "category": "Dynamic 2D: array of arrays",
+      "q": "How many calls to malloc does the array-of-arrays method need to allocate a 2D array with N = 10 rows?",
+      "answer": 11,
+      "explain": "N + 1 calls: one for the array of N row pointers, plus one for each of the N rows."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamic 2D: array of arrays",
+      "q": "In the array-of-arrays method for a 2D array of ints, what is the type of the variable `two_d_array`?",
+      "choices": [
+        "int **",
+        "int *",
+        "int",
+        "int [N][M]"
+      ],
+      "answer": 0,
+      "explain": "It points to a dynamically allocated array of int * values, so its type is a pointer to int *, which is int **."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamic 2D: array of arrays",
+      "q": "In the array-of-arrays method, what is the type of `two_d_array[i]`?",
+      "choices": [
+        "int *",
+        "int **",
+        "int",
+        "int [M]"
+      ],
+      "answer": 0,
+      "explain": "two_d_array[i] stores the base address of row i's array of ints, so it is an int *. two_d_array[i][j] is an int."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamic 2D: array of arrays",
+      "q": "A student allocates the outer array with `two_d_array = malloc(sizeof(int) * N);` where two_d_array is int **. What is wrong?",
+      "choices": [
+        "It requests space for N ints, but the outer array must hold N int pointers, so it should use sizeof(int *)",
+        "Nothing; sizeof(int) and sizeof(int *) are always the same",
+        "It should request N * M ints in this first call",
+        "malloc cannot be assigned to an int ** variable"
+      ],
+      "answer": 0,
+      "explain": "The outer array stores N values of type int *, so the size should be sizeof(int *) * N. Each row is then allocated separately with sizeof(int) * M."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamic 2D: array of arrays",
+      "q": "In the array-of-arrays method, which statement correctly allocates row i's M column elements?",
+      "choices": [
+        "two_d_array[i] = malloc(sizeof(int) * M);",
+        "two_d_array[i] = malloc(sizeof(int *) * M);",
+        "two_d_array = malloc(sizeof(int) * M);",
+        "two_d_array[i][M] = malloc(sizeof(int));"
+      ],
+      "answer": 0,
+      "explain": "Each row is a 1D array of M ints, and its base address is stored in the outer array at index i."
+    },
+    {
+      "type": "tf",
+      "category": "Dynamic 2D: array of arrays",
+      "q": "In the array-of-arrays method, the last element of row 0 is always immediately followed in memory by the first element of row 1.",
+      "answer": false,
+      "explain": "Only elements from the same malloc call are contiguous. Elements within a row are contiguous, but different rows, even neighboring ones, are not."
+    },
+    {
+      "type": "multi",
+      "category": "Dynamic 2D: array of arrays",
+      "q": "Which statements about the array-of-arrays method are true?",
+      "choices": [
+        "Elements can be accessed with two_d_array[i][j]",
+        "Elements within a single row are contiguous",
+        "It needs N + 1 calls to malloc for N rows",
+        "It is more memory-efficient than the single-malloc method"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "This method allows double indexing, keeps each row contiguous, and uses N + 1 mallocs. Allocation and access are less efficient than with the single-malloc method."
+    },
+    {
+      "type": "tf",
+      "category": "Dynamic 2D: array of arrays",
+      "q": "One function with an `int *` parameter can initialize both a single-malloc 2D array and an array-of-arrays 2D array.",
+      "answer": false,
+      "explain": "A single-malloc array is an int *, while an array of arrays is an int **. They are different C types, so they cannot share a function."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamic 2D: array of arrays",
+      "q": "A function `void init2D_Method2(int **arr, ...)` initializes an array-of-arrays 2D array. Which dimensions must be passed as parameters?",
+      "choices": [
+        "Both the number of rows and the number of columns",
+        "Only the number of rows; the column size is part of the parameter type",
+        "Only the number of columns",
+        "Neither; the function can find them from arr"
+      ],
+      "answer": 0,
+      "explain": "Unlike int m[][COLS], the type int ** carries no size information. rows bounds the outer array of row pointers, and cols bounds each inner row array."
+    }
+  ]
+}

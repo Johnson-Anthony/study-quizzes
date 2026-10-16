@@ -1,0 +1,230 @@
+{
+  "title": "3.4 Advanced GDB Features",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "GDB and make",
+      "topic": "Rebuilding inside GDB",
+      "q": "You're partway through a GDB session with many breakpoints set, and you've just fixed a bug in the C source. What's the most convenient way to rebuild the program and keep debugging?",
+      "choices": [
+        "Run `make` from the (gdb) prompt, then `run`",
+        "Quit GDB, run `make` in the shell, restart GDB, and set the breakpoints again",
+        "Run `reload` from the (gdb) prompt",
+        "Use `attach` to connect GDB to the newly compiled executable"
+      ],
+      "answer": 0,
+      "explain": "GDB accepts the `make` command. If the build succeeds, the next `run` starts the newly built program, and all your breakpoints are still set."
+    },
+    {
+      "type": "tf",
+      "category": "GDB and make",
+      "topic": "Breakpoints after rebuilding",
+      "q": "If you add or delete source lines and then rebuild with `make` from inside GDB, your existing breakpoints are guaranteed to stay at the same logical place in the new program.",
+      "answer": false,
+      "explain": "Adding or removing lines can shift code, so an old breakpoint may no longer be at the same logical spot in the new version."
+    },
+    {
+      "type": "multi",
+      "category": "GDB and make",
+      "topic": "Breakpoints after rebuilding",
+      "q": "After rebuilding with `make` inside GDB, your old breakpoints no longer point at the right code because lines were added. Which of these are reasonable fixes?",
+      "choices": [
+        "Exit GDB and start a new GDB session on the new executable",
+        "Use `delete` to remove the old breakpoints, then `break` to set new ones",
+        "Use `disable` to turn off the old breakpoints, then `break` to set new ones",
+        "Do nothing, because GDB automatically moves breakpoints to match the edited source"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Either restart GDB on the new executable, or disable/delete the old breakpoints and set new ones with `break`. GDB does not move breakpoints to match edited source."
+    },
+    {
+      "type": "mc",
+      "category": "Attaching to a running process",
+      "topic": "Finding the PID",
+      "q": "Which shell command lists all processes and keeps only the ones named a.out, so you can find the PID to attach GDB to?",
+      "choices": [
+        "ps -A | grep a.out",
+        "gdb -A a.out",
+        "kill -l a.out",
+        "pid a.out"
+      ],
+      "answer": 0,
+      "explain": "`ps -A` lists all processes, and piping it through `grep a.out` keeps only the a.out processes along with their PIDs."
+    },
+    {
+      "type": "multi",
+      "category": "Attaching to a running process",
+      "topic": "Attach syntax",
+      "q": "An executable named a.out is already running as PID 12345. Which commands start GDB attached to that process?",
+      "choices": [
+        "gdb a.out 12345",
+        "gdb attach 12345 a.out",
+        "gdb run 12345",
+        "gdb -pid a.out"
+      ],
+      "answer": [0, 1],
+      "explain": "The two forms are `gdb <executable> <pid>` and `gdb attach <pid> <executable>`."
+    },
+    {
+      "type": "tf",
+      "category": "Attaching to a running process",
+      "topic": "Effect of attaching",
+      "q": "When GDB attaches to a running process, it pauses that process so you can enter GDB commands before execution continues.",
+      "answer": true,
+      "explain": "Attaching pauses the process. You can then enter GDB commands before letting it continue."
+    },
+    {
+      "type": "text",
+      "category": "Attaching to a running process",
+      "topic": "Self-pausing for a debugger",
+      "q": "Complete this C call, which makes a program pause itself so a debugger can be attached: kill(getpid(), ______)",
+      "answer": ["SIGSTOP"],
+      "explain": "`kill(getpid(), SIGSTOP)` sends a SIGSTOP signal to the calling process, which stops it until you attach GDB to it."
+    },
+    {
+      "type": "mc",
+      "category": "Attaching to a running process",
+      "topic": "Resuming after attach",
+      "q": "You've attached GDB to a paused process, but `cont` doesn't get it running again. Which GDB command explicitly makes the process resume?",
+      "choices": [
+        "signal SIGCONT",
+        "signal SIGSTOP",
+        "handle SIGCONT stop",
+        "run SIGCONT"
+      ],
+      "answer": 0,
+      "explain": "`signal SIGCONT` sends the process a continue signal so it resumes running. SIGSTOP would pause it instead."
+    },
+    {
+      "type": "mc",
+      "category": "Following a process on fork",
+      "topic": "Default fork behavior",
+      "q": "By default, which process does GDB follow after the debugged program calls fork()?",
+      "choices": [
+        "The parent process",
+        "The child process",
+        "Both processes at the same time",
+        "Neither; GDB detaches at the fork"
+      ],
+      "answer": 0,
+      "explain": "GDB follows the parent by default. The process GDB isn't following runs without being affected by GDB."
+    },
+    {
+      "type": "text",
+      "category": "Following a process on fork",
+      "topic": "follow-fork-mode",
+      "q": "Write the full GDB command that makes GDB follow the child process after a fork().",
+      "answer": ["set follow-fork-mode child"],
+      "explain": "`set follow-fork-mode child` switches to the child, `set follow-fork-mode parent` switches back, and `show follow-fork-mode` shows the current setting."
+    },
+    {
+      "type": "mc",
+      "category": "Following a process on fork",
+      "topic": "follow-fork-mode",
+      "q": "Which GDB command shows whether GDB is currently set to follow the parent or the child on a fork?",
+      "choices": [
+        "show follow-fork-mode",
+        "info fork",
+        "set follow-fork-mode",
+        "info signal"
+      ],
+      "answer": 0,
+      "explain": "`show follow-fork-mode` shows the current setting, and `set follow-fork-mode` changes it."
+    },
+    {
+      "type": "mc",
+      "category": "Following a process on fork",
+      "topic": "Debugging both parent and child",
+      "q": "How can you debug both the parent and the child after a fork(), using one GDB session per process?",
+      "choices": [
+        "Let the first GDB follow the parent, have the child send itself SIGSTOP right after the fork, then attach a second GDB to the child",
+        "Run `set follow-fork-mode both`",
+        "Put a breakpoint on fork() and GDB automatically opens a second session for the child",
+        "Have the parent send itself SIGBUS so GDB switches to the child"
+      ],
+      "answer": 0,
+      "explain": "GDB follows the parent while the child pauses itself with SIGSTOP. That gives you time to attach a second GDB to the child before it continues."
+    },
+    {
+      "type": "tf",
+      "category": "Following a process on fork",
+      "topic": "Breakpoints at fork",
+      "q": "Setting breakpoints at fork() calls is useful when you want to change which process GDB follows during a session.",
+      "answer": true,
+      "explain": "Stopping at a fork() call lets you change follow-fork-mode before the fork happens."
+    },
+    {
+      "type": "mc",
+      "category": "Signal control",
+      "topic": "SIGBUS",
+      "q": "A program tries to access memory using an address that is misaligned for the type being accessed. Which signal does it usually receive?",
+      "choices": [
+        "SIGBUS",
+        "SIGCONT",
+        "SIGSTOP",
+        "SIGALRM"
+      ],
+      "answer": 0,
+      "explain": "A misaligned memory access usually triggers SIGBUS, and the process usually exits."
+    },
+    {
+      "type": "text",
+      "category": "Signal control",
+      "topic": "handle command",
+      "q": "By default, GDB lets the process exit when it gets a SIGBUS. Write the GDB command that makes GDB stop and take control instead, so you can look at the program's state.",
+      "answer": ["handle SIGBUS stop"],
+      "explain": "`handle SIGBUS stop` changes how GDB handles SIGBUS, so GDB takes control when the program receives it."
+    },
+    {
+      "type": "multi",
+      "category": "Signal control",
+      "topic": "signal vs handle vs info",
+      "q": "Which statements about GDB signal commands are correct?",
+      "choices": [
+        "`signal <SIG>` sends a signal to the process being debugged",
+        "`handle <SIG> stop` makes GDB take control when the process receives that signal",
+        "`info signal` lists how GDB handles every signal",
+        "`signal <SIG>` only changes how GDB reacts to a signal and never sends one"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "`signal` sends a signal, `handle` sets how GDB responds to signals the process receives, and `info` shows how GDB handles signals (all of them, or one, as in `info SIGALRM`)."
+    },
+    {
+      "type": "mc",
+      "category": "Signal control",
+      "topic": "info command",
+      "q": "Which GDB command shows how GDB handles just the SIGALRM signal?",
+      "choices": [
+        "info SIGALRM",
+        "signal SIGALRM",
+        "handle SIGALRM",
+        "show SIGALRM"
+      ],
+      "answer": 0,
+      "explain": "`info SIGALRM` shows how GDB handles that one signal. `signal SIGALRM` would actually send it to the process."
+    },
+    {
+      "type": "mc",
+      "category": "DDD settings",
+      "topic": "Settings directory",
+      "q": "Where does DDD save settings such as subwindow sizes and whether the register and assembly windows are shown?",
+      "choices": [
+        "In a .ddd directory in your home directory",
+        "In a .gdbinit file in the current directory",
+        "Inside the executable being debugged",
+        "Nowhere; DDD starts with default settings every time"
+      ],
+      "answer": 0,
+      "explain": "DDD keeps its settings in ~/.ddd so you don't have to set your preferences again every time you start it."
+    },
+    {
+      "type": "tf",
+      "category": "DDD settings",
+      "topic": "Waiting until GDB ready",
+      "q": "If DDD hangs at startup showing \"Waiting until GDB ready\", a common fix is to delete the ~/.ddd directory, which also erases all your saved DDD settings.",
+      "answer": true,
+      "explain": "This hang often comes from an error in the saved settings files. Running `rm -rf ~/.ddd` fixes it, but you'll have to set your preferences again."
+    }
+  ]
+}

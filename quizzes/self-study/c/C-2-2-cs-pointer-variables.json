@@ -1,0 +1,307 @@
+{
+  "title": "C's Pointer Variables",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Pointer basics",
+      "q": "What does a pointer variable store?",
+      "choices": [
+        "The address of a memory location where a value of a specific type can be stored",
+        "A copy of the value held by another variable",
+        "The size in bytes of another variable",
+        "The name of another variable"
+      ],
+      "answer": 0,
+      "explain": "A pointer variable stores an address. It points to (refers to) the value at that address, which gives you a level of indirection for accessing memory."
+    },
+    {
+      "type": "multi",
+      "category": "Pointer basics",
+      "q": "Which of the following can a C programmer do using pointer variables?",
+      "choices": [
+        "Write functions whose parameters can modify values in the caller's stack frame",
+        "Dynamically allocate (and deallocate) memory at runtime when the program needs it",
+        "Efficiently pass large data structures to functions",
+        "Guarantee that the program never accesses an invalid address",
+        "Interpret bytes of program memory in different ways",
+        "Make the compiler reject every pointer type mismatch as a hard error"
+      ],
+      "answer": [0, 1, 2, 4],
+      "explain": "Pointers support pass-by-pointer parameters, dynamic memory, efficient passing of large data, linked data structures, and reinterpreting bytes. They do not guarantee valid accesses: dereferencing a bad address can crash the program. Compilers may also accept mismatched pointer assignments with only a warning."
+    },
+    {
+      "type": "mc",
+      "category": "Pointer basics",
+      "q": "What are the two most common uses of pointer variables in C programs?",
+      "choices": [
+        "Pass-by-pointer parameters and dynamic memory allocation",
+        "Loop counters and array indexing",
+        "Storing constants and string literals",
+        "Speeding up integer arithmetic and comparisons"
+      ],
+      "answer": 0,
+      "explain": "Pointers are used most often for pass-by-pointer parameters, which let a function modify its argument's value, and for dynamic memory allocation, which lets a program allocate and free space as it runs."
+    },
+    {
+      "type": "mc",
+      "category": "Pointer basics",
+      "q": "When is dynamic memory allocation especially useful?",
+      "choices": [
+        "When the size of a data structure isn't known at compile time, e.g., an array whose size depends on user input",
+        "When an array's size is a fixed constant known when the program is written",
+        "When a value only needs to exist for a single statement",
+        "When you want the compiler to pick every memory address at compile time"
+      ],
+      "answer": 0,
+      "explain": "Dynamic memory lets a program allocate space at runtime when the needed size is only known then. It also lets data structures be resized while the program runs."
+    },
+    {
+      "type": "mc",
+      "category": "Declaring pointers",
+      "q": "Given the declaration `char *cptr;`, what is the type of `cptr`?",
+      "choices": [
+        "pointer to char (`char *`)",
+        "char",
+        "pointer to int (`int *`)",
+        "It has no type until it is initialized"
+      ],
+      "answer": 0,
+      "explain": "`cptr` is a pointer to char. It can point to a memory location that stores a char value."
+    },
+    {
+      "type": "tf",
+      "category": "Declaring pointers",
+      "q": "Because `int *ptr;` and `char *cptr;` both declare pointers, `ptr` and `cptr` have the same type.",
+      "answer": false,
+      "explain": "They are different types. `ptr` is `int *` (pointer to int) and `cptr` is `char *` (pointer to char). With pointers you have to track two types: the pointer's own type and the type it points to."
+    },
+    {
+      "type": "mc",
+      "category": "Declaring pointers",
+      "q": "What does this declaration create?\n\n```c\nint *ptr1, *ptr2, x, y;\n```",
+      "choices": [
+        "`ptr1` and `ptr2` are pointers to int; `x` and `y` are ints",
+        "All four variables are pointers to int",
+        "Only `ptr1` is a pointer; `ptr2`, `x`, and `y` are ints",
+        "`ptr1` and `ptr2` are ints; `x` and `y` are pointers to int"
+      ],
+      "answer": 0,
+      "explain": "The `*` applies to each name it is written in front of. `*ptr1` and `*ptr2` declare pointers to int, and `x` and `y` are plain ints."
+    },
+    {
+      "type": "text",
+      "category": "Declaring pointers",
+      "q": "Write a declaration for a variable named `dp` that can store the address of a `double`.",
+      "answer": ["double *dp;", "double *dp", "double* dp;", "double* dp", "double * dp;", "double * dp"],
+      "explain": "Declare a pointer with `type_name *var_name`, so here it is `double *dp;`."
+    },
+    {
+      "type": "text",
+      "category": "Address operator and initialization",
+      "q": "Which operator, written before a variable name, gives that variable's address (as in `ptr = __x;`)?",
+      "answer": ["&", "address operator", "address-of operator", "address-of", "ampersand"],
+      "explain": "The address operator `&` gives a variable's address. `ptr = &x;` makes `ptr` point to `x`."
+    },
+    {
+      "type": "mc",
+      "category": "Address operator and initialization",
+      "q": "After the following code runs, which statement is true?\n\n```c\nint x;\nint *ptr;\nptr = &x;\n```",
+      "choices": [
+        "`ptr` holds the address of `x`, so `ptr` points to `x`",
+        "`ptr` holds a copy of the value of `x`",
+        "`x` holds the address of `ptr`",
+        "`ptr` and `x` are now two names for the same variable"
+      ],
+      "answer": 0,
+      "explain": "`&x` is the address of `x`. Assigning it to `ptr` stores that address in `ptr`, so `ptr` now points to `x`."
+    },
+    {
+      "type": "tf",
+      "category": "Address operator and initialization",
+      "q": "A pointer should be initialized to the address of a memory location whose type matches the type the pointer points to.",
+      "answer": true,
+      "explain": "For example, an `int *` should hold the address of an int and a `char *` should hold the address of a char."
+    },
+    {
+      "type": "mc",
+      "category": "Address operator and initialization",
+      "q": "What is wrong with this code?\n\n```c\nint x;\nchar *cptr;\ncptr = &x;\n```",
+      "choices": [
+        "Nothing; any pointer can safely hold any address",
+        "The types don't match: `cptr` is a `char *` but `&x` is the address of an int. The compiler may allow it with a warning, but accessing `x` through `cptr` likely won't behave as expected",
+        "`&` can only be applied to pointer variables",
+        "`cptr` now holds the value of `x` converted to a char"
+      ],
+      "answer": 1,
+      "explain": "`cptr` should hold the address of a char. To point to an int, use an `int *` variable."
+    },
+    {
+      "type": "tf",
+      "category": "NULL pointers",
+      "q": "It is safe to dereference a null pointer as long as you only read through it and never write.",
+      "answer": false,
+      "explain": "A null pointer must never be used to access memory, whether reading or writing. Dereferencing NULL crashes the program with a segfault."
+    },
+    {
+      "type": "mc",
+      "category": "NULL pointers",
+      "q": "What does the special pointer value `NULL` represent, and why is it useful?",
+      "choices": [
+        "An invalid address. You can test a pointer against NULL before dereferencing it to check whether it points to a valid location",
+        "A pointer to an int whose value is 0, which you can safely read",
+        "A random leftover address that the pointer had before initialization",
+        "The address of the first variable declared in the function"
+      ],
+      "answer": 0,
+      "explain": "NULL means the pointer doesn't refer to any particular address. Programmers often initialize pointers to NULL so they can check them before dereferencing."
+    },
+    {
+      "type": "mc",
+      "category": "NULL pointers",
+      "q": "Which test correctly guards the assignment so that it only happens when `ptr` might point to a valid location?",
+      "choices": [
+        "`if (ptr != NULL) { *ptr = 6; }`",
+        "`if (*ptr != NULL) { *ptr = 6; }`",
+        "`if (&ptr != NULL) { *ptr = 6; }`",
+        "`if (ptr == NULL) { *ptr = 6; }`"
+      ],
+      "answer": 0,
+      "explain": "Check the pointer's own value (the address it stores) against NULL. `*ptr != NULL` would dereference `ptr` before the check, which defeats the purpose."
+    },
+    {
+      "type": "text",
+      "category": "NULL pointers",
+      "q": "Running `ptr = NULL; *ptr = 6;` makes the program crash with what kind of memory fault? (Give the common short name.)",
+      "answer": ["segfault", "segmentation fault", "seg fault", "a segfault", "a segmentation fault"],
+      "explain": "Dereferencing a pointer that doesn't hold a valid address, such as NULL, causes a segfault (segmentation fault)."
+    },
+    {
+      "type": "text",
+      "category": "Dereferencing",
+      "q": "In the statement `*ptr = 8;`, what is the `*` operator called?",
+      "answer": ["dereference", "dereference operator", "dereferencing", "dereferencing operator", "indirection", "indirection operator"],
+      "explain": "The dereference operator `*` follows a pointer to the memory location it points to and accesses the value stored there."
+    },
+    {
+      "type": "tf",
+      "category": "Dereferencing",
+      "q": "If `x` is an int and `ptr = &x;` has run, then `*ptr = 8;` sets the value of `x` to 8.",
+      "answer": true,
+      "explain": "`ptr` points to `x`, so assigning through `*ptr` writes to `x`'s memory location."
+    },
+    {
+      "type": "mc",
+      "category": "Dereferencing",
+      "q": "Assume `int x; int *ptr = &x;`. Which statement stores 20 in `x`?",
+      "choices": [
+        "`ptr = 20;`",
+        "`*ptr = 20;`",
+        "`&ptr = 20;`",
+        "`ptr = &20;`"
+      ],
+      "answer": 1,
+      "explain": "`*ptr = 20;` writes 20 to the memory `ptr` points to, which is `x`. `ptr = 20;` would instead change the pointer itself so that it points to address 20."
+    },
+    {
+      "type": "mc",
+      "category": "Dereferencing",
+      "q": "What does `y = *ptr2 + 3;` do?",
+      "choices": [
+        "Assigns `y` the value that `ptr2` points to, plus 3",
+        "Assigns `y` the address stored in `ptr2`, plus 3",
+        "Adds 3 to the value `ptr2` points to and leaves `y` unchanged",
+        "Makes `ptr2` point 3 locations further along, then copies it to `y`"
+      ],
+      "answer": 0,
+      "explain": "`*ptr2` reads the value at the location `ptr2` points to, then 3 is added and the result is stored in `y`."
+    },
+    {
+      "type": "num",
+      "category": "Tracing pointer code",
+      "q": "What is the value of `b` after this code runs?\n\n```c\nint *p, *q, a, b;\na = 5;\np = &a;\nq = p;\n*q = 7;\nb = *p * 2;\n```",
+      "answer": 14,
+      "explain": "`q = p` makes both pointers point to `a`. `*q = 7` sets `a` to 7. Then `*p` reads 7, so `b = 7 * 2 = 14`."
+    },
+    {
+      "type": "num",
+      "category": "Tracing pointer code",
+      "q": "What is the value of `m` after this code runs?\n\n```c\nint *p1, *p2, m, n;\nm = 3;\nn = 4;\np1 = &m;\np2 = &n;\n*p1 = *p2 + 10;\np2 = p1;\n*p2 = *p2 + 1;\n```",
+      "answer": 15,
+      "explain": "`*p1 = *p2 + 10` sets `m` to 4 + 10 = 14. `p2 = p1` makes `p2` point to `m` too. `*p2 = *p2 + 1` sets `m` to 15. `n` stays 4."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing pointer code",
+      "q": "What are the final values of `x` and `y`?\n\n```c\nint *ptr1, *ptr2, x, y;\nx = 8;\nptr2 = &x;\nptr1 = NULL;\n*ptr2 = 10;\ny = *ptr2 + 3;\nptr1 = ptr2;\n*ptr1 = 100;\nptr1 = &y;\n*ptr1 = 80;\n```",
+      "choices": [
+        "x = 8, y = 80",
+        "x = 10, y = 13",
+        "x = 100, y = 80",
+        "x = 80, y = 80",
+        "x = 100, y = 13"
+      ],
+      "answer": 2,
+      "explain": "`*ptr2 = 10` sets x to 10, and then y = 10 + 3 = 13. After `ptr1 = ptr2`, both pointers point to x, so `*ptr1 = 100` sets x to 100. `ptr1 = &y` repoints ptr1 to y, and `*ptr1 = 80` sets y to 80."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing pointer code",
+      "q": "`ptr2` points to `x`. After `ptr1 = ptr2;` and then `*ptr1 = 100;`, which statement is true?",
+      "choices": [
+        "`x` is now 100, and `*ptr2` also evaluates to 100",
+        "Only `*ptr1` is 100; `*ptr2` still gives the old value of `x`",
+        "`ptr1` now points to address 100",
+        "`ptr2` is set to NULL because `ptr1` took its address"
+      ],
+      "answer": 0,
+      "explain": "`ptr1 = ptr2` copies the address, so both pointers refer to the same location. Writing through either one changes `x`, and both see the new value."
+    },
+    {
+      "type": "mc",
+      "category": "Common pointer errors",
+      "q": "Assume `int *ptr;`. What does the statement `ptr = 20;` do?",
+      "choices": [
+        "Assigns `ptr` the address 20, so it now points to address 20",
+        "Stores 20 in the memory location `ptr` points to",
+        "Sets `ptr` to NULL",
+        "Adds 20 to the value `ptr` points to"
+      ],
+      "answer": 0,
+      "explain": "Without `*`, the assignment changes the pointer itself. Dereferencing it afterward (`*ptr = 6;`) would segfault because 20 is not a valid address. To store 20 in the pointed-to memory, write `*ptr = 20;`."
+    },
+    {
+      "type": "multi",
+      "category": "Common pointer errors",
+      "q": "Assume `int x = 5; int *ptr;`. Which sequences dereference something other than a valid address, so that they may crash with a segfault or write to an unintended memory location?",
+      "choices": [
+        "`ptr = NULL; *ptr = 6;`",
+        "`ptr = 20; *ptr = 6;`",
+        "`ptr = x; *ptr = 6;`",
+        "`ptr = &x; *ptr = 6;`"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "NULL is never valid to dereference, and 20 is not a valid address. `ptr = x` uses x's value (5) as an address, so the write likely crashes or overwrites some unrelated location. Only `ptr = &x; *ptr = 6;` correctly sets x to 6."
+    },
+    {
+      "type": "mc",
+      "category": "Common pointer errors",
+      "q": "What happens here?\n\n```c\nint x = 42;\nint *ptr;\nptr = x;\n*ptr = 6;\n```",
+      "choices": [
+        "The value 42 is used as an address, so the write likely crashes or overwrites some unrelated memory location",
+        "`x` is set to 6",
+        "`ptr` stores a copy of 42, and then that copy is changed to 6",
+        "C automatically treats `ptr = x;` as `ptr = &x;`"
+      ],
+      "answer": 0,
+      "explain": "`ptr = x` stores x's value in the pointer, not x's address. The programmer probably meant `ptr = &x;`."
+    },
+    {
+      "type": "tf",
+      "category": "Common pointer errors",
+      "q": "If the compiler accepts `cptr = &x;` (where `cptr` is a `char *` and `x` is an int) with only a warning, then reading and writing `x` through `cptr` will behave as intended.",
+      "answer": false,
+      "explain": "The compiler may allow the mismatched assignment with a warning about incompatible types, but accessing `x` through a `char *` likely won't behave as the programmer expects. Use an `int *` to point to an int."
+    }
+  ]
+}

@@ -1,0 +1,301 @@
+{
+  "title": "2.9.1 Constants, switch, enum, and typedef",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Constants",
+      "q": "In C, what is a constant defined with `#define`, such as `#define N (20)`?",
+      "choices": [
+        "An alias for a literal value (here, the literal 20)",
+        "A variable whose value is set once when the program starts",
+        "A pointer to a read-only memory location that holds 20",
+        "A function that returns 20"
+      ],
+      "answer": 0,
+      "explain": "A constant is an alias for a C literal value. Wherever `N` appears in the code, it stands for the literal `20`."
+    },
+    {
+      "type": "mc",
+      "category": "Constants",
+      "q": "What happens with this code?\n```c\n#define N 20\n\nint main(void) {\n  N = 50;\n  ...\n```",
+      "choices": [
+        "Compilation error: `N` is not an lvalue, so the line is effectively `20 = 50`",
+        "`N` becomes 50 for the rest of `main`",
+        "`N` becomes 50 everywhere in the program",
+        "It compiles, but the assignment has no effect at runtime"
+      ],
+      "answer": 0,
+      "explain": "Constants are aliases for literal values, not variables, so they are not lvalues and can't be changed at runtime. `N = 50` means `20 = 50`, which is not valid C."
+    },
+    {
+      "type": "text",
+      "category": "Constants",
+      "q": "Fill in the blank so that `PI` is a constant that aliases the literal 3.14:\n```c\n____ PI (3.14)\n```",
+      "answer": ["#define"],
+      "explain": "Constants are defined with the syntax `#define const_name (literal_value)`."
+    },
+    {
+      "type": "mc",
+      "category": "Constants",
+      "q": "A program contains:\n```c\n#define N (20)\n\nint main(void) {\n  int array[N];\n  int *d_arr, i;\n  d_arr = malloc(sizeof(int)*N);\n  for (i = 0; i < N; i++) {\n    array[i] = i;\n    d_arr[i] = i*2;\n  }\n  ...\n```\nThe programmer changes the first line to `#define N (50)`, edits nothing else, and recompiles. What is the effect?",
+      "choices": [
+        "The array, the malloc'd block, and the loop all now use 50",
+        "Only `array` changes size; the `malloc` call and loop bound must be edited by hand",
+        "Nothing changes unless `N` is also reassigned inside `main`",
+        "Only the loop bound changes; array sizes stay as they were first written"
+      ],
+      "answer": 0,
+      "explain": "Every use of a constant refers to its definition. Changing the one `#define` line and recompiling updates all the code that uses it."
+    },
+    {
+      "type": "multi",
+      "category": "Constants",
+      "q": "Which are reasons to use a constant `PI` instead of writing `3.14` directly throughout a program?",
+      "choices": [
+        "In an expression, `PI` carries more meaning than `3.14`, so the code is more readable",
+        "To change the value everywhere, you edit one definition and recompile",
+        "The program can update `PI` while it runs, like a variable",
+        "You can take its address with `&PI` and pass it to a function"
+      ],
+      "answer": [0, 1],
+      "explain": "Constants make code more readable and easier to modify. They are aliases for literal values, not lvalues, so they can't be changed at runtime and have no address to take."
+    },
+    {
+      "type": "num",
+      "category": "Constants",
+      "q": "```c\n#define ROWS (4)\n#define COLS (3)\n\nint grid[ROWS * COLS];\n```\nHow many `int` elements does `grid` hold?",
+      "answer": 12,
+      "explain": "`ROWS * COLS` stands for `(4) * (3)`, which is 12."
+    },
+    {
+      "type": "mc",
+      "category": "Switch statements",
+      "q": "When a `switch` statement runs and no `case` value matches the expression, what happens?",
+      "choices": [
+        "If there is a `default` label, its statements run; otherwise no statements in the switch body run",
+        "The statements under the first `case` run",
+        "The statements under the last `case` run",
+        "The program stops with a runtime error"
+      ],
+      "answer": 0,
+      "explain": "The expression is evaluated and then compared against the case values. If nothing matches, execution starts at `default` if one exists. Otherwise the whole switch body is skipped."
+    },
+    {
+      "type": "num",
+      "category": "Switch statements",
+      "q": "```c\nint num, new_num = 0;\nscanf(\"%d\", &num);\n\nswitch (num) {\n    case 6:\n        new_num = num + 1;\n        break;\n    case 7:\n        new_num = num;\n        break;\n    case 8:\n        new_num = num - 1;\n        break;\n    case 9:\n        new_num = num + 2;\n        break;\n    default:\n        printf(\"Hey, %d is not between 6 and 9\\n\", num);\n}\nprintf(\"num %d  new_num %d\\n\", num, new_num);\n```\nThe user enters 8. What value of `new_num` is printed?",
+      "answer": 7,
+      "explain": "`case 8` matches, so `new_num = 8 - 1 = 7`. Then `break` exits the switch."
+    },
+    {
+      "type": "num",
+      "category": "Switch statements",
+      "q": "This version is missing the `break` after `case 8`:\n```c\nint num, new_num = 0;\nscanf(\"%d\", &num);\n\nswitch (num) {\n    case 6:\n        new_num = num + 1;\n        break;\n    case 7:\n        new_num = num;\n        break;\n    case 8:\n        new_num = num - 1;\n    case 9:\n        new_num = num + 2;\n        break;\n    default:\n        printf(\"Hey, %d is not between 6 and 9\\n\", num);\n}\nprintf(\"num %d  new_num %d\\n\", num, new_num);\n```\nThe user enters 8. What value of `new_num` is printed?",
+      "answer": 10,
+      "explain": "Execution starts at `case 8` and sets `new_num` to 7. Because there's no `break`, it falls through into `case 9`, sets `new_num = 8 + 2 = 10`, and then reaches that case's `break`."
+    },
+    {
+      "type": "num",
+      "category": "Switch statements",
+      "q": "```c\nint x = 2, count = 0;\n\nswitch (x) {\n    case 1:\n        count += 1;\n    case 2:\n        count += 10;\n    case 3:\n        count += 100;\n        break;\n    case 4:\n        count += 1000;\n}\nprintf(\"%d\\n\", count);\n```\nWhat is printed?",
+      "answer": 110,
+      "explain": "Execution starts at the matching `case 2` (count = 10). With no `break`, it continues into `case 3` (count = 110). The `break` there exits the switch, so `case 4` never runs."
+    },
+    {
+      "type": "mc",
+      "category": "Switch statements",
+      "q": "What does a `break` statement do when it is reached inside a `switch` body?",
+      "choices": [
+        "Stops executing the switch body and continues with the next statement after the whole switch block",
+        "Skips ahead to the next `case` label",
+        "Jumps to the `default` label",
+        "Returns from the enclosing function"
+      ],
+      "answer": 0,
+      "explain": "`break` stops all remaining statements in the switch body. Execution continues with the first statement after the switch."
+    },
+    {
+      "type": "tf",
+      "category": "Switch statements",
+      "q": "A `switch` statement can replace any chain of `if`-`else if` statements.",
+      "answer": false,
+      "explain": "`switch` can replace some `if`-`else if` chains, but not all of them. It only tests one expression for equality against fixed case values, so a chain like `if (x > 10) ... else if (y < 0) ...` can't be written as a switch."
+    },
+    {
+      "type": "multi",
+      "category": "Switch statements",
+      "q": "Assume `num` is an `int` variable and `WED` is a constant in an enumerated type. Which are valid `case` labels?",
+      "choices": [
+        "`case 7:`",
+        "`case WED:`",
+        "`case num:`",
+        "`case num > 5:`"
+      ],
+      "answer": [0, 1],
+      "explain": "A case value must be a literal value. An enum constant like `WED` is an alias for an int literal, so it is allowed. A variable, or an expression that uses one, can't be a case label. The switch expression is only compared for equality with each case's value."
+    },
+    {
+      "type": "mc",
+      "category": "Switch statements",
+      "q": "```c\n// defined outside main\nenum days_of_week { SUN = 1, MON, TUES, WED, THURS, FRI, SAT };\n\n// inside main\nint val;\nscanf(\"%d\", &val);\n\nswitch (val) {\n  case FRI:\n     printf(\"Orchestra practice today\\n\");\n  case MON:\n  case WED:\n     printf(\"PSYCH 101 and CS 231 today\\n\");\n     break;\n  case TUES:\n  case THURS:\n     printf(\"Math 311 and HIST 140 today\\n\");\n     break;\n  case SAT:\n     printf(\"Day off!\\n\");\n     break;\n  case SUN:\n     printf(\"Do weekly pre-readings\\n\");\n     break;\n  default:\n     printf(\"Error: %d is not a valid day\\n\", val);\n}\n```\nWhen `val` equals `FRI`, what is printed?",
+      "choices": [
+        "`Orchestra practice today` followed by `PSYCH 101 and CS 231 today`",
+        "Only `Orchestra practice today`",
+        "`Orchestra practice today`, `PSYCH 101 and CS 231 today`, and `Math 311 and HIST 140 today`",
+        "`Error: 6 is not a valid day`"
+      ],
+      "answer": 0,
+      "explain": "`case FRI` has no `break`, so after its `printf` runs, execution falls through into the statements shared by `MON` and `WED`. It stops at the `break` there."
+    },
+    {
+      "type": "num",
+      "category": "Enumerated types",
+      "q": "```c\nenum color { RED, GREEN, BLUE };\n```\nWhat integer value does `BLUE` have?",
+      "answer": 2,
+      "explain": "By default the first constant is 0 and each one after it is one more: RED=0, GREEN=1, BLUE=2."
+    },
+    {
+      "type": "num",
+      "category": "Enumerated types",
+      "q": "```c\nenum level { LOW = 5, MEDIUM, HIGH };\n...\nprintf(\"%d\\n\", HIGH);\n```\nWhat is printed?",
+      "answer": 7,
+      "explain": "`= 5` starts the sequence at 5. The constants after it continue in order: MEDIUM=6, HIGH=7."
+    },
+    {
+      "type": "tf",
+      "category": "Enumerated types",
+      "q": "```c\nenum days_of_week { SUN, MON, TUES, WED, THURS, FRI, SAT };\n...\nenum days_of_week day = TUES;\nprintf(\"Today is %d\\n\", day);\n```\nThis prints `Today is TUES`.",
+      "answer": false,
+      "explain": "Enum constants are aliases for int values, so the value prints as an integer, not as its name. Here it prints `Today is 2`."
+    },
+    {
+      "type": "multi",
+      "category": "Enumerated types",
+      "q": "Compared with defining the same values as separate `#define` constants, which are advantages of an enumerated type?",
+      "choices": [
+        "It groups a set of related integer constants together",
+        "It is a type, so variables and parameters can be declared with it",
+        "Values are assigned automatically in sequence, so you don't have to write each one",
+        "Constants can be added or removed without manually renumbering the others",
+        "`printf` can print an enum value as its constant's name",
+        "Its constants can hold floating-point values such as 3.14"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "An enum groups related integer constants, defines a type, assigns values in sequence implicitly, and lets you add or remove constants easily. Its values are ints, so they print as numbers and can't be floating-point values."
+    },
+    {
+      "type": "num",
+      "category": "Enumerated types",
+      "q": "A program has:\n```c\nenum days_of_week { MON, TUES, WED, THURS, FRI };\n```\nThe programmer adds `SUN` before `MON` and `SAT` after `FRI`, without assigning any explicit values. What is the value of `FRI` now?",
+      "answer": 5,
+      "explain": "Values are assigned in order starting at 0: SUN=0, MON=1, TUES=2, WED=3, THURS=4, FRI=5, SAT=6. The other constants are renumbered automatically."
+    },
+    {
+      "type": "mc",
+      "category": "Enumerated types",
+      "q": "Given `enum days_of_week { MON, TUES, WED, THURS, FRI };` and no typedef, which line correctly declares a variable `day` of this type?",
+      "choices": [
+        "`enum days_of_week day;`",
+        "`days_of_week day;`",
+        "`enum day = days_of_week;`",
+        "`day enum days_of_week;`"
+      ],
+      "answer": 0,
+      "explain": "The type name is `enum type_name`, so the declaration is `enum days_of_week day;`. Without a typedef, `days_of_week` on its own is not a type name."
+    },
+    {
+      "type": "mc",
+      "category": "Enumerated types",
+      "q": "```c\n// defined outside main\nenum days_of_week { SUN = 1, MON, TUES, WED, THURS, FRI, SAT };\n\n// inside main\nint val;\nscanf(\"%d\", &val);\n\nswitch (val) {\n  case FRI:\n     printf(\"Orchestra practice today\\n\");\n  case MON:\n  case WED:\n     printf(\"PSYCH 101 and CS 231 today\\n\");\n     break;\n  case TUES:\n  case THURS:\n     printf(\"Math 311 and HIST 140 today\\n\");\n     break;\n  case SAT:\n     printf(\"Day off!\\n\");\n     break;\n  case SUN:\n     printf(\"Do weekly pre-readings\\n\");\n     break;\n  default:\n     printf(\"Error: %d is not a valid day\\n\", val);\n}\n```\nThe user enters 3. What is printed?",
+      "choices": [
+        "`Math 311 and HIST 140 today`",
+        "`PSYCH 101 and CS 231 today`",
+        "`Do weekly pre-readings`",
+        "`Error: 3 is not a valid day`"
+      ],
+      "answer": 0,
+      "explain": "With `SUN = 1`, the values continue in sequence: MON=2, TUES=3. So 3 matches `case TUES`, which shares its statements with `THURS`."
+    },
+    {
+      "type": "mc",
+      "category": "typedef",
+      "q": "Which line makes `ull` an alias for the type `unsigned long long`?",
+      "choices": [
+        "`typedef unsigned long long ull;`",
+        "`typedef ull unsigned long long;`",
+        "`typedef ull = unsigned long long;`",
+        "`typedef ull (unsigned long long);`"
+      ],
+      "answer": 0,
+      "explain": "The format is `typedef existing_type_name new_type_alias_name;`. The existing type comes first and the new alias comes last."
+    },
+    {
+      "type": "text",
+      "category": "typedef",
+      "q": "Which C keyword defines a new name that is an alias for an existing type?",
+      "answer": ["typedef"],
+      "explain": "`typedef` creates a type alias. Once it is defined, you can declare variables using the alias."
+    },
+    {
+      "type": "mc",
+      "category": "typedef",
+      "q": "```c\ntypedef struct point {\n  int x;\n  int y;\n} point;\n```\nWhat does this code define?",
+      "choices": [
+        "Both the struct type `struct point` and the alias `point` for it",
+        "Only the alias `point`; `struct point` can't be used",
+        "Only `struct point`; the trailing `point` declares a variable named `point`",
+        "A variable named `point` with an unnamed struct type"
+      ],
+      "answer": 0,
+      "explain": "When `typedef` comes before a struct definition, the name after the closing `}` becomes a type alias, not a variable. This defines `struct point` and the alias `point` at the same time."
+    },
+    {
+      "type": "multi",
+      "category": "typedef",
+      "q": "Given:\n```c\ntypedef struct point {\n  int x;\n  int y;\n} point;\n```\nWhich declarations are valid?",
+      "choices": [
+        "`struct point p1;`",
+        "`point p2;`",
+        "`point struct p3;`",
+        "`enum point p4;`"
+      ],
+      "answer": [0, 1],
+      "explain": "The combined definition creates both `struct point` and its alias `point`, so you can declare variables with either name. The other two choices are not valid type names."
+    },
+    {
+      "type": "num",
+      "category": "typedef",
+      "q": "```c\nenum class_year { FIRST = 1, SECOND, JUNIOR, SENIOR, POSTGRAD };\ntypedef enum class_year classYr;\n\n...\nclassYr yr = SENIOR;\nprintf(\"%d\\n\", yr);\n```\nWhat is printed?",
+      "answer": 4,
+      "explain": "`classYr` is an alias for `enum class_year`. With FIRST=1, the values are SECOND=2, JUNIOR=3, SENIOR=4, and they print as integers."
+    },
+    {
+      "type": "mc",
+      "category": "typedef",
+      "q": "What is `typedef` commonly used for?",
+      "choices": [
+        "Giving types shorter, more readable names, often for structs and enumerated types",
+        "Making a variable read-only after it is initialized",
+        "Allocating memory for a struct",
+        "Defining a group of related integer constants"
+      ],
+      "answer": 0,
+      "explain": "`typedef` defines an alias for an existing type. It is often used to give struct and enum types shorter names. Grouping related integer constants is what `enum` does."
+    },
+    {
+      "type": "tf",
+      "category": "typedef",
+      "q": "`typedef` can only create aliases for struct types.",
+      "answer": false,
+      "explain": "`typedef` works with any existing type. For example, `typedef enum class_year classYr;` and `typedef unsigned long long ull;` are both valid."
+    },
+    {
+      "type": "tf",
+      "category": "typedef",
+      "q": "These two ways of creating the alias `studentT` are equivalent:\n\n(A)\n```c\nstruct studentT {\n  char name[30];\n  float gpa;\n};\ntypedef struct studentT studentT;\n```\n(B)\n```c\ntypedef struct studentT {\n  char name[30];\n  float gpa;\n} studentT;\n```",
+      "answer": true,
+      "explain": "Putting `typedef` before the struct definition and the alias name after the closing `}` is equivalent to defining the struct and then writing the typedef as a separate line."
+    }
+  ]
+}

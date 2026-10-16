@@ -1,0 +1,275 @@
+{
+  "title": "2.9.6 Writing and Using Your Own C Libraries",
+  "course": "C",
+  "questions": [
+    {
+      "type": "multi",
+      "category": "Library design",
+      "q": "Which of the following are steps in creating your own C library?",
+      "choices": [
+        "Define the library's interface in a header (.h) file",
+        "Implement the library's functions in one or more .c files",
+        "Compile a binary form of the library that can be linked into programs",
+        "Write a main function in the library's .c file",
+        "Copy the library's .c files into /usr/include"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A library is an interface (.h), an implementation (.c files), and a compiled binary form (.o, .a, or .so) that gets linked into programs. Libraries don't have their own main; the program that uses the library has it."
+    },
+    {
+      "type": "tf",
+      "category": "Library design",
+      "q": "Every function defined in a library's .c files must have a prototype in the library's public .h file.",
+      "answer": false,
+      "explain": "Only interface functions that users call belong in the public header. Internal helper functions are part of the implementation and are often declared static, so users of the library can't call them."
+    },
+    {
+      "type": "tf",
+      "category": "Library design",
+      "q": "To build a program against a precompiled library (a .a or .so file), you normally need the library's .c source files.",
+      "answer": false,
+      "explain": "Users of precompiled libraries often don't have the source. They include the header and link the binary library with gcc's -l option."
+    },
+    {
+      "type": "mc",
+      "category": "Library design",
+      "q": "When you build with `gcc -o myprog myprog.c mylib.c`, how does the library's code get into myprog?",
+      "choices": [
+        "mylib.c is compiled to object code and statically linked into the executable",
+        "It is loaded from libmylib.so when myprog runs",
+        "The preprocessor pastes mylib.c's source text into myprog.c",
+        "It is found in /usr/include when myprog runs"
+      ],
+      "answer": 0,
+      "explain": "Building directly from library source compiles the .c files to .o files and statically links them into the executable. You also use this method to build any program made of several .c modules."
+    },
+    {
+      "type": "mc",
+      "category": "Header files",
+      "q": "What role does a library's .h file play?",
+      "choices": [
+        "It defines the library's interface (prototypes, types, constants) and must be included by programs that use the library",
+        "It holds the compiled machine code for the library's functions",
+        "It contains the definitions (bodies) of all of the library's internal helper functions",
+        "It tells the runtime linker where to find the library's .so file"
+      ],
+      "answer": 0,
+      "explain": "Header files are text files with function prototypes and other definitions. Together they form the library's interface, and any application that uses the library includes them."
+    },
+    {
+      "type": "tf",
+      "category": "Header files",
+      "q": "The #ifndef / #define / #endif guard around a header's contents makes sure those contents are included at most once in any C file that includes the header, which avoids duplicate definition errors.",
+      "answer": true,
+      "explain": "On the first include the guard macro isn't defined yet, so the contents are processed and the macro gets defined. Any later include of the same header in that file skips the contents."
+    },
+    {
+      "type": "mc",
+      "category": "Header files",
+      "q": "mylib.h is wrapped in `#ifndef _MYLIB_H_` / `#define _MYLIB_H_` ... `#endif`. What happens the second time the preprocessor reaches `#include \"mylib.h\"` while processing the same .c file?",
+      "choices": [
+        "The contents are skipped because _MYLIB_H_ is already defined",
+        "The contents are included again, causing duplicate definitions",
+        "The preprocessor stops with an error about the repeated #include",
+        "#define _MYLIB_H_ resets the macro, so the contents are included again"
+      ],
+      "answer": 0,
+      "explain": "The first inclusion defined _MYLIB_H_, so #ifndef _MYLIB_H_ is false the second time and everything up to #endif is skipped."
+    },
+    {
+      "type": "multi",
+      "category": "Header files",
+      "q": "Which of the following belong in a library's public header file?",
+      "choices": [
+        "Function prototypes for exported functions, e.g. `extern float bigger(float y, float z);`",
+        "Constant definitions, e.g. `#define MAX_FOO 20`",
+        "Type definitions, e.g. `struct foo_struct { int x; float y; };`",
+        "extern declarations for exported global variables, e.g. `extern int total_times;`",
+        "Full definitions of internal static helper functions",
+        "The function bodies of the exported functions"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The header holds the interface: prototypes, constants, types, and extern names of exported globals. Function bodies, including internal static helpers, go in the library's .c implementation files."
+    },
+    {
+      "type": "tf",
+      "category": "Header files",
+      "q": "Comments in a library's .h file are part of the library's interface. They should explain what each function does, what parameters it takes, and what it returns.",
+      "answer": true,
+      "explain": "Header comments are written for users of the library, so they should be detailed. Sometimes a header also has a top-level comment that explains how to use the library."
+    },
+    {
+      "type": "mc",
+      "category": "extern and static",
+      "q": "A library exports a global variable named total_times. How should it be written across the library's files?",
+      "choices": [
+        "mylib.h: `extern int total_times;` and mylib.c: `int total_times = 0;`",
+        "mylib.h: `int total_times = 0;` and mylib.c: `extern int total_times;`",
+        "`int total_times = 0;` in both mylib.h and mylib.c",
+        "mylib.h only: `int total_times = 0;`"
+      ],
+      "answer": 0,
+      "explain": "The variable is created exactly once, in the library implementation (.c). The header only exports its name and type with extern, so including the header doesn't create another copy of the variable."
+    },
+    {
+      "type": "mc",
+      "category": "extern and static",
+      "q": "What does the keyword extern mean in front of a global variable or function prototype in a header file?",
+      "choices": [
+        "The name is defined somewhere else, such as in the library's implementation",
+        "The variable or function is private to the header file",
+        "The variable is allocated a new copy in each file that includes the header",
+        "The function will be loaded from a .so file at runtime"
+      ],
+      "answer": 0,
+      "explain": "extern means the name and type exist but the actual definition lives elsewhere. It matters most for exported globals, so the header doesn't create its own copy of the variable."
+    },
+    {
+      "type": "mc",
+      "category": "extern and static",
+      "q": "Why are a library's internal helper functions often defined with the keyword static?",
+      "choices": [
+        "static limits the function's scope to the .c file (module) where it is defined, so library users can't call it",
+        "static makes the function run faster by inlining it",
+        "static exports the function to every program that links the library",
+        "static is required for any function compiled with -fPIC"
+      ],
+      "answer": 0,
+      "explain": "A static function can only be used inside the module where it is defined. That keeps internal helpers out of the library's public interface."
+    },
+    {
+      "type": "num",
+      "category": "extern and static",
+      "q": "mylib.c defines `int total_times = 0;`, and bigger() runs `total_times++` every time it is called. A program calls bigger(1.0, 2.0), then bigger(5.5, 3.0), then bigger(4.0, 4.0). What is total_times afterward?",
+      "answer": 3,
+      "explain": "total_times starts at 0 and goes up by one on each of the three calls, whatever values are passed in."
+    },
+    {
+      "type": "text",
+      "category": "Building libraries",
+      "q": "Which gcc option compiles mylib.c into the object file mylib.o without linking an executable? (e.g. `gcc -o mylib.o ___ mylib.c`)",
+      "answer": ["-c", "c"],
+      "explain": "`gcc -o mylib.o -c mylib.c` stops after compiling, which gives you a binary .o form of the library."
+    },
+    {
+      "type": "mc",
+      "category": "Building libraries",
+      "q": "Which command builds the static library archive libmylib.a from mylib.o?",
+      "choices": [
+        "ar -rcs libmylib.a mylib.o",
+        "gcc -shared -o libmylib.a mylib.o",
+        "gcc -c -o libmylib.a mylib.o",
+        "ar -rcs mylib.o libmylib.a"
+      ],
+      "answer": 0,
+      "explain": "The archiver ar packs one or more .o files into a .a static library. The archive name comes first, then the object files."
+    },
+    {
+      "type": "text",
+      "category": "Building libraries",
+      "q": "Which gcc flag produces position independent code? Object files that will go into a shared object (.so) library must be compiled with it.",
+      "answer": ["-fPIC", "fPIC"],
+      "explain": "Example: `gcc -fPIC -o mylib.o -c mylib.c`. Every .o file in a dynamically linked library needs to be built with -fPIC."
+    },
+    {
+      "type": "mc",
+      "category": "Building libraries",
+      "q": "mylib.o was compiled with -fPIC. Which command creates the shared object libmylib.so from it?",
+      "choices": [
+        "gcc -shared -o libmylib.so mylib.o",
+        "ar -rcs libmylib.so mylib.o",
+        "gcc -c -o libmylib.so mylib.o",
+        "gcc -L. -o libmylib.so mylib.o"
+      ],
+      "answer": 0,
+      "explain": "gcc's -shared flag builds a shared object from one or more position independent .o files, e.g. `gcc -shared -o libbiglib.so file1.o file2.o`."
+    },
+    {
+      "type": "mc",
+      "category": "Include paths",
+      "q": "What is the difference between `#include <file.h>` and `#include \"file.h\"`?",
+      "choices": [
+        "<file.h> searches the standard header locations; \"file.h\" looks in the current directory first, then in directories given with -I",
+        "\"file.h\" searches only the standard header locations; <file.h> searches only the current directory",
+        "There is no difference; both search the same places in the same order",
+        "<file.h> is for .c files and \"file.h\" is for .h files"
+      ],
+      "answer": 0,
+      "explain": "Standard library headers (like stdio.h) are in default system locations, so they use angle brackets. Your own library headers usually use double quotes."
+    },
+    {
+      "type": "mc",
+      "category": "Include paths",
+      "q": "myprog.c contains `#include \"mylib.h\"`, but mylib.h is in /home/me/myincludes, not in myprog.c's directory. Which command lets the preprocessor find it?",
+      "choices": [
+        "gcc -I/home/me/myincludes -c myprog.c",
+        "gcc -L/home/me/myincludes -c myprog.c",
+        "gcc -l/home/me/myincludes -c myprog.c",
+        "gcc -c myprog.c /home/me/myincludes"
+      ],
+      "answer": 0,
+      "explain": "-I adds a directory to the header search path. -L adds a directory to the library search path, and -l names a library to link."
+    },
+    {
+      "type": "text",
+      "category": "Include paths",
+      "q": "On a typical system, in which directory are the C standard library header files (such as stdio.h) usually stored?",
+      "answer": ["/usr/include", "/usr/include/"],
+      "explain": "Standard headers are usually in /usr/include/, and you can open them in an editor, e.g. `vi /usr/include/stdio.h`."
+    },
+    {
+      "type": "multi",
+      "category": "Linking and running",
+      "q": "mylib.c, mylib.o, and libmylib.so are all in the current directory. Which commands correctly build the executable myprog from myprog.c, which calls functions from mylib?",
+      "choices": [
+        "gcc -o myprog myprog.c mylib.o",
+        "gcc -o myprog myprog.c mylib.c",
+        "gcc -o myprog myprog.c -L. -lmylib",
+        "gcc -o myprog myprog.c -L. -llibmylib.so",
+        "gcc -o myprog myprog.c"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "You can link the .o file, compile the library source along with the program, or link the library with -L. -lmylib. The -l option takes only the 'mylib' part of the name. Leaving the library out entirely means the implementation of its functions is missing."
+    },
+    {
+      "type": "text",
+      "category": "Linking and running",
+      "q": "The library file is named libmylib.so. Write the single gcc option that links it into a program.",
+      "answer": ["-lmylib"],
+      "explain": "-l takes the library name without the 'lib' prefix or the .a/.so suffix, so libmylib.so becomes -lmylib."
+    },
+    {
+      "type": "mc",
+      "category": "Linking and running",
+      "q": "In `gcc -o myprog myprog.c -L. -lmylib`, what does `-L.` do?",
+      "choices": [
+        "Adds the current directory to the paths searched for library files like libmylib.so or libmylib.a",
+        "Adds the current directory to the paths searched for header files",
+        "Tells gcc to link every library in the current directory",
+        "Forces gcc to link the library statically"
+      ],
+      "answer": 0,
+      "explain": "-L gives a directory to search for libraries, and '.' means the current directory. Header search paths use -I instead."
+    },
+    {
+      "type": "tf",
+      "category": "Linking and running",
+      "q": "When gcc is told to link -lmylib and can find a .so version of the library, by default it links the library dynamically.",
+      "answer": true,
+      "explain": "By default gcc prefers the shared object (libmylib.so) when it can find one, which gives a dynamically linked executable."
+    },
+    {
+      "type": "mc",
+      "category": "Linking and running",
+      "q": "myprog is dynamically linked against libmylib.so, which is in /home/me/mylibs. When you run myprog, libmylib.so can't be found. What fixes it?",
+      "choices": [
+        "export LD_LIBRARY_PATH=/home/me/mylibs:$LD_LIBRARY_PATH",
+        "Recompile myprog.c with -I/home/me/mylibs",
+        "Run ./myprog -L/home/me/mylibs",
+        "export PATH=/home/me/mylibs:$PATH"
+      ],
+      "answer": 0,
+      "explain": "The runtime loader uses LD_LIBRARY_PATH to find shared objects when the program runs. -I only affects where header files are searched for at compile time, and PATH is for finding executables, not libraries."
+    }
+  ]
+}

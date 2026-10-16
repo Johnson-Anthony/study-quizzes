@@ -1,0 +1,323 @@
+{
+  "title": "2.7 C Structs",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Struct values and function arguments",
+      "q": "Given `struct studentT s1, s2;` where the fields of `s1` are already set, what does the statement `s2 = s1;` do?",
+      "choices": [
+        "Copies all the bytes of s1's field values into s2",
+        "Makes s2 refer to the same memory as s1",
+        "Causes a compile error, because structs cannot be assigned with =",
+        "Copies only the first field of s1 into s2"
+      ],
+      "answer": 0,
+      "explain": "Structs are lvalues. The value of a struct variable is the contents of its memory (all the bytes of its fields), so assigning one struct to another copies every field."
+    },
+    {
+      "type": "tf",
+      "category": "Struct values and function arguments",
+      "q": "`struct studentT` has a field `char name[64]`. After `s2 = s1;` and then `strcpy(s2.name, \"Frances\");`, the string in `s1.name` is also \"Frances\".",
+      "answer": false,
+      "explain": "The 64-char array is stored inside each struct. Assignment copied its bytes into s2's own array, so strcpy changes only s2.name."
+    },
+    {
+      "type": "mc",
+      "category": "Struct values and function arguments",
+      "q": "`int checkID(struct studentT s, int min_age) { if (s.age < min_age) { s.age = min_age + 1; return 0; } return 1; }`. If `student1.age` is 17, what is `student1.age` after `checkID(student1, 18)` returns?",
+      "choices": ["17", "19", "18", "0"],
+      "answer": 0,
+      "explain": "The parameter s gets a copy of all the bytes of the argument. Changing s.age changes only the copy, not student1."
+    },
+    {
+      "type": "num",
+      "category": "Struct values and function arguments",
+      "q": "Using the same `checkID` function, what does `checkID(s, 18)` return when `s.age` is 21?",
+      "answer": 1,
+      "explain": "21 is not less than 18, so the if body is skipped and the function returns 1."
+    },
+    {
+      "type": "mc",
+      "category": "Struct values and function arguments",
+      "q": "`void changeName(char *old, char *new) { strcpy(old, new); }` is called as `changeName(student2.name, \"Kwame\");`, where `name` is a `char name[64]` field. Why does student2's name change, even though C passes arguments by value?",
+      "choices": [
+        "The value passed is the base address of the name array, so the parameter refers to the same array elements",
+        "Passing any field of a struct automatically passes the whole struct by reference",
+        "strcpy always writes directly into the caller's struct variable",
+        "It does not change; only a copy inside changeName is modified"
+      ],
+      "answer": 0,
+      "explain": "Passing a field follows the semantics of the field's type. For an array field, the base address is copied, so the function changes the same elements the argument refers to."
+    },
+    {
+      "type": "mc",
+      "category": "Struct values and function arguments",
+      "q": "When a single field of a struct is passed as an argument to a function, the argument-passing semantics are determined by:",
+      "choices": [
+        "The type of that field (matching the function's parameter type)",
+        "The type of the struct that contains the field",
+        "Nothing: struct fields are always passed by reference",
+        "Nothing: the whole struct is always copied"
+      ],
+      "answer": 0,
+      "explain": "For example, an int field is passed as a copy of the int, and an array field is passed as its base address."
+    },
+    {
+      "type": "mc",
+      "category": "Pointers to structs",
+      "q": "`sptr` is a `struct studentT *`. Which expression is equivalent to `sptr->gpa`?",
+      "choices": ["(*sptr).gpa", "*sptr.gpa", "sptr.gpa", "&sptr.gpa"],
+      "answer": 0,
+      "explain": "-> dereferences the pointer and then accesses the field. `*sptr.gpa` is parsed as `*(sptr.gpa)`, and `sptr.gpa` is invalid because sptr is a pointer, not a struct."
+    },
+    {
+      "type": "mc",
+      "category": "Pointers to structs",
+      "q": "Why is `sptr = malloc(sizeof(struct studentT));` the right way to allocate one struct for `sptr` to point to?",
+      "choices": [
+        "sizeof gives the size of the whole struct, so malloc allocates space for all of its fields",
+        "sizeof gives the size of a pointer, and that is all sptr needs",
+        "Using sizeof makes malloc set all the fields to zero",
+        "It puts the struct on the stack, so it is freed automatically"
+      ],
+      "answer": 0,
+      "explain": "sizeof(struct studentT) covers every field, so all of them have space in the heap block."
+    },
+    {
+      "type": "multi",
+      "category": "Pointers to structs",
+      "q": "Inside a function: `struct studentT s; struct studentT *sptr; sptr = malloc(sizeof(struct studentT));`. Which of these are stored on the stack?",
+      "choices": [
+        "All the field values of s",
+        "The variable sptr (which holds an address)",
+        "The struct that sptr points to",
+        "The name field of the struct that sptr points to"
+      ],
+      "answer": [0, 1],
+      "explain": "Local variables (s and all of its fields, plus the pointer sptr) are on the stack. malloc allocates from the heap, so the struct sptr points to, including all of its fields, is on the heap."
+    },
+    {
+      "type": "text",
+      "category": "Pointers to structs",
+      "q": "`sptr` is a `struct studentT *`. Using the arrow operator, write the expression that accesses the `grad_yr` field of the struct it points to.",
+      "answer": ["sptr->grad_yr", "sptr -> grad_yr"],
+      "explain": "sptr->grad_yr is shorthand for (*sptr).grad_yr."
+    },
+    {
+      "type": "tf",
+      "category": "Pointers to structs",
+      "q": "To reach a field through a struct pointer, the pointer has to be dereferenced. The `->` operator does the dereference and the field access in one step.",
+      "answer": true,
+      "explain": "C provides -> because pointers to structs are used so often. p->f means (*p).f."
+    },
+    {
+      "type": "mc",
+      "category": "Pointer fields in structs",
+      "q": "Given `struct personT { char *name; int age; };` and a local variable `struct personT p1;`, why must the program call malloc before `strcpy(p1.name, \"Zhichen\");`?",
+      "choices": [
+        "p1.name is only a pointer; the struct has no space for the characters, so memory must be allocated for name to point to",
+        "Every struct variable must be created with malloc before its fields are used",
+        "strcpy only works on heap memory",
+        "The age field must be allocated before the name field"
+      ],
+      "answer": 0,
+      "explain": "The struct only holds the char * itself. Space for the string's characters has to be allocated separately, for example with p1.name = malloc(sizeof(char) * 8)."
+    },
+    {
+      "type": "num",
+      "category": "Pointer fields in structs",
+      "q": "How many chars must be allocated for `p1.name` so it can hold the string \"Zhichen\"?",
+      "answer": 8,
+      "explain": "7 characters plus 1 extra byte for the terminating null character."
+    },
+    {
+      "type": "mc",
+      "category": "Pointer fields in structs",
+      "q": "`struct personT *p2;` points to an allocated struct whose `name` field points to a string. Which statement sets the third character of the name to 'a'?",
+      "choices": [
+        "p2->name[2] = 'a';",
+        "p2.name[2] = 'a';",
+        "p2->name[3] = 'a';",
+        "(*p2)->name[2] = 'a';"
+      ],
+      "answer": 0,
+      "explain": "Start from the outermost type. p2 is a pointer to a struct, so use -> to get name. name is a char *, so index into it with [2] (the third char, counting from 0)."
+    },
+    {
+      "type": "multi",
+      "category": "Pointer fields in structs",
+      "q": "Given `struct personT { char *name; int age; };`, `struct personT p1;` and `struct personT *p2;`, which expression/type pairs are correct?",
+      "choices": [
+        "p1 : struct personT",
+        "p2 : struct personT *",
+        "p1.name : char",
+        "p2->age : int",
+        "p2->name[2] : char *"
+      ],
+      "answer": [0, 1, 3],
+      "explain": "p1.name is a char * (not char), and p2->name[2] is a single char (not char *)."
+    },
+    {
+      "type": "multi",
+      "category": "Pointer fields in structs",
+      "q": "In main: `struct personT p1, *p2; p1.name = malloc(sizeof(char) * 8); p2 = malloc(sizeof(struct personT)); p2->name = malloc(sizeof(char) * 4);`. Which of these are in heap memory?",
+      "choices": [
+        "The variable p2 itself",
+        "The struct personT that p2 points to",
+        "The characters that p2->name points to",
+        "The age field of p1",
+        "The characters that p1.name points to"
+      ],
+      "answer": [1, 2, 4],
+      "explain": "p1 (including its name pointer and age) and the pointer p2 are local variables on the stack. Everything that comes from malloc is on the heap: the struct p2 points to and both blocks of characters."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays of structs",
+      "q": "What does `struct studentT *classroom3[40];` declare?",
+      "choices": [
+        "An array of 40 pointers to struct studentT",
+        "A pointer to an array of 40 struct studentT",
+        "An array of 40 struct studentT",
+        "A pointer to a single struct studentT"
+      ],
+      "answer": 0,
+      "explain": "Each of the 40 elements stores a struct studentT *."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays of structs",
+      "q": "Given `struct studentT classroom1[40];`, which statement sets the age of the element at index 3 to 21?",
+      "choices": [
+        "classroom1[3].age = 21;",
+        "classroom1[3]->age = 21;",
+        "classroom1->age[3] = 21;",
+        "classroom1.age[3] = 21;"
+      ],
+      "answer": 0,
+      "explain": "Index the array to get a struct studentT, then use dot notation because the element is a struct, not a pointer."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays of structs",
+      "q": "Given `struct studentT *classroom3[40];` and `classroom3[5] = malloc(sizeof(struct studentT));`, which statement sets the age of that struct to 21?",
+      "choices": [
+        "classroom3[5]->age = 21;",
+        "classroom3[5].age = 21;",
+        "classroom3->age[5] = 21;",
+        "*classroom3[5]->age = 21;"
+      ],
+      "answer": 0,
+      "explain": "classroom3[5] is a struct studentT *, so use -> to reach its fields."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays of structs",
+      "q": "Given `struct studentT *classroom2;`, which statement dynamically allocates an array of 15 struct studentT for it to point to?",
+      "choices": [
+        "classroom2 = malloc(sizeof(struct studentT) * 15);",
+        "classroom2 = malloc(sizeof(struct studentT *) * 15);",
+        "classroom2 = malloc(15);",
+        "classroom2 = malloc(sizeof(classroom2) * 15);"
+      ],
+      "answer": 0,
+      "explain": "Each element is a whole struct, so request 15 times the size of the struct. sizeof(struct studentT *) and sizeof(classroom2) only give the size of a pointer."
+    },
+    {
+      "type": "mc",
+      "category": "Arrays of structs",
+      "q": "`void updateAges(struct studentT *classroom, int size)` adds 1 to `classroom[i].age` for each element. When it is called as `updateAges(classroom2, 15)`, where classroom2 points to an array on the heap, what is copied into the parameter `classroom`?",
+      "choices": [
+        "The address of the array in heap memory",
+        "A copy of all 15 structs",
+        "A copy of the first struct only",
+        "Nothing is copied; the parameter is another name for the variable classroom2"
+      ],
+      "answer": 0,
+      "explain": "The parameter gets a copy of the argument's value, which is the address of the array. Both pointers then refer to the same array."
+    },
+    {
+      "type": "tf",
+      "category": "Arrays of structs",
+      "q": "After `updateAges(classroom1, 40)` returns (classroom1 is a statically declared `struct studentT classroom1[40]`), the age fields of the elements in the caller's classroom1 array have been incremented.",
+      "answer": true,
+      "explain": "Passing an array passes its base address, so the parameter refers to the same elements and the changes persist."
+    },
+    {
+      "type": "tf",
+      "category": "Arrays of structs",
+      "q": "`updateAges(classroom3, 40)` is a valid call when classroom3 is declared as `struct studentT *classroom3[40];`.",
+      "answer": false,
+      "explain": "classroom3 is an array of struct studentT *, not an array of struct studentT, so its type does not match the parameter type."
+    },
+    {
+      "type": "mc",
+      "category": "Self-referential structs and linked lists",
+      "q": "What makes `struct node { int data; struct node *next; };` a self-referential struct?",
+      "choices": [
+        "It has a field whose type is a pointer to the same struct type",
+        "It stores a complete copy of its own struct type inside itself",
+        "It must be allocated with malloc",
+        "All of its fields have the same type"
+      ],
+      "answer": 0,
+      "explain": "The next field is a struct node *, which lets nodes be linked together into lists, trees, and graphs."
+    },
+    {
+      "type": "mc",
+      "category": "Self-referential structs and linked lists",
+      "q": "head starts as a single node with data 10 and next NULL. Then, for i = 0 and i = 1: `temp = malloc(sizeof(struct node)); temp->data = i; temp->next = head; head = temp;`. Listing the data values from head to the end, the list contains:",
+      "choices": ["1, 0, 10", "10, 0, 1", "0, 1, 10", "10, 1, 0"],
+      "answer": 0,
+      "explain": "Each new node is added at the front. 0 goes in front of 10, then 1 goes in front of 0."
+    },
+    {
+      "type": "mc",
+      "category": "Self-referential structs and linked lists",
+      "q": "What do the two statements `temp->next = head; head = temp;` do together?",
+      "choices": [
+        "Insert the node temp points to at the beginning of the list",
+        "Append the node temp points to at the end of the list",
+        "Remove the first node from the list",
+        "Swap the first two nodes of the list"
+      ],
+      "answer": 0,
+      "explain": "The new node's next is set to the current first node, and then head is changed to point to the new node."
+    },
+    {
+      "type": "tf",
+      "category": "Self-referential structs and linked lists",
+      "q": "Swapping the order of `temp->next = head;` and `head = temp;` would build the same list.",
+      "answer": false,
+      "explain": "If head = temp runs first, the address of the old first node is lost, and temp->next = head then makes the new node point to itself."
+    },
+    {
+      "type": "tf",
+      "category": "Self-referential structs and linked lists",
+      "q": "In the linked list built above, the next field of the last node is NULL, which marks the end of the list.",
+      "answer": true,
+      "explain": "The first node created (data 10) had next set to NULL, and it ends up last because new nodes are added at the front."
+    },
+    {
+      "type": "mc",
+      "category": "Self-referential structs and linked lists",
+      "q": "`struct node *head, *temp;` are local variables, and each node is created with malloc. Where are these stored?",
+      "choices": [
+        "head and temp on the stack; the nodes on the heap",
+        "head, temp, and the nodes all on the heap",
+        "head, temp, and the nodes all on the stack",
+        "head and temp on the heap; the nodes on the stack"
+      ],
+      "answer": 0,
+      "explain": "Local variables are allocated on the stack, and malloc allocates from the heap."
+    },
+    {
+      "type": "tf",
+      "category": "Self-referential structs and linked lists",
+      "q": "In C, a list abstract data type (a sequence of elements ordered by position) can be implemented either as an array or as a linked list of self-referential structs.",
+      "answer": true,
+      "explain": "A linked list is one way to implement the list ADT. An array is another."
+    }
+  ]
+}

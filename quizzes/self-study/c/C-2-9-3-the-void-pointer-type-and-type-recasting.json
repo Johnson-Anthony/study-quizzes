@@ -1,0 +1,185 @@
+{
+  "title": "2.9.3 The void * Type and Type Recasting",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Generic pointers",
+      "q": "What does the C type `void *` represent?",
+      "choices": [
+        "A generic pointer: a pointer to any type, or to an unspecified type",
+        "A pointer that always holds NULL",
+        "A pointer to a function that returns nothing",
+        "A pointer that can only point to heap memory"
+      ],
+      "answer": 0,
+      "explain": "`void *` is C's generic pointer type. It can hold the address of any type."
+    },
+    {
+      "type": "mc",
+      "category": "Generic pointers",
+      "q": "Why can the compiler allocate space for a `void *` variable without knowing what type it points to?",
+      "choices": [
+        "Memory addresses are always stored in the same number of bytes on a given system, so every pointer variable is the same size",
+        "The compiler delays allocation until the pointer is first assigned",
+        "A `void *` variable is always allocated on the heap",
+        "The compiler reserves the size of the largest type a program uses"
+      ],
+      "answer": 0,
+      "explain": "Every pointer stores an address, and addresses take the same number of bytes (for example 4 on 32-bit systems and 8 on 64-bit systems). Because of that, the size of a `void *` is known no matter what it points to."
+    },
+    {
+      "type": "num",
+      "category": "Generic pointers",
+      "q": "On a 64-bit system, how many bytes of storage does a `void *` variable need?",
+      "answer": 8,
+      "explain": "Addresses are eight bytes on 64-bit systems, and every pointer variable, including `void *`, stores one address."
+    },
+    {
+      "type": "num",
+      "category": "Generic pointers",
+      "q": "On a 32-bit system, how many bytes of storage does a `void *` variable need?",
+      "answer": 4,
+      "explain": "Addresses are four bytes on 32-bit systems, so every pointer variable takes four bytes."
+    },
+    {
+      "type": "multi",
+      "category": "Generic pointers",
+      "q": "Given `void *gen_ptr; int x; char ch;`, which statements are valid C?",
+      "choices": [
+        "`gen_ptr = &x;`",
+        "`gen_ptr = &ch;`",
+        "`*gen_ptr = 5;`",
+        "`ch = *gen_ptr;`"
+      ],
+      "answer": [0, 1],
+      "explain": "A `void *` can be assigned the address of any type. It cannot be dereferenced directly, so `*gen_ptr` is invalid on either side of an assignment."
+    },
+    {
+      "type": "tf",
+      "category": "Dereferencing and recasting",
+      "q": "A `void *` can be dereferenced directly as long as it holds a valid address.",
+      "answer": false,
+      "explain": "A `void *` can never be dereferenced directly, because the compiler does not know the size of the memory it points to. You have to recast it to a specific pointer type first."
+    },
+    {
+      "type": "mc",
+      "category": "Dereferencing and recasting",
+      "q": "Why does the compiler refuse to dereference a `void *` directly?",
+      "choices": [
+        "It does not know the size of the memory the address points to (for example, a 4-byte int or a 1-byte char)",
+        "The address in a `void *` might be on the stack",
+        "A `void *` stores half of an address",
+        "Dereferencing a `void *` would always produce zero"
+      ],
+      "answer": 0,
+      "explain": "To dereference a pointer, the compiler has to know how many bytes to access and how to read them. A `void *` gives it no type information, so it cannot generate that code."
+    },
+    {
+      "type": "text",
+      "category": "Dereferencing and recasting",
+      "q": "Before dereferencing a `void *`, the programmer must explicitly ______ it to a pointer of a specific type. (one word)",
+      "answer": ["recast", "cast", "typecast"],
+      "explain": "Recasting (casting) the `void *` tells the compiler which specific pointer type it is."
+    },
+    {
+      "type": "tf",
+      "category": "Dereferencing and recasting",
+      "q": "Recasting a `void *` to a specific pointer type tells the compiler the type, so it can generate the correct memory access code when the pointer is dereferenced.",
+      "answer": true,
+      "explain": "That is the purpose of the recast: once the compiler knows the type, it knows how many bytes to access and how to interpret them."
+    },
+    {
+      "type": "mc",
+      "category": "Dereferencing and recasting",
+      "q": "`args` is a `void *` that holds the address of an `int`. Which expression correctly gets the int value?",
+      "choices": [
+        "`*((int *)args)`",
+        "`*args`",
+        "`(int)*args`",
+        "`(int *)*args`"
+      ],
+      "answer": 0,
+      "explain": "First recast `args` to an `int *`, then dereference it. The other choices all dereference the `void *` before (or without) recasting it."
+    },
+    {
+      "type": "tf",
+      "category": "Dereferencing and recasting",
+      "q": "When a function receives a `void *` parameter, the compiler works out what type it really points to and recasts it automatically.",
+      "answer": false,
+      "explain": "The compiler has no way to know the real type. The programmer knows what type was passed in and must recast the pointer explicitly before dereferencing it."
+    },
+    {
+      "type": "multi",
+      "category": "void * in functions",
+      "q": "Which of these are common uses of `void *`?",
+      "choices": [
+        "Return type of functions that return newly allocated memory that can store any type, such as `malloc`",
+        "Parameter type for functions that can accept a pointer to any type of value",
+        "Storing an int or char value directly in the pointer variable instead of an address",
+        "Creating a pointer that can be dereferenced without knowing the type it points to"
+      ],
+      "answer": [0, 1],
+      "explain": "`void *` is mostly used for generic return types (like `malloc`) and generic parameters. It still stores an address, not a value, and it cannot be dereferenced without a recast."
+    },
+    {
+      "type": "mc",
+      "category": "void * in functions",
+      "q": "What is the return type of `malloc`?",
+      "choices": [
+        "`void *`",
+        "`int *`",
+        "`char *`",
+        "`void`"
+      ],
+      "answer": 0,
+      "explain": "`malloc` returns a `void *` because the memory it allocates can be used to store any type."
+    },
+    {
+      "type": "mc",
+      "category": "void * in functions",
+      "q": "In `array = (int *)malloc(sizeof(int) * 10);`, what does `(int *)` do?",
+      "choices": [
+        "Recasts malloc's `void *` return value to an `int *` to match the type of `array`",
+        "Tells malloc to store the value 10 in the new memory",
+        "Converts the size argument into a pointer",
+        "Dereferences the memory that malloc returned"
+      ],
+      "answer": 0,
+      "explain": "`malloc` returns a `void *`. The `(int *)` recasts it to the specific pointer type of the variable that stores the heap address."
+    },
+    {
+      "type": "mc",
+      "category": "void * in functions",
+      "q": "Why does `pthread_create` use a `void *` parameter for the argument it passes to the thread main function?",
+      "choices": [
+        "It makes `pthread_create` generic, so a program can pass a pointer to any application-specific type",
+        "Threads can only share data through pointers to char",
+        "It stops the thread from reading the argument",
+        "It makes the argument be copied onto the heap automatically"
+      ],
+      "answer": 0,
+      "explain": "Because the parameter is a `void *`, `pthread_create` can accept a pointer to any type of memory location. The thread function then recasts it to the type it knows was passed."
+    },
+    {
+      "type": "num",
+      "category": "void * in functions",
+      "q": "In `main`, `x = 6;` and `(void *)(&x)` is passed to `pthread_create` as the argument for the thread function `my_thr_main(void *args)`. Inside `my_thr_main`, `num = *((int *)args);` runs. What value does `num` get?",
+      "answer": 6,
+      "explain": "`args` holds the address of `x`. Recasting it to `int *` and dereferencing it reads the int stored at that address, which is 6."
+    },
+    {
+      "type": "mc",
+      "category": "void * in functions",
+      "q": "In the call `pthread_create(&tid, NULL, my_thr_main, (void *)(&x));`, why is `&x` written as `(void *)(&x)`?",
+      "choices": [
+        "To recast the `int *` to a `void *` so it matches the type of `pthread_create`'s parameter",
+        "To dereference `x` before the thread starts",
+        "To make a copy of `x` on the heap",
+        "To convert the value of `x` into an address"
+      ],
+      "answer": 0,
+      "explain": "`&x` has type `int *`. The cast to `(void *)` matches the generic `void *` parameter of `pthread_create`. The address itself does not change."
+    }
+  ]
+}

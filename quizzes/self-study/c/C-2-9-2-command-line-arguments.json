@@ -1,0 +1,169 @@
+{
+  "title": "2.9.2 Command Line Arguments",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Purpose of command line arguments",
+      "q": "What is the main benefit of having a program read command line arguments?",
+      "choices": [
+        "The program's behavior can change from run to run without modifying the code and recompiling it",
+        "The program compiles faster because fewer values are written into the source",
+        "The program no longer needs a main function",
+        "The program can only be run with one specific input file"
+      ],
+      "answer": 0,
+      "explain": "Command line arguments specify input values or options at run time, so running with different arguments changes behavior without editing or recompiling the code."
+    },
+    {
+      "type": "tf",
+      "category": "Purpose of command line arguments",
+      "q": "A program that takes an input filename as a command line argument can be run on any input file, unlike a program that names a specific input file in its code.",
+      "answer": true,
+      "explain": "Passing the filename as an argument makes the program more general purpose: the user picks the file each time they run it."
+    },
+    {
+      "type": "mc",
+      "category": "main's parameters",
+      "q": "Which definition of main lets a C program receive command line arguments?",
+      "choices": [
+        "int main(int argc, char *argv[])",
+        "int main(void)",
+        "int main(char *argv[], int argc)",
+        "int main(int argc, int argv[])"
+      ],
+      "answer": 0,
+      "explain": "main must declare two parameters: argc (an int) first, then argv (an array of strings)."
+    },
+    {
+      "type": "tf",
+      "category": "main's parameters",
+      "q": "The second parameter of main can also be declared as char **argv instead of char *argv[].",
+      "answer": true,
+      "explain": "Both forms describe argv as an array of strings (char pointers)."
+    },
+    {
+      "type": "text",
+      "category": "main's parameters",
+      "q": "argc stands for argument ______ (one word).",
+      "answer": ["count", "Count"],
+      "explain": "argc is the argument count: the number of command line arguments, including the program name."
+    },
+    {
+      "type": "text",
+      "category": "main's parameters",
+      "q": "argv stands for argument ______ (one word).",
+      "answer": ["vector", "Vector"],
+      "explain": "argv is the argument vector: an array holding the value of each command line argument."
+    },
+    {
+      "type": "num",
+      "category": "argc",
+      "q": "A user runs: ./a.out 10 11 200\nWhat value does argc hold?",
+      "answer": 4,
+      "explain": "The program name counts as the first argument, plus 10, 11, and 200: 4 in total."
+    },
+    {
+      "type": "num",
+      "category": "argc",
+      "q": "A user runs: ./prog input.txt\nWhat value does argc hold?",
+      "answer": 2,
+      "explain": "argc counts the program name (prog) and input.txt, so it is 2."
+    },
+    {
+      "type": "tf",
+      "category": "argc",
+      "q": "argc counts only the arguments typed after the program name, not the program name itself.",
+      "answer": false,
+      "explain": "argc includes the program name. Running ./a.out with no other arguments gives argc = 1."
+    },
+    {
+      "type": "num",
+      "category": "argv",
+      "q": "A user runs: ./a.out 10 11 200\nHow many elements does the argv array contain, counting the terminating element?",
+      "answer": 5,
+      "explain": "argv has argc + 1 elements: 4 argument strings followed by NULL."
+    },
+    {
+      "type": "text",
+      "category": "argv",
+      "q": "What value is stored in the last element of argv (argv[argc]), marking the end of the argument list?",
+      "answer": ["NULL", "null"],
+      "explain": "The first argc elements hold the argument strings and the final element is NULL."
+    },
+    {
+      "type": "mc",
+      "category": "argv",
+      "q": "A user runs: ./a.out 10 11 200\nWhat is stored in argv[2]?",
+      "choices": [
+        "The string \"11\"",
+        "The integer 11",
+        "The string \"10\"",
+        "The string \"200\""
+      ],
+      "answer": 0,
+      "explain": "argv[0] is the program name, argv[1] is \"10\", argv[2] is \"11\", and argv[3] is \"200\". Every argument is passed as a string, not an int."
+    },
+    {
+      "type": "tf",
+      "category": "argv",
+      "q": "When a user types a number such as 10 on the command line, it arrives in argv as an int.",
+      "answer": false,
+      "explain": "Every command line argument is passed in as a string, so 10 arrives as \"10\". The program must convert it to get an integer."
+    },
+    {
+      "type": "multi",
+      "category": "argv",
+      "q": "Which statements about argv are true?",
+      "choices": [
+        "It is an array of strings (char arrays)",
+        "argv[0] holds the program name",
+        "It has argc + 1 elements",
+        "Its last element is NULL",
+        "It has exactly argc elements, with no terminator"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "argv holds argc argument strings, starting with the program name, followed by a final NULL element: argc + 1 elements in total."
+    },
+    {
+      "type": "mc",
+      "category": "Converting arguments with atoi",
+      "q": "What does the name atoi stand for?",
+      "choices": [
+        "ASCII to integer",
+        "Array to integer",
+        "Argument to int",
+        "Address to integer"
+      ],
+      "answer": 0,
+      "explain": "atoi (\"a to i\") converts a string of digit characters to the matching integer value."
+    },
+    {
+      "type": "num",
+      "category": "Converting arguments with atoi",
+      "q": "A user runs: ./a.out 10 11 200\nThe program executes:\n  int x;\n  x = atoi(argv[1]);\nWhat is the value of x?",
+      "answer": 10,
+      "explain": "argv[1] is the string \"10\", and atoi converts it to the int 10."
+    },
+    {
+      "type": "num",
+      "category": "Converting arguments with atoi",
+      "q": "A user runs: ./a.out 10 11 200\nWhat does atoi(argv[1]) + atoi(argv[3]) evaluate to?",
+      "answer": 210,
+      "explain": "argv[1] is \"10\" and argv[3] is \"200\". Converted, they are 10 + 200 = 210."
+    },
+    {
+      "type": "mc",
+      "category": "Converting arguments with atoi",
+      "q": "A program wants to do arithmetic with a number passed on the command line. Why does it need a function like atoi?",
+      "choices": [
+        "Command line arguments arrive as strings and must be converted to an integer type first",
+        "argc only stores the first digit of each argument",
+        "argv stores numbers in reverse order",
+        "Command line arguments can only be read once"
+      ],
+      "answer": 0,
+      "explain": "Each argument is a string such as \"10\". C's standard library has functions like atoi to convert strings to other types."
+    }
+  ]
+}

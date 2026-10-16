@@ -1,0 +1,342 @@
+{
+  "title": "2.4 Dynamic Memory Allocation",
+  "course": "C",
+  "questions": [
+    {
+      "type": "multi",
+      "category": "Why dynamic allocation",
+      "q": "Which of these are reasons a program might use dynamic memory allocation?",
+      "choices": [
+        "The size of an array is not known until runtime (e.g. it depends on user input)",
+        "The program must handle a variety of input sizes, not just up to some fixed capacity",
+        "The program wants to allocate exactly the size needed for a particular run without wasting capacity",
+        "The program needs to grow or shrink allocated memory as it runs",
+        "The program wants memory that is automatically released when the function returns",
+        "The program needs a place to store its machine instructions"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Dynamic allocation lets a program size data structures at runtime, handle varying input sizes, avoid wasted capacity, and grow or shrink memory as needed. Heap memory is NOT automatically released; it must be explicitly freed. Instructions live in the code region."
+    },
+    {
+      "type": "mc",
+      "category": "Heap memory",
+      "q": "From which region of a program's memory space does dynamically allocated memory come?",
+      "choices": ["Code", "Data", "Stack", "Heap"],
+      "answer": 3,
+      "explain": "Dynamically allocated memory comes from the heap. Code holds instructions, data holds globals, and the stack holds locals and parameters."
+    },
+    {
+      "type": "mc",
+      "category": "Heap memory",
+      "q": "In which region of program memory do global variables reside?",
+      "choices": ["Code", "Data", "Stack", "Heap"],
+      "answer": 1,
+      "explain": "Global variables reside in the data region."
+    },
+    {
+      "type": "mc",
+      "category": "Heap memory",
+      "q": "In which region of program memory do local variables and function parameters live?",
+      "choices": ["Code", "Data", "Stack", "Heap"],
+      "answer": 2,
+      "explain": "Local variables and parameters occupy the stack."
+    },
+    {
+      "type": "mc",
+      "category": "Heap memory",
+      "q": "Why are the stack and the heap typically placed far apart in a program's address space?",
+      "choices": [
+        "Both grow at runtime, so separating them leaves lots of room for each to grow",
+        "So that the heap can be read-only while the stack is writable",
+        "Because the stack holds global variables and must be isolated from the heap",
+        "Because the compiler needs the gap to store the program's instructions"
+      ],
+      "answer": 0,
+      "explain": "The stack grows and shrinks as functions are called and return, and the heap grows as memory is allocated and freed. Keeping them far apart gives each a large amount of space to grow into."
+    },
+    {
+      "type": "tf",
+      "category": "Heap memory",
+      "q": "Heap memory is \"anonymous\" memory: addresses in the heap are not bound to variable names.",
+      "answer": true,
+      "explain": "Heap locations have no variable names. A program reaches them only through a pointer variable (local or global) that stores a heap address."
+    },
+    {
+      "type": "tf",
+      "category": "Heap memory",
+      "q": "Inside a function, the declaration `int *p;` allocates the variable p itself on the heap.",
+      "answer": false,
+      "explain": "Declaring a named variable allocates it on the stack (for locals) or in the data region (for globals). The local pointer p lives on the stack; it can store the address of heap memory, but p itself is not on the heap."
+    },
+    {
+      "type": "mc",
+      "category": "malloc and free",
+      "q": "What argument do you pass to malloc?",
+      "choices": [
+        "The total number of bytes of contiguous heap memory to allocate",
+        "The number of elements to allocate, regardless of their type",
+        "The name of the pointer variable that should receive the memory",
+        "The address in the heap where memory should be allocated"
+      ],
+      "answer": 0,
+      "explain": "malloc takes the total number of bytes to allocate, typically computed with the sizeof operator."
+    },
+    {
+      "type": "mc",
+      "category": "malloc and free",
+      "q": "What does malloc return if it cannot satisfy the request?",
+      "choices": ["NULL", "0 bytes of memory at a valid address", "-1", "The address of the stack"],
+      "answer": 0,
+      "explain": "malloc returns the base address of the allocated memory on success, or NULL if an error occurs."
+    },
+    {
+      "type": "text",
+      "category": "malloc and free",
+      "q": "What is the return type of malloc? (Write the C type.)",
+      "answer": ["void *", "void*", "void pointer"],
+      "explain": "malloc returns a void *, a generic pointer to an unspecified type. Assigning it to a typed pointer variable associates the memory with that type."
+    },
+    {
+      "type": "text",
+      "category": "malloc and free",
+      "q": "malloc and free are part of which standard C library (header)?",
+      "answer": ["stdlib", "stdlib.h", "<stdlib.h>"],
+      "explain": "malloc and free are in the standard C library stdlib, included with #include <stdlib.h>."
+    },
+    {
+      "type": "mc",
+      "category": "malloc and free",
+      "q": "In `p = (int *) malloc(sizeof(int));`, what does the `(int *)` do?",
+      "choices": [
+        "Recasts malloc's void * return value so it is used as an int *",
+        "Tells malloc to allocate memory on the stack instead of the heap",
+        "Multiplies the requested size by sizeof(int *)",
+        "Initializes the allocated int to zero"
+      ],
+      "answer": 0,
+      "explain": "The (int *) explicitly recasts malloc's void * return type to int *, matching the type of the pointer variable p."
+    },
+    {
+      "type": "mc",
+      "category": "malloc and free",
+      "q": "What is the problem with this code?\n\nint *p;\np = malloc(sizeof(int));\n*p = 6;",
+      "choices": [
+        "It dereferences p without checking whether malloc returned NULL, so a failed malloc would crash the program",
+        "malloc(sizeof(int)) allocates memory on the stack, so *p = 6 is invalid",
+        "It must cast the result to (int *) or it will not compile",
+        "sizeof(int) is the wrong size; it should be sizeof(int *)"
+      ],
+      "answer": 0,
+      "explain": "Any call to malloc can fail, so you should always test its return value for NULL before dereferencing. Dereferencing a NULL pointer crashes the program."
+    },
+    {
+      "type": "multi",
+      "category": "malloc and free",
+      "q": "Which of these commonly cause a call to malloc to fail?",
+      "choices": [
+        "Passing malloc a very large request",
+        "Passing malloc a negative number of bytes",
+        "Calling malloc in an infinite loop until heap memory runs out",
+        "Not casting malloc's return value to the pointer's type",
+        "Allocating space for chars instead of ints"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "malloc fails when there isn't enough free heap memory to satisfy the request, which usually indicates a bug such as a very large request, a negative size, or calling malloc in an infinite loop. Casting is optional, and the element type doesn't matter."
+    },
+    {
+      "type": "tf",
+      "category": "malloc and free",
+      "q": "Heap memory must be explicitly deallocated by the C program (by calling free) when it is no longer needed.",
+      "answer": true,
+      "explain": "Heap memory must be explicitly allocated with malloc and explicitly deallocated with free by the program."
+    },
+    {
+      "type": "mc",
+      "category": "malloc and free",
+      "q": "Why is it a good idea to write `p = NULL;` right after `free(p);`?",
+      "choices": [
+        "If p is accidentally dereferenced later, the program crashes immediately instead of silently modifying heap memory that a later malloc may have reallocated",
+        "free does not actually release the memory until the pointer is set to NULL",
+        "Setting p to NULL returns the memory to the stack",
+        "It lets the next call to malloc reuse the same pointer variable without a cast"
+      ],
+      "answer": 0,
+      "explain": "Using a freed pointer can modify reallocated heap memory and cause undefined behavior that is very hard to debug. A NULL pointer dereference fails immediately, making the bug easy to find and fix."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamically allocated arrays",
+      "q": "Which call correctly allocates a heap array of 50 doubles?",
+      "choices": [
+        "malloc(sizeof(double) * 50)",
+        "malloc(50)",
+        "malloc(sizeof(double))",
+        "malloc(sizeof(double) + 50)"
+      ],
+      "answer": 0,
+      "explain": "Request the total number of bytes: the size of each element times the number of elements, in the form sizeof(<type>) * <number of elements>."
+    },
+    {
+      "type": "num",
+      "category": "Dynamically allocated arrays",
+      "q": "On a system where sizeof(int) is 4, how many bytes does `malloc(sizeof(int) * 20)` request?",
+      "answer": 80,
+      "explain": "sizeof(int) * 20 = 4 * 20 = 80 bytes."
+    },
+    {
+      "type": "tf",
+      "category": "Dynamically allocated arrays",
+      "q": "The elements of an array allocated by a single call to malloc are stored in contiguous memory locations.",
+      "answer": true,
+      "explain": "A successful malloc allocates one contiguous chunk of heap memory, so the array elements are contiguous, just like a statically declared array."
+    },
+    {
+      "type": "tf",
+      "category": "Dynamically allocated arrays",
+      "q": "Two separate calls to malloc will (on most systems) return heap chunks that are right next to each other in memory.",
+      "answer": false,
+      "explain": "Multiple calls to malloc will not result in contiguous heap addresses on most systems; the chunks may be far apart in the heap."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamically allocated arrays",
+      "q": "After `arr = malloc(sizeof(int) * 20);` succeeds, what does the pointer variable arr contain?",
+      "choices": [
+        "Only the base (starting) address of the 20-int block in the heap",
+        "A copy of all 20 int values",
+        "The size of the block, 20 * sizeof(int)",
+        "The address of the last element in the block"
+      ],
+      "answer": 0,
+      "explain": "The pointer variable (stored on the stack here) holds only the base address of the array storage space in the heap."
+    },
+    {
+      "type": "num",
+      "category": "Dynamically allocated arrays",
+      "q": "What does this code print?\n\nint i;\nint *d_array = malloc(sizeof(int) * 10);\nif (d_array == NULL) { exit(1); }\nfor (i = 0; i < 10; i++) {\n    d_array[i] = i * 2;\n}\nprintf(\"%d\\n\", d_array[5]);",
+      "answer": 10,
+      "explain": "d_array[i] accesses the ith element just like a static array. Element 5 was set to 5 * 2 = 10."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamically allocated arrays",
+      "q": "Which statement has exactly the same effect as `d_array[0] = 8;`?",
+      "choices": ["*d_array = 8;", "d_array = 8;", "&d_array = 8;", "*d_array[0] = 8;"],
+      "answer": 0,
+      "explain": "Placing * in front of a pointer to a dynamically allocated array dereferences it to access element 0."
+    },
+    {
+      "type": "mc",
+      "category": "Dynamically allocated arrays",
+      "q": "Given `int s_array[20];` and `int *d_array = malloc(sizeof(int) * 20);`, which statement is correct?",
+      "choices": [
+        "Both names evaluate to the base address of their array, but s_array's type is a (static) array of int while d_array's type is int *",
+        "Both have type int *, and both arrays live on the heap",
+        "s_array evaluates to the first element's value while d_array evaluates to an address",
+        "They have the same type, but only s_array can be indexed with [i]"
+      ],
+      "answer": 0,
+      "explain": "Their types differ, but both evaluate to the base address of the array. That's why [i] means the same thing for both: dereference the int at offset i from the base address."
+    },
+    {
+      "type": "text",
+      "category": "Heap memory management",
+      "q": "The heap memory manager keeps a list of unallocated extents of heap memory. What is this list called?",
+      "answer": ["free list", "the free list", "freelist"],
+      "explain": "The heap memory manager maintains a free list of unallocated extents of heap memory."
+    },
+    {
+      "type": "mc",
+      "category": "Heap memory management",
+      "q": "In the heap memory manager's free list, what does each extent specify?",
+      "choices": [
+        "The start address and size of a contiguous unallocated chunk of heap space",
+        "The name of the variable that owns a chunk of heap space",
+        "The stack frame that allocated a chunk of heap space",
+        "The type of data stored in an allocated chunk"
+      ],
+      "answer": 0,
+      "explain": "Each extent records the start address and size of a contiguous unallocated chunk of heap memory."
+    },
+    {
+      "type": "tf",
+      "category": "Heap memory management",
+      "q": "Before any calls to malloc, the free list has a single extent consisting of the entire heap region.",
+      "answer": true,
+      "explain": "Initially all of heap memory is empty, so the free list has one extent covering the whole heap."
+    },
+    {
+      "type": "text",
+      "category": "Heap memory management",
+      "q": "After many calls to malloc and free, chunks of free heap space end up interspersed with chunks of allocated space. What is the heap said to be?",
+      "answer": ["fragmented", "fragmentation"],
+      "explain": "Free chunks interspersed with allocated chunks means the heap has become fragmented."
+    },
+    {
+      "type": "mc",
+      "category": "Heap memory management",
+      "q": "free is passed only an address, not a size. How does it know how many bytes to deallocate?",
+      "choices": [
+        "malloc stores a header with metadata such as the size right before the allocated chunk, and free reads it",
+        "free scans forward until it finds a NULL byte marking the end of the chunk",
+        "The compiler records each allocation's size in the pointer variable's type",
+        "free always deallocates a fixed-size block, regardless of the original request"
+      ],
+      "answer": 0,
+      "explain": "malloc allocates a few extra bytes just before the chunk for a header that stores metadata such as the size. free gets the size from that header."
+    },
+    {
+      "type": "mc",
+      "category": "Pointers to heap memory and functions",
+      "q": "When main calls `init_array(arr1, 10);` where arr1 points to a malloc'd array, what does init_array's parameter receive?",
+      "choices": [
+        "The value of arr1: the base address of the array in the heap",
+        "A full copy of the array's 10 elements, placed on the stack",
+        "A newly malloc'd copy of the array",
+        "The address of the variable arr1 itself"
+      ],
+      "answer": 0,
+      "explain": "The pointer's value (the base address) is passed. The array's block of contiguous memory stays on the heap, and the function reaches it by dereferencing its pointer parameter."
+    },
+    {
+      "type": "mc",
+      "category": "Pointers to heap memory and functions",
+      "q": "Why does `void init_array(int *arr, int size)` take a separate size parameter?",
+      "choices": [
+        "Only the base address of the array is passed, so the function needs to be told how many elements to access",
+        "Because free requires the size when the function returns",
+        "Because malloc must be called again inside the function with that size",
+        "Because int * parameters cannot be indexed without a size"
+      ],
+      "answer": 0,
+      "explain": "Passing the array passes only its base address, so the size is passed separately to tell the function how many elements to access."
+    },
+    {
+      "type": "tf",
+      "category": "Pointers to heap memory and functions",
+      "q": "As function parameter declarations, `int *arr` and `int arr[]` are equivalent.",
+      "answer": true,
+      "explain": "They are equivalent. By convention, the pointer syntax is often used for functions that may be called with dynamically allocated arrays."
+    },
+    {
+      "type": "tf",
+      "category": "Pointers to heap memory and functions",
+      "q": "The same function can be used for both a statically declared int array and a dynamically allocated int array.",
+      "answer": true,
+      "explain": "In both cases the parameter gets the same kind of value, the base address of the array, so the same function and the same [i] syntax work for both."
+    },
+    {
+      "type": "mc",
+      "category": "Pointers to heap memory and functions",
+      "q": "Just before init_array returns, how are main's arr1 and init_array's arr related?",
+      "choices": [
+        "Both store the same base address and point to the same block of heap memory",
+        "arr points to a separate copy of the array that init_array made on the heap",
+        "arr points to a copy of the array on the stack, and arr1 points to the heap",
+        "arr stores the address of arr1, which is on main's stack frame"
+      ],
+      "answer": 0,
+      "explain": "Both pointer variables hold the same base address, so changes made through arr (like arr[i] = i) are visible through arr1 in main."
+    }
+  ]
+}

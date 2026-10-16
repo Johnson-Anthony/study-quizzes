@@ -1,0 +1,204 @@
+{
+  "title": "2.9.4 Pointer Arithmetic",
+  "course": "C",
+  "questions": [
+    {
+      "type": "num",
+      "category": "Pointer increment semantics",
+      "q": "An int pointer iptr holds address 1000. On a system where an int is 4 bytes, what address does iptr hold after iptr++?",
+      "answer": 1004,
+      "explain": "Incrementing a pointer moves it to the next storage location of the type it points to. The next int is 4 bytes away, so the address goes from 1000 to 1004."
+    },
+    {
+      "type": "num",
+      "category": "Pointer increment semantics",
+      "q": "A char pointer cptr holds address 2000. What address does cptr hold after cptr++?",
+      "answer": 2001,
+      "explain": "A char takes 1 byte, so the next valid char address is 1 byte beyond the current one."
+    },
+    {
+      "type": "tf",
+      "category": "Pointer increment semantics",
+      "q": "True or false: For any pointer type, ptr = ptr + N makes ptr point N elements (storage locations of the pointed-to type) beyond where it pointed before.",
+      "answer": true,
+      "explain": "The meaning of pointer arithmetic is the same for every type: adding N moves the pointer N elements forward, whatever the type."
+    },
+    {
+      "type": "tf",
+      "category": "Pointer increment semantics",
+      "q": "True or false: Incrementing a char pointer increases its numeric address value by 4.",
+      "answer": false,
+      "explain": "A char is 1 byte, so cptr++ adds 1 to the address. Adding 4 bytes is what happens for an int pointer when int is 4 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Pointer increment semantics",
+      "q": "A programmer writes ptr++. What decides how many bytes the compiler-generated code actually adds to ptr's value?",
+      "choices": [
+        "The size of the type ptr points to",
+        "Always 1 byte, whatever the type",
+        "The total size of the array ptr points into",
+        "The value stored at the address ptr currently points to"
+      ],
+      "answer": 0,
+      "explain": "The compiler adds the number of bytes used to store the pointed-to type, so the pointer lands on the next valid address of that type."
+    },
+    {
+      "type": "num",
+      "category": "Pointer increment semantics",
+      "q": "An int pointer p holds address 500 (int is 4 bytes). What address does p hold after p = p + 3?",
+      "answer": 512,
+      "explain": "p + 3 moves 3 ints forward: 3 * 4 = 12 bytes, so 500 + 12 = 512."
+    },
+    {
+      "type": "mc",
+      "category": "Iterating arrays with pointers",
+      "q": "Given int numbers[10]; int *iptr;, which expression is equivalent to iptr = numbers;?",
+      "choices": [
+        "iptr = &(numbers[0]);",
+        "iptr = numbers[0];",
+        "iptr = *numbers;",
+        "iptr = &numbers[1];"
+      ],
+      "answer": 0,
+      "explain": "An array name used this way gives the address of its first element, so numbers is the same as &(numbers[0])."
+    },
+    {
+      "type": "mc",
+      "category": "Iterating arrays with pointers",
+      "q": "Why should a pointer used to walk through an array have the same type as the array's elements (for example, char * for a char array)?",
+      "choices": [
+        "The pointer's type sets how far each increment moves, so a matching type lands on each element in turn",
+        "C does not allow any pointer to be incremented unless it points to an array",
+        "Matching types makes the array bigger",
+        "Dereferencing a pointer only works if it points to element 0"
+      ],
+      "answer": 0,
+      "explain": "Each increment moves the pointer by the size of its pointed-to type. If that type matches the element type, every increment moves exactly one element."
+    },
+    {
+      "type": "text",
+      "category": "Iterating arrays with pointers",
+      "q": "This code runs with N = 10 and cptr pointing to letters[0]:\n\nfor (i = 0; i < N; i++) {\n    *cptr = 'a' + i;\n    cptr++;\n}\n\nWhat character is stored in letters[4]? (Type just the character.)",
+      "answer": ["e", "'e'"],
+      "explain": "On iteration i = 4, cptr points to letters[4] and stores 'a' + 4, which is 'e'."
+    },
+    {
+      "type": "num",
+      "category": "Iterating arrays with pointers",
+      "q": "This code runs with N = 10 and iptr pointing to numbers[0]:\n\nfor (i = 0; i < N; i++) {\n    *iptr = i * 3;\n    iptr++;\n}\n\nWhat value is stored in numbers[7]?",
+      "answer": 21,
+      "explain": "On iteration i = 7, iptr points to numbers[7] and stores 7 * 3 = 21."
+    },
+    {
+      "type": "tf",
+      "category": "Iterating arrays with pointers",
+      "q": "True or false: In a loop over i, dereferencing a pointer and then doing ptr++ each iteration visits the same array elements as reading ptr[i] from a pointer that stays at the base of the array.",
+      "answer": true,
+      "explain": "Incrementing the pointer once per iteration moves it to element i on iteration i. That is the same element ptr[i] reaches when ptr stays at the base."
+    },
+    {
+      "type": "num",
+      "category": "Iterating arrays with pointers",
+      "q": "char *cptr starts at address 3000 and int *iptr starts at address 4000 (int is 4 bytes). Each is incremented once per iteration in a 10-iteration loop. What address does iptr hold after the loop?",
+      "answer": 4040,
+      "explain": "Each iptr++ adds 4 bytes, so 10 increments add 40: 4000 + 40 = 4040. (cptr would end at 3010.)"
+    },
+    {
+      "type": "mc",
+      "category": "Iterating arrays with pointers",
+      "q": "Compared with array indexing, what is the main drawback of using pointer arithmetic to access array elements?",
+      "choices": [
+        "It is easier to make mistakes, and those mistakes are harder to debug",
+        "It cannot change array elements, only read them",
+        "It works only on char arrays",
+        "It always runs slower than indexing"
+      ],
+      "answer": 0,
+      "explain": "Pointer arithmetic is error-prone and harder to debug than indexing. Indexing is usually the better choice, but stepping a pointer through an array is sometimes convenient."
+    },
+    {
+      "type": "num",
+      "category": "Pointer offsets",
+      "q": "The numbers array starts as {0, 3, 6, 9, 12, 15, 18, 21, 24, 27}. Then this runs:\n\niptr = &numbers[2];\n*iptr = -13;\niptr += 4;\n*iptr = 9999;\n\nAt which index of numbers is 9999 stored?",
+      "answer": 6,
+      "explain": "iptr starts at index 2. Adding 4 moves it 4 int elements forward to index 6."
+    },
+    {
+      "type": "mc",
+      "category": "Pointer offsets",
+      "q": "Given int a[5] = {10, 20, 30, 40, 50}; int *p = a; p += 3;, what is the value of *p?",
+      "choices": ["40", "30", "13", "50"],
+      "answer": 0,
+      "explain": "p starts at a[0]. Adding 3 moves it to a[3], which holds 40."
+    },
+    {
+      "type": "multi",
+      "category": "Pointer offsets",
+      "q": "Using the numbers array {0, 3, 6, 9, 12, 15, 18, 21, 24, 27}, this code runs:\n\niptr = &numbers[2];\n*iptr = -13;\niptr += 4;\n*iptr = 9999;\n\nWhich statements about the final array are true?",
+      "choices": [
+        "numbers[2] is -13",
+        "numbers[6] is 9999",
+        "numbers[3] is unchanged (9)",
+        "numbers[4] is 9999",
+        "numbers[0] is -13"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Only the elements at index 2 and index 6 change. Every other element keeps its original value."
+    },
+    {
+      "type": "num",
+      "category": "2D arrays and contiguous memory",
+      "q": "int matrix[10][20]; is filled like this:\n\niptr = &(matrix[0][0]);\nfor (i = 0; i < 10*20; i++) {\n    *iptr = i;\n    iptr++;\n}\n\nWhat value is stored in matrix[3][5]?",
+      "answer": 65,
+      "explain": "A statically declared 2D array is stored row by row in contiguous memory, so matrix[3][5] is 3*20 + 5 = 65 elements from the start."
+    },
+    {
+      "type": "mc",
+      "category": "2D arrays and contiguous memory",
+      "q": "After filling int matrix[10][20] with consecutive values 0, 1, 2, ... using a single incrementing int pointer that starts at &matrix[0][0], which element holds the value 45?",
+      "choices": ["matrix[2][5]", "matrix[4][5]", "matrix[5][4]", "matrix[0][45]"],
+      "answer": 0,
+      "explain": "Each row has 20 elements. 45 = 2*20 + 5, so the value 45 is in row 2, column 5."
+    },
+    {
+      "type": "mc",
+      "category": "2D arrays and contiguous memory",
+      "q": "Why can one int pointer, set once to &matrix[0][0] and then incremented, visit every element of a statically declared int matrix[N][M]?",
+      "choices": [
+        "All of the array's elements sit in one contiguous block of memory, one row after another",
+        "The compiler resets the pointer to the start of each row automatically",
+        "Each row is a separate block that the pointer jumps between",
+        "Pointer arithmetic on 2D arrays moves one row per increment"
+      ],
+      "answer": 0,
+      "explain": "Pointer arithmetic can step through any contiguous chunk of memory. A statically declared 2D array is one such chunk, laid out row after row."
+    },
+    {
+      "type": "multi",
+      "category": "2D arrays and contiguous memory",
+      "q": "For which 2D array layouts can you set a pointer once to the first element and then reach every element just by incrementing it?",
+      "choices": [
+        "A statically declared array such as int m[10][20]",
+        "A dynamically allocated array made with one malloc of rows * columns elements",
+        "An array of arrays where each row comes from its own separate malloc call"
+      ],
+      "answer": [0, 1],
+      "explain": "Both the static array and the single-malloc array keep every row in contiguous memory. With one malloc per row, only the elements within each row are contiguous."
+    },
+    {
+      "type": "tf",
+      "category": "2D arrays and contiguous memory",
+      "q": "True or false: When a 2D array is built as an array of arrays (one malloc per row), a pointer used to walk the elements must be reset to the start of each row.",
+      "answer": true,
+      "explain": "Each row is its own allocation, so the rows are not guaranteed to sit next to each other. Only the elements inside a row are contiguous."
+    },
+    {
+      "type": "tf",
+      "category": "2D arrays and contiguous memory",
+      "q": "True or false: Pointer arithmetic only works on statically declared arrays, not on dynamically allocated ones.",
+      "answer": false,
+      "explain": "Pointer arithmetic works on dynamically allocated arrays too. With dynamic 2D arrays, what matters is whether the memory is contiguous."
+    }
+  ]
+}

@@ -1,0 +1,458 @@
+{
+  "title": "3.2 GDB Commands in Detail",
+  "course": "C",
+  "questions": [
+    {
+      "type": "tf",
+      "category": "Shortcuts and help",
+      "q": "Pressing RETURN at an empty GDB prompt runs the most recent previous command again.",
+      "answer": true,
+      "explain": "RETURN repeats the last command. This is handy when you are moving through code with a series of next or step commands."
+    },
+    {
+      "type": "mc",
+      "category": "Shortcuts and help",
+      "q": "You have typed a unique prefix of a GDB command. Which key asks GDB to complete the command line?",
+      "choices": ["TAB", "RETURN", "Up arrow", "ESC"],
+      "answer": 0,
+      "explain": "GDB supports command-line completion with the TAB key."
+    },
+    {
+      "type": "text",
+      "category": "Shortcuts and help",
+      "q": "What short abbreviation can you type instead of the full command `print x`? Give the whole command.",
+      "answer": ["p x"],
+      "explain": "`p` is the short form of `print`. In the same way, `l` stands for `list` and `n` for `next`."
+    },
+    {
+      "type": "mc",
+      "category": "Shortcuts and help",
+      "q": "What do the up and down arrow keys do at the GDB prompt?",
+      "choices": [
+        "Move between stack frames",
+        "Scroll through previous GDB command lines",
+        "Step forward or backward one source line",
+        "Scroll the source listing up or down"
+      ],
+      "answer": 1,
+      "explain": "The arrow keys scroll through earlier command lines, so you don't have to type them again."
+    },
+    {
+      "type": "mc",
+      "category": "Shortcuts and help",
+      "q": "Which command shows GDB's help information about breakpoints?",
+      "choices": ["info break", "help breakpoints", "man breakpoints", "list breakpoints"],
+      "answer": 1,
+      "explain": "`help <topic or command>` shows help for that topic or command. `info break` lists the breakpoints you have set; it does not show help."
+    },
+    {
+      "type": "mc",
+      "category": "Execution control",
+      "q": "The program is paused on a line that calls a function. What is the difference between `step` and `next` here?",
+      "choices": [
+        "`step` treats the call as a single line; `next` enters the function",
+        "`step` enters the called function; `next` runs the whole call and pauses at the following line",
+        "Both enter the function, but `next` skips its first line",
+        "Neither enters the function; `step` just prints more information"
+      ],
+      "answer": 1,
+      "explain": "`step` steps into the called function. `next` treats the call as one line and pauses once the call has returned."
+    },
+    {
+      "type": "tf",
+      "category": "Execution control",
+      "q": "After `step 10`, the program may end up paused inside a function that was called from the original pause point.",
+      "answer": true,
+      "explain": "With `step <count>`, lines run inside a called function count toward the total, so execution can stop inside that function."
+    },
+    {
+      "type": "mc",
+      "category": "Execution control",
+      "q": "How do you start the debugged program from the beginning with the command-line arguments 2, 40, and 100?",
+      "choices": ["run 2 40 100", "start(2, 40, 100)", "run --args 2,40,100", "continue 2 40 100"],
+      "answer": 0,
+      "explain": "`run <command line arguments>` starts the program from the beginning and passes it those arguments."
+    },
+    {
+      "type": "mc",
+      "category": "Execution control",
+      "q": "The program is paused in main.c. You want a breakpoint at line 34 of gofish.c, another source file of the same program. Which command does this?",
+      "choices": ["break 34", "break gofish.c:34", "break gofish.c 34", "until gofish.c:34"],
+      "answer": 1,
+      "explain": "`break <filename>:<line>` sets a breakpoint in a particular file. A bare `break 34` refers to line 34 of the current file."
+    },
+    {
+      "type": "text",
+      "category": "Execution control",
+      "q": "Write the command that runs the program until it reaches source line 50.",
+      "answer": ["until 50"],
+      "explain": "`until <line>` keeps executing until execution reaches that line number."
+    },
+    {
+      "type": "multi",
+      "category": "Execution control",
+      "q": "The program is paused at a breakpoint. Which commands resume execution from that point?",
+      "choices": ["continue", "cont", "run", "quit"],
+      "answer": [0, 1],
+      "explain": "`continue` (short form `cont`) resumes from the breakpoint. `run` restarts the program from the beginning, and `quit` exits GDB."
+    },
+    {
+      "type": "mc",
+      "category": "Execution control",
+      "q": "What does `next 3` do?",
+      "choices": [
+        "Executes the next 3 lines, treating any function call as a single line",
+        "Executes the next 3 lines, stepping into any function calls",
+        "Continues to line 3 of the program",
+        "Skips the next 3 breakpoints"
+      ],
+      "answer": 0,
+      "explain": "`next <count>` works like `step <count>`, except that each function call counts as one line and GDB doesn't enter it."
+    },
+    {
+      "type": "multi",
+      "category": "Stack and source listing",
+      "q": "Which commands show the contents of the call stack, meaning the sequence of function calls at the current point of execution?",
+      "choices": ["where", "backtrace", "bt", "frame", "list"],
+      "answer": [0, 1, 2],
+      "explain": "`where`, `backtrace`, and `bt` are three names for the same command. `frame` changes the current stack frame, and `list` shows source code."
+    },
+    {
+      "type": "mc",
+      "category": "Stack and source listing",
+      "q": "When the program pauses, which stack frame's context is GDB in by default?",
+      "choices": [
+        "Frame 0, the frame at the top of the stack",
+        "The frame for main",
+        "The frame at the bottom of the stack",
+        "Frame 1, the caller of the current function"
+      ],
+      "answer": 0,
+      "explain": "By default the program pauses in frame 0, which is the frame at the top of the stack."
+    },
+    {
+      "type": "mc",
+      "category": "Stack and source listing",
+      "q": "Why would you usually run a command like `frame 3`?",
+      "choices": [
+        "To set a breakpoint 3 frames up the stack",
+        "To print the parameters and local variables of a different function on the stack",
+        "To delete the top 3 stack frames",
+        "To run the program until it has made 3 more function calls"
+      ],
+      "answer": 1,
+      "explain": "`frame <num>` moves into another stack frame's context. Users typically do this so they can print that function's parameters and local variables."
+    },
+    {
+      "type": "text",
+      "category": "Stack and source listing",
+      "q": "Write the command that lists source code lines 30 through 100.",
+      "answer": ["list 30 100", "l 30 100"],
+      "explain": "`list <start> <end>` lists that range of line numbers."
+    },
+    {
+      "type": "mc",
+      "category": "Stack and source listing",
+      "q": "What does `list main` display?",
+      "choices": [
+        "Every line of the program",
+        "The lines around the beginning of the function main",
+        "The stack frames belonging to main",
+        "The local variables of main"
+      ],
+      "answer": 1,
+      "explain": "`list <func-name>` shows the lines around the beginning of that function."
+    },
+    {
+      "type": "mc",
+      "category": "Breakpoints",
+      "q": "What is the difference between `delete` and `clear`?",
+      "choices": [
+        "`delete` removes a breakpoint by its number; `clear` removes the breakpoint at a source location such as a line or function",
+        "`delete` removes a breakpoint permanently; `clear` only disables it",
+        "`delete` takes a line number; `clear` takes a breakpoint number",
+        "There is none; they are aliases"
+      ],
+      "answer": 0,
+      "explain": "`delete <bpnum>` uses the breakpoint's number. `clear <line>` and `clear <func-name>` use a location in the source code."
+    },
+    {
+      "type": "mc",
+      "category": "Breakpoints",
+      "q": "What does `ignore 2 5` do?",
+      "choices": [
+        "Ignores breakpoint 5 the next 2 times it is hit",
+        "Doesn't pause at breakpoint 2 the next 5 times it is hit",
+        "Disables breakpoints 2 through 5",
+        "Ignores line 2 for the next 5 iterations of a loop"
+      ],
+      "answer": 1,
+      "explain": "The syntax is `ignore <bpnum> <num>`. GDB skips breakpoint <bpnum> for its next <num> hits."
+    },
+    {
+      "type": "tf",
+      "category": "Breakpoints",
+      "q": "Running `delete` with no arguments deletes all breakpoints.",
+      "answer": true,
+      "explain": "`delete <bpnum>` removes one breakpoint. A bare `delete` removes all of them."
+    },
+    {
+      "type": "tf",
+      "category": "Breakpoints",
+      "q": "After `disable 3`, you can turn breakpoint 3 back on with `enable 3`.",
+      "answer": true,
+      "explain": "Disabling a breakpoint doesn't delete it, so `enable <bnums>` can turn it back on."
+    },
+    {
+      "type": "mc",
+      "category": "Breakpoints",
+      "q": "Commands like `disable`, `ignore`, `condition`, and `delete` need breakpoint numbers. Which command lists the breakpoints with their numbers?",
+      "choices": ["info break", "where", "list break", "display break"],
+      "answer": 0,
+      "explain": "`info break` (or `info breakpoints`) lists every breakpoint with its number, type, enabled status, address, and location."
+    },
+    {
+      "type": "text",
+      "category": "Breakpoints",
+      "q": "Breakpoint 1 is inside a loop. Write the command that makes it pause only when the expression i > 1000 is true.",
+      "answer": ["condition 1 (i > 1000)", "condition 1 (i>1000)", "condition 1 i > 1000", "condition 1 i>1000"],
+      "explain": "`condition <bpnum> <exp>` makes breakpoint <bpnum> transfer control to GDB only when <exp> is true."
+    },
+    {
+      "type": "multi",
+      "category": "Breakpoints",
+      "q": "Which of these are good uses for a conditional breakpoint?",
+      "choices": [
+        "Pausing inside a loop only after a certain number of iterations",
+        "Pausing only when a variable holds a value that matters for debugging",
+        "Permanently removing a breakpoint from a line",
+        "Showing the values in the hardware registers"
+      ],
+      "answer": [0, 1],
+      "explain": "A condition on a loop counter or on a variable's value stops the program only at the moments you care about."
+    },
+    {
+      "type": "num",
+      "category": "print and expressions",
+      "q": "What does `print/d 0x1c` print?",
+      "answer": 28,
+      "explain": "Hex 1c is 16 + 12 = 28, and /d prints it as a signed decimal integer."
+    },
+    {
+      "type": "mc",
+      "category": "print and expressions",
+      "q": "What does `print/x 123` print?",
+      "choices": ["0x123", "0x7b", "0x7d", "1111011"],
+      "answer": 1,
+      "explain": "123 = 7*16 + 11, so in hex it is 0x7b. 1111011 is what `print/t 123` would print."
+    },
+    {
+      "type": "num",
+      "category": "print and expressions",
+      "q": "What does `print 0x12 + 2` print? (No format letter is given, so the result is shown in decimal.)",
+      "answer": 20,
+      "explain": "Hex 12 is 18 in decimal, and 18 + 2 = 20."
+    },
+    {
+      "type": "num",
+      "category": "print and expressions",
+      "q": "What does `print 0b101 + 3` print?",
+      "answer": 8,
+      "explain": "The 0b prefix marks a binary literal. 0b101 is 5, and 5 + 3 = 8."
+    },
+    {
+      "type": "mc",
+      "category": "print and expressions",
+      "q": "What does `print/c 99` print?",
+      "choices": ["'c'", "'C'", "0x63 only", "99"],
+      "answer": 0,
+      "explain": "/c prints the value as an ASCII character, and ASCII 99 is 'c'. Going the other way, `print (int)'c'` prints 99."
+    },
+    {
+      "type": "text",
+      "category": "print and expressions",
+      "q": "Which format letter makes `print` show a value in binary? (For example, it prints 123 as 1111011.)",
+      "answer": ["t", "/t"],
+      "explain": "`print/t <exp>` prints in binary. /x is hexadecimal, /d is signed decimal, and /c is a character."
+    },
+    {
+      "type": "mc",
+      "category": "print and expressions",
+      "q": "Why does `print *(int *)0x8ff4bc10` include the `(int *)` cast?",
+      "choices": [
+        "Without a type, GDB doesn't know how to dereference the address",
+        "GDB only accepts addresses written in decimal",
+        "The cast makes GDB print the result in hexadecimal",
+        "The cast is optional and only for readability"
+      ],
+      "answer": 0,
+      "explain": "A bare address has no type. Casting it to `int *` tells GDB to read an int at that location."
+    },
+    {
+      "type": "tf",
+      "category": "print and expressions",
+      "q": "If `ptr` is declared as `int *`, you have to write `print *(int *)ptr` to see the int it points to; `print *ptr` won't work.",
+      "answer": false,
+      "explain": "GDB knows the declared type of the pointer variable, so `print *ptr` works and needs no cast."
+    },
+    {
+      "type": "mc",
+      "category": "print and expressions",
+      "q": "Which command prints the value stored in the eax hardware register?",
+      "choices": ["print eax", "print $eax", "print %eax", "print &eax"],
+      "answer": 1,
+      "explain": "In GDB expressions, register names start with a $."
+    },
+    {
+      "type": "tf",
+      "category": "print and expressions",
+      "q": "`print` can evaluate any C expression, even one that does not appear anywhere in the program's code.",
+      "answer": true,
+      "explain": "`print` isn't limited to program variables. For example, `p i+3` prints the value of i plus 3."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory with x",
+      "q": "How does the `x` command differ from `print`?",
+      "choices": [
+        "`x` treats its argument as an address and shows the value stored at that address",
+        "`x` can only print hexadecimal values",
+        "`x` evaluates expressions, while `print` only shows variables",
+        "`x` changes the value stored in memory"
+      ],
+      "answer": 0,
+      "explain": "`x` reads its argument as an address and dereferences it. That is why `x &temp` shows the same value as `print temp`."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory with x",
+      "q": "You run `x/c ptr`, and later run `x ptr2` with no format given. Which format does the second command use?",
+      "choices": [
+        "The /c format, because x's formatting is sticky",
+        "Hexadecimal, the default for x",
+        "Decimal, the default for x",
+        "None; x requires a format each time"
+      ],
+      "answer": 0,
+      "explain": "x's formatting is sticky. GDB remembers the last format and applies it to later x commands that don't specify one."
+    },
+    {
+      "type": "multi",
+      "category": "Examining memory with x",
+      "q": "In `x/nfu`, which unit letters are paired with the correct size?",
+      "choices": ["b: 1 byte", "h: 2 bytes", "w: 4 bytes", "g: 8 bytes", "w: 2 bytes", "h: 8 bytes"],
+      "answer": [0, 1, 2, 3],
+      "fixed": true,
+      "explain": "The units are b = byte, h = 2 bytes (halfword), w = 4 bytes (word), and g = 8 bytes (giant)."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory with x",
+      "q": "What does `x/10dh 0x1234` display?",
+      "choices": [
+        "10 short (2-byte) values starting at address 0x1234, in decimal",
+        "10 bytes starting at 0x1234, in hexadecimal",
+        "One 10-byte value at 0x1234, in decimal",
+        "The value of variable h, 10 times"
+      ],
+      "answer": 0,
+      "explain": "Here n = 10 is the repeat count, f = d is decimal, and u = h is 2-byte units."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory with x",
+      "q": "`s1 = \"Hello There\"` is stored at address 0x40062d. What does `x/4c s1` show?",
+      "choices": [
+        "0x40062d   72 'H'  101 'e'  108 'l'  108 'l'",
+        "0x40062d   \"Hell\"",
+        "0x40062d   'H' 'e' 'l' 'l' 'o' ' ' 'T' 'h'",
+        "0x40062d   72"
+      ],
+      "answer": 0,
+      "explain": "/4c examines 4 characters, and each one is shown with its ASCII value and the character itself."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory with x",
+      "q": "Right after `x/s s1`, you want to look at the same memory as a 4-byte int. Why do you need `x/wd s1` and not just `x/d s1`?",
+      "choices": [
+        "x/s set the unit size to bytes, and because formatting is sticky the w has to be given explicitly",
+        "The d format is not allowed without a unit letter",
+        "s1 is a string, so x can't read it as an int",
+        "The order of the letters matters, so w has to come first"
+      ],
+      "answer": 0,
+      "explain": "x/s leaves the unit size set to bytes. Since the setting is sticky, you need w to switch back to 4-byte words."
+    },
+    {
+      "type": "num",
+      "category": "Examining memory with x",
+      "q": "`s1 = \"Hello There\"`. The command `x/8d s1` prints the ASCII values of the first 8 characters. What is the 6th value printed?",
+      "answer": 32,
+      "explain": "The first 8 characters are H e l l o (space) T h, which print as 72 101 108 108 111 32 84 104. The 6th one is the space, ASCII 32."
+    },
+    {
+      "type": "text",
+      "category": "Examining memory with x",
+      "q": "Which display-format letter makes `x` show memory as a string?",
+      "answer": ["s", "/s"],
+      "explain": "Some x display formats are s (string), i (instruction), x (hex), d (decimal), t (binary), and a (address)."
+    },
+    {
+      "type": "mc",
+      "category": "display, whatis, set, info",
+      "q": "How does `display i` differ from `print i`?",
+      "choices": [
+        "`display i` shows i automatically every time a breakpoint is reached",
+        "`display i` shows i only once, in hexadecimal",
+        "`display i` shows the type of i",
+        "`display i` shows i in a separate window"
+      ],
+      "answer": 0,
+      "explain": "`display <exp>` shows the expression each time a breakpoint is reached. It uses the same expression syntax as print."
+    },
+    {
+      "type": "mc",
+      "category": "display, whatis, set, info",
+      "q": "x is an int. What does `whatis (x + 3.4)` report?",
+      "choices": ["type = int", "type = double", "type = float", "the numeric value of x + 3.4"],
+      "answer": 1,
+      "explain": "`whatis` shows an expression's type. Adding the double literal 3.4 to x gives a result of type double."
+    },
+    {
+      "type": "text",
+      "category": "display, whatis, set, info",
+      "q": "Write the GDB command that changes the program variable x to the value of 123 * y.",
+      "answer": ["set x = 123 * y", "set x=123*y", "set x = 123*y", "set x=123 * y"],
+      "explain": "The form is `set <variable> = <exp>`."
+    },
+    {
+      "type": "multi",
+      "category": "display, whatis, set, info",
+      "q": "Which of these can the `set` command assign a value to?",
+      "choices": [
+        "A program variable",
+        "A specific memory address",
+        "A specific machine register",
+        "A line of the source code"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "`set` can change a program variable, the value at a memory address, or a register. It cannot edit source code."
+    },
+    {
+      "type": "mc",
+      "category": "display, whatis, set, info",
+      "q": "Which command shows the argument variables of the current stack frame?",
+      "choices": ["info locals", "info args", "info frame", "info registers"],
+      "answer": 1,
+      "explain": "`info args` shows the arguments. `info locals` shows local variables, `info frame` shows details about the frame, and `info registers` shows register values."
+    },
+    {
+      "type": "text",
+      "category": "display, whatis, set, info",
+      "q": "Write the `info` command that shows the values in the registers.",
+      "answer": ["info registers"],
+      "explain": "`info registers` shows register values. Run `help info` to see every info option."
+    }
+  ]
+}

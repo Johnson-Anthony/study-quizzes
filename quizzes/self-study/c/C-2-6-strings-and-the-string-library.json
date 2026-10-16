@@ -1,0 +1,342 @@
+{
+  "title": "2.6 - Strings and the String Library",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "C string basics",
+      "q": "In C, what marks the end of a string stored in a char array?",
+      "choices": [
+        "The null character '\\0'",
+        "The declared size of the array",
+        "A newline character '\\n'",
+        "A length value stored before the first character"
+      ],
+      "answer": 0,
+      "explain": "C has no separate string type. A string is an array of char values ended by the null character '\\0'."
+    },
+    {
+      "type": "tf",
+      "category": "C string basics",
+      "q": "Every array of char values is a C string.",
+      "answer": false,
+      "explain": "Every C string is an array of char, but a char array is only a C string if it ends with a '\\0' character."
+    },
+    {
+      "type": "text",
+      "category": "C string basics",
+      "q": "Which printf placeholder prints the value of a C string?",
+      "answer": ["%s", "s"],
+      "explain": "Use %s to print a string. (%c prints a single char.)"
+    },
+    {
+      "type": "text",
+      "category": "C string basics",
+      "q": "What does this code print?\n\nchar str1[10], str2[10];\nstr1[0] = 'h'; str1[1] = 'i'; str1[2] = '\\0';\nstrcpy(str2, str1);\nstr2[1] = 'o';\nprintf(\"%s %s\\n\", str1, str2);",
+      "answer": ["hi ho"],
+      "explain": "strcpy copies \"hi\" (and its '\\0') into str2. Changing str2[1] to 'o' gives \"ho\". str1 is unchanged, so the output is \"hi ho\"."
+    },
+    {
+      "type": "num",
+      "category": "Allocating strings and destination memory",
+      "q": "strlen(str) returns 5 for str = \"Hello\". How many chars must you malloc to hold a copy of str made with strcpy?",
+      "answer": 6,
+      "explain": "strlen does not count the terminating '\\0', so you need strlen(str) + 1 = 6 chars: malloc(sizeof(char) * (size+1))."
+    },
+    {
+      "type": "num",
+      "category": "Allocating strings and destination memory",
+      "q": "How many bytes does the string \"hello world\" occupy in memory, counting its terminating null character?",
+      "answer": 12,
+      "explain": "11 visible characters (including the space) plus 1 for '\\0' gives 12. That is why strcpy into a char mystr[5] overflows the array."
+    },
+    {
+      "type": "multi",
+      "category": "Allocating strings and destination memory",
+      "q": "Which of these code fragments have a memory error?",
+      "choices": [
+        "char mystr[5];\nstrcpy(mystr, \"hello world\");",
+        "char *mystr = NULL;\nstrcpy(mystr, \"try again\");",
+        "char *mystr = \"string literal value\";\nstrcat(mystr, \" more\");",
+        "char mystr[32];\nstrcpy(mystr, \"hello world\");"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "(1) writes 12 bytes into a 5-byte array. (2) writes through a NULL destination. (3) changes a read-only string literal. (4) is fine because 32 bytes is enough room."
+    },
+    {
+      "type": "tf",
+      "category": "Allocating strings and destination memory",
+      "q": "strcpy and strcat allocate enough memory for their result, so the destination pointer does not need to point to space that is already large enough.",
+      "answer": false,
+      "explain": "These functions write through the destination pointer and assume it already has enough space. The caller must allocate it. If it doesn't, the behavior is undefined: anything from a crash to a security vulnerability."
+    },
+    {
+      "type": "mc",
+      "category": "char[] vs char* and comparing strings",
+      "q": "Given char buf[32]; and a function char *get_name(void);, why is buf = get_name(); not allowed?",
+      "choices": [
+        "A statically declared array name is not a valid lvalue, because its base address cannot change",
+        "get_name would have to return char[] instead of char *",
+        "buf would first have to be set to NULL",
+        "C functions cannot return strings"
+      ],
+      "answer": 0,
+      "explain": "You can only assign a char * return value to a char * variable. A static array's name refers to a fixed base address and cannot be assigned to."
+    },
+    {
+      "type": "tf",
+      "category": "char[] vs char* and comparing strings",
+      "q": "You can pass both a statically declared char array and a dynamically allocated char array to a function whose parameter is declared char *.",
+      "answer": true,
+      "explain": "Either kind of array name evaluates to the array's base address, so both work for a char * (or char []) parameter."
+    },
+    {
+      "type": "mc",
+      "category": "char[] vs char* and comparing strings",
+      "q": "d_str points to a heap char array and str is a stack char array. What does the expression (d_str == str) compare?",
+      "choices": [
+        "The base addresses of the two arrays",
+        "The characters of the two strings, one at a time",
+        "The lengths of the two strings",
+        "Only the first character of each string"
+      ],
+      "answer": 0,
+      "explain": "== compares addresses, not contents. Use strcmp or strncmp (or a hand-written loop) to compare the characters."
+    },
+    {
+      "type": "mc",
+      "category": "char[] vs char* and comparing strings",
+      "q": "What does strcmp(\"aaa\", \"Zoo\") return?",
+      "choices": [
+        "A positive value",
+        "A negative value",
+        "0"
+      ],
+      "fixed": true,
+      "answer": 0,
+      "explain": "strcmp compares ASCII values. 'a' has a larger ASCII code than 'Z', so \"aaa\" counts as greater than \"Zoo\"."
+    },
+    {
+      "type": "mc",
+      "category": "char[] vs char* and comparing strings",
+      "q": "What does strcmp(\"aaa\", \"zoo\") return?",
+      "choices": [
+        "A positive value",
+        "A negative value",
+        "0"
+      ],
+      "fixed": true,
+      "answer": 1,
+      "explain": "'a' has a smaller ASCII code than 'z', so \"aaa\" is less than \"zoo\" and the result is negative."
+    },
+    {
+      "type": "num",
+      "category": "char[] vs char* and comparing strings",
+      "q": "str holds \"alligator\". What does strncmp(str, \"all\", 3) return?",
+      "answer": 0,
+      "explain": "strncmp compares at most n characters. The first 3 characters match, so it returns 0."
+    },
+    {
+      "type": "num",
+      "category": "Copying strings and finding length",
+      "q": "After strcpy(str, \"Hello There\");, what does strlen(str) return?",
+      "answer": 11,
+      "explain": "strlen counts the characters up to the '\\0' but not the '\\0' itself. That's 11 here, including the space."
+    },
+    {
+      "type": "mc",
+      "category": "Copying strings and finding length",
+      "q": "str holds \"Hello There\". After strncpy(d_str, str, 5); (and nothing else), what is in d_str?",
+      "choices": [
+        "'H','e','l','l','o' with no '\\0' added after them",
+        "\"Hello\" with a '\\0' added automatically",
+        "\"Hell\" followed by '\\0'",
+        "All of \"Hello There\", because strncpy stops only at '\\0'"
+      ],
+      "answer": 0,
+      "explain": "If src has size or more characters, strncpy copies exactly size characters and does not add a '\\0'. You must add it yourself, e.g. d_str[5] = '\\0';."
+    },
+    {
+      "type": "mc",
+      "category": "Copying strings and finding length",
+      "q": "Which strlcpy call gives the same result as:\n\nstrncpy(d_str, str, 5);\nd_str[5] = '\\0';",
+      "choices": [
+        "strlcpy(d_str, str, 5);",
+        "strlcpy(d_str, str, 6);",
+        "strlcpy(d_str, str, 4);",
+        "strlcpy(str, d_str, 6);"
+      ],
+      "answer": 1,
+      "explain": "strlcpy copies at most size-1 characters and always adds '\\0' (if size > 0). To get 5 characters plus the terminator, pass size 6."
+    },
+    {
+      "type": "tf",
+      "category": "Copying strings and finding length",
+      "q": "strcpy is safe to use even when the source string may be longer than the destination array, because it stops copying when the destination is full.",
+      "answer": false,
+      "explain": "strcpy copies until it reaches the '\\0' in src and has no idea how big dst is. When src might be too long, use strncpy (or strlcpy) instead."
+    },
+    {
+      "type": "text",
+      "category": "Concatenating and searching",
+      "q": "What does this code print?\n\nchar str[32];\nstrcpy(str, \"Zebra fish\");\nstrcat(str, \" stripes\");\nstrncat(str, \" are black.\", 8);\nprintf(\"%s\\n\", str);",
+      "answer": ["Zebra fish stripes are bla"],
+      "explain": "strcat appends \" stripes\". Then strncat appends only the first 8 characters of \" are black.\", which are \" are bla\" (spaces count)."
+    },
+    {
+      "type": "text",
+      "category": "Concatenating and searching",
+      "q": "str holds \"Zebra fish stripes are bla\". What does this print?\n\nptr = strstr(str, \"trip\");\nif (ptr != NULL) printf(\"%s\\n\", ptr);",
+      "answer": ["tripes are bla"],
+      "explain": "strstr returns a pointer to where \"trip\" starts inside str. Printing from that point to the '\\0' gives \"tripes are bla\"."
+    },
+    {
+      "type": "text",
+      "category": "Concatenating and searching",
+      "q": "str holds \"Zebra fish stripes are bla\". What does this print?\n\nptr = strchr(str, 'e');\nif (ptr != NULL) printf(\"%s\\n\", ptr);",
+      "answer": ["ebra fish stripes are bla"],
+      "explain": "strchr returns a pointer to the first 'e' (index 1), so printing from there gives \"ebra fish stripes are bla\"."
+    },
+    {
+      "type": "mc",
+      "category": "Concatenating and searching",
+      "q": "What do strstr and strchr return when the substring or character is not found?",
+      "choices": [
+        "NULL",
+        "An empty string \"\"",
+        "-1",
+        "A pointer to the string's '\\0' character"
+      ],
+      "answer": 0,
+      "explain": "Both return NULL when there is no match, so check for NULL before using the result."
+    },
+    {
+      "type": "mc",
+      "category": "Concatenating and searching",
+      "q": "When strchr(s, c) finds c, what does it return?",
+      "choices": [
+        "The address of the first matching char inside s",
+        "The integer index of the first match",
+        "A newly malloc'd copy of the rest of the string",
+        "The address of the last matching char inside s"
+      ],
+      "answer": 0,
+      "explain": "It returns a pointer into the original array at the first occurrence. That position starts a '\\0'-terminated run of chars, so it can be used as a string."
+    },
+    {
+      "type": "mc",
+      "category": "Tokenizing with strtok",
+      "q": "In a loop that calls strtok repeatedly to get every token from line, what is the first argument on every call after the first one?",
+      "choices": [
+        "NULL",
+        "line, the original string again",
+        "The token returned by the previous call",
+        "The delimiter string"
+      ],
+      "answer": 0,
+      "explain": "The first call is strtok(line, delim). Each later call is strtok(NULL, delim), which continues in the same string."
+    },
+    {
+      "type": "mc",
+      "category": "Tokenizing with strtok",
+      "q": "How does strtok tell you there are no more tokens?",
+      "choices": [
+        "It returns NULL",
+        "It returns an empty string",
+        "It returns the delimiter string",
+        "It returns 0 cast to an int"
+      ],
+      "answer": 0,
+      "explain": "A loop like while (token != NULL) { ...; token = strtok(NULL, delim); } stops when strtok returns NULL."
+    },
+    {
+      "type": "num",
+      "category": "Tokenizing with strtok",
+      "q": "The delimiter string is \" \\t\\f\\r\\v\\n\" (whitespace). How many tokens does strtok find in this input line?\n\n\"        aaaaa             bbbbbbbbb          cccccc\\n\"",
+      "answer": 3,
+      "explain": "Tokens are separated by any number of delimiter characters, so the leading, repeated, and trailing whitespace is skipped. The tokens are aaaaa, bbbbbbbbb, and cccccc."
+    },
+    {
+      "type": "mc",
+      "category": "sprintf and conversion functions",
+      "q": "How does sprintf differ from printf?",
+      "choices": [
+        "It writes the formatted result into a char array instead of to the terminal",
+        "It reads formatted input from a string",
+        "It uses different placeholders from printf",
+        "It can only format strings, not numbers"
+      ],
+      "answer": 0,
+      "explain": "sprintf(char *s, const char *format, ...) uses printf-style placeholders but stores the result in s."
+    },
+    {
+      "type": "text",
+      "category": "sprintf and conversion functions",
+      "q": "char str[64];\nsprintf(str, \"%s is %d years old and in grade %d\", \"Henry\", 12, 7);\n\nWhat string is stored in str?",
+      "answer": ["Henry is 12 years old and in grade 7"],
+      "explain": "Each placeholder is filled with a char representation of the matching argument, in order."
+    },
+    {
+      "type": "num",
+      "category": "sprintf and conversion functions",
+      "q": "What is the value of atoi(\"1234\") + 1?",
+      "answer": 1235,
+      "explain": "atoi converts the string \"1234\" to the int 1234, and adding 1 gives 1235."
+    },
+    {
+      "type": "num",
+      "category": "sprintf and conversion functions",
+      "q": "What value does atof(\"4.56\") return?",
+      "answer": 4.56,
+      "tolerance": 0.001,
+      "explain": "atof converts a string to a floating-point value (a double)."
+    },
+    {
+      "type": "text",
+      "category": "Character functions",
+      "q": "What does this code print?\n\nchar str[64];\nstrcpy(str, \"I see 20 ZEBRAS, GOATS, and COWS\");\nint len = strlen(str);\nfor (int i = 0; i < len; i++) {\n    if (isupper(str[i])) str[i] = tolower(str[i]);\n    else if (isdigit(str[i])) str[i] = 'X';\n}\nprintf(\"%s\\n\", str);",
+      "answer": ["i see XX zebras, goats, and cows"],
+      "explain": "Uppercase letters become lowercase, and each digit in \"20\" becomes 'X'. The 'X' chars are written into str and not tested again, so they stay uppercase."
+    },
+    {
+      "type": "mc",
+      "category": "Character functions",
+      "q": "Which library has functions for testing and changing individual char values, such as isdigit and toupper?",
+      "choices": [
+        "ctype.h",
+        "string.h",
+        "stdio.h",
+        "math.h"
+      ],
+      "answer": 0,
+      "explain": "ctype.h contains the functions for individual characters. string.h is for whole C strings."
+    },
+    {
+      "type": "mc",
+      "category": "Character functions",
+      "q": "What do test functions like isupper(ch) and isdigit(ch) return when the test is true?",
+      "choices": [
+        "A non-zero value",
+        "Exactly 1, always",
+        "The character ch itself",
+        "-1"
+      ],
+      "answer": 0,
+      "explain": "They return a non-zero value for true and 0 for false. Check the result with if (isupper(ch)), not with == 1."
+    },
+    {
+      "type": "multi",
+      "category": "Character functions",
+      "q": "Which of these calls return a non-zero (true) value?",
+      "choices": [
+        "isupper('Z')",
+        "isalpha('Z')",
+        "isalnum('7')",
+        "islower('Z')",
+        "isdigit('Z')"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "'Z' is an uppercase letter, so isupper and isalpha are true. '7' is a digit, so isalnum (letter or digit) is true. 'Z' is neither lowercase nor a digit."
+    }
+  ]
+}

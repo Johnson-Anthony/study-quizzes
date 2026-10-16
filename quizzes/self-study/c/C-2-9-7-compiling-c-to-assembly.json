@@ -1,0 +1,264 @@
+{
+  "title": "2.9.7 Compiling C to Assembly, and Compiling and Linking Assembly and C Code",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "gcc toolchain",
+      "q": "Which gcc command-line option tells gcc to compile a C file into an assembly text file (.s)?",
+      "choices": ["-c", "-S", "-o", "-m32"],
+      "answer": 1,
+      "explain": "-S compiles to assembly, so gcc -m32 -S simpleops.c creates simpleops.s. -c produces a .o object file, -o names the output file, and -m32 selects IA32."
+    },
+    {
+      "type": "mc",
+      "category": "gcc toolchain",
+      "q": "What does the -m32 option do in gcc -m32 -S simpleops.c?",
+      "choices": ["Turns on maximum optimization", "Limits the output file to 32 lines", "Tells gcc to generate IA32 (32-bit) assembly", "Tells gcc to produce a .o object file"],
+      "answer": 2,
+      "explain": "-m32 tells gcc to generate IA32 (32-bit x86) code instead of the default."
+    },
+    {
+      "type": "text",
+      "category": "gcc toolchain",
+      "q": "What is the name of the file created by running: gcc -m32 -S simpleops.c",
+      "answer": ["simpleops.s", "simpleops.s file"],
+      "explain": "-S writes the compiler's assembly translation to a .s file with the same base name: simpleops.s."
+    },
+    {
+      "type": "tf",
+      "category": "gcc toolchain",
+      "q": "The .s file produced by gcc -S is a text file that can be viewed and edited in any text editor.",
+      "answer": true,
+      "explain": "Assembly (.s) files are plain text. You can open them in an editor such as vim or print them with cat."
+    },
+    {
+      "type": "mc",
+      "category": "gcc toolchain",
+      "q": "What does gcc -m32 -c simpleops.s produce?",
+      "choices": ["An executable named simpleops", "A C source file, simpleops.c", "Another assembly text file", "A relocatable object binary file, simpleops.o"],
+      "answer": 3,
+      "explain": "-c assembles the code into binary machine code form: a relocatable object file (.o). It does not link, so it does not produce an executable."
+    },
+    {
+      "type": "mc",
+      "category": "gcc toolchain",
+      "q": "In gcc -m32 -o simpleops simpleops.o, what is the role of -o simpleops?",
+      "choices": ["It names the output executable file simpleops", "It tells gcc to optimize simpleops.o", "It tells gcc to output only assembly", "It tells gcc to read simpleops as an object file"],
+      "answer": 0,
+      "explain": "-o specifies the name of the output file. Here it is the linked 32-bit executable, simpleops."
+    },
+    {
+      "type": "mc",
+      "category": "gcc toolchain",
+      "q": "To link a 32-bit object file into an executable with gcc -m32 -o simpleops simpleops.o, what must be installed on the system?",
+      "choices": ["The vim text editor", "The 32-bit version of the system libraries", "objdump", "Nothing beyond gcc; 32-bit linking never needs anything extra"],
+      "answer": 1,
+      "explain": "Linking a 32-bit executable requires the 32-bit versions of the system libraries."
+    },
+    {
+      "type": "mc",
+      "category": "gcc toolchain",
+      "q": "Which command shows the machine code and assembly code mappings in the object file simpleops.o?",
+      "choices": ["cat simpleops.o", "gcc -m32 -S simpleops.o", "objdump -d simpleops.o", "vim simpleops.c"],
+      "answer": 2,
+      "explain": "objdump -d disassembles a binary file and shows the machine code next to the corresponding assembly instructions."
+    },
+    {
+      "type": "tf",
+      "category": "gcc toolchain",
+      "q": "A single gcc command that builds an executable can include both .o files and .c files, which are compiled and linked together.",
+      "answer": true,
+      "explain": "For example, gcc -m32 -o myprog myfunc.o main.c compiles main.c and links it with myfunc.o into one executable."
+    },
+    {
+      "type": "tf",
+      "category": "gcc toolchain",
+      "q": "Only gcc can compile C code to assembly, and only for the IA32 architecture.",
+      "answer": false,
+      "explain": "Any C compiler can do this, and most compilers can generate several different assembly languages. gcc and IA32 are just the example used here."
+    },
+    {
+      "type": "num",
+      "category": "Reading compiler-generated assembly",
+      "q": "In simpleops.c (x = 1; x = x + 2; x = x - 14; y = x*100; x = x + y * 6;), what is the final value of y?",
+      "answer": -1100,
+      "explain": "x = 1, then 3, then 3 - 14 = -11. y = -11 * 100 = -1100."
+    },
+    {
+      "type": "num",
+      "category": "Reading compiler-generated assembly",
+      "q": "In simpleops.c (x = 1; x = x + 2; x = x - 14; y = x*100; x = x + y * 6;), what is the final value of x?",
+      "answer": -6611,
+      "explain": "x becomes -11 and y becomes -1100. Then x = -11 + (-1100 * 6) = -11 - 6600 = -6611."
+    },
+    {
+      "type": "num",
+      "category": "Reading compiler-generated assembly",
+      "q": "In simpleops.s, what value is stored at -8(%ebp) right after these three instructions run?\n  movl $1, -8(%ebp)\n  addl $2, -8(%ebp)\n  subl $14, -8(%ebp)",
+      "answer": -11,
+      "explain": "The value is set to 1, increased by 2 to 3, then decreased by 14 to -11. This matches x = 1; x = x + 2; x = x - 14."
+    },
+    {
+      "type": "mc",
+      "category": "Reading compiler-generated assembly",
+      "q": "In the generated simpleops.s, where is the local variable x stored?",
+      "choices": ["-4(%ebp)", "%eax", "%edx", "-8(%ebp)"],
+      "answer": 3,
+      "explain": "movl $1, -8(%ebp) implements x = 1, so x is stored at -8(%ebp). y is stored at -4(%ebp), as shown by movl %eax, -4(%ebp) for y = x*100."
+    },
+    {
+      "type": "mc",
+      "category": "Reading compiler-generated assembly",
+      "q": "In simpleops.s, which instruction does the multiplication for y = x*100?",
+      "choices": ["addl %eax, %eax", "imull $100, %eax, %eax", "subl $16, %esp", "movl %eax, -4(%ebp)"],
+      "answer": 1,
+      "explain": "First movl -8(%ebp), %eax loads x into %eax. Then imull $100, %eax, %eax stores x*100 in %eax, and movl %eax, -4(%ebp) saves the result in y."
+    },
+    {
+      "type": "mc",
+      "category": "Reading compiler-generated assembly",
+      "q": "What does this sequence from simpleops.s compute?\n  movl -4(%ebp), %edx\n  movl %edx, %eax\n  addl %eax, %eax\n  addl %edx, %eax\n  addl %eax, %eax\n  addl %eax, -8(%ebp)",
+      "choices": ["It computes y*100 a second time and stores it in y", "It computes x*6 and stores the result in y", "It computes y*6 with copies and additions instead of a multiply, then adds the result to x", "It doubles x three times"],
+      "answer": 2,
+      "explain": "y goes into %edx and %eax. Then %eax = 2y, then 2y + y = 3y, then 3y + 3y = 6y. Finally 6y is added to x at -8(%ebp), which implements x = x + y * 6."
+    },
+    {
+      "type": "num",
+      "category": "Reading compiler-generated assembly",
+      "q": "In simpleops.s, after movl -4(%ebp), %edx; movl %edx, %eax; addl %eax, %eax; addl %edx, %eax run, %eax holds y multiplied by what number?",
+      "answer": 3,
+      "explain": "%eax starts as y. addl %eax, %eax makes it 2y, and addl %edx, %eax (with %edx = y) makes it 3y."
+    },
+    {
+      "type": "mc",
+      "category": "Reading compiler-generated assembly",
+      "q": "In simpleops.s, which C statement does movl $0, %eax (just before leave and ret) implement?",
+      "choices": ["return 0;", "x = 1;", "int x, y;", "y = x*100;"],
+      "answer": 0,
+      "explain": "In IA32 the function's return value is stored in %eax before returning, so movl $0, %eax sets main's return value to 0."
+    },
+    {
+      "type": "mc",
+      "category": "Writing assembly functions and linking with C",
+      "q": "In an IA32 assembly function such as myfunc, which register should hold the return value before the function returns?",
+      "choices": ["%ebp", "%esp", "%eax", "%edx"],
+      "answer": 2,
+      "explain": "The template says the return value should be stored in %eax before returning."
+    },
+    {
+      "type": "multi",
+      "category": "Writing assembly functions and linking with C",
+      "q": "Which instructions make up the function preamble (stack setup) in the IA32 myfunc template?",
+      "choices": ["pushl %ebp", "movl %esp, %ebp", "subl $16, %esp", "leave", "ret", "movl $0, %eax"],
+      "answer": [0, 1, 2],
+      "explain": "The first three instructions (pushl %ebp, movl %esp, %ebp, subl $16, %esp) set up the stack. leave and ret are the return code."
+    },
+    {
+      "type": "mc",
+      "category": "Writing assembly functions and linking with C",
+      "q": "In the IA32 function template, which instructions are the function's return code?",
+      "choices": ["pushl %ebp followed by movl %esp, %ebp", "subl $16, %esp", ".type myfunc, @function", "leave followed by ret"],
+      "answer": 3,
+      "explain": "The template ends with leave and ret, which form the function's return code."
+    },
+    {
+      "type": "mc",
+      "category": "Writing assembly functions and linking with C",
+      "q": "In the template for myfunc.s, what does the .text directive at the top indicate?",
+      "choices": ["The file is a plain C source file", "The file contains instruction code", "The function returns a string", "The file must be opened in a text editor"],
+      "answer": 1,
+      "explain": "As the template's comment says, .text marks that the file contains instruction code."
+    },
+    {
+      "type": "mc",
+      "category": "Writing assembly functions and linking with C",
+      "q": "main.c calls myfunc, which is implemented in assembly in myfunc.s. What must main.c contain to call it?",
+      "choices": ["#include \"myfunc.s\"", "A copy of myfunc's assembly instructions", "The function prototype int myfunc(int param);", "Nothing; C code cannot call functions written in assembly"],
+      "answer": 2,
+      "explain": "The C program only needs the function prototype. The assembly function is compiled separately and linked in."
+    },
+    {
+      "type": "mc",
+      "category": "Writing assembly functions and linking with C",
+      "q": "Which sequence of commands builds the executable myprog from myfunc.s and main.c?",
+      "choices": [
+        "gcc -m32 -c myfunc.s, then gcc -m32 -o myprog myfunc.o main.c",
+        "gcc -m32 -S myfunc.s, then gcc -m32 -o myprog myfunc.s main.o",
+        "gcc -m32 -o myfunc.o myfunc.s, then gcc -m32 -c myprog main.c",
+        "gcc -m32 -S main.c, then gcc -m32 -c myprog main.s myfunc.s"
+      ],
+      "answer": 0,
+      "explain": "First, -c turns myfunc.s into the object file myfunc.o. Then gcc compiles main.c and links it with myfunc.o into the executable named by -o myprog."
+    },
+    {
+      "type": "tf",
+      "category": "Writing assembly functions and linking with C",
+      "q": "Every IA32 function uses exactly the same preamble code, no matter how many parameters or local variables it has.",
+      "answer": false,
+      "explain": "Functions with more parameters or that need more stack space for local variables may have slightly different preamble code."
+    },
+    {
+      "type": "tf",
+      "category": "Handwritten assembly",
+      "q": "Like C, assembly code is portable: the same assembly code can be compiled and run on many different hardware architectures.",
+      "answer": false,
+      "explain": "Assembly is very low level and specific to one hardware architecture. C is high level and can be compiled and run on many systems."
+    },
+    {
+      "type": "multi",
+      "category": "Handwritten assembly",
+      "q": "Which are reasons a programmer might write assembly code by hand?",
+      "choices": [
+        "To implement low-level functions",
+        "To write code sequences that are crucial to performance",
+        "To access low-level parts of the architecture, such as specific registers",
+        "To make the code portable across many hardware architectures",
+        "Because compilers cannot translate C into machine code"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Hand-written assembly is used for low-level functions, performance-critical code, and direct access to architecture features such as specific registers. It is not portable, and compilers do translate C to machine code."
+    },
+    {
+      "type": "tf",
+      "category": "Handwritten assembly",
+      "q": "A programmer can sometimes write assembly code that runs faster than the compiler's optimized assembly translation of C.",
+      "answer": true,
+      "explain": "Sometimes hand-written assembly beats the compiler's optimized output, which is one reason performance-critical code is sometimes written in assembly."
+    },
+    {
+      "type": "tf",
+      "category": "Handwritten assembly",
+      "q": "Most operating system code is written in assembly.",
+      "answer": false,
+      "explain": "Only small parts of an operating system are usually written in assembly. Nearly all OS code is written in C, relying on good optimizing compilers."
+    },
+    {
+      "type": "mc",
+      "category": "Handwritten assembly",
+      "q": "Why is nearly all operating system code written in C rather than assembly?",
+      "choices": [
+        "C always runs faster than any hand-written assembly",
+        "Assembly cannot access hardware registers",
+        "Operating systems are not allowed to contain any assembly code",
+        "C is portable and much higher level, and good optimizing compilers produce machine code that performs well"
+      ],
+      "answer": 3,
+      "explain": "C is portable and much higher level than assembly, and optimizing compilers produce fast machine code. Small parts of an OS are still written in assembly."
+    },
+    {
+      "type": "multi",
+      "category": "Handwritten assembly",
+      "q": "Even if you rarely write assembly, being able to read a program's assembly code helps with which of the following?",
+      "choices": [
+        "Understanding a program's performance",
+        "Discovering and understanding security vulnerabilities in programs",
+        "Getting a deeper understanding of what a program does and how it executes",
+        "Making the C source code portable to other architectures",
+        "Avoiding the need to use a compiler"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Reading assembly gives a deeper understanding of what a program does and how it runs, and helps you understand performance and find security vulnerabilities."
+    }
+  ]
+}

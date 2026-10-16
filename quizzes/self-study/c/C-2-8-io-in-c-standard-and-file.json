@@ -1,0 +1,427 @@
+{
+  "title": "2.8 I/O in C (Standard and File)",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Standard streams and redirection",
+      "q": "Which three I/O streams does every running C program start with?",
+      "choices": ["`stdin`, `stdout`, and `stderr`", "`stdin`, `stdout`, and `stdlog`", "`stdin`, `stdfile`, and `stderr`", "`keyboard`, `terminal`, and `disk`"],
+      "answer": 0,
+      "explain": "Every program starts with standard in (`stdin`), standard out (`stdout`), and standard error (`stderr`). A program reads from `stdin` and writes to `stdout` and `stderr`."
+    },
+    {
+      "type": "mc",
+      "category": "Standard streams and redirection",
+      "q": "Which shell command runs `./a.out` so that its `stdin` reads from the file `infile.txt`?",
+      "choices": ["`./a.out < infile.txt`", "`./a.out > infile.txt`", "`./a.out 2> infile.txt`", "`./a.out &> infile.txt`"],
+      "answer": 0,
+      "explain": "`<` redirects stdin. `>` (or `1>`) redirects stdout, `2>` redirects stderr, and `&>` redirects both stdout and stderr."
+    },
+    {
+      "type": "mc",
+      "category": "Standard streams and redirection",
+      "q": "What does `./a.out &> outfile.txt` do?",
+      "choices": ["Sends both stdout and stderr of `a.out` to `outfile.txt`", "Sends only stderr of `a.out` to `outfile.txt`", "Makes `a.out` read its stdin from `outfile.txt`", "Sends stdout to `outfile.txt` and leaves stderr on the terminal"],
+      "answer": 0,
+      "explain": "`&>` redirects stdout and stderr together to the named file."
+    },
+    {
+      "type": "text",
+      "category": "Standard streams and redirection",
+      "q": "In `./a.out < infile.txt 1> outfile.txt 2> errorfile.txt`, which standard stream is written to `errorfile.txt`?",
+      "answer": ["stderr", "standard error"],
+      "explain": "`<` redirects stdin, `1>` redirects stdout, and `2>` redirects stderr."
+    },
+    {
+      "type": "tf",
+      "category": "Standard streams and redirection",
+      "q": "By default, `stdin` usually reads from the keyboard, while `stdout` and `stderr` both write to the terminal.",
+      "answer": true,
+      "explain": "That is the usual default. Redirection can change where any of the three streams reads or writes."
+    },
+    {
+      "type": "tf",
+      "category": "Standard streams and redirection",
+      "q": "A C program can call `printf` and `scanf` without including `stdio.h`.",
+      "answer": false,
+      "explain": "These functions come from the `stdio.h` library, and a C program must explicitly include `stdio.h` to call them."
+    },
+    {
+      "type": "mc",
+      "category": "printf formatting",
+      "q": "Which `printf` placeholder prints an integer value in hexadecimal (base 16)?",
+      "choices": ["`%x`", "`%h`", "`%o`", "`%b`"],
+      "answer": 0,
+      "explain": "`%x` prints hexadecimal and `%o` prints octal. `%h` and `%b` are not the hexadecimal or binary placeholders."
+    },
+    {
+      "type": "text",
+      "category": "printf formatting",
+      "q": "Given `int x = 26;`, what does `printf(\"%x\", x);` print?",
+      "answer": ["1a", "1A"],
+      "explain": "26 = 1*16 + 10, and 10 is the hex digit `a`, so `%x` prints `1a`."
+    },
+    {
+      "type": "num",
+      "category": "printf formatting",
+      "q": "Given `int x = 26;`, what number does `printf(\"%o\", x);` print?",
+      "answer": 32,
+      "explain": "`%o` prints octal. 26 = 3*8 + 2, so the output is `32`."
+    },
+    {
+      "type": "tf",
+      "category": "printf formatting",
+      "q": "`printf` has a format placeholder for displaying a value in binary.",
+      "answer": false,
+      "explain": "There is no `printf` formatting option for binary. The available representations include `%x` (hex), `%o` (octal), `%d` (signed decimal), `%u` (unsigned decimal), and `%e` (scientific notation)."
+    },
+    {
+      "type": "mc",
+      "category": "printf formatting",
+      "q": "Which placeholder prints an `unsigned long` value?",
+      "choices": ["`%lu`", "`%ul`", "`%ld`", "`%llu`"],
+      "answer": 0,
+      "explain": "The `l` prefix marks a `long`, so `%lu` is for `unsigned long`. `%ld` is for a signed `long` and `%llu` is for `unsigned long long`."
+    },
+    {
+      "type": "mc",
+      "category": "printf formatting",
+      "q": "Which placeholder prints a `float` or `double` in scientific notation?",
+      "choices": ["`%e`", "`%g`", "`%s`", "`%p`"],
+      "answer": 0,
+      "explain": "`%e` uses scientific notation. `%g` and `%f` are general float/double placeholders, `%s` is for strings, and `%p` prints an address."
+    },
+    {
+      "type": "mc",
+      "category": "printf formatting",
+      "q": "Which placeholder prints an address value?",
+      "choices": ["`%p`", "`%a`", "`%d`", "`%s`"],
+      "answer": 0,
+      "explain": "`%p` is the placeholder for printing an address value."
+    },
+    {
+      "type": "mc",
+      "category": "printf formatting",
+      "q": "With `float x = 4.50001, y = 5.199999;`, what does `printf(\"%.1f %.1f\\n\", x, y);` print?",
+      "choices": ["`4.5 5.2`", "`4.5 5.1`", "`4.50001 5.199999`", "`5 5`"],
+      "answer": 0,
+      "explain": "`.1` prints one digit after the decimal point, with rounding, so 4.50001 prints as `4.5` and 5.199999 prints as `5.2`."
+    },
+    {
+      "type": "num",
+      "category": "printf formatting",
+      "q": "With `float x = 4.50001;`, `printf(\"%6.1f\", x);` prints `4.5` padded to the field width. How many leading spaces come before `4.5`?",
+      "answer": 3,
+      "explain": "`%6.1f` uses a field 6 characters wide and right-justifies the value. `4.5` takes 3 characters, so 3 spaces come before it."
+    },
+    {
+      "type": "mc",
+      "category": "printf formatting",
+      "q": "What does the placeholder `%-8d` do?",
+      "choices": ["Prints an int in a field 8 characters wide, left-justified", "Prints an int in a field 8 characters wide, right-justified", "Prints the negative of an int, using 8 digits", "Prints an int with 8 digits after the decimal point"],
+      "answer": 0,
+      "explain": "The number sets the field width, and the `-` makes the value left-justified. `%8d` without the `-` would right-justify it."
+    },
+    {
+      "type": "mc",
+      "category": "printf formatting",
+      "q": "What does the placeholder `%5.3f` mean?",
+      "choices": ["Print a float in a field 5 characters wide with 3 digits after the decimal point", "Print a float with 5 digits before the decimal point and 3 after", "Print a float rounded to 5 significant digits, padded to 3 characters", "Print 5 floats, each with 3 digits after the decimal point"],
+      "answer": 0,
+      "explain": "In `%W.Pf`, W is the total field width and P is the number of digits after the decimal point."
+    },
+    {
+      "type": "mc",
+      "category": "printf formatting",
+      "q": "What does `printf(\"%20s\", \"hi\");` do?",
+      "choices": ["Prints `hi` right-justified in a field 20 characters wide", "Prints `hi` left-justified in a field 20 characters wide", "Prints the first 20 characters of the string", "Prints `hi` 20 times"],
+      "answer": 0,
+      "explain": "`%20s` right-justifies the string in a 20-character field. `%-20s` would left-justify it."
+    },
+    {
+      "type": "num",
+      "category": "printf formatting",
+      "q": "Given `char ch = 'a';`, what number does `printf(\"%d\", ch + 1);` print?",
+      "answer": 98,
+      "explain": "`ch` stores the ASCII value of `'a'`, which is 97. So `ch + 1` is 98, the ASCII value of `'b'`."
+    },
+    {
+      "type": "mc",
+      "category": "printf formatting",
+      "q": "Given `char ch = 'A';`, what does `printf(\"%d %c\", ch, ch);` print?",
+      "choices": ["`65 A`", "`A A`", "`65 65`", "`A 65`"],
+      "answer": 0,
+      "explain": "`%d` prints a char's numeric (ASCII) value, which is 65 for `'A'`, and `%c` prints it as a character."
+    },
+    {
+      "type": "mc",
+      "category": "scanf and character I/O",
+      "q": "In `scanf(\"%d%g\", &x, &pi);`, why do the arguments use `&`?",
+      "choices": ["`scanf` needs each variable's memory address so it can store the values it reads there", "`&` tells `scanf` to skip leading whitespace", "`&` converts the input from a string to a number", "`&` marks the variables as optional inputs"],
+      "answer": 0,
+      "explain": "After the format string, `scanf` takes the locations to store values in. The address-of operator `&` gives a variable's memory address."
+    },
+    {
+      "type": "tf",
+      "category": "scanf and character I/O",
+      "q": "With `scanf(\"%d%g\", &x, &pi);`, entering `      8              3.14   ` (lots of extra spaces) still stores 8 in `x` and 3.14 in `pi`.",
+      "answer": true,
+      "explain": "`scanf` skips leading and trailing whitespace around numeric values. The values only need at least one whitespace character between them."
+    },
+    {
+      "type": "mc",
+      "category": "scanf and character I/O",
+      "q": "A program has to detect and handle badly formed user input carefully. Which approach is more robust?",
+      "choices": ["Read input one character at a time with `getchar` and check the characters before converting them", "Read every value with a single `scanf` call", "Use `printf` to echo the input back before reading it", "Read input with `putchar`"],
+      "answer": 0,
+      "explain": "`scanf` is picky about input format and is not robust against badly formed input. Reading one character at a time (for example with `getchar`) and checking values is more robust, but it takes more code."
+    },
+    {
+      "type": "mc",
+      "category": "scanf and character I/O",
+      "q": "What do `getchar()` and `putchar(ch)` do?",
+      "choices": ["`getchar` reads one character from `stdin`; `putchar` writes one character to `stdout`", "`getchar` reads one line from `stdin`; `putchar` writes one line to `stdout`", "`getchar` reads one character from a file; `putchar` writes one character to `stderr`", "`getchar` returns a character's ASCII code; `putchar` converts a code back to a character"],
+      "answer": 0,
+      "explain": "`getchar` and `putchar` are the `stdin`/`stdout` versions of `fgetc`/`fputc`. Each reads or writes a single character."
+    },
+    {
+      "type": "mc",
+      "category": "File I/O basics",
+      "q": "A file stores \"persistent\" data. What does that mean?",
+      "choices": ["The data lives beyond the execution of the program that created it", "The data cannot be modified once written", "The data is kept in memory while the program runs", "The data is automatically backed up"],
+      "answer": 0,
+      "explain": "Persistent data outlives the run of the program that created it."
+    },
+    {
+      "type": "tf",
+      "category": "File I/O basics",
+      "q": "When a file is opened, its current position starts at the first character, and each character read or written moves the position forward.",
+      "answer": true,
+      "explain": "Each open file tracks its current position in the character stream. The position starts at the first character and moves with every read or write."
+    },
+    {
+      "type": "mc",
+      "category": "File I/O basics",
+      "q": "What are the steps for using a text file in C, in order?",
+      "choices": ["Declare a `FILE *`, open it with `fopen`, read/write with I/O functions, close it with `fclose`", "Open with `fopen`, declare a `FILE *`, close with `fclose`, then read/write", "Declare a `FILE *`, read/write with I/O functions, open with `fopen`, close with `fclose`", "Call `fseek`, open with `fopen`, read/write, then call `rewind` to close"],
+      "answer": 0,
+      "explain": "1) Declare a `FILE *` variable, 2) `fopen` the file, 3) use I/O operations to read, write, or move the position, 4) `fclose` the file."
+    },
+    {
+      "type": "tf",
+      "category": "File I/O basics",
+      "q": "An application program can dereference a `FILE *` to look at the file's contents directly.",
+      "answer": false,
+      "explain": "`FILE *` points to a library-defined type and cannot be dereferenced in an application program. You pass it to I/O library functions instead."
+    },
+    {
+      "type": "mc",
+      "category": "File I/O basics",
+      "q": "Which `fopen` mode string opens a file for appending?",
+      "choices": ["`\"a\"`", "`\"r\"`", "`\"w\"`", "`\"+\"`"],
+      "answer": 0,
+      "explain": "`\"r\"` opens for reading, `\"w\"` for writing, and `\"a\"` for appending."
+    },
+    {
+      "type": "mc",
+      "category": "File I/O basics",
+      "q": "How does `fopen` report that it could not open a file?",
+      "choices": ["It returns `NULL`", "It returns `EOF`", "It returns `-1`", "It prints an error and exits the program"],
+      "answer": 0,
+      "explain": "`fopen` returns `NULL` on error, so the caller should check for `NULL` and handle the error, for example by printing a message and calling `exit(1)`."
+    },
+    {
+      "type": "multi",
+      "category": "File I/O basics",
+      "q": "Which of these can cause `fopen` to fail?",
+      "choices": ["An invalid filename", "The user lacks permission to open the file in the requested mode (e.g., no write permission)", "The file name is given as an absolute path instead of a relative path", "The file's text contains tab characters"],
+      "answer": [0, 1],
+      "explain": "`fopen` fails for things like an invalid filename or missing permissions. Both relative and absolute path names are valid, and a file's contents don't affect whether it opens."
+    },
+    {
+      "type": "mc",
+      "category": "File I/O basics",
+      "q": "Why is the variable that receives `getc(infile)` declared as `int ch` instead of `char ch`?",
+      "choices": ["`EOF` is not a `char` value but an `int`, and an `int` can hold every `char` value as well as `EOF`", "`getc` only returns ASCII codes above 255", "A `char` variable cannot be passed to `putc`", "An `int` makes the read faster"],
+      "answer": 0,
+      "explain": "`EOF` is an `int` value that is not a valid `char`. Storing the result in an `int` lets the program tell `EOF` apart from real characters."
+    },
+    {
+      "type": "tf",
+      "category": "File I/O basics",
+      "q": "Functions that read from a file can check for `EOF` to tell when they have reached the end of the file stream.",
+      "answer": true,
+      "explain": "When a read reaches the end of the file's data, the I/O library produces `EOF`, which reading code can test for."
+    },
+    {
+      "type": "text",
+      "category": "File I/O basics",
+      "q": "Which `stdio.h` function do you call to close a file stream when the program no longer needs it?",
+      "answer": ["fclose", "fclose()"],
+      "explain": "For example, `fclose(infile);`."
+    },
+    {
+      "type": "mc",
+      "category": "File positioning",
+      "q": "What does `fseek(f, -3, SEEK_END);` do?",
+      "choices": ["Moves the current position to 3 characters before the end of the file", "Moves the current position 3 characters back from where it is now", "Moves to the 3rd character from the start of the file", "Deletes the last 3 characters of the file"],
+      "answer": 0,
+      "explain": "`SEEK_END` measures the offset from the end of the file, so an offset of -3 means 3 characters back from the end."
+    },
+    {
+      "type": "multi",
+      "category": "File positioning",
+      "q": "Which calls move the current position of file stream `f` back to the beginning of the file?",
+      "choices": ["`rewind(f);`", "`fseek(f, 0, SEEK_SET);`", "`fseek(f, 0, SEEK_END);`", "`fseek(f, 0, SEEK_CUR);`"],
+      "answer": [0, 1],
+      "explain": "`rewind` resets the position to the beginning, and so does seeking to offset 0 from `SEEK_SET`. Offset 0 from `SEEK_END` is the end of the file, and offset 0 from `SEEK_CUR` doesn't move at all."
+    },
+    {
+      "type": "text",
+      "category": "File positioning",
+      "q": "Complete this call so it moves 3 characters forward from the current position: `fseek(f, 3, ______);`",
+      "answer": ["SEEK_CUR"],
+      "explain": "`SEEK_CUR` measures the offset from the current position. `SEEK_SET` measures from the beginning and `SEEK_END` from the end."
+    },
+    {
+      "type": "tf",
+      "category": "File positioning",
+      "q": "To read the 10th character of a file, a program must first read the first 9 characters or move the current position there with `fseek`.",
+      "answer": true,
+      "explain": "Reads happen at the current position, so you either read your way to the 10th character or move there with `fseek`."
+    },
+    {
+      "type": "mc",
+      "category": "stdio.h functions",
+      "q": "For `fgets(s, n, f)`, which statement is correct?",
+      "choices": ["It reads at most n-1 characters, stops at a newline (which is stored in `s`), and `'\\0'`-terminates `s`", "It reads exactly n characters and ignores newlines", "It reads at most n characters, drops the newline, and does not add `'\\0'`", "It reads one whitespace-separated word of up to n characters"],
+      "answer": 0,
+      "explain": "`fgets` reads up to n-1 characters and stops early if it hits a newline. The newline is kept in the array, and the array is `'\\0'`-terminated."
+    },
+    {
+      "type": "mc",
+      "category": "stdio.h functions",
+      "q": "What does `ungetc(c, f)` do?",
+      "choices": ["Pushes the character `c` back onto stream `f`; at most one char (and not `EOF`) can be pushed back", "Erases the last character written to `f`", "Reads a character from `f` without advancing the position, any number of times", "Undoes the last `fseek` on `f`"],
+      "answer": 0,
+      "explain": "`ungetc` pushes one character back onto the file stream. At most one char can be pushed back, and it cannot be `EOF`."
+    },
+    {
+      "type": "mc",
+      "category": "stdio.h functions",
+      "q": "How do you print a formatted error message to standard error?",
+      "choices": ["`fprintf(stderr, \"Error return value: %d\\n\", ret);`", "`printf(stderr, \"Error return value: %d\\n\", ret);`", "`fputs(\"Error return value\", ret);`", "`putchar(stderr, ret);`"],
+      "answer": 0,
+      "explain": "`fprintf` takes the stream as its first argument, so passing `stderr` sends the output to standard error. `printf` always writes to `stdout`."
+    },
+    {
+      "type": "mc",
+      "category": "stdio.h functions",
+      "q": "What does `fscanf` return?",
+      "choices": ["The number of input items converted and assigned, or `EOF` on error or if end-of-file was reached", "The number of characters read from the file", "The new current position in the file", "`0` on success and `NULL` on failure"],
+      "answer": 0,
+      "explain": "`fscanf` (and `scanf`) return how many input items were converted and assigned, or `EOF` on error or end-of-file."
+    },
+    {
+      "type": "mc",
+      "category": "stdio.h functions",
+      "q": "What does `fprintf` return?",
+      "choices": ["The number of characters printed", "The number of placeholders in the format string", "The file's new size in bytes", "Always 0 on success"],
+      "answer": 0,
+      "explain": "`fprintf` (and `printf`) return the number of characters printed."
+    },
+    {
+      "type": "multi",
+      "category": "stdio.h functions",
+      "q": "Which of these `stdio.h` functions are character-based (they read or write a single character)?",
+      "choices": ["`fgetc`", "`fputc`", "`ungetc`", "`getchar`", "`fgets`", "`fputs`", "`fprintf`"],
+      "answer": [0, 1, 2, 3],
+      "explain": "`fgetc`, `fputc`, `ungetc`, `getchar`, and `putchar` are character-based. `fgets` and `fputs` are string-based, and `fprintf`/`fscanf` are formatted I/O."
+    },
+    {
+      "type": "mc",
+      "category": "stdio.h functions",
+      "q": "Which functions are the file I/O counterparts of `printf` and `scanf`?",
+      "choices": ["`fprintf` and `fscanf`", "`fputs` and `fgets`", "`putc` and `getc`", "`fwrite` and `fopen`"],
+      "answer": 0,
+      "explain": "`fprintf` and `fscanf` work like `printf` and `scanf`, but they take a `FILE *` stream as their first argument."
+    },
+    {
+      "type": "mc",
+      "category": "fscanf format strings",
+      "q": "Which `fscanf` placeholder reads a `double`?",
+      "choices": ["`%lf`", "`%f`", "`%d`", "`%ld`"],
+      "answer": 0,
+      "explain": "In `fscanf`, `%f` reads a `float` and `%lf` reads a `double`, as in `fscanf(infile, \"%lf\", &d);`."
+    },
+    {
+      "type": "mc",
+      "category": "fscanf format strings",
+      "q": "Where does `fscanf` with `%s` stop reading the string?",
+      "choices": ["At the first whitespace character", "At the end of the line only", "At the first punctuation mark", "Only at end-of-file"],
+      "answer": 0,
+      "explain": "`%s` reads a string up to the first whitespace. To read up to a newline, use `%[^\\n]`."
+    },
+    {
+      "type": "mc",
+      "category": "fscanf format strings",
+      "q": "What does the `fscanf` specifier `%[^\\n]` read?",
+      "choices": ["Everything up to (not including) a newline", "Only newline characters", "A single character that is not a newline", "Everything, including newlines, up to end-of-file"],
+      "answer": 0,
+      "explain": "`%[^...]` reads a string up to the first character that IS in the brackets. With `\\n` in the brackets, it reads up to the newline."
+    },
+    {
+      "type": "text",
+      "category": "fscanf format strings",
+      "q": "The file holds `2024-10-16`. What string does `fscanf(infile, \"%[0123456789]\", array);` store in `array`?",
+      "answer": ["2024"],
+      "explain": "`%[...]` reads characters only while they are in the bracketed set. The `-` is not a digit, so reading stops after `2024`."
+    },
+    {
+      "type": "text",
+      "category": "fscanf format strings",
+      "q": "The file holds `hello, world!`. What string does `fscanf(infile, \"%[^.,:!;]\", array);` store in `array`?",
+      "answer": ["hello"],
+      "explain": "`%[^.,:!;]` reads until it reaches a character in the set. The comma is in the set, so reading stops after `hello`."
+    },
+    {
+      "type": "multi",
+      "category": "fscanf format strings",
+      "q": "`fscanf(infile, \"%20[012345]\", array);` stops reading when which of these happens?",
+      "choices": ["20 characters have been read", "A character that is not one of 0-5 is reached", "The stream reaches end-of-file (`EOF`)", "The digit `5` is read"],
+      "answer": [0, 1, 2],
+      "explain": "The width 20 limits how many characters are read. The set `[012345]` stops reading at any character outside 0-5, and end-of-file also stops it. `5` is in the set, so reading it does not stop the read."
+    },
+    {
+      "type": "mc",
+      "category": "fscanf format strings",
+      "q": "The file holds `42,z`. After `fscanf(infile, \"%d,%c\", &x, &c);`, what are `x` and `c`?",
+      "choices": ["`x` is 42 and `c` is `'z'`", "`x` is 42 and `c` is `','`", "`x` is 4 and `c` is `'2'`", "Nothing is assigned, because the comma causes an error"],
+      "answer": 0,
+      "explain": "The `,` in the format string matches the comma in the input, so `%d` reads 42 and `%c` reads `'z'`."
+    },
+    {
+      "type": "text",
+      "category": "fscanf format strings",
+      "q": "With `int x = 7;` and `char c = 'k';`, `fprintf(outfile, \"%d:%c\\n\", x, c);` writes what text to the file before the newline?",
+      "answer": ["7:k"],
+      "explain": "The format string writes the int, then a colon, then the char, then a newline."
+    },
+    {
+      "type": "mc",
+      "category": "fscanf format strings",
+      "q": "A file contains `17` on line 1 and `Q` on line 2. The program calls `fscanf(infile, \"%d\", &x);` and then `fscanf(infile, \"%c\", &c);`. What ends up in `c`?",
+      "choices": ["The newline character `'\\n'` left after `17`", "`'Q'`", "`'1'`", "`EOF`"],
+      "answer": 0,
+      "explain": "The first call does not consume the newline after `17`, and `%c` does not skip whitespace, so `c` gets `'\\n'`. A fix is to read and discard that character in the first call, for example with `\"%d%c\"`."
+    },
+    {
+      "type": "tf",
+      "category": "fscanf format strings",
+      "q": "After reading a number from a line, you must explicitly consume the trailing `'\\n'` even if the next `fscanf` call reads another number.",
+      "answer": false,
+      "explain": "When the next call reads a numeric value, `fscanf` discards leading whitespace automatically. You only need to consume the newline when the next call reads a character."
+    }
+  ]
+}
