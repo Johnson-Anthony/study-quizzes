@@ -1,0 +1,306 @@
+{
+  "title": "3.5 Debugging Assembly Code",
+  "course": "C",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Compiling for assembly debugging",
+      "q": "Which gcc flag compiles simpleops.c into an IA32 (32-bit) executable?",
+      "choices": ["-m32", "-g", "-m64", "-O0"],
+      "answer": 0,
+      "explain": "The -m32 flag tells gcc to produce an IA32 executable, e.g. gcc -m32 -o simpleops simpleops.c."
+    },
+    {
+      "type": "mc",
+      "category": "Compiling for assembly debugging",
+      "q": "What is the benefit of adding -fno-asynchronous-unwind-tables when compiling with gcc -m32?",
+      "choices": [
+        "It turns on optimizations so the program runs faster under GDB",
+        "It produces IA32 code that is a bit easier for a programmer to read and understand",
+        "It is required for GDB to set breakpoints on instruction addresses",
+        "It adds debugging symbols so GDB can show C source lines"
+      ],
+      "answer": 1,
+      "explain": "This option is optional. It makes the generated IA32 code easier for a person to read."
+    },
+    {
+      "type": "tf",
+      "category": "Compiling for assembly debugging",
+      "q": "The GDB assembly-level commands (disass, si, ni, info registers, and so on) work only with IA32 assembly.",
+      "answer": false,
+      "explain": "IA32 is just the example. The same GDB commands work with any assembly language that GCC supports."
+    },
+    {
+      "type": "text",
+      "category": "Disassembly and breakpoints",
+      "q": "Type the GDB command that lists the assembly instructions of the function main (use the short form shown in the material).",
+      "answer": ["disass main", "disassemble main"],
+      "explain": "disass <func_name> lists the assembly code for that function."
+    },
+    {
+      "type": "mc",
+      "category": "Disassembly and breakpoints",
+      "q": "Which GDB command sets a breakpoint at the single assembly instruction located at address 0x080483c1?",
+      "choices": ["break 0x080483c1", "break &0x080483c1", "break *0x080483c1", "disass *0x080483c1"],
+      "answer": 2,
+      "explain": "To break on an instruction address you dereference it with *: break *0x080483c1."
+    },
+    {
+      "type": "mc",
+      "category": "Disassembly and breakpoints",
+      "q": "What does the GDB command disass 0x1234 0x1248 do?",
+      "choices": [
+        "Sets breakpoints at addresses 0x1234 and 0x1248",
+        "Prints the memory contents from 0x1234 to 0x1248 as integers",
+        "Disassembles the function located at 0x1234 and the one at 0x1248",
+        "Lists the assembly instructions between addresses 0x1234 and 0x1248"
+      ],
+      "answer": 3,
+      "explain": "disass <start> <end> lists the assembly instructions between the start and end addresses."
+    },
+    {
+      "type": "tf",
+      "category": "Disassembly and breakpoints",
+      "q": "The command break sum sets a breakpoint at the beginning of the function sum.",
+      "answer": true,
+      "explain": "Giving a function name to break sets a breakpoint at the start of that function. Use break *ADDR to break on a specific instruction."
+    },
+    {
+      "type": "mc",
+      "category": "Stepping through instructions",
+      "q": "The program is paused at a call instruction and you enter ni. Where does GDB pause next?",
+      "choices": [
+        "At the first instruction of the called function",
+        "At the instruction after the call, once the called function has run and returned",
+        "At the next breakpoint, wherever it is",
+        "At the first instruction of main"
+      ],
+      "answer": 1,
+      "explain": "ni (nexti) treats a function call as one instruction. It runs the whole call and pauses at the instruction right after it."
+    },
+    {
+      "type": "mc",
+      "category": "Stepping through instructions",
+      "q": "The program is paused at a call instruction and you enter si. Where does GDB pause next?",
+      "choices": [
+        "At the first instruction of the called function",
+        "At the instruction after the call, once the called function has run and returned",
+        "At the return instruction of the called function",
+        "It does not move, because si cannot step over a call"
+      ],
+      "answer": 0,
+      "explain": "si (stepi) steps into function calls, so GDB pauses at the first instruction of the called function."
+    },
+    {
+      "type": "multi",
+      "category": "Stepping through instructions",
+      "q": "Which statements about stepi/si and nexti/ni are true?",
+      "choices": [
+        "si is short for stepi and ni is short for nexti",
+        "Both run the next machine code instruction",
+        "ni treats a function call as a single instruction",
+        "si skips over function calls",
+        "ni moves forward one line of C source code at a time"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Both commands run one machine instruction. si steps into calls, and ni treats a call as a single instruction. Neither works by C source lines."
+    },
+    {
+      "type": "text",
+      "category": "Stepping through instructions",
+      "q": "What is the full name of the GDB command si?",
+      "answer": ["stepi"],
+      "explain": "si is the short form of stepi (step instruction)."
+    },
+    {
+      "type": "mc",
+      "category": "Stepping through instructions",
+      "q": "You are stopped at a breakpoint. Which command resumes normal execution until the next breakpoint?",
+      "choices": ["disass", "cont", "info registers", "display"],
+      "answer": 1,
+      "explain": "cont continues running the program."
+    },
+    {
+      "type": "num",
+      "category": "Stepping through instructions",
+      "q": "In simpleops (x = 1; x = x + 2; x = x - 14; y = x * 100; x = x + y * 6;), you step through main one instruction at a time. What value does y hold once y = x * 100 has run?",
+      "answer": -1100,
+      "explain": "x goes 1, then 3, then -11. So y = -11 * 100 = -1100."
+    },
+    {
+      "type": "num",
+      "category": "Stepping through instructions",
+      "q": "Using the same simpleops program, what value does x hold just before main returns?",
+      "answer": -6611,
+      "explain": "Before the last statement x = -11 and y = -1100. Then x = -11 + (-1100 * 6) = -11 - 6600 = -6611."
+    },
+    {
+      "type": "mc",
+      "category": "Registers",
+      "q": "Which GDB command prints the value stored in register eax?",
+      "choices": ["print %eax", "print eax", "print *eax", "print $eax"],
+      "answer": 3,
+      "explain": "In GDB, register names start with $, so the command is print $eax (or p $eax)."
+    },
+    {
+      "type": "text",
+      "category": "Registers",
+      "q": "Which GDB command shows the values stored in all the machine registers?",
+      "answer": ["info registers", "info reg", "i r"],
+      "explain": "info registers lists the contents of every register."
+    },
+    {
+      "type": "mc",
+      "category": "Registers",
+      "q": "How is display $eax different from print $eax?",
+      "choices": [
+        "display shows eax automatically every time a breakpoint is hit, while print shows it only once",
+        "display shows eax in hexadecimal, while print shows it in decimal",
+        "display changes the value of eax, while print only reads it",
+        "display shows every register, while print shows only eax"
+      ],
+      "answer": 0,
+      "explain": "display prints the expression each time a breakpoint is reached. print evaluates it only once."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory",
+      "q": "What does p *(int *)($ebp+8) print?",
+      "choices": [
+        "The value of register ebp plus 8",
+        "The address ebp+8 shown as an int",
+        "The int value stored in memory at address (contents of ebp) + 8",
+        "The eighth int on the stack, counted from esp"
+      ],
+      "answer": 2,
+      "explain": "$ebp+8 is computed as an address. It is cast to int * and dereferenced, so GDB prints the int stored there."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory",
+      "q": "What does the GDB command x $ebp-4 do?",
+      "choices": [
+        "Prints the value of register ebp minus 4",
+        "Examines the memory at the address (contents of register ebp) - 4",
+        "Sets register ebp to ebp - 4",
+        "Disassembles the instruction at address ebp - 4"
+      ],
+      "answer": 1,
+      "explain": "x treats its argument as an address and shows the memory there. Here the address is ebp's value minus 4."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory",
+      "q": "Address 0x40062d holds the string \"Hello There\". Which command shows that memory as a string?",
+      "choices": ["x/s 0x40062d", "x/d 0x40062d", "print 0x40062d", "x/4c 0x40062d"],
+      "answer": 0,
+      "explain": "The /s format makes x show the memory as a string: 0x40062d \"Hello There\"."
+    },
+    {
+      "type": "tf",
+      "category": "Examining memory",
+      "q": "The format used by the x command goes back to its default after every use, so you never need to reset the unit size.",
+      "answer": false,
+      "explain": "The x format is sticky. A unit size set by an earlier command, such as 1 byte after x/4c or x/s, stays in effect until you change it."
+    },
+    {
+      "type": "num",
+      "category": "Examining memory",
+      "q": "Address 0x40062d holds \"Hello There\". You run x/4c 0x40062d and get 72 'H' 101 'e' 108 'l' 108 'l'. If you then run x/d 0x40062d, what number is printed?",
+      "answer": 72,
+      "explain": "x/4c set the unit size to 1 byte, and that setting is sticky. So x/d reads 1 byte and prints 72 (the 'H')."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory",
+      "q": "You just ran x/s on an address. Now you want to see a 4-byte int in decimal at 0xff5634. Which command is correct?",
+      "choices": ["x/d 0xff5634", "x/s 0xff5634", "x/wd 0xff5634", "x/c 0xff5634"],
+      "answer": 2,
+      "explain": "After x/s the unit size is 1 byte. You must give both the width w (4 bytes) and the format d."
+    },
+    {
+      "type": "mc",
+      "category": "Modifying state",
+      "q": "What is the effect of set $esp = $esp + 4 in GDB on IA32?",
+      "choices": [
+        "It pushes a 4-byte value onto the stack",
+        "It stores 4 at the address in esp",
+        "It pops a 4-byte value off the stack",
+        "It prints the value 4 bytes above the stack pointer"
+      ],
+      "answer": 2,
+      "explain": "Adding 4 to the stack pointer removes (pops) one 4-byte value from the stack."
+    },
+    {
+      "type": "mc",
+      "category": "Modifying state",
+      "q": "Which command stores the int 44 at memory address 0x8ff4bc10?",
+      "choices": [
+        "set 0x8ff4bc10 = 44",
+        "set *(int *)0x8ff4bc10 = 44",
+        "print *(int *)0x8ff4bc10 = 44",
+        "x/wd 0x8ff4bc10 = 44"
+      ],
+      "answer": 1,
+      "explain": "Cast the address to int * and dereference it, then use set to assign 44: set *(int *)0x8ff4bc10 = 44."
+    },
+    {
+      "type": "text",
+      "category": "Modifying state",
+      "q": "Write the GDB command that sets register eax to 10.",
+      "answer": ["set $eax = 10", "set $eax=10", "set $eax =10", "set $eax= 10"],
+      "explain": "set can change registers as well as memory: set $eax = 10."
+    },
+    {
+      "type": "multi",
+      "category": "Modifying state",
+      "q": "Which of these GDB commands move the program's execution forward?",
+      "choices": ["ni", "si", "cont", "disass main", "info registers", "display $eax"],
+      "answer": [0, 1, 2],
+      "explain": "ni, si, and cont all run the program. disass, info registers, and display only show information."
+    },
+    {
+      "type": "mc",
+      "category": "DDD",
+      "q": "What is DDD?",
+      "choices": [
+        "A disassembler that replaces gcc's -m32 option",
+        "A graphical interface built on top of another debugger such as GDB",
+        "A command-line debugger that does not support GDB commands",
+        "A tool that converts assembly back into C source"
+      ],
+      "answer": 1,
+      "explain": "DDD adds a graphical interface on top of a debugger like GDB, with windows for disassembled code, register values, and the GDB prompt."
+    },
+    {
+      "type": "text",
+      "category": "DDD",
+      "q": "Write the shell command that starts DDD on the executable simpleops in the current directory.",
+      "answer": ["ddd ./simpleops", "ddd simpleops", "$ ddd ./simpleops"],
+      "explain": "To use DDD, type ddd in place of gdb: ddd ./simpleops."
+    },
+    {
+      "type": "mc",
+      "category": "DDD",
+      "q": "In DDD, which menu option opens a subwindow that shows the program's assembly code?",
+      "choices": ["Status -> Registers", "View -> Machine Code Window", "Source -> Disassemble", "View -> Data Window"],
+      "answer": 1,
+      "explain": "View -> Machine Code Window opens a subwindow listing the assembly code."
+    },
+    {
+      "type": "mc",
+      "category": "DDD",
+      "q": "In DDD, which menu option shows all of the program's register values in a separate window?",
+      "choices": ["View -> Machine Code Window", "Status -> Registers", "View -> Registers", "Status -> Backtrace"],
+      "answer": 1,
+      "explain": "Turn on Status -> Registers to see the register values in their own window."
+    },
+    {
+      "type": "tf",
+      "category": "DDD",
+      "q": "In DDD, the bottom window holds a GDB prompt where you can type GDB commands directly.",
+      "answer": true,
+      "explain": "DDD has buttons and menus for some commands, but the GDB prompt at the bottom is often easier to use."
+    }
+  ]
+}
