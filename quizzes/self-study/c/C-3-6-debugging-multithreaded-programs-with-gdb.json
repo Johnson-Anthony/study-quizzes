@@ -1,0 +1,284 @@
+{
+  "title": "3.6 Debugging Multithreaded Programs with GDB",
+  "course": "C",
+  "questions": [
+    {
+      "type": "tf",
+      "category": "General debugging strategies",
+      "q": "When debugging a multithreaded program, it is generally easier to work with a version that uses as many threads as possible, so that bugs show up more often.",
+      "answer": false,
+      "explain": "The advice is the opposite: when you can, debug a version of the program with as few threads as possible."
+    },
+    {
+      "type": "mc",
+      "category": "General debugging strategies",
+      "q": "You add debugging printf statements to a multithreaded program. What should each debug line include, and how should it end?",
+      "choices": [
+        "The executing thread's ID, ending with \\n",
+        "The process ID, ending with a tab character",
+        "The current time, with no trailing newline",
+        "The address of the shared variable, ending with a space"
+      ],
+      "answer": 0,
+      "explain": "Printing the thread's ID shows which thread produced each line. Ending the line with \\n keeps each thread's output on its own line."
+    },
+    {
+      "type": "mc",
+      "category": "General debugging strategies",
+      "q": "Each thread stores its logical ID in a local variable my_tid. What is the purpose of wrapping a debug printf in `if (my_tid == 1) { ... }`?",
+      "choices": [
+        "It limits debug output to a single thread so the output is easier to read",
+        "It stops all threads except thread 1 from running",
+        "It makes the printf call thread-safe",
+        "It makes thread 1 run before the other threads"
+      ],
+      "answer": 0,
+      "explain": "A condition on my_tid lets only one thread print its own information and the shared information, which cuts down the amount of debug output."
+    },
+    {
+      "type": "multi",
+      "category": "Thread identifiers",
+      "q": "When you debug a Pthreads program in GDB, which of these identifiers does each thread have?",
+      "choices": [
+        "The Pthreads library's ID (its pthread_t value)",
+        "The operating system's lightweight process (LWP) ID",
+        "The GDB thread ID",
+        "A mutex ID assigned by pthread_mutex_t",
+        "A breakpoint number assigned by GDB"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Each thread has at least three identifiers: its pthread_t value, its OS LWP ID, and its GDB ID. Mutexes and breakpoint numbers do not identify threads."
+    },
+    {
+      "type": "mc",
+      "category": "Thread identifiers",
+      "q": "Which identifier do you use to name a specific thread in a GDB command such as `thread <threadno>`?",
+      "choices": [
+        "The GDB thread ID",
+        "The pthread_t value",
+        "The LWP ID",
+        "The program's own logical ID (e.g., my_tid)"
+      ],
+      "answer": 0,
+      "explain": "GDB commands that name a specific thread use the GDB ID for that thread."
+    },
+    {
+      "type": "mc",
+      "category": "Thread identifiers",
+      "q": "What does the operating system use a thread's lightweight process (LWP) ID for?",
+      "choices": [
+        "Partly to keep track of the thread for scheduling",
+        "To name the thread in GDB commands",
+        "To lock and unlock mutexes",
+        "To number the thread's breakpoints"
+      ],
+      "answer": 0,
+      "explain": "The OS uses the LWP ID in part to keep track of the thread for scheduling purposes."
+    },
+    {
+      "type": "tf",
+      "category": "Thread identifiers",
+      "q": "The relationship between a thread's Pthreads ID, LWP ID, and GDB ID is exactly the same on every OS and Pthreads library implementation.",
+      "answer": false,
+      "explain": "The relationship can differ between OS and Pthreads implementations. On most systems, though, there is a one-to-one-to-one correspondence between the three IDs."
+    },
+    {
+      "type": "mc",
+      "category": "Thread identifiers",
+      "q": "GDB prints: `[Switching to thread 3 (Thread 0x7ffff6fc3700 (LWP 5834))]`. Which statement correctly identifies the three values?",
+      "choices": [
+        "3 is the GDB ID, 0x7ffff6fc3700 is the Pthreads (pthread_t) ID, 5834 is the LWP ID",
+        "3 is the LWP ID, 0x7ffff6fc3700 is the GDB ID, 5834 is the Pthreads ID",
+        "3 is the Pthreads ID, 0x7ffff6fc3700 is the stack address, 5834 is the GDB ID",
+        "3 is the program's logical thread number, 0x7ffff6fc3700 is the LWP ID, 5834 is the process ID"
+      ],
+      "answer": 0,
+      "explain": "`thread 3` uses the GDB ID. The value labeled LWP is the OS's lightweight process ID. The hex value is the pthread_t: for example, thread 0 printed pthread_id 140737345505024, which equals 0x7ffff77c4700, the value GDB showed for that thread."
+    },
+    {
+      "type": "text",
+      "category": "GDB thread commands",
+      "q": "Which GDB command lists all existing threads in the program?",
+      "answer": ["info threads"],
+      "explain": "`info threads` lists every thread. The GDB thread number is the first value on each line."
+    },
+    {
+      "type": "mc",
+      "category": "GDB thread commands",
+      "q": "In the output of `info threads`, how is the thread that hit the breakpoint marked?",
+      "choices": [
+        "With an *",
+        "With a #",
+        "With the word CURRENT",
+        "It is always listed last"
+      ],
+      "answer": 0,
+      "explain": "The thread that hit the breakpoint is marked with an *."
+    },
+    {
+      "type": "text",
+      "category": "GDB thread commands",
+      "q": "Which GDB command turns on printing of thread start and exit events?",
+      "answer": ["set print thread-events", "set print thread-events on"],
+      "explain": "`set print thread-events` turns on messages when threads start and exit."
+    },
+    {
+      "type": "mc",
+      "category": "GDB thread commands",
+      "q": "The program is stopped at a breakpoint. You want to see the stack trace of GDB thread 12. Which commands should you run?",
+      "choices": [
+        "thread 12, then where",
+        "where 12",
+        "info threads 12",
+        "break where thread 12"
+      ],
+      "answer": 0,
+      "explain": "`thread 12` switches to thread 12's execution context. After that, `where` prints thread 12's stack trace."
+    },
+    {
+      "type": "text",
+      "category": "Thread-specific breakpoints",
+      "q": "Write the GDB command that sets a breakpoint on function foo that triggers only when GDB thread 12 runs it.",
+      "answer": ["break foo thread 12", "b foo thread 12"],
+      "explain": "The syntax is `break <where> thread <threadno>`."
+    },
+    {
+      "type": "mc",
+      "category": "Thread-specific breakpoints",
+      "q": "You set `break 77 thread 4`. What happens when thread 2 executes line 77?",
+      "choices": [
+        "Nothing: the breakpoint does not trigger, and thread 2 keeps running",
+        "The program pauses and GDB switches to thread 4",
+        "The program pauses at the breakpoint in thread 2",
+        "GDB prints a warning and deletes the breakpoint"
+      ],
+      "answer": 0,
+      "explain": "A thread-specific breakpoint fires only for the named thread. Other threads that reach that point in the code do not pause the program."
+    },
+    {
+      "type": "mc",
+      "category": "GDB thread commands",
+      "q": "What does adding the prefix `thread apply <threadno|all>` to a GDB command do?",
+      "choices": [
+        "It runs the command on the given thread(s), or on all threads",
+        "It creates a new thread to run the command",
+        "It switches permanently to the given thread",
+        "It makes the command run only after all threads exit"
+      ],
+      "answer": 0,
+      "explain": "`thread apply <threadno|all> command` runs a GDB command on one thread, a subset of threads, or all threads, using GDB thread IDs."
+    },
+    {
+      "type": "tf",
+      "category": "Thread-specific breakpoints",
+      "q": "The correct way to set a breakpoint on foo for only thread 3 is `thread apply 3 break foo`.",
+      "answer": false,
+      "explain": "`thread apply` does not work for every GDB command, and setting breakpoints is one of the exceptions. Use `break foo thread 3` instead."
+    },
+    {
+      "type": "mc",
+      "category": "Thread-specific breakpoints",
+      "q": "By default, what does GDB do when one thread reaches a breakpoint?",
+      "choices": [
+        "It pauses all threads until the user types cont",
+        "It pauses only the thread that hit the breakpoint",
+        "It pauses only the main thread",
+        "It kills every thread except the one that hit the breakpoint"
+      ],
+      "answer": 0,
+      "explain": "By default, GDB pauses all threads until the user continues. You can change this so that only the threads that hit a breakpoint pause."
+    },
+    {
+      "type": "tf",
+      "category": "Thread-specific breakpoints",
+      "q": "You can configure GDB so that only the threads that hit a breakpoint pause and the other threads keep running.",
+      "answer": true,
+      "explain": "The user can change the default behavior so that only threads that hit a breakpoint pause, and the other threads keep running."
+    },
+    {
+      "type": "mc",
+      "category": "Race conditions (racecond example)",
+      "q": "Several threads in racecond.c run `count += i;` on a shared variable count. Two runs with 5 threads print different final values for count. What is the cause?",
+      "choices": [
+        "A race condition: there is no synchronization around accesses to the shared variable count",
+        "Each thread has its own private copy of count",
+        "The loop bound differs from one run to the next",
+        "printf changes the value of count"
+      ],
+      "answer": 0,
+      "explain": "Nothing synchronizes access to count, so concurrent updates interfere with each other. That race condition makes the final result differ from run to run."
+    },
+    {
+      "type": "mc",
+      "category": "Race conditions (racecond example)",
+      "q": "What is the fix for the race condition on count in racecond.c?",
+      "choices": [
+        "Put accesses to count inside a critical section protected by a pthread_mutex_t",
+        "Declare count as a local variable in main",
+        "Have each thread call printf after updating count",
+        "Use thread-specific breakpoints on the line that updates count"
+      ],
+      "answer": 0,
+      "explain": "Wrapping the accesses to count in a critical section with a pthread_mutex_t lets only one thread update it at a time."
+    },
+    {
+      "type": "num",
+      "category": "GDB session walkthrough",
+      "q": "In GDB, the racecond program is started with `run 3`, so it spawns three threads. What is the GDB thread number of the main thread?",
+      "answer": 1,
+      "explain": "The main thread is always GDB thread 1. The three spawned threads are GDB threads 2 to 4."
+    },
+    {
+      "type": "mc",
+      "category": "GDB session walkthrough",
+      "q": "With `break main`, GDB stops at the start of main. Why can't you set `break 77 thread 4` at that point?",
+      "choices": [
+        "Only thread 1 (the main thread) exists yet, so thread 4 has not been created",
+        "Thread-specific breakpoints can only be set on function names",
+        "Line 77 has not been compiled yet",
+        "You must delete breakpoint 1 first"
+      ],
+      "answer": 0,
+      "explain": "You have to keep track of which threads exist. At the breakpoint in main, only thread 1 exists, so you must wait until the other threads are created before setting a breakpoint for one of them."
+    },
+    {
+      "type": "mc",
+      "category": "GDB session walkthrough",
+      "q": "In the session, thread 4 stops at `count += i;` and `print i` shows 1. Then you run `thread 3` and `print i`, which shows 0. Why is the value different?",
+      "choices": [
+        "i is a local variable, so each thread has its own copy on its own stack, and print shows the current thread's i",
+        "The thread command resets every local variable to 0",
+        "Thread 3 has not started running yet",
+        "print i always shows the main thread's value"
+      ],
+      "answer": 0,
+      "explain": "Each thread has its own stack and its own local i. After `thread 3`, commands like `print` and `where` work in thread 3's context."
+    },
+    {
+      "type": "mc",
+      "category": "GDB session walkthrough",
+      "q": "The program printed `hello I'm thread 0 with pthread_id 140737345505024`, and GDB earlier showed `[New Thread 0x7ffff77c4700 (LWP 5833)]`. In this session, 0x7ffff77c4700 == 140737345505024, and LWP 5833 matches GDB thread 2. Which GDB thread is the program's logical thread 0?",
+      "choices": [
+        "GDB thread 2",
+        "GDB thread 1",
+        "GDB thread 0",
+        "GDB thread 4"
+      ],
+      "answer": 0,
+      "explain": "The program's own numbering (myid) is separate from GDB's. Logical thread 0 has the same pthread_t and LWP ID (5833) as GDB thread 2. GDB thread 1 is always the main thread."
+    },
+    {
+      "type": "mc",
+      "category": "GDB session walkthrough",
+      "q": "After `break 77 thread 4` and `cont`, thread 4 stops at line 77 (`count += i;`) and `print i` shows 0. After another `cont`, thread 4 stops at line 77 again and `print i` shows 1. Why does it stop at the same line again?",
+      "choices": [
+        "Line 77 is the body of a for loop, so the breakpoint fires each time thread 4 runs it on a new iteration",
+        "cont restarts the thread from the beginning of worker_loop",
+        "A thread-specific breakpoint fires exactly twice and is then deleted",
+        "Another thread hit the breakpoint and GDB reported it as thread 4"
+      ],
+      "answer": 0,
+      "explain": "Line 77 is inside `for (i = 0; i < 10000; i++)`. Each time thread 4 runs it, the breakpoint fires, so you see i = 0 and then i = 1. Other threads do not trigger the breakpoint."
+    }
+  ]
+}
