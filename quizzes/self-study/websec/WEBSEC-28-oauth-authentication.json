@@ -1,0 +1,408 @@
+{
+  "title": "OAuth 2.0 authentication vulnerabilities",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "OAuth fundamentals",
+      "q": "What is OAuth 2.0 fundamentally designed to do?",
+      "choices": [
+        "Encrypt all traffic between a browser and a web server",
+        "Let a website request limited access to a user's account on another application without exposing the user's login credentials",
+        "Replace passwords with biometric authentication",
+        "Hash and store user passwords securely on a resource server"
+      ],
+      "answer": 1,
+      "explain": "OAuth is an authorization framework that lets a client application request limited, scoped access to a user's data held by another application, without the user handing over their credentials to the client.",
+      "topic": "What is OAuth"
+    },
+    {
+      "type": "multi",
+      "category": "OAuth fundamentals",
+      "q": "Which three parties are involved in the OAuth 2.0 process?",
+      "choices": [
+        "Client application",
+        "Resource owner",
+        "OAuth service provider",
+        "Certificate authority",
+        "Domain registrar"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "OAuth defines interactions between the client application (wants the data), the resource owner (the user whose data it is), and the OAuth service provider (controls the data, providing an authorization server and resource server).",
+      "topic": "OAuth roles"
+    },
+    {
+      "type": "text",
+      "category": "OAuth fundamentals",
+      "q": "In an OAuth authentication (SSO-like) flow, the client application typically requests identifying user data from which dedicated endpoint on the resource server?",
+      "answer": ["/userinfo", "userinfo"],
+      "explain": "After receiving an access token, the client application requests identifying data (e.g. email) from a dedicated /userinfo endpoint, then uses that data in place of a username to log the user in.",
+      "topic": "OAuth authentication"
+    },
+    {
+      "type": "multi",
+      "category": "OAuth fundamentals",
+      "q": "Which parameters in the first request to the /authorization endpoint are strong indicators that OAuth is in use?",
+      "choices": [
+        "client_id",
+        "redirect_uri",
+        "response_type",
+        "X-Forwarded-For",
+        "Content-Length"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Regardless of grant type, the authorization request carries OAuth-specific query parameters; client_id, redirect_uri, and response_type are the giveaways.",
+      "topic": "Identifying OAuth"
+    },
+    {
+      "type": "multi",
+      "category": "OAuth fundamentals",
+      "q": "During recon of an OAuth service, which standard endpoints are worth requesting to reveal configuration details and extra attack surface?",
+      "choices": [
+        "/.well-known/oauth-authorization-server",
+        "/.well-known/openid-configuration",
+        "/robots.txt",
+        "/sitemap.xml"
+      ],
+      "answer": [0, 1],
+      "explain": "Both endpoints often return a JSON configuration file listing supported features, endpoint names, and options that may not be in the public documentation.",
+      "topic": "Recon"
+    },
+    {
+      "type": "mc",
+      "category": "Grant types",
+      "q": "In the authorization code grant type, which value of response_type is sent in the authorization request?",
+      "choices": [
+        "token",
+        "code",
+        "id_token",
+        "secret"
+      ],
+      "answer": 1,
+      "explain": "The authorization code flow sets response_type=code; the implicit flow sets response_type=token.",
+      "topic": "Authorization code grant"
+    },
+    {
+      "type": "tf",
+      "category": "Grant types",
+      "q": "In the authorization code grant type, the code/token exchange and the fetching of user data occur over a secure server-to-server back-channel that is not visible to the end user.",
+      "answer": true,
+      "explain": "From the code/token exchange onward, communication is server-to-server over a preconfigured secure channel using the client_secret, so an attacker generally cannot observe or control it. This is why the authorization code flow is considered the most secure.",
+      "topic": "Authorization code grant"
+    },
+    {
+      "type": "mc",
+      "category": "Grant types",
+      "q": "In the implicit grant type, how is the access token delivered to the client application?",
+      "choices": [
+        "In a server-to-server POST response body",
+        "As a URL fragment in a browser redirect to the redirect_uri",
+        "Inside an HTTP-only session cookie",
+        "As a signed JWT in the Authorization header of the authorization request"
+      ],
+      "answer": 1,
+      "explain": "In the implicit flow the OAuth service redirects the browser to the redirect_uri with the access token in a URL fragment (#access_token=...), which the client then extracts with JavaScript.",
+      "topic": "Implicit grant"
+    },
+    {
+      "type": "mc",
+      "category": "Grant types",
+      "q": "Why is the implicit grant type considered less secure than the authorization code grant type?",
+      "choices": [
+        "It requires the client_secret to be sent in the browser",
+        "All communication happens via browser redirects with no secure back-channel, exposing the access token and user data",
+        "It cannot use HTTPS",
+        "It does not support the scope parameter"
+      ],
+      "answer": 1,
+      "explain": "The implicit flow sends the sensitive access token and user data through the browser with no back-channel, making it more exposed. It is better suited to single-page and native desktop apps that cannot store a client_secret.",
+      "topic": "Implicit grant"
+    },
+    {
+      "type": "mc",
+      "category": "Grant types",
+      "q": "In the authorization code flow, what does the client application include, along with the authorization code, to authenticate itself at the /token endpoint?",
+      "choices": [
+        "The user's password",
+        "The state parameter",
+        "The client_secret",
+        "The id_token"
+      ],
+      "answer": 2,
+      "explain": "The server-to-server POST to /token includes the client_secret (assigned at registration) plus grant_type=authorization_code, the code, redirect_uri, and client_id.",
+      "topic": "Access token request"
+    },
+    {
+      "type": "text",
+      "category": "Grant types",
+      "q": "When the client application calls the resource server's /userinfo endpoint, in which HTTP header is the access token submitted (give the header name and scheme, e.g. 'Header: Scheme')?",
+      "answer": ["Authorization: Bearer", "authorization: bearer", "Authorization Bearer"],
+      "explain": "The access token is sent as 'Authorization: Bearer <token>' to prove the client has permission to fetch the data.",
+      "topic": "API call"
+    },
+    {
+      "type": "mc",
+      "category": "OpenID Connect",
+      "q": "What does OpenID Connect add on top of OAuth 2.0?",
+      "choices": [
+        "A replacement for TLS",
+        "A standardized identity and authentication layer with uniform scopes and an id_token",
+        "A new password-hashing algorithm",
+        "A requirement that all flows use the implicit grant"
+      ],
+      "answer": 1,
+      "explain": "OpenID Connect is an identity/authentication layer on top of OAuth, adding a standardized set of scopes shared by all providers and the id_token response type.",
+      "topic": "What is OpenID Connect"
+    },
+    {
+      "type": "mc",
+      "category": "OpenID Connect",
+      "q": "Which scope must always be present in the authorization request for OpenID Connect to be used?",
+      "choices": [
+        "profile",
+        "email",
+        "openid",
+        "address"
+      ],
+      "answer": 2,
+      "explain": "The mandatory openid scope signals OpenID Connect; optional standard scopes like profile, email, address, and phone can be added. Looking for openid is the most foolproof way to identify OpenID Connect.",
+      "topic": "Claims and scopes"
+    },
+    {
+      "type": "multi",
+      "category": "OpenID Connect",
+      "q": "Match the OpenID Connect terminology to OAuth roles: which of the following equivalences are correct?",
+      "choices": [
+        "Relying party = OAuth client application",
+        "End user = OAuth resource owner",
+        "OpenID provider = an OAuth service configured to support OpenID Connect",
+        "Relying party = OAuth resource server"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "OpenID Connect uses different names: relying party (client application), end user (resource owner), and OpenID provider (OAuth service supporting OpenID Connect).",
+      "topic": "OpenID Connect roles"
+    },
+    {
+      "type": "mc",
+      "category": "OpenID Connect",
+      "q": "The OpenID Connect id_token is returned in what form?",
+      "choices": [
+        "A plaintext JSON object",
+        "A JSON web token (JWT) signed with a JSON web signature (JWS)",
+        "An opaque random session cookie",
+        "An XML SAML assertion"
+      ],
+      "answer": 1,
+      "explain": "The id_token is a JWT signed with a JWS, whose payload holds claims based on the requested scope plus information about how and when the user was authenticated.",
+      "topic": "ID token"
+    },
+    {
+      "type": "text",
+      "category": "OpenID Connect",
+      "q": "In OpenID Connect, what single word refers to the key:value pairs representing information about the user (e.g. \"family_name\":\"Montoya\")?",
+      "answer": ["claims", "claim"],
+      "explain": "Claims are the key:value pairs about the user on the resource server; each standard scope corresponds to read access to a subset of claims.",
+      "topic": "Claims and scopes"
+    },
+    {
+      "type": "mc",
+      "category": "Client-side vulnerabilities",
+      "q": "How does an authentication bypass arise from an improperly implemented implicit grant type?",
+      "choices": [
+        "The client_secret is leaked in the browser",
+        "The server trusts a browser-submitted POST of user data (user ID + token) without verifying the access token actually matches that data, so an attacker can change the parameters to impersonate anyone",
+        "The access token is encrypted with a weak cipher",
+        "The state parameter is reused across sessions"
+      ],
+      "answer": 1,
+      "explain": "To keep a session, the client often POSTs the user data and token to its server, which has no secret to compare against and implicitly trusts it. If it does not check that the token matches the submitted user, an attacker can change the parameters to log in as any user.",
+      "topic": "Implicit grant implementation"
+    },
+    {
+      "type": "mc",
+      "category": "Client-side vulnerabilities",
+      "q": "What is the primary security purpose of the state parameter in an OAuth flow?",
+      "choices": [
+        "It encrypts the access token in transit",
+        "It acts as a CSRF token, tying the callback to the user who initiated the flow",
+        "It specifies which scopes are requested",
+        "It stores the client_secret for the token exchange"
+      ],
+      "answer": 1,
+      "explain": "The state parameter should hold an unguessable value bound to the user's session and be echoed back, serving as a CSRF token so the callback is confirmed to come from the same user who started the flow.",
+      "topic": "Flawed CSRF protection"
+    },
+    {
+      "type": "mc",
+      "category": "Client-side vulnerabilities",
+      "q": "On a site that supports both password login and OAuth account linking, what can a missing state parameter allow an attacker to do?",
+      "choices": [
+        "Decrypt the victim's session cookie",
+        "Hijack a victim's account by binding it to the attacker's own social media account via a CSRF-like forced profile linking attack",
+        "Read the client_secret from the authorization server",
+        "Downgrade the flow from HTTPS to HTTP"
+      ],
+      "answer": 1,
+      "explain": "Without state (CSRF protection), an attacker can initiate an OAuth flow with their own social account and trick the victim's browser into completing it, binding the victim's client-app account to the attacker's social profile (forced OAuth profile linking).",
+      "topic": "Flawed CSRF protection"
+    },
+    {
+      "type": "tf",
+      "category": "Client-side vulnerabilities",
+      "q": "If a site allows login exclusively via OAuth, the absence of a state parameter is completely harmless.",
+      "answer": false,
+      "explain": "Even then, missing state can still enable login CSRF attacks, where a victim is tricked into logging in to the attacker's account.",
+      "topic": "Flawed CSRF protection"
+    },
+    {
+      "type": "mc",
+      "category": "OAuth service vulnerabilities",
+      "q": "Why is stealing a victim's authorization code (authorization code flow) dangerous even without knowing the client_secret or access token?",
+      "choices": [
+        "The code is itself a valid password hash",
+        "The attacker can submit the stolen code to the client's legitimate /callback, and the client will complete the code/token exchange and log the attacker in as the victim",
+        "The code decrypts the victim's session cookie",
+        "The code reveals the victim's scopes but nothing else"
+      ],
+      "answer": 1,
+      "explain": "As long as the victim has a valid session with the OAuth service, feeding the stolen code to the real /callback makes the client complete the exchange on the attacker's behalf, logging them in as the victim.",
+      "topic": "Leaking codes and tokens"
+    },
+    {
+      "type": "tf",
+      "category": "OAuth service vulnerabilities",
+      "q": "Using state or nonce protection always prevents authorization code/token leakage attacks based on a manipulated redirect_uri.",
+      "answer": false,
+      "explain": "State or nonce do not necessarily prevent these attacks, because an attacker can generate fresh state/nonce values from their own browser.",
+      "topic": "Leaking codes and tokens"
+    },
+    {
+      "type": "multi",
+      "category": "OAuth service vulnerabilities",
+      "q": "When auditing redirect_uri validation, which of these are legitimate techniques to try bypassing a whitelist?",
+      "choices": [
+        "Adding arbitrary paths, query parameters, or fragments if the server only checks a string prefix",
+        "Submitting duplicate redirect_uri parameters to trigger parameter pollution",
+        "Registering a domain like localhost.evil-user.net if the server specially permits localhost",
+        "Guessing the client_secret by brute force over the browser"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Prefix-only checks, server-side parameter pollution with duplicate redirect_uri values, and over-broad localhost handling are all real redirect_uri bypass avenues. Brute-forcing the client_secret via the browser is not one of them.",
+      "topic": "Flawed redirect_uri validation"
+    },
+    {
+      "type": "mc",
+      "category": "OAuth service vulnerabilities",
+      "q": "When direct redirect_uri bypasses fail, how can a 'proxy page' on a whitelisted domain be used to steal a code or token?",
+      "choices": [
+        "By brute-forcing the authorization server's TLS key",
+        "By pointing redirect_uri at a page on the allowed domain that has an open redirect, XSS, or HTML injection, which forwards or leaks the code/token to an attacker domain",
+        "By disabling JavaScript in the victim's browser",
+        "By changing the grant_type to password"
+      ],
+      "answer": 1,
+      "explain": "If you can aim redirect_uri at another page on a whitelisted domain (e.g. via directory traversal), vulnerabilities there such as an open redirect, dangerous JS, XSS, or HTML injection (leaking via Referer) can forward the code/token to the attacker.",
+      "topic": "Proxy page"
+    },
+    {
+      "type": "mc",
+      "category": "OAuth service vulnerabilities",
+      "q": "In a scope upgrade attack against the authorization code flow, how might an attacker obtain extra permissions?",
+      "choices": [
+        "By editing the id_token signature",
+        "By adding an extra scope parameter to the code/token exchange request from their own registered client, which the server may fail to validate against the original authorization request",
+        "By brute-forcing the /userinfo endpoint",
+        "By replaying the victim's session cookie"
+      ],
+      "answer": 1,
+      "explain": "Because the attacker controls their own client app, they can append an additional scope (e.g. add profile to openid email) in the /token request; if the server does not re-validate against the originally approved scope, it may issue a token with the upgraded scope.",
+      "topic": "Flawed scope validation"
+    },
+    {
+      "type": "mc",
+      "category": "OAuth service vulnerabilities",
+      "q": "What is the 'unverified user registration' OAuth vulnerability?",
+      "choices": [
+        "The OAuth service forgets to register redirect_uris",
+        "An OAuth provider lets users register accounts without verifying details like email, so an attacker registers a fraudulent account matching a victim's email and is then signed in as the victim on client apps",
+        "Clients fail to register a client_secret",
+        "The provider does not log registration events"
+      ],
+      "answer": 1,
+      "explain": "Client apps implicitly trust the provider's stored data. If the provider does not verify details such as email, an attacker can register an account with a victim's email, and client apps may then log the attacker in as the victim.",
+      "topic": "Unverified user registration"
+    },
+    {
+      "type": "mc",
+      "category": "OpenID Connect",
+      "q": "How can unprotected dynamic client registration in OpenID Connect be abused?",
+      "choices": [
+        "It lets anyone read every user's id_token",
+        "If the /registration endpoint requires no authentication, an attacker registers a malicious client; attacker-controlled URI properties (e.g. logo_uri, jwks_uri) can lead to second-order SSRF",
+        "It disables the openid scope globally",
+        "It forces all clients onto the implicit flow"
+      ],
+      "answer": 1,
+      "explain": "Dynamic client registration should require authentication. If it does not, an attacker can register a malicious client, and URI-valued properties fetched by the provider can trigger second-order SSRF, among other consequences.",
+      "topic": "Dynamic client registration"
+    },
+    {
+      "type": "mc",
+      "category": "OpenID Connect",
+      "q": "In 'authorization requests by reference', which parameter points to a JWT holding the OAuth parameters, and what risks does it introduce?",
+      "choices": [
+        "state; it enables CSRF only",
+        "request_uri; it can be an SSRF vector and may bypass validation that is only applied to the query string",
+        "redirect_uri; it only affects logging",
+        "client_secret; it exposes the signing key"
+      ],
+      "answer": 1,
+      "explain": "Some providers let you pass a single request_uri pointing to a JWT of the parameters. This can be an SSRF vector, and servers that validate the query string may fail to apply the same checks to JWT parameters (including redirect_uri). Check for request_uri_parameter_supported.",
+      "topic": "Requests by reference"
+    },
+    {
+      "type": "multi",
+      "category": "Prevention",
+      "q": "Which practices are recommended for OAuth SERVICE PROVIDERS to prevent these vulnerabilities?",
+      "choices": [
+        "Require a whitelist of redirect_uris and use strict byte-for-byte exact matching",
+        "Enforce use of the state parameter, bound to the user's session",
+        "On the resource server, verify the access token was issued to the same client_id making the request and that the scope matches",
+        "Allow pattern matching and partial-prefix matching of redirect_uri for flexibility"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Providers should use exact (not pattern/prefix) redirect_uri matching, enforce session-bound state, and verify token client_id and scope on the resource server. Loose pattern matching is exactly what lets attackers reach other pages on whitelisted domains.",
+      "topic": "For OAuth service providers"
+    },
+    {
+      "type": "tf",
+      "category": "Prevention",
+      "q": "A client application should send the redirect_uri parameter not only to the /authorization endpoint but also to the /token endpoint.",
+      "answer": true,
+      "explain": "Sending redirect_uri to /token (over the back-channel) lets the server confirm it matches the one from the authorization request, defeating code-stealing attacks since the attacker cannot control that second value.",
+      "topic": "For OAuth client applications"
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "For mobile or native desktop clients that cannot keep the client_secret private, which mechanism is recommended for extra protection against code interception?",
+      "choices": [
+        "HSTS",
+        "PKCE (RFC 7636)",
+        "CORS preflight",
+        "SameSite cookies"
+      ],
+      "answer": 1,
+      "explain": "When the client_secret cannot be kept private (native/mobile apps), PKCE (RFC 7636) provides additional protection against authorization code interception or leakage.",
+      "topic": "For OAuth client applications"
+    },
+    {
+      "type": "tf",
+      "category": "Prevention",
+      "q": "Authorization codes can be leaked via Referer headers when external images, scripts, or CSS are loaded, so clients should avoid placing codes where they can be exposed to external domains.",
+      "answer": true,
+      "explain": "Codes may leak through Referer headers when external resources load, and should not be embedded in dynamically generated JavaScript that external <script> tags could execute. Handle codes carefully.",
+      "topic": "For OAuth client applications"
+    }
+  ]
+}

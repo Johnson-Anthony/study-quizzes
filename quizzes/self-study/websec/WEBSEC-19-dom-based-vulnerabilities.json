@@ -1,0 +1,700 @@
+{
+  "title": "WEBSEC 19 - DOM-based vulnerabilities",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Sources, sinks and taint flow",
+      "q": "In DOM-based vulnerabilities, what is a source?",
+      "choices": [
+        "A JavaScript property that accepts data that may be attacker-controlled",
+        "A JavaScript function or DOM object that can cause harm if attacker-controlled data reaches it",
+        "The server-side script that generated the page's HTML",
+        "A whitelist routine that checks input before it is used"
+      ],
+      "answer": 0,
+      "explain": "A source is any property an attacker can influence, e.g. location.search (the query string), document.referrer, document.cookie or web messages. The second choice describes a sink."
+    },
+    {
+      "type": "mc",
+      "category": "Sources, sinks and taint flow",
+      "q": "Which of these is a sink rather than a source?",
+      "choices": ["location.search", "document.referrer", "window.name", "document.write()"],
+      "answer": 3,
+      "explain": "document.write() is the example sink for DOM XSS. location.search, document.referrer and window.name are inputs an attacker can influence, so they are sources."
+    },
+    {
+      "type": "multi",
+      "category": "Sources, sinks and taint flow",
+      "q": "Which of these are common sources for taint-flow vulnerabilities?",
+      "choices": ["document.referrer", "window.name", "sessionStorage", "setInterval()", "element.href", "document.baseURI"],
+      "answer": [0, 1, 2, 5],
+      "explain": "document.referrer, window.name, sessionStorage and document.baseURI are sources, along with document.URL, location, document.cookie, localStorage, history.pushState/replaceState, IndexedDB and others. setInterval() is a JavaScript-injection sink and element.href is a link-manipulation sink."
+    },
+    {
+      "type": "text",
+      "category": "Sources, sinks and taint flow",
+      "q": "What is the most common source of attacker-controlled data in DOM-based vulnerabilities?",
+      "answer": ["URL", "the URL", "url", "the url", "page URL", "the page URL", "location", "the location object", "location object", "window.location"],
+      "explain": "The URL, usually read through the location object. An attacker can build a link that puts a payload in the query string or fragment and send it to a victim."
+    },
+    {
+      "type": "mc",
+      "category": "Sources, sinks and taint flow",
+      "q": "A page runs this code:\n\ngoto = location.hash.slice(1)\nif (goto.startsWith('https:')) {\n  location = goto;\n}\n\nWhich link would redirect a victim to https://www.evil-user.net?",
+      "choices": [
+        "https://www.innocent-website.com/example#https://www.evil-user.net",
+        "https://www.innocent-website.com/example?goto=https://www.evil-user.net",
+        "https://www.innocent-website.com/example#javascript:alert(1)",
+        "https://www.innocent-website.com/example#www.evil-user.net"
+      ],
+      "answer": 0,
+      "explain": "The code takes the fragment (location.hash), strips the '#', and assigns it to location only if it starts with 'https:'. The query string is never read, and the other two fragments don't start with 'https:'. This is DOM-based open redirection, which can be used for phishing."
+    },
+    {
+      "type": "mc",
+      "category": "Sources, sinks and taint flow",
+      "q": "In general, what is the most effective way to avoid DOM-based vulnerabilities?",
+      "choices": [
+        "Don't let data from any untrusted source dynamically change the value passed to any sink",
+        "HTML-encode every value once on the server before the page is sent",
+        "Rely on the browser's built-in anti-XSS protections to catch tainted data",
+        "Move all JavaScript into external .js files instead of inline scripts"
+      ],
+      "answer": 0,
+      "explain": "No single measure removes the threat entirely, but keeping untrusted data away from sinks is the most effective approach. If the functionality makes this unavoidable, the defenses have to be implemented in the client-side code."
+    },
+    {
+      "type": "tf",
+      "category": "Sources, sinks and taint flow",
+      "q": "Using JavaScript to manipulate the DOM is, in itself, a security problem.",
+      "answer": false,
+      "explain": "DOM manipulation is a normal part of how modern websites work. Vulnerabilities arise only when JavaScript passes attacker-controllable data (a source) into a dangerous function (a sink) and handles it unsafely."
+    },
+    {
+      "type": "tf",
+      "category": "Sources, sinks and taint flow",
+      "q": "When untrusted data has to reach a sink, HTML-encoding it is always enough, whatever the context.",
+      "answer": false,
+      "explain": "Where possible, validate against a whitelist of known-safe content. Otherwise, sanitize or encode the data. Depending on the context, this may need a combination of JavaScript escaping, HTML encoding and URL encoding, applied in the right order."
+    },
+    {
+      "type": "mc",
+      "category": "Web messages",
+      "q": "Why is this listener vulnerable?\n\nwindow.addEventListener('message', function(e) {\n  eval(e.data);\n});",
+      "choices": [
+        "It never checks the message's origin, so any page (e.g. one that frames this site) can send data that reaches eval()",
+        "Message data always arrives as an object, so eval() throws and crashes the page",
+        "It uses addEventListener instead of assigning window.onmessage",
+        "It lets the page send messages to any origin"
+      ],
+      "answer": 0,
+      "explain": "Without origin verification, the web message acts as an attacker-controllable source, and the listener passes it straight into the eval() sink."
+    },
+    {
+      "type": "mc",
+      "category": "Web messages",
+      "q": "An attacker hosts:\n\n<iframe src=\"//vulnerable-website\" onload=\"this.contentWindow.postMessage('print()','*')\">\n\nWhat is the '*' argument?",
+      "choices": [
+        "The targetOrigin: the message is delivered to the framed window whatever its origin",
+        "A flag that tells the receiving listener to skip its origin check",
+        "The message data, a wildcard that the listener expands",
+        "An instruction to broadcast the message to every open tab"
+      ],
+      "answer": 0,
+      "explain": "'*' is the targetOrigin argument of postMessage(). Because of it, and because the listener doesn't verify where messages come from, the payload 'print()' is accepted and passed to eval()."
+    },
+    {
+      "type": "mc",
+      "category": "Web messages",
+      "q": "A listener only runs eval(e.data) if e.origin.indexOf('normal-website.com') > -1. Which attacker origin gets past this check?",
+      "choices": [
+        "http://www.normal-website.com.evil.net",
+        "http://www.evil.net",
+        "http://www.normal-website.org",
+        "http://normal-website.evil.com"
+      ],
+      "answer": 0,
+      "explain": "indexOf() only checks whether the string 'normal-website.com' appears anywhere in the origin, so an attacker domain such as normal-website.com.evil.net contains it and passes."
+    },
+    {
+      "type": "tf",
+      "category": "Web messages",
+      "q": "The check e.origin.endsWith('normal-website.com') would accept a message from http://www.malicious-websitenormal-website.com.",
+      "answer": true,
+      "explain": "endsWith() only compares the tail of the string, and 'malicious-websitenormal-website.com' ends with 'normal-website.com'. Checks based on startsWith() have the same kind of flaw."
+    },
+    {
+      "type": "tf",
+      "category": "Web messages",
+      "q": "Replacing an indexOf() origin check with startsWith() or endsWith() makes origin verification robust.",
+      "answer": false,
+      "explain": "All three are partial string matches, so an attacker can register a domain that contains, begins with or ends with the trusted string."
+    },
+    {
+      "type": "mc",
+      "category": "Web messages",
+      "q": "A message event listener accepts data from untrusted origins because its origin verification is inadequate. Which sinks inside it could lead to vulnerabilities?",
+      "choices": [
+        "Any sink the listener uses",
+        "Only eval()",
+        "Only HTML sinks such as innerHTML",
+        "None, as long as the sender used a specific targetOrigin"
+      ],
+      "answer": 0,
+      "explain": "Once untrusted message data is accepted, it becomes a source for every sink the listener uses (eval(), innerHTML, location, and so on)."
+    },
+    {
+      "type": "text",
+      "category": "Web messages",
+      "q": "In DOM-based web message manipulation, a script sends attacker-controllable data to another document. Which method for sending web messages is the sink?",
+      "answer": ["postMessage()", "postMessage", "window.postMessage()", "window.postMessage"],
+      "explain": "postMessage() becomes dangerous when the receiving document's event listener handles the incoming data unsafely."
+    },
+    {
+      "type": "multi",
+      "category": "Web messages",
+      "q": "Which of these are recommended ways to prevent DOM-based web message vulnerabilities?",
+      "choices": [
+        "Avoid sending web messages that contain data from untrusted sources",
+        "Explicitly specify the target window when sending cross-origin messages",
+        "Robustly verify the origin of every incoming message",
+        "Use '*' as the targetOrigin so messages always arrive",
+        "Check e.origin with indexOf() for the trusted domain name"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Don't send untrusted data, always be explicit about the target, and above all verify incoming origins properly. '*' removes the restriction on the target, and indexOf() checks can be bypassed."
+    },
+    {
+      "type": "mc",
+      "category": "Open redirection and link manipulation",
+      "q": "DOM-based open redirection arises when a script writes attacker-controllable data into a sink that can...",
+      "choices": [
+        "trigger cross-domain navigation",
+        "set the value of a cookie",
+        "execute the data as JavaScript",
+        "change the page's document.domain"
+      ],
+      "answer": 0,
+      "explain": "Redirection sinks such as location, location.href, location.assign() and open() navigate the browser, which lets an attacker send a victim to an arbitrary external domain."
+    },
+    {
+      "type": "mc",
+      "category": "Open redirection and link manipulation",
+      "q": "Why does a DOM-based open redirection make a phishing attack more convincing?",
+      "choices": [
+        "The link is a genuine URL on the real domain with a valid TLS certificate, and many users won't notice the redirect that follows",
+        "The redirect copies the real site's cookies to the attacker's domain",
+        "The browser keeps showing the original site's URL in the address bar after the redirect",
+        "The redirect turns off the browser's phishing warnings for the session"
+      ],
+      "answer": 0,
+      "explain": "Users who check the domain and certificate see the legitimate site, and many of them won't notice the later move to a different domain."
+    },
+    {
+      "type": "mc",
+      "category": "Open redirection and link manipulation",
+      "q": "When can a DOM-based open redirection be escalated into JavaScript injection?",
+      "choices": [
+        "When the attacker controls the start of the string passed to the redirection API, so a javascript: URL runs code",
+        "When the redirect target uses HTTPS, which lets the attacker read the TLS session",
+        "When the redirect is same-origin, because the browser re-runs the page's scripts",
+        "When the hash fragment is longer than the browser's URL limit"
+      ],
+      "answer": 0,
+      "explain": "If the attacker controls the beginning of the string, they can use the javascript: pseudo-protocol, and the browser executes the code when it processes the URL."
+    },
+    {
+      "type": "multi",
+      "category": "Open redirection and link manipulation",
+      "q": "Which of these are sinks for DOM-based open redirection?",
+      "choices": ["location.replace()", "open()", "element.srcdoc", "document.title", "localStorage.setItem()", "location.assign()"],
+      "answer": [0, 1, 2, 5],
+      "explain": "Open-redirection sinks include location and its parts (href, host, hostname, pathname, search, protocol), location.assign(), location.replace(), open(), element.srcdoc, XMLHttpRequest.open()/send() and jQuery/$.ajax(). document.title is a DOM-data sink and localStorage.setItem() is an HTML5-storage sink."
+    },
+    {
+      "type": "mc",
+      "category": "Open redirection and link manipulation",
+      "q": "Identify the source and the sink in this vulnerable code:\n\nlet url = /https?:\\/\\/.+/.exec(location.hash);\nif (url) {\n  location = url[0];\n}",
+      "choices": [
+        "Source: location.hash; sink: location",
+        "Source: location; sink: location.hash",
+        "Source: RegExp exec(); sink: location.hash",
+        "Source: document.referrer; sink: location"
+      ],
+      "answer": 0,
+      "explain": "The attacker-controlled URL fragment (location.hash) is read, and any http(s) URL found in it is assigned to location, which triggers navigation to that URL."
+    },
+    {
+      "type": "mc",
+      "category": "Open redirection and link manipulation",
+      "q": "What characterizes DOM-based link manipulation?",
+      "choices": [
+        "A script writes attacker-controllable data to a navigation target within the page, such as a link or a form's submission URL",
+        "A script immediately navigates the whole window to an attacker-supplied URL",
+        "A script writes attacker-controllable data into an element's visible text",
+        "A script sends a link to another document with postMessage()"
+      ],
+      "answer": 0,
+      "explain": "Link manipulation changes the targets of links or forms in the page, and the harm happens when the user follows the link or submits the form. Immediate navigation is open redirection, and changing visible text is DOM-data manipulation."
+    },
+    {
+      "type": "multi",
+      "category": "Open redirection and link manipulation",
+      "q": "Which of these are possible impacts of DOM-based link manipulation?",
+      "choices": [
+        "Redirecting the user to an arbitrary external URL, e.g. for phishing",
+        "Making the user submit sensitive form data to an attacker-controlled server",
+        "Changing a link's file or query string so the user performs an unintended action in the application",
+        "Bypassing browser anti-XSS defenses by injecting on-site links that contain XSS exploits",
+        "Setting the page's document.domain to a parent domain",
+        "Reading arbitrary files from the user's disk"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The first four are the listed impacts. Changing document.domain and reading local files are different vulnerability classes (document-domain manipulation and local file-path manipulation)."
+    },
+    {
+      "type": "mc",
+      "category": "Open redirection and link manipulation",
+      "q": "Why can link manipulation help get around browser anti-XSS defenses?",
+      "choices": [
+        "Anti-XSS defenses don't usually account for on-site links, so an injected same-site link carrying an XSS exploit isn't caught",
+        "Browsers turn off anti-XSS defenses on any page that contains links",
+        "Link manipulation encrypts the payload so filters can't read it",
+        "Anti-XSS defenses only inspect POST requests"
+      ],
+      "answer": 0,
+      "explain": "The defenses aren't built to treat links that point at the site itself as dangerous, so an on-site link carrying an XSS payload gets through."
+    },
+    {
+      "type": "text",
+      "category": "Open redirection and link manipulation",
+      "q": "Which element property, listed as a link-manipulation sink alongside element.href and element.src, controls where a form submits its data?",
+      "answer": ["element.action", "action", ".action"],
+      "explain": "If element.action is set from untrusted data, an attacker can make the user submit form data, possibly sensitive, to a server the attacker controls."
+    },
+    {
+      "type": "mc",
+      "category": "Cookie, storage and document.domain",
+      "q": "What can an attacker do with this code?\n\ndocument.cookie = 'cookieName=' + location.hash.slice(1);",
+      "choices": [
+        "Send a victim a crafted URL that sets cookieName in their browser to an arbitrary value",
+        "Read every cookie the victim has for the site",
+        "Make the victim's browser run the URL fragment as JavaScript",
+        "Redirect the victim to any external domain"
+      ],
+      "answer": 0,
+      "explain": "The unsanitized fragment is written into document.cookie, the sink for cookie manipulation, so the attacker chooses the cookie's value."
+    },
+    {
+      "type": "mc",
+      "category": "Cookie, storage and document.domain",
+      "q": "A DOM-based cookie-manipulation flaw lets an attacker set a site's session cookie. Which attack does this enable?",
+      "choices": [
+        "Session fixation: set the victim's cookie to a valid token obtained from the site, then hijack the session once the victim uses it",
+        "Session prediction: read the victim's token from the URL fragment and guess the next one",
+        "Clickjacking: frame the site invisibly and capture the victim's clicks",
+        "Credential stuffing: replay leaked passwords against the victim's account"
+      ],
+      "answer": 0,
+      "explain": "The attacker plants a token they already know, and when the victim interacts with the site under that token, the attacker can take over the session."
+    },
+    {
+      "type": "tf",
+      "category": "Cookie, storage and document.domain",
+      "q": "A cookie-manipulation vulnerability can be used to attack not only the vulnerable website but other websites under the same parent domain.",
+      "answer": true,
+      "explain": "Cookies can be shared across sites under the same parent domain, so a manipulated cookie can affect those sites as well."
+    },
+    {
+      "type": "mc",
+      "category": "Cookie, storage and document.domain",
+      "q": "Page A writes the URL fragment into a cookie without sanitizing it. Page B later inserts that cookie's value into its HTML without HTML-encoding it. What does this combination illustrate?",
+      "choices": [
+        "A low-severity flaw chained into a high-severity attack, with the normally-safe cookie turned into an attacker-controllable source",
+        "Nothing exploitable, because cookies can never act as sources",
+        "Session fixation, since the cookie now holds a token chosen by the attacker",
+        "A same-origin policy bypass through document.domain"
+      ],
+      "answer": 0,
+      "explain": "Cookie manipulation turns cookies into a source. When the value is reflected unsafely, the attacker can inject content into page B."
+    },
+    {
+      "type": "tf",
+      "category": "Cookie, storage and document.domain",
+      "q": "Making a browser store attacker-controllable data in localStorage or sessionStorage is, on its own, a security vulnerability.",
+      "answer": false,
+      "explain": "Storing the data is not a vulnerability by itself. It becomes exploitable when the application later reads the data back and processes it unsafely, which lets the attacker deliver attacks such as XSS or JavaScript injection through storage."
+    },
+    {
+      "type": "mc",
+      "category": "Cookie, storage and document.domain",
+      "q": "Which of these are the main sinks for DOM-based HTML5-storage manipulation?",
+      "choices": [
+        "sessionStorage.setItem() and localStorage.setItem()",
+        "sessionStorage.getItem() and localStorage.getItem()",
+        "document.cookie and document.domain",
+        "requestFileSystem() and RegExp()"
+      ],
+      "answer": 0,
+      "explain": "The sink is where attacker data is written into storage (setItem). Reading it back is where storage acts as a source for later attacks."
+    },
+    {
+      "type": "mc",
+      "category": "Cookie, storage and document.domain",
+      "q": "Why can an attacker who controls a page's document.domain value compromise that page?",
+      "choices": [
+        "If two pages from different origins explicitly set the same document.domain value, they can interact in unrestricted ways, so a page the attacker controls can reach into the target",
+        "Setting document.domain sends the page's cookies to the domain named",
+        "document.domain decides which server the page's forms submit to",
+        "Changing document.domain reloads the page from the attacker's server"
+      ],
+      "answer": 0,
+      "explain": "Browsers use document.domain to enforce the same-origin policy. Matching values remove the barrier between the two pages, which gives the attacker XSS-like possibilities."
+    },
+    {
+      "type": "multi",
+      "category": "Cookie, storage and document.domain",
+      "q": "Browsers restrict the values that can be assigned to document.domain. Which caveats still make document.domain manipulation dangerous?",
+      "choices": [
+        "Browsers allow child or parent domains, which may belong to a related site with weaker security",
+        "Some browser quirks allow switching to completely unrelated domains",
+        "Browsers accept any value as long as the page was loaded over HTTPS",
+        "Browsers only enforce the restrictions on pages that contain iframes"
+      ],
+      "answer": [0, 1],
+      "explain": "Because of these two caveats, being able to manipulate document.domain is generally a vulnerability whose severity is not far behind regular XSS."
+    },
+    {
+      "type": "tf",
+      "category": "Cookie, storage and document.domain",
+      "q": "Browsers place no restrictions on the values a script can assign to document.domain.",
+      "answer": false,
+      "explain": "Browsers generally restrict the values and may block values completely different from the page's actual origin. Parent and child domains are allowed, though, and some quirks permit unrelated ones."
+    },
+    {
+      "type": "multi",
+      "category": "Client-side injection (JS, SQL, XPath, JSON)",
+      "q": "Which of these are sinks for DOM-based JavaScript injection?",
+      "choices": ["eval()", "Function()", "setTimeout()", "JSON.parse()", "document.evaluate()", "setInterval()"],
+      "answer": [0, 1, 2, 5],
+      "explain": "JavaScript-injection sinks include eval(), Function(), setTimeout(), setInterval(), setImmediate(), execCommand(), execScript(), msSetImmediate(), range.createContextualFragment() and crypto.generateCRMFRequest(). JSON.parse() is a JSON-injection sink and document.evaluate() is an XPath-injection sink."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side injection (JS, SQL, XPath, JSON)",
+      "q": "Which statement describes DOM-based JavaScript injection?",
+      "choices": [
+        "A script executes attacker-controllable data as JavaScript",
+        "A script writes attacker-controllable data into a form's action URL",
+        "A script stores attacker-controllable data in localStorage",
+        "A script parses attacker-controllable data as JSON"
+      ],
+      "answer": 0,
+      "explain": "The attacker's code runs in the victim's browser session and can steal session tokens or credentials, perform actions on the victim's behalf, or log keystrokes."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side injection (JS, SQL, XPath, JSON)",
+      "q": "A client-side SQL-injection flaw lets an attacker run an arbitrary query. Where does that query run?",
+      "choices": [
+        "In the local SQL database inside the victim's browser",
+        "In the web server's back-end database",
+        "In the attacker's own browser database",
+        "In the browser's cookie store"
+      ],
+      "answer": 0,
+      "explain": "The query goes through the executeSql() sink to the browser's local database. The impact depends on what the site keeps there."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side injection (JS, SQL, XPath, JSON)",
+      "q": "A web mail app keeps outgoing messages that are waiting to be sent in a client-side SQL database. What could client-side SQL injection let an attacker do?",
+      "choices": [
+        "Modify the pending messages and so perform actions on the user's behalf",
+        "Nothing beyond reading data, because client-side databases can't be modified through injection",
+        "Run operating-system commands on the mail server",
+        "Change the page's document.domain"
+      ],
+      "answer": 0,
+      "explain": "If the database stores pending user actions, the attacker can change them. If it stores sensitive data, such as social-network messages, the attacker can read it."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side injection (JS, SQL, XPath, JSON)",
+      "q": "Why do parameterized queries (prepared statements) prevent client-side SQL injection?",
+      "choices": [
+        "The query's structure, with placeholders, is fixed first, and the placeholder values supplied afterwards can't change that structure",
+        "They encrypt user input before it reaches the database",
+        "They reject any input that contains SQL keywords",
+        "They move the query from the browser to the server"
+      ],
+      "answer": 0,
+      "explain": "It is a two-step process: define the structure with placeholders, then supply each placeholder's contents. Malformed data in the second step can't interfere with the structure."
+    },
+    {
+      "type": "text",
+      "category": "Client-side injection (JS, SQL, XPath, JSON)",
+      "q": "In the JavaScript executeSql() API, which character marks a placeholder for a parameterized item?",
+      "answer": ["?"],
+      "explain": "Each '?' in the query string is a placeholder, and its value is passed to the API as an additional parameter."
+    },
+    {
+      "type": "tf",
+      "category": "Client-side injection (JS, SQL, XPath, JSON)",
+      "q": "It is enough to parameterize only the variables that are obviously tainted by user input.",
+      "answer": false,
+      "explain": "Parameterize every variable data item in a query, even ones that aren't obviously tainted. This prevents oversights and protects against changes made elsewhere in the code base."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side injection (JS, SQL, XPath, JSON)",
+      "q": "Which sinks lead to DOM-based client-side XPath injection?",
+      "choices": [
+        "document.evaluate() and element.evaluate()",
+        "JSON.parse() and $.parseJSON()",
+        "executeSql()",
+        "eval() and Function()"
+      ],
+      "answer": 0,
+      "explain": "Attacker data built into an XPath query can change which data is retrieved and processed, which can subvert the site's logic or cause unintended actions. The other choices are JSON-injection, SQL-injection and JavaScript-injection sinks."
+    },
+    {
+      "type": "multi",
+      "category": "Client-side injection (JS, SQL, XPath, JSON)",
+      "q": "Which of these are sinks for DOM-based client-side JSON injection?",
+      "choices": ["JSON.parse()", "jQuery.parseJSON()", "$.parseJSON()", "$.globalEval()", "document.evaluate()"],
+      "answer": [0, 1, 2],
+      "explain": "The three parse functions turn a string into a JSON data structure. $.globalEval() is listed under Ajax request-header manipulation and document.evaluate() under XPath injection."
+    },
+    {
+      "type": "tf",
+      "category": "Client-side injection (JS, SQL, XPath, JSON)",
+      "q": "A DOM-based JSON-injection vulnerability is only exploitable if the injected data ends up being executed as JavaScript.",
+      "answer": false,
+      "explain": "The data only has to be parsed as JSON and then processed by the application. Arbitrary JSON data can subvert the site's logic or cause unintended actions on the user's behalf."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket, Ajax, file-path, DOM-data and DoS",
+      "q": "When does DOM-based WebSocket-URL poisoning occur?",
+      "choices": [
+        "When a script uses controllable data as the target URL of a WebSocket connection",
+        "When a script sends controllable data over an existing WebSocket",
+        "When the server echoes WebSocket messages into the page's HTML",
+        "When a script puts controllable data into a WebSocket handshake header"
+      ],
+      "answer": 0,
+      "explain": "The sink is the WebSocket constructor. A crafted URL can make the victim's browser open a WebSocket connection to a server the attacker controls."
+    },
+    {
+      "type": "multi",
+      "category": "WebSocket, Ajax, file-path, DOM-data and DoS",
+      "q": "An attacker poisons a page's WebSocket URL so it connects to their server. What might they achieve?",
+      "choices": [
+        "Capture sensitive data the page sends to the WebSocket server",
+        "Send back data that the page processes, subverting its logic or delivering client-side attacks",
+        "Read arbitrary files from the victim's disk",
+        "Change the page's document.domain to the attacker's domain"
+      ],
+      "answer": [0, 1],
+      "explain": "The impact depends on how the site uses WebSockets: sending sensitive data lets the attacker capture it, and processing incoming data lets the attacker control that data."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket, Ajax, file-path, DOM-data and DoS",
+      "q": "A script writes attacker-controllable data into a request header of an XMLHttpRequest. What mainly determines the impact?",
+      "choices": [
+        "The role that header plays in the server's processing of the Ajax request, and what exactly can be injected",
+        "Whether the page was loaded over HTTPS",
+        "How many Ajax requests the page makes",
+        "Whether the browser caches the Ajax response"
+      ],
+      "answer": 0,
+      "explain": "If the header controls what the request does, the attacker may make the user perform unintended actions. The flaw can also be a starting point for chaining other attacks."
+    },
+    {
+      "type": "multi",
+      "category": "WebSocket, Ajax, file-path, DOM-data and DoS",
+      "q": "Which of these are sinks for DOM-based Ajax request-header manipulation?",
+      "choices": ["XMLHttpRequest.setRequestHeader()", "XMLHttpRequest.open()", "$.globalEval()", "requestFileSystem()", "element.evaluate()"],
+      "answer": [0, 1, 2],
+      "explain": "The listed sinks are XMLHttpRequest.setRequestHeader(), open() and send(), plus jQuery.globalEval()/$.globalEval(). requestFileSystem() is a denial-of-service sink and element.evaluate() is an XPath sink."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket, Ajax, file-path, DOM-data and DoS",
+      "q": "DOM-based local file-path manipulation arises when a script...",
+      "choices": [
+        "passes attacker-controllable data to a file-handling API as the filename parameter",
+        "uploads an attacker-supplied file to the server",
+        "writes attacker-controllable data to localStorage",
+        "uses attacker-controllable data as a WebSocket URL"
+      ],
+      "answer": 0,
+      "explain": "Sinks include FileReader.readAsText(), readAsArrayBuffer(), readAsBinaryString(), readAsDataURL(), readAsFile() and FileReader.root.getFile(). If the site reads the file, the attacker may get its data. If the site writes to it, the attacker may be able to write their own data, even to an OS configuration file."
+    },
+    {
+      "type": "tf",
+      "category": "WebSocket, Ajax, file-path, DOM-data and DoS",
+      "q": "Whether a local file-path manipulation flaw can actually be exploited may depend on other suitable functionality being present on the website.",
+      "answer": true,
+      "explain": "Reading data out of the file, or writing the attacker's data into it, both depend on what else the site does with the opened file."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket, Ajax, file-path, DOM-data and DoS",
+      "q": "What can DOM-data manipulation lead to, from least to most severe?",
+      "choices": [
+        "Virtual defacement (changing displayed text or images), up to importing a malicious JavaScript file by changing an element's src",
+        "Reading local files, up to rewriting the operating system's configuration",
+        "Capturing WebSocket traffic, up to hijacking the WebSocket server",
+        "Corrupting the client-side SQL database, up to deleting it"
+      ],
+      "answer": 0,
+      "explain": "DOM-data manipulation writes attacker data into DOM fields used by the visible UI or client-side logic. Changing text is cosmetic, but controlling an element's src can load attacker script."
+    },
+    {
+      "type": "multi",
+      "category": "WebSocket, Ajax, file-path, DOM-data and DoS",
+      "q": "Which of these are sinks for DOM-data manipulation?",
+      "choices": ["script.src", "element.setAttribute()", "document.title", "element.textContent", "RegExp()", "executeSql()"],
+      "answer": [0, 1, 2, 3],
+      "explain": "DOM-data sinks include script.src/text/textContent/innerText, element.setAttribute(), element.text/textContent/innerText/value/name/target/method/type, document.title, history.pushState()/replaceState() and others. RegExp() is a denial-of-service sink and executeSql() is a client-side SQL sink."
+    },
+    {
+      "type": "tf",
+      "category": "WebSocket, Ajax, file-path, DOM-data and DoS",
+      "q": "DOM-data manipulation vulnerabilities can be exploited by both reflected and stored DOM-based attacks.",
+      "answer": true,
+      "explain": "The attacker-controllable data can come from a crafted URL (reflected) or from data the site has stored."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket, Ajax, file-path, DOM-data and DoS",
+      "q": "requestFileSystem() and the RegExp() constructor are sinks for which DOM-based vulnerability?",
+      "choices": ["Denial of service", "Client-side XPath injection", "Local file-path manipulation", "DOM-data manipulation"],
+      "answer": 0,
+      "explain": "Passing attacker data to these APIs can make the user's computer use excessive CPU (e.g. an expensive regular expression) or disk space."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket, Ajax, file-path, DOM-data and DoS",
+      "q": "A script passes attacker data to an API that makes the user's computer use excessive CPU or disk space. What side effects can follow?",
+      "choices": [
+        "The browser may restrict the site's functionality, e.g. by rejecting attempts to store data in localStorage or killing busy scripts",
+        "The browser permanently blocks the site's domain",
+        "The web server crashes because the browser floods it with requests",
+        "The user's cookies for the site are deleted"
+      ],
+      "answer": 0,
+      "explain": "The denial of service happens on the client side: the browser's own protections against resource abuse end up breaking the site for the user."
+    },
+    {
+      "type": "mc",
+      "category": "DOM clobbering",
+      "q": "What is DOM clobbering?",
+      "choices": [
+        "Injecting HTML so that DOM nodes or HTML collections overwrite global variables or object properties, changing how the page's JavaScript behaves",
+        "Deleting DOM nodes with JavaScript to hide security warnings",
+        "Flooding the DOM with elements until the browser kills the page's scripts",
+        "Overwriting a page's cookies through document.cookie"
+      ],
+      "answer": 0,
+      "explain": "'Clobbering' means overwriting a global variable or an object's property with a DOM node or HTML collection. The most common form uses an anchor element to overwrite a global variable that the app then uses unsafely, e.g. to build a script URL."
+    },
+    {
+      "type": "mc",
+      "category": "DOM clobbering",
+      "q": "When is DOM clobbering particularly useful to an attacker?",
+      "choices": [
+        "When XSS isn't possible but they can inject HTML in which the filter allows id or name attributes",
+        "When the page contains no JavaScript at all",
+        "When they can already run arbitrary script on the page",
+        "When the site sets no cookies"
+      ],
+      "answer": 0,
+      "explain": "Clobbering only needs harmless-looking HTML with id/name attributes. It relies on the page's own JavaScript to do the damage, so the page must have script that uses the clobbered variable."
+    },
+    {
+      "type": "mc",
+      "category": "DOM clobbering",
+      "q": "A page contains:\n\nwindow.onload = function(){\n  let someObject = window.someObject || {};\n  let script = document.createElement('script');\n  script.src = someObject.url;\n  document.body.appendChild(script);\n};\n\nThe HTML filter blocks scripts but allows id and name attributes. Which injected HTML makes the page load //malicious-website.com/evil.js?",
+      "choices": [
+        "<a id=someObject><a id=someObject name=url href=//malicious-website.com/evil.js>",
+        "<a id=someObject href=//malicious-website.com/evil.js>",
+        "<a id=url href=//malicious-website.com/evil.js>",
+        "<a id=someObject><a id=url href=//malicious-website.com/evil.js>"
+      ],
+      "answer": 0,
+      "explain": "Two anchors with the same id make window.someObject a DOM collection, and name=url on the last one makes someObject.url refer to that anchor, whose href is the script URL. With a single anchor, someObject.url is undefined. With only id=url, window.someObject doesn't exist, so the code falls back to {}."
+    },
+    {
+      "type": "mc",
+      "category": "DOM clobbering",
+      "q": "In the payload <a id=someObject><a id=someObject name=url href=...>, why are two anchors with the same id needed?",
+      "choices": [
+        "The DOM groups same-id elements into a collection that clobbers someObject, and the name attribute on the last anchor clobbers the collection's url property",
+        "The filter always removes the first anchor, so a second copy is needed",
+        "The second anchor turns window.someObject into a plain string",
+        "Duplicate ids make the browser treat the href as a script tag"
+      ],
+      "answer": 0,
+      "explain": "The collection replaces the global reference, and its named member 'url' points to the anchor carrying the malicious href."
+    },
+    {
+      "type": "mc",
+      "category": "DOM clobbering",
+      "q": "A client-side HTML filter strips blacklisted attributes by looping for (i = 0; i < element.attributes.length; i++). Why does <form onclick=alert(1)><input id=attributes>Click me get past it?",
+      "choices": [
+        "The input clobbers the form's attributes property; its length is undefined, so the loop never runs and onclick isn't removed",
+        "The filter never inspects whitelisted elements such as form",
+        "onclick isn't treated as an event handler on form elements",
+        "The input's id replaces the form's onclick with a harmless value"
+      ],
+      "answer": 0,
+      "explain": "form.attributes now refers to the input element rather than the real attribute list. The loop condition fails right away, the filter moves on, and onclick survives."
+    },
+    {
+      "type": "mc",
+      "category": "DOM clobbering",
+      "q": "Using DOM objects to overwrite an unsafe name such as submit inside a form can interfere with what?",
+      "choices": [
+        "The form's real submit() function",
+        "The page's document.cookie",
+        "The browser's same-origin policy",
+        "The form's HTTP method"
+      ],
+      "answer": 0,
+      "explain": "An element named 'submit' clobbers the form's submit property, so code that calls form.submit() gets a DOM node instead of the function."
+    },
+    {
+      "type": "tf",
+      "category": "DOM clobbering",
+      "q": "The pattern var someObject = window.someObject || {}; is safe from DOM clobbering because it falls back to an empty object.",
+      "answer": false,
+      "explain": "The fallback only applies when window.someObject is falsy. Injected HTML with id=someObject makes it a DOM node, so the attacker's node is used. Using global variables together with || is a pattern to avoid."
+    },
+    {
+      "type": "text",
+      "category": "DOM clobbering",
+      "q": "To make sure a DOM node's attributes property is genuine and not a clobbered HTML element, check that it is an instance of which type?",
+      "answer": ["NamedNodeMap"],
+      "explain": "A real attributes property is a NamedNodeMap. If it is anything else, such as an input element, the property has been clobbered."
+    },
+    {
+      "type": "multi",
+      "category": "DOM clobbering",
+      "q": "Which of these help prevent DOM-clobbering attacks?",
+      "choices": [
+        "Check that objects and functions are legitimate, and when filtering the DOM, check they aren't DOM nodes",
+        "Avoid using global variables together with the logical OR operator (||)",
+        "Use a well-tested sanitizer library such as DOMPurify that accounts for clobbering",
+        "Allow id and name attributes through the HTML filter so elements can be checked by name",
+        "Rely on a for loop over element.attributes to strip dangerous attributes"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Verify types (e.g. attributes instanceof NamedNodeMap), avoid the window.x || {} pattern, and use a well-tested library. Allowing id/name is what makes clobbering possible, and naive attributes loops are exactly what clobbering defeats."
+    }
+  ]
+}
