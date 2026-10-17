@@ -1,0 +1,663 @@
+{
+  "title": "Denial of Service and Firewalls",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "DoS and DDoS basics",
+      "q": "Which security goal does a denial-of-service attack primarily target?",
+      "choices": ["Confidentiality", "Integrity", "Availability", "Non-repudiation"],
+      "answer": 2,
+      "explain": "A DoS attack tries to make a machine or piece of software unavailable, so that it cannot perform its basic function."
+    },
+    {
+      "type": "tf",
+      "category": "DoS and DDoS basics",
+      "q": "To take a system down, a DoS attacker must exhaust every one of the system's resources.",
+      "answer": false,
+      "explain": "Different parts of a system have different resource limits. The attacker only needs to exhaust the part with the least resources, the bottleneck."
+    },
+    {
+      "type": "mc",
+      "category": "DoS and DDoS basics",
+      "q": "Why do DoS attackers so often spoof the source IP address?",
+      "choices": [
+        "Spoofed packets get higher priority from routers, so they reach the target faster",
+        "The attacker doesn't need replies, and using a fresh fake source address for each packet hides the attacker and defeats IP blacklisting",
+        "The target's TCP stack only accepts packets from addresses it has already seen",
+        "Spoofing lets the attacker read the server's responses without being detected"
+      ],
+      "answer": 1,
+      "explain": "A DoS attacker doesn't care about responses. A unique spoofed source on every packet hides the attacker's identity and stops the target from identifying and blocking a single address."
+    },
+    {
+      "type": "mc",
+      "category": "DoS and DDoS basics",
+      "q": "Why is a DoS attack launched from a single machine usually impractical today?",
+      "choices": [
+        "ISPs block any host that sends more than a fixed number of packets per second",
+        "TCP no longer allows a single host to open more than one connection to a server",
+        "Modern servers can handle far more bandwidth than one machine can generate",
+        "IP spoofing cannot be done from a single machine"
+      ],
+      "answer": 2,
+      "explain": "Modern server bandwidth is much larger than what one machine can send. That is why attackers turn to many machines at once (DDoS)."
+    },
+    {
+      "type": "text",
+      "category": "DoS and DDoS basics",
+      "q": "What is the term for a large network of compromised, remotely controllable machines that attackers often use to carry out DDoS attacks?",
+      "answer": ["botnet", "a botnet", "botnets"],
+      "explain": "Botnets let an attacker point traffic from thousands of compromised machines at a single target."
+    },
+    {
+      "type": "tf",
+      "category": "DoS and DDoS basics",
+      "q": "With good enough traffic filtering, a server can completely eliminate the possibility of a DDoS attack.",
+      "answer": false,
+      "explain": "The bandwidth a server can provide is always limited, so DDoS can only be mitigated, never fully eliminated."
+    },
+    {
+      "type": "mc",
+      "category": "DoS and DDoS basics",
+      "q": "Some DDoS protections analyze incoming traffic and drop packets from sources that use too much bandwidth. What makes this defense especially difficult?",
+      "choices": [
+        "Encryption hides how large each packet is",
+        "IP spoofing hides the bots' identities and gives inconsistent information about where the traffic comes from",
+        "Bots always use TCP, and TCP traffic cannot be rate-limited",
+        "Routers strip source addresses before packets reach the server"
+      ],
+      "answer": 1,
+      "explain": "Per-source limits depend on knowing the real source. Spoofed addresses make the traffic look like it comes from many unrelated places."
+    },
+    {
+      "type": "mc",
+      "category": "Application-level DoS",
+      "q": "Many application-level DoS attacks rely on asymmetry. What does asymmetry mean here?",
+      "choices": [
+        "The attacker uses more upload bandwidth than the server uses for downloads",
+        "The attacker and the server use different encryption keys",
+        "Only the server, not the attacker, has to complete the TCP handshake",
+        "A small amount of input from the attacker causes a large amount of resource consumption"
+      ],
+      "answer": 3,
+      "explain": "Asymmetric attacks get a lot of leverage: cheap requests from the attacker make the application spend a large amount of resources."
+    },
+    {
+      "type": "multi",
+      "category": "Application-level DoS",
+      "q": "Which of these are application-level resource-exhaustion attacks?",
+      "choices": [
+        "Repeatedly calling write to fill up filesystem space",
+        "Repeatedly calling malloc to exhaust RAM",
+        "Eavesdropping on traffic to steal session cookies",
+        "Repeatedly calling fork to use up processing threads",
+        "Issuing operations that saturate disk I/O",
+        "Modifying a packet's payload in transit"
+      ],
+      "answer": [0, 1, 3, 4],
+      "explain": "Filesystem space, RAM, threads and disk I/O are all application resources that can be exhausted. Eavesdropping and tampering attack confidentiality and integrity, not availability."
+    },
+    {
+      "type": "mc",
+      "category": "Application-level DoS",
+      "q": "What are the three prongs of the usual defense against application-level DoS?",
+      "choices": [
+        "Encryption, authentication, integrity",
+        "Identification, isolation, quotas",
+        "Detection, response, recovery",
+        "Overprovisioning, filtering, spoofing"
+      ],
+      "answer": 1,
+      "explain": "Identify (tell users apart), isolate (one user can't affect another), and apply quotas (cap each user's share of resources)."
+    },
+    {
+      "type": "mc",
+      "category": "Application-level DoS",
+      "q": "Which prong of the application-level DoS defense ensures that one user's actions do not affect another user's experience?",
+      "choices": ["Identification", "Quotas", "Isolation", "Proof-of-work"],
+      "answer": 2,
+      "explain": "Isolation keeps users' resource use separate so that one user cannot degrade service for others."
+    },
+    {
+      "type": "mc",
+      "category": "Application-level DoS",
+      "q": "A hosting service limits each user to 4 GB of RAM and 2 CPU cores. Which DoS defense is this?",
+      "choices": ["Identification", "Overprovisioning", "SYN cookies", "Quotas"],
+      "answer": 3,
+      "explain": "Placing a fixed limit on each user is a quota. It ensures every user can only use a certain share of resources."
+    },
+    {
+      "type": "mc",
+      "category": "Application-level DoS",
+      "q": "How does requiring proof-of-work (such as a CAPTCHA) help against DoS?",
+      "choices": [
+        "It makes each request cost the requester resources, so flooding becomes more expensive for the attacker",
+        "It encrypts requests so the attacker cannot replay them",
+        "It reveals the attacker's true IP address to the server",
+        "It reduces the server's cost of handling each request to zero"
+      ],
+      "answer": 0,
+      "explain": "Proof-of-work forces users to spend resources before they can issue a request. That raises the attacker's cost of sending many requests."
+    },
+    {
+      "type": "tf",
+      "category": "Application-level DoS",
+      "q": "The identification step, which distinguishes and authenticates users, can itself be expensive and become a target for DoS.",
+      "answer": true,
+      "explain": "Authenticating every requester costs resources, so the identification process can be vulnerable to DoS too."
+    },
+    {
+      "type": "mc",
+      "category": "SYN floods and SYN cookies",
+      "q": "What does an attacker do in a SYN flood?",
+      "choices": [
+        "Completes many TCP handshakes, then sends huge amounts of data on each connection",
+        "Sends many ACK packets with no SYN before them",
+        "Sends many SYN packets, ignores the SYN/ACK replies, and never sends the final ACK",
+        "Replays a legitimate client's SYN/ACK to hijack its connection"
+      ],
+      "answer": 2,
+      "explain": "The attacker starts many handshakes and never finishes them, leaving the server waiting on many half-open connections."
+    },
+    {
+      "type": "mc",
+      "category": "SYN floods and SYN cookies",
+      "q": "Which server resource does a SYN flood exhaust?",
+      "choices": [
+        "Memory holding per-connection state (such as sequence numbers) for handshakes that never complete",
+        "Disk space used to log rejected packets",
+        "CPU time spent decrypting TLS sessions",
+        "The server's pool of available IP addresses"
+      ],
+      "answer": 0,
+      "explain": "The server has to remember sequence numbers to match each expected ACK. With no ACKs arriving, that memory fills up and blocks legitimate connections."
+    },
+    {
+      "type": "mc",
+      "category": "SYN floods and SYN cookies",
+      "q": "In a SYN flood with spoofed source addresses, where do the server's SYN/ACK replies go?",
+      "choices": [
+        "Back to the attacker's real address",
+        "To the spoofed, essentially random addresses, not to the attacker",
+        "Nowhere, because the server drops spoofed SYNs before replying",
+        "To the server's default gateway, which discards them"
+      ],
+      "answer": 1,
+      "explain": "The server replies to whatever source address the SYN claims. With spoofing, that address is random and is not the attacker's."
+    },
+    {
+      "type": "mc",
+      "category": "SYN floods and SYN cookies",
+      "q": "With SYN cookies, where is the connection state kept between sending the SYN/ACK and receiving the client's ACK?",
+      "choices": [
+        "In a server-side table indexed by the client's IP address",
+        "In an HTTP cookie stored by the client's browser",
+        "In a special TCP option that every client is required to store",
+        "Encoded with a server secret in the SYN/ACK's sequence number, which the client echoes back in its ACK number"
+      ],
+      "answer": 3,
+      "explain": "TCP has no field meant for storing state, so the server packs the state, protected by a secret, into its sequence number. The client hands it back in the ACK number."
+    },
+    {
+      "type": "tf",
+      "category": "SYN floods and SYN cookies",
+      "q": "With SYN cookies, the server allocates connection state as soon as it receives a SYN.",
+      "answer": false,
+      "explain": "The server allocates state only after the handshake completes and the cookie in the ACK checks out against the secret."
+    },
+    {
+      "type": "mc",
+      "category": "SYN floods and SYN cookies",
+      "q": "Why can't an attacker who spoofs source addresses make a SYN-cookie server allocate connection state?",
+      "choices": [
+        "The SYN/ACK carrying the cookie goes to the spoofed address, so the attacker never sees it and cannot return a valid cookie in an ACK",
+        "SYN-cookie servers reject all packets with a source port above 1024",
+        "SYN cookies encrypt the entire TCP connection",
+        "The server pings each source address to confirm it before replying"
+      ],
+      "answer": 0,
+      "explain": "State is created only when an ACK returns a valid cookie. A spoofing attacker never receives the cookie and cannot forge one without the secret, so it never completes the handshake."
+    },
+    {
+      "type": "mc",
+      "category": "SYN floods and SYN cookies",
+      "q": "Why is overprovisioning (giving the server a lot of memory) considered a weak defense against SYN floods?",
+      "choices": [
+        "It makes the server more vulnerable to IP spoofing",
+        "It breaks the TCP handshake for legitimate clients",
+        "It is expensive, and a strong enough attacker can still exhaust the extra memory",
+        "Extra memory makes the server slower to respond"
+      ],
+      "answer": 2,
+      "explain": "More memory only raises the bar. It costs money, and depending on the threat model an attacker can still fill it."
+    },
+    {
+      "type": "text",
+      "category": "SYN floods and SYN cookies",
+      "q": "In the SYN-cookie defense, which TCP header field of the SYN/ACK carries the encoded state?",
+      "answer": ["sequence number", "the sequence number", "seq number", "seq", "sequence", "initial sequence number"],
+      "explain": "The server encodes the state, with a secret, in the sequence number. The client returns it in the ACK number."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall security policy",
+      "q": "What principle is behind the hardening advice 'turn off every unnecessary network service'?",
+      "choices": [
+        "Unused services use bandwidth that an attacker could exploit for DoS",
+        "Bugs in code you don't run can't hurt you, so less functionality means fewer chances for vulnerabilities",
+        "Fewer services make encryption keys harder to guess",
+        "Disabled services automatically act as honeypots"
+      ],
+      "answer": 1,
+      "explain": "Every network service you run might contain an exploitable bug. Code you don't run can't hurt you."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall security policy",
+      "q": "Why does hardening each machine individually become infeasible for an organization with thousands of computers?",
+      "choices": [
+        "Hardening tools can only run on one machine per network",
+        "Disabling services on many machines at once causes a DoS",
+        "Firewalls stop working once too many machines are hardened",
+        "Machines differ in OS, hardware and user needs, even listing them all is hard, and one missed machine can become a launching point for attacks"
+      ],
+      "answer": 3,
+      "explain": "At large scale, the variety of machines and needs, plus the risk of missing even one machine, make per-machine hardening impractical. This motivates blocking access in the network instead."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall security policy",
+      "q": "Under an outbound-only policy, which of these connections is allowed?",
+      "choices": [
+        "An external customer connecting to the company's public web server",
+        "An external mail server delivering email to the company's mail server",
+        "An employee's internal machine connecting to an external news website",
+        "A remote user connecting to an internal FTP server"
+      ],
+      "answer": 2,
+      "explain": "Outbound-only allows every connection initiated by an internal user and denies every inbound connection. The other three options are all inbound."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall security policy",
+      "q": "What is the main problem with an outbound-only policy for a large organization?",
+      "choices": [
+        "It is too restrictive: the organization cannot run any publicly reachable service, such as a web or mail server",
+        "It lets external users reach every internal service",
+        "It fails open whenever a rule is missing",
+        "It requires inspecting the content of every outbound connection"
+      ],
+      "answer": 0,
+      "explain": "Because no internal service is visible from outside, public web, mail and FTP servers become impossible. That is why policies need more flexibility."
+    },
+    {
+      "type": "tf",
+      "category": "Firewall security policy",
+      "q": "An inbound connection is one initiated by an internal user to contact an external service.",
+      "answer": false,
+      "explain": "That describes an outbound connection. An inbound connection is initiated by an external user trying to reach a service on an internal machine."
+    },
+    {
+      "type": "num",
+      "category": "Firewall security policy",
+      "q": "In the firewall's access control policy, each network service on each internal machine is an object. If a company has 40 internal machines and each runs 5 network services, how many objects are there?",
+      "answer": 200,
+      "explain": "Objects are the set of network services on all inside machines: 40 x 5 = 200."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall security policy",
+      "q": "Which statement correctly pairs each default policy with how it fails?",
+      "choices": [
+        "Default-deny (whitelist) fails open; default-allow (blacklist) fails closed",
+        "Default-deny (whitelist) fails closed; default-allow (blacklist) fails open",
+        "Default-deny (blacklist) fails closed; default-allow (whitelist) fails open",
+        "Both fail closed, because unknown traffic is always dropped"
+      ],
+      "answer": 1,
+      "explain": "Default-deny lists only allowed services, so a mistake blocks something (fails closed). Default-allow lists only denied services, so a mistake exposes something (fails open)."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall security policy",
+      "q": "An administrator using a default-allow policy forgets to put a newly vulnerable service on the deny list. What is the likely result?",
+      "choices": [
+        "Users quickly complain that the service is unreachable",
+        "The firewall automatically drops that service's traffic",
+        "Nothing, because default-allow only applies to outbound traffic",
+        "A security breach that may go unnoticed for a long time"
+      ],
+      "answer": 3,
+      "explain": "Default-allow fails open. The vulnerable service stays exposed, and attackers who break in are unlikely to announce it."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall security policy",
+      "q": "An administrator using a default-deny policy forgets to add a safe, needed service to the allow list. What is the likely result?",
+      "choices": [
+        "Loss of functionality, which users notice and report, so it is easy to fix",
+        "A hidden security breach",
+        "The firewall switches to default-allow for that service",
+        "External attackers gain access to the forgotten service"
+      ],
+      "answer": 0,
+      "explain": "Default-deny fails closed. The cost is lost availability, not a breach, and the omission becomes obvious right away."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall security policy",
+      "q": "How does a firewall policy identify a single network service?",
+      "choices": [
+        "(hostname, username, password)",
+        "(MAC address, IP address, port number)",
+        "(IP address, protocol TCP or UDP, port number)",
+        "(port number, application name, OS version)"
+      ],
+      "answer": 2,
+      "explain": "A service is the triplet (m, r, p): machine IP address, protocol identifier and port. For example, (1.2.3.4, TCP, 80) is a web server."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall security policy",
+      "q": "Why is default-allow described as a losing arms race?",
+      "choices": [
+        "It requires buying a new firewall whenever a threat appears",
+        "Defenders must keep up with and stay ahead of every new attack, but attackers outnumber them and only need to win once",
+        "It forces users to request access for every new service",
+        "It blocks so much traffic that attackers switch to DDoS"
+      ],
+      "answer": 1,
+      "explain": "With a deny list, every new threat has to be found and added in time. Attackers are more numerous and need only one success."
+    },
+    {
+      "type": "mc",
+      "category": "Packet filters and other firewalls",
+      "q": "Why is a firewall placed at a choke point in the network?",
+      "choices": [
+        "Choke points have the highest bandwidth in the network",
+        "Choke points are the only place where packets are unencrypted",
+        "It gives one place where all traffic can be monitored and a policy enforced for thousands of machines",
+        "Choke points automatically block spoofed source addresses"
+      ],
+      "answer": 2,
+      "explain": "Like an airport security checkpoint, a choke point lets you check everything in one place instead of at thousands of entrances."
+    },
+    {
+      "type": "mc",
+      "category": "Packet filters and other firewalls",
+      "q": "A packet filter's policy is an ordered list of rules. How is a packet's handling decided?",
+      "choices": [
+        "The last matching rule decides",
+        "The first matching rule decides",
+        "The most specific matching rule decides, regardless of order",
+        "The majority of matching rules decides"
+      ],
+      "answer": 1,
+      "explain": "The firewall checks the rules one by one, and the first rule that matches decides whether the packet is allowed or dropped."
+    },
+    {
+      "type": "mc",
+      "category": "Packet filters and other firewalls",
+      "q": "A firewall has these rules, in order (initiator -> recipient):\n1. allow tcp *:* -> 1.2.3.4:25\n2. drop * *:* -> *:*\nWhich connection is allowed?",
+      "choices": [
+        "An external host sending UDP to 1.2.3.4 port 25",
+        "An external host opening a TCP connection to 1.2.3.4 port 80",
+        "An external host opening a TCP connection to 1.2.3.5 port 25",
+        "An external host opening a TCP connection to 1.2.3.4 port 25"
+      ],
+      "answer": 3,
+      "explain": "Only TCP connections to 1.2.3.4:25 match rule 1. Anything else (wrong protocol, port or machine) falls through to the drop-all rule."
+    },
+    {
+      "type": "mc",
+      "category": "Packet filters and other firewalls",
+      "q": "Suppose the two rules are swapped so the order is:\n1. drop * *:* -> *:*\n2. allow tcp *:* -> 1.2.3.4:25\nWhat happens to a TCP connection to 1.2.3.4 port 25?",
+      "choices": [
+        "It is dropped, because the drop-all rule matches first",
+        "It is allowed, because the allow rule is more specific",
+        "It is allowed, because allow rules always override drop rules",
+        "It is dropped only if it comes from outside the network"
+      ],
+      "answer": 0,
+      "explain": "First match wins, and the drop-all rule matches every packet, so rule 2 is never reached."
+    },
+    {
+      "type": "mc",
+      "category": "Packet filters and other firewalls",
+      "q": "Why does a stateful packet filter keep track of open connections?",
+      "choices": [
+        "To encrypt traffic on established connections",
+        "To resend packets that were dropped",
+        "A packet from X to Y alone doesn't show whether X or Y started the connection; state shows whether it belongs to a connection that is already open",
+        "To count bytes so each user can be billed"
+      ],
+      "answer": 2,
+      "explain": "Whether a packet should be forwarded can depend on who initiated the connection. State lets the filter recognize packets that belong to already-established connections."
+    },
+    {
+      "type": "mc",
+      "category": "Packet filters and other firewalls",
+      "q": "What must designers of a stateful packet filter be careful about?",
+      "choices": [
+        "Storing the full contents of every packet for later inspection",
+        "Keeping only a small amount of information per connection so the firewall doesn't run out of memory",
+        "Never checking more than one rule per packet",
+        "Making sure the filter has no rules that mention UDP"
+      ],
+      "answer": 1,
+      "explain": "Per-connection state uses memory. If that state is large, the firewall itself can be exhausted, which is the same weakness a SYN flood exploits on servers."
+    },
+    {
+      "type": "mc",
+      "category": "Packet filters and other firewalls",
+      "q": "Which kind of firewall could NOT enforce a policy that blocks FTP logins using the username 'root'?",
+      "choices": [
+        "A stateful packet filter",
+        "An application-layer firewall",
+        "An FTP application proxy",
+        "A stateless packet filter that only looks at TCP, UDP and IP headers"
+      ],
+      "answer": 3,
+      "explain": "The username is in the application data, not the headers. A stateless filter handles each packet by its headers alone with no memory, so it cannot follow the login."
+    },
+    {
+      "type": "mc",
+      "category": "Packet filters and other firewalls",
+      "q": "What is the main benefit of routing all web access through a web proxy (an application proxy)?",
+      "choices": [
+        "The proxy has all the application-layer information about each request and reply, so it can make fine-grained allow/deny decisions",
+        "It removes the need for any security policy",
+        "It speeds up web traffic by bypassing the choke point",
+        "It does not need to understand the application protocol"
+      ],
+      "answer": 0,
+      "explain": "Because the proxy takes part in the exchange itself, its monitoring can use everything about the request and reply when deciding."
+    },
+    {
+      "type": "multi",
+      "category": "Packet filters and other firewalls",
+      "q": "Which are drawbacks of application proxies (gateway proxies)?",
+      "choices": [
+        "Implementation complexity: the proxy must understand every detail of the protocol it mediates",
+        "They can only see IP and TCP headers",
+        "Performance: funneling all of a site's traffic through a few proxies can overwhelm them",
+        "They cannot make allow/deny decisions"
+      ],
+      "answer": [0, 2],
+      "explain": "Proxies see the full application data and do make decisions. Their costs are protocol complexity and the risk of becoming a performance bottleneck."
+    },
+    {
+      "type": "tf",
+      "category": "Packet filters and other firewalls",
+      "q": "Application-layer firewalls can transform data on the fly instead of just allowing or dropping it.",
+      "answer": true,
+      "explain": "Because they work on the content of data fields, application-layer firewalls can enforce stricter policies and modify data as it passes through."
+    },
+    {
+      "type": "multi",
+      "category": "Reference monitors",
+      "q": "Which are the three properties every reference monitor should have?",
+      "choices": [
+        "Unbypassable (always invoked)",
+        "Fail-open",
+        "Tamper-resistant",
+        "Stateful",
+        "Verifiable",
+        "Default-allow"
+      ],
+      "answer": [0, 2, 4],
+      "explain": "A reference monitor must mediate every controlled operation, be protected from modification, and be simple enough for its correctness to be checked."
+    },
+    {
+      "type": "mc",
+      "category": "Reference monitors",
+      "q": "An employee plugs an unsecured wireless access point into their internal machine, so anyone nearby can reach the internal network. Which reference-monitor property does this break?",
+      "choices": ["Tamper-resistant", "Verifiable", "Always invoked (unbypassable)", "Orthogonal security"],
+      "answer": 2,
+      "explain": "Traffic through the access point never crosses the firewall's choke point, so the firewall is bypassed. Complete mediation is lost."
+    },
+    {
+      "type": "text",
+      "category": "Reference monitors",
+      "q": "The set of all links between the internal network and the external world, every one of which a firewall must cover, is called the ___.",
+      "answer": ["security perimeter", "the security perimeter", "perimeter"],
+      "explain": "If any link in the security perimeter is left uncovered, the firewall can be bypassed."
+    },
+    {
+      "type": "mc",
+      "category": "Reference monitors",
+      "q": "Why should a reference monitor be kept extremely simple?",
+      "choices": [
+        "So it uses less bandwidth",
+        "So it can be verified, since checking the correctness of complex subsystems is generally beyond the state of the art",
+        "So attackers can't find it on the network",
+        "So it can run a standard operating system"
+      ],
+      "answer": 1,
+      "explain": "Verifiability needs simplicity. Proving that a complex system correctly enforces a policy is generally not possible today."
+    },
+    {
+      "type": "mc",
+      "category": "Reference monitors",
+      "q": "Which reference-monitor property do real-world firewalls generally fall short on most, and why?",
+      "choices": [
+        "Always invoked, because firewalls cannot be placed at a choke point",
+        "Tamper-resistant, because firewalls must run many network services",
+        "None, because all three properties are routinely proven for firewalls",
+        "Verifiable, because firewall software and rule sets are too complex to verify systematically"
+      ],
+      "answer": 3,
+      "explain": "Firewall correctness is generally not verified in practice. Bugs have let attackers send unexpected packets that defeat the policy, and rule sets quickly become complex."
+    },
+    {
+      "type": "multi",
+      "category": "Reference monitors",
+      "q": "Which measures help make a firewall tamper-resistant?",
+      "choices": [
+        "Not running a standard OS, user-level programs or network services on it",
+        "Allowing management access only from specific trusted machines",
+        "Making its rule set as long and detailed as possible",
+        "Ensuring the physical security of the firewall device",
+        "Letting any internal machine change its configuration",
+        "Protecting the firewall itself with firewall rules"
+      ],
+      "answer": [0, 1, 3, 5],
+      "explain": "Hardening means removing attack avenues, restricting who can manage the device, and guarding it physically. Longer rules don't stop tampering, and open configuration access invites it."
+    },
+    {
+      "type": "mc",
+      "category": "Reference monitors",
+      "q": "What does it mean that firewalls provide orthogonal security?",
+      "choices": [
+        "They can protect existing legacy systems without being built into them, and other components don't need to know the firewall is there",
+        "They protect confidentiality, integrity and availability independently",
+        "Every internal machine must be modified to cooperate with the firewall",
+        "They operate independently of any security policy"
+      ],
+      "answer": 0,
+      "explain": "A filter that drops disallowed requests and passes allowed ones unchanged is transparent to the rest of the system, so it is easy to add to existing systems."
+    },
+    {
+      "type": "tf",
+      "category": "Reference monitors",
+      "q": "Even if a firewall's code is completely correct, its rules may not enforce the access controls the operator believes they enforce.",
+      "answer": true,
+      "explain": "Firewall policies quickly become complex. Correct code can still faithfully enforce the wrong rules."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall advantages and disadvantages",
+      "q": "A new threat against an Internet service is discovered. Which firewall advantage lets an organization block it quickly for every internal machine?",
+      "choices": ["Central control", "Orthogonal security", "Stateless processing", "Fail-open behavior"],
+      "answer": 0,
+      "explain": "Only the firewall's policy has to change, not each machine, and every internal machine benefits immediately."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall advantages and disadvantages",
+      "q": "Two users, each behind their own firewall, try to connect directly to each other peer-to-peer. Why does this usually fail?",
+      "choices": [
+        "Firewalls block all outbound connections by default",
+        "P2P protocols cannot run over TCP",
+        "The receiving user's firewall sees the attempt as an inbound connection and blocks it",
+        "Both firewalls drop all traffic on port 80"
+      ],
+      "answer": 2,
+      "explain": "This is the loss-of-functionality cost. Firewalls reduce connectivity from outside, and a peer's connection looks like any other inbound connection."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall advantages and disadvantages",
+      "q": "Bill Cheswick described firewalled networks as 'a crunchy outer coating, with a soft, chewy center.' What does this capture?",
+      "choices": [
+        "Firewalls stop insiders well but are weak against outsiders",
+        "Once an attacker gets inside the perimeter, they are trusted and can freely attack other inside machines",
+        "Firewalls are hard to configure but easy to bypass from outside",
+        "Internal machines are usually hardened better than the firewall"
+      ],
+      "answer": 1,
+      "explain": "The perimeter is hard, but insiders are trusted. Once a bad actor is inside, the firewall can do nothing to stop attacks between inside machines."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall advantages and disadvantages",
+      "q": "An employee's laptop picks up malware on hotel Wi-Fi with no firewall, then infects other machines after being plugged into the company network. Which firewall disadvantage does this show?",
+      "choices": [
+        "Loss of functionality",
+        "Adversarial applications tunneling over port 80",
+        "Lack of central control",
+        "The malicious insider problem: anything inside the perimeter is trusted"
+      ],
+      "answer": 3,
+      "explain": "The infected laptop is now an inside machine, and inside machines have unlimited power to attack each other."
+    },
+    {
+      "type": "mc",
+      "category": "Firewall advantages and disadvantages",
+      "q": "Why does an application tunneling its traffic over HTTP (port 80) make firewalls less effective?",
+      "choices": [
+        "Many firewalls allow port 80, and they can't tell this traffic apart from real web traffic, so they lose visibility",
+        "Port 80 traffic is always encrypted",
+        "HTTP traffic skips the network's choke point",
+        "Firewalls then have to block all port 80 traffic, which breaks the web"
+      ],
+      "answer": 0,
+      "explain": "To get past firewalls, developers hide their protocols inside allowed traffic. Over time, more traffic flows over port 80 and firewalls see less of what is really crossing them."
+    },
+    {
+      "type": "tf",
+      "category": "Firewall advantages and disadvantages",
+      "q": "Firewalls are easy to deploy, partly because they are essentially transparent to internal hosts.",
+      "answer": true,
+      "explain": "Transparency gives an easy migration path, so firewalls can be deployed incrementally or all at once, and one firewall can protect thousands of machines."
+    },
+    {
+      "type": "tf",
+      "category": "Firewall advantages and disadvantages",
+      "q": "Firewalls are generally a much cheaper response to vulnerable network services than improving the quality of the code in all those services.",
+      "answer": true,
+      "explain": "Cleaning up every service's code would be better in principle, but it is an enormous challenge. Firewalls address the problem far more cheaply."
+    }
+  ]
+}
