@@ -1,0 +1,491 @@
+{
+  "title": "Arch1001 19: Writing Inline Assembly",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "multi",
+      "category": "Why write assembly",
+      "q": "Which of these are good reasons for a C/C++ programmer to write some assembly?",
+      "choices": [
+        "Firmware, OS, or driver code that must use hardware features reachable only through special instructions",
+        "A crypto library that wants the CPU's hardware cryptographic acceleration instructions",
+        "Wanting full control over the generated code to hand-tune performance",
+        "Standard C already gives portable control-register access, but asm reads better",
+        "Any program that calls printf must contain hand-written asm"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Low-level code often has to touch hardware that C can't express. Crypto code wants accelerated instructions, and performance tuning sometimes needs exact control over the code. C has no portable way to reach control registers, and ordinary library calls need no asm."
+    },
+    {
+      "type": "tf",
+      "category": "Why write assembly",
+      "q": "C has no built-in way to read or write an Intel control register, which is one reason OS and driver code ends up using assembly.",
+      "answer": true,
+      "explain": "Nothing in C says how to touch a control register on Intel, ARM, or MIPS. These features are architecture-specific and need special instructions."
+    },
+    {
+      "type": "mc",
+      "category": "Why write assembly",
+      "q": "For someone learning x86-64, what is the main payoff of being able to write assembly yourself?",
+      "choices": [
+        "You can write any instruction (even one you haven't studied), step over it in a debugger, and watch what it actually does",
+        "You no longer need to consult the Intel manual",
+        "Assembler syntax always matches disassembler output, so nothing needs looking up",
+        "Your code becomes portable to ARM and MIPS"
+      ],
+      "answer": 0,
+      "explain": "Writing asm lets you experiment by stepping through an instruction and seeing its net effect. Assembler syntax often differs from disassembly, so you'll still search for the right syntax and read the manual."
+    },
+    {
+      "type": "mc",
+      "category": "Inline vs. standalone assembly",
+      "q": "What is the difference between inline and standalone assembly?",
+      "choices": [
+        "Inline asm is written in place inside a C/C++ source file. Standalone asm lives in its own file, is assembled into an object file, and is linked with the other objects",
+        "Inline asm is assembled at run time; standalone asm is assembled at compile time",
+        "Inline asm can only contain raw bytes; standalone asm can only contain mnemonics",
+        "Inline asm is 64-bit only; standalone asm is 32-bit only"
+      ],
+      "answer": 0,
+      "explain": "Inline asm is embedded directly in the C/C++ code. Standalone (out-of-band) asm goes in a separate file, which the assembler turns into an object file that is linked into the final binary."
+    },
+    {
+      "type": "mc",
+      "category": "Inline vs. standalone assembly",
+      "q": "You are building a 64-bit (x86-64) program with Visual Studio and need some hand-written assembly. Which approach works?",
+      "choices": [
+        "Write it in a separate MASM .asm file and link it in",
+        "Put an inline asm block inside the C function",
+        "Use a GCC-style asm(\"...\") statement",
+        "There is no way to include hand-written assembly in a 64-bit MSVC build"
+      ],
+      "answer": 0,
+      "explain": "MSVC supports inline asm only for 32-bit code. For x86-64 you have to write standalone MASM assembly and link it into the binary."
+    },
+    {
+      "type": "mc",
+      "category": "Inline vs. standalone assembly",
+      "q": "Which statement about inline assembly support is correct?",
+      "choices": [
+        "GCC allows inline asm in both 32-bit and 64-bit code; Visual Studio allows it only in 32-bit code",
+        "GCC has no inline asm; Visual Studio allows it in both 32-bit and 64-bit code",
+        "Both GCC and Visual Studio allow inline asm only in 32-bit code",
+        "Visual Studio allows inline asm only in 64-bit code"
+      ],
+      "answer": 0,
+      "explain": "GCC still supports inline asm (gas/AT&T syntax) for x86-64. Microsoft supported it for 32-bit code but not for 64-bit."
+    },
+    {
+      "type": "tf",
+      "category": "Inline vs. standalone assembly",
+      "q": "\"Out-of-band\" assembly is another name for standalone assembly kept in its own file, separate from the C source.",
+      "answer": true,
+      "explain": "There are two ways to write asm. Inline asm goes in the C/C++ code. Out-of-band (standalone) asm goes in a separate file that is assembled and then linked."
+    },
+    {
+      "type": "mc",
+      "category": "Assemblers",
+      "q": "Which assembler does Visual Studio use for .asm files?",
+      "choices": [
+        "MASM (Microsoft Assembler)",
+        "NASM (Netwide Assembler)",
+        "gas (GNU Assembler)",
+        "YASM"
+      ],
+      "answer": 0,
+      "explain": "Visual Studio assembles .asm files with MASM, using MASM's own syntax."
+    },
+    {
+      "type": "mc",
+      "category": "Assemblers",
+      "q": "What is NASM's key advantage?",
+      "choices": [
+        "It is cross-platform: the same source can be assembled on Windows or Linux",
+        "It is the only assembler that can emit raw bytes",
+        "It is built into GCC's inline asm",
+        "It only accepts AT&T syntax"
+      ],
+      "answer": 0,
+      "explain": "NASM (the Netwide Assembler) is popular because it is cross-platform. Most assemblers, not just NASM, can emit raw bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Assemblers",
+      "q": "GCC inline assembly is written for which assembler, in which syntax?",
+      "choices": [
+        "GNU Assembler (gas), AT&T syntax",
+        "MASM, Intel syntax",
+        "NASM, Intel syntax",
+        "GNU Assembler (gas), MASM syntax"
+      ],
+      "answer": 0,
+      "explain": "GCC uses the GNU Assembler (gas), whose syntax is AT&T: % before registers, $ before immediates, and source before destination."
+    },
+    {
+      "type": "tf",
+      "category": "Assemblers",
+      "q": "Instruction text copied straight from a disassembler will always assemble unchanged in any assembler.",
+      "answer": false,
+      "explain": "Each assembler has its own syntax variant and helper features, and these often differ from what a disassembler prints. You'll often have to look up how a particular assembler wants an instruction written."
+    },
+    {
+      "type": "mc",
+      "category": "Visual Studio intrinsics",
+      "q": "What is a Visual Studio compiler intrinsic?",
+      "choices": [
+        "Something written like a C function call that the compiler replaces in place with specific assembly instruction(s)",
+        "A precompiled library function the program calls at run time",
+        "A MASM macro used inside .asm files",
+        "A debugger command that shows the disassembly"
+      ],
+      "answer": 0,
+      "explain": "Intrinsics look like C function calls, but the compiler substitutes literal assembly instructions. This lets you get certain instructions without writing any asm."
+    },
+    {
+      "type": "multi",
+      "category": "Visual Studio intrinsics",
+      "q": "Which intrinsic-to-instruction pairings are correct?",
+      "choices": [
+        "__stosX -> rep stos",
+        "__movsX -> rep movs",
+        "_rotrX -> ror",
+        "__movsX -> a plain mov",
+        "_rotrX -> rol"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "__stosX generates rep stos, __movsX generates rep movs, and _rotrX generates ror (rotate right). X is the size, e.g. a 32-bit variant."
+    },
+    {
+      "type": "tf",
+      "category": "Visual Studio intrinsics",
+      "q": "Visual Studio offers intrinsics for basic instructions such as add and sub.",
+      "answer": false,
+      "explain": "C's + and - already produce those instructions. Intrinsics mostly cover things C can't express."
+    },
+    {
+      "type": "mc",
+      "category": "Visual Studio intrinsics",
+      "q": "Most Visual Studio intrinsics exist mainly so kernel code can do what?",
+      "choices": [
+        "Access system-level features such as control registers and model-specific registers",
+        "Do integer arithmetic faster than C's + and -",
+        "Call printf without the C runtime",
+        "Convert AT&T syntax into Intel syntax"
+      ],
+      "answer": 0,
+      "explain": "Most intrinsics wrap system-level instructions, for example for control registers and model-specific registers. The Microsoft kernel team needs these."
+    },
+    {
+      "type": "mc",
+      "category": "MASM in Visual Studio",
+      "q": "How does C code in a Visual Studio project call a routine written in a MASM .asm file?",
+      "choices": [
+        "The .asm file exports a function name; the C code declares it as an external function and calls it; the linker connects the two",
+        "The C file #includes the .asm file and the compiler pastes it in",
+        "The C code uses an __asm block to jump into the .asm file",
+        "The debugger loads the .asm file at run time"
+      ],
+      "answer": 0,
+      "explain": "The C code treats the asm routine as an external, undefined function. The linker resolves it against the exported name in the assembled object file."
+    },
+    {
+      "type": "mc",
+      "category": "MASM in Visual Studio",
+      "q": "In a standalone-assembly build, which step connects the C code's call to the assembly function's actual code?",
+      "choices": [
+        "Linking",
+        "Preprocessing",
+        "Running the debugger",
+        "Compiling the C file"
+      ],
+      "answer": 0,
+      "explain": "The C file is compiled and the .asm file is assembled, each into an object file. The linker then joins them so the external reference points to the asm function."
+    },
+    {
+      "type": "mc",
+      "category": "MASM in Visual Studio",
+      "q": "When you create a new Visual Studio project that uses MASM, what is the key extra step?",
+      "choices": [
+        "Before adding the .asm file, right-click the project -> Build Dependencies -> Build Customizations and check masm",
+        "Rename source.c to source.asm",
+        "Switch the project to 32-bit so inline asm is allowed",
+        "Add #pragma masm to the top of the C file"
+      ],
+      "answer": 0,
+      "explain": "Turning on the masm build customization tells Visual Studio to assemble .asm files with MASM. Do it before adding the .asm file."
+    },
+    {
+      "type": "num",
+      "category": "MASM in Visual Studio",
+      "q": "A MASM function contains only `mov rax, 1` followed by `ret`. When C code calls it, what return value does the caller get?",
+      "answer": 1,
+      "explain": "By convention RAX holds the return value on x86-64, so the caller sees 1."
+    },
+    {
+      "type": "multi",
+      "category": "MASM syntax",
+      "q": "Which of these lines will MASM accept?",
+      "choices": [
+        "db 04h, 01h",
+        "db 0C3h",
+        "mov rax, 0E09966C1A977E177h",
+        "db C3h",
+        "mov rax, E09966C1A977E177h"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "MASM rejects a hex immediate that begins with a letter, even with the h suffix. Adding a leading 0 fixes it (0C3h, 0E0996...h). The rule applies both to instruction immediates and to db bytes."
+    },
+    {
+      "type": "text",
+      "category": "MASM syntax",
+      "q": "MASM rejects `DB C3h`. Rewrite it so it assembles.",
+      "answer": ["DB 0C3h", "db 0C3h", "db 0c3h", "DB 0c3h", "0C3h", "0c3h"],
+      "explain": "Put a 0 in front of a hex value that starts with A-F: DB 0C3h."
+    },
+    {
+      "type": "mc",
+      "category": "MASM syntax",
+      "q": "Why does `mov rax, E09966C1A977E177h` fail to assemble in MASM?",
+      "choices": [
+        "MASM won't accept an immediate that starts with a letter, even with the h suffix; it needs a leading 0",
+        "The value is too large for a 64-bit register",
+        "MASM requires hex values to use a 0x prefix",
+        "mov cannot take an immediate operand in 64-bit mode"
+      ],
+      "answer": 0,
+      "explain": "The value fits in 64 bits (16 hex digits). The only problem is the leading letter. mov rax, 0E09966C1A977E177h assembles fine."
+    },
+    {
+      "type": "tf",
+      "category": "MASM syntax",
+      "q": "In MASM, `db 04h` on one line followed by `db 01h` on the next emits the same bytes as `db 04h, 01h`.",
+      "answer": true,
+      "explain": "Bytes can go one per db line or comma-separated on a single db line. Either way you get 04 01 in the stream."
+    },
+    {
+      "type": "text",
+      "category": "Emitting raw bytes",
+      "q": "Which MASM directive (short for \"data byte\") places a raw byte into the instruction stream?",
+      "answer": ["db", "DB"],
+      "explain": "Write db followed by the byte in hex with an h suffix, e.g. db 04h."
+    },
+    {
+      "type": "text",
+      "category": "Emitting raw bytes",
+      "q": "Which gas directive places a raw byte from GCC inline asm, as in asm(\"____ 0x90\");?",
+      "answer": [".byte", "byte"],
+      "explain": "asm(\".byte 0x90\"); emits the byte 0x90, which the processor executes as nop."
+    },
+    {
+      "type": "mc",
+      "category": "Emitting raw bytes",
+      "q": "The Intel manual lists `04 ib` as ADD AL, imm8. What does `db 04h, 01h` produce?",
+      "choices": [
+        "add al, 1",
+        "add eax, 1",
+        "add al, 4",
+        "Two separate one-byte instructions"
+      ],
+      "answer": 0,
+      "explain": "04 is the opcode for ADD AL, imm8. The CPU takes the next byte (01) as the 8-bit immediate and adds it to AL."
+    },
+    {
+      "type": "multi",
+      "category": "Emitting raw bytes",
+      "q": "Why would you emit instructions as raw bytes rather than mnemonics?",
+      "choices": [
+        "To check your reading of the manual's encoding against what a disassembler says you produced",
+        "To get an instruction in when you can't find the right syntax for it in your assembler",
+        "Raw bytes run faster than the same instruction written as a mnemonic",
+        "Raw bytes skip the CPU's instruction decoding"
+      ],
+      "answer": [0, 1],
+      "explain": "The CPU just sees bytes either way. Emitting them by hand tests whether you read the manual's encoding correctly. It also gets around syntax you can't find for a particular assembler."
+    },
+    {
+      "type": "mc",
+      "category": "Emitting raw bytes",
+      "q": "After emitting hand-encoded bytes, how do you confirm they encode the instructions you intended?",
+      "choices": [
+        "Build, run under a debugger, break there, and read the disassembly to see how the bytes decode",
+        "Check that the assembler gave no warnings",
+        "Count the bytes; if the count is right, the encoding is right",
+        "Recompile with optimizations turned on"
+      ],
+      "answer": 0,
+      "explain": "The disassembler shows how your bytes actually decode, e.g. in Visual Studio's disassembly view or in gdb. If it matches what you meant to write, you encoded it correctly."
+    },
+    {
+      "type": "text",
+      "category": "GCC basic inline asm",
+      "q": "In one GCC asm(\"...\") statement that holds several instructions, what must separate the instructions inside the string?",
+      "answer": ["\\n", "newline", "a newline", "newlines", "new line", "an explicit \\n"],
+      "explain": "Each instruction ends with an explicit \\n, e.g. asm(\"cmp $0xdeadbeef,%eax\\n\" \"je myLabel\\n\" ...);"
+    },
+    {
+      "type": "mc",
+      "category": "GCC basic inline asm",
+      "q": "What does asm(\".byte 0x55\"); place in the code?",
+      "choices": [
+        "push %rbp",
+        "pop %rbp",
+        "nop",
+        "mov %rsp, %rbp"
+      ],
+      "answer": 0,
+      "explain": "0x55 is push %rbp. 0x90 is nop, and 48 89 E5 is mov %rsp, %rbp."
+    },
+    {
+      "type": "mc",
+      "category": "GCC basic inline asm",
+      "q": "asm(\".byte 0x48 ; .byte 0x89 ; .byte 0xE5\"); emits mov %rsp, %rbp. Which register does it change?",
+      "choices": [
+        "rbp, which receives a copy of rsp",
+        "rsp, which receives a copy of rbp",
+        "Neither; it only compares them",
+        "rax"
+      ],
+      "answer": 0,
+      "explain": "AT&T order is source, destination, so the value moves from rsp into rbp. Several .byte directives can be joined with semicolons in one string."
+    },
+    {
+      "type": "tf",
+      "category": "GCC basic inline asm",
+      "q": "To find the encoding of a GCC `movl` or `movw`, you should look up an instruction named MOVL or MOVW in the Intel manual.",
+      "answer": false,
+      "explain": "The l/w suffixes are AT&T size suffixes. In the manual it's just MOV."
+    },
+    {
+      "type": "mc",
+      "category": "GCC basic inline asm",
+      "q": "Which is a correctly formed basic GCC inline asm statement?",
+      "choices": [
+        "asm(\"nop\");",
+        "__asm { nop }",
+        "db 90h",
+        "asm nop;"
+      ],
+      "answer": 0,
+      "explain": "The basic form is the asm keyword, parentheses, a quoted string of instructions, and a semicolon. __asm { } is MSVC's 32-bit inline syntax, and db is a MASM directive."
+    },
+    {
+      "type": "mc",
+      "category": "GCC extended asm",
+      "q": "What is the order of the parts in a GCC extended asm statement?",
+      "choices": [
+        "template : output operands : input operands : clobbered registers",
+        "template : input operands : output operands : clobbered registers",
+        "clobbered registers : template : input operands : output operands",
+        "output operands : template : input operands : clobbered registers"
+      ],
+      "answer": 0,
+      "explain": "asm(assembly template : output operands : input operands : list of clobbered registers); The three sections after the template are each optional."
+    },
+    {
+      "type": "mc",
+      "category": "GCC extended asm",
+      "q": "In asm(\"movl %0, %%eax\" : : \"r\" (myVar)); why are there two colons in a row?",
+      "choices": [
+        "The output-operand section is empty; the second colon starts the input section, so myVar is treated as an input",
+        "The double colon marks myVar as a clobbered register",
+        "Every extended asm needs exactly two colons, whatever its operands",
+        "It switches the template to Intel syntax"
+      ],
+      "answer": 0,
+      "explain": "The sections are positional. The empty output section still needs its colon so that \"r\"(myVar) lands in the input slot."
+    },
+    {
+      "type": "mc",
+      "category": "GCC extended asm",
+      "q": "In an extended asm template, what is the difference between %0 and %%eax?",
+      "choices": [
+        "%0 is replaced with operand number 0; %% stands for a literal %, so %%eax names the eax register itself",
+        "%0 always means eax; %%eax is a memory operand",
+        "They mean the same thing; %% is just style",
+        "%0 is the immediate value 0; %%eax is the 0th output operand"
+      ],
+      "answer": 0,
+      "explain": "In extended asm a single % introduces an operand reference such as %0. A literal register therefore needs a double %%."
+    },
+    {
+      "type": "mc",
+      "category": "GCC extended asm",
+      "q": "What does the operand \"=r\" (myVar) mean?",
+      "choices": [
+        "An output operand: the compiler picks a register for it, and that register's value is written back to myVar",
+        "An input operand: myVar is loaded into a register before the asm runs",
+        "myVar is a clobbered register",
+        "Compare the register with myVar for equality"
+      ],
+      "answer": 0,
+      "explain": "r means a register operand, and = marks it as an output. In asm(\"movl %%eax, %0\" : \"=r\" (myVar)); eax's value ends up in myVar."
+    },
+    {
+      "type": "text",
+      "category": "GCC extended asm",
+      "q": "What does this print? int myVar = 0xabcd; asm(\"movl %0, %%eax\" : : \"r\" (myVar)); asm(\"mov $0x1234, %eax\"); asm(\"movl %%eax, %0\" : \"=r\" (myVar)); printf(\"myVar = %x\\n\", myVar);",
+      "answer": ["myVar = 1234", "myvar = 1234", "1234"],
+      "explain": "myVar (0xabcd) is loaded into eax, then eax is overwritten with 0x1234, and eax is written back into myVar. printf with %x prints 1234."
+    },
+    {
+      "type": "mc",
+      "category": "GCC extended asm",
+      "q": "What is the clobbered-register list in extended asm for?",
+      "choices": [
+        "Telling the compiler which registers the asm will overwrite, so it can save or restore values it needs",
+        "Listing the C variables the asm reads",
+        "Listing registers the asm is forbidden to touch",
+        "Choosing between AT&T and Intel syntax"
+      ],
+      "answer": 0,
+      "explain": "The clobber list is a hint to the compiler that this asm destroys those registers. The compiler can then save the values beforehand or restore them afterward."
+    },
+    {
+      "type": "tf",
+      "category": "GCC extended asm",
+      "q": "asm(\"movl %%eax, %0\" : \"=r\" (myVar)); is invalid because the input and clobber sections are missing.",
+      "answer": false,
+      "explain": "The output, input, and clobber sections are all optional, and trailing sections can be left off. An empty section only needs its colon when a later section is used."
+    },
+    {
+      "type": "mc",
+      "category": "Hand-encoding instructions",
+      "q": "MOV r32, imm32 is encoded as B8+rd id (rd = 0 for EAX). Which bytes encode mov eax, 0xAABBCCDD?",
+      "choices": [
+        "B8 DD CC BB AA",
+        "B8 AA BB CC DD",
+        "AA BB CC DD B8",
+        "B8 00 AA BB CC DD"
+      ],
+      "answer": 0,
+      "explain": "The opcode is B8 (+0 for EAX), followed by the 4-byte immediate in little-endian order, least significant byte first."
+    },
+    {
+      "type": "num",
+      "category": "Hand-encoding instructions",
+      "q": "Sequence: jz mylabel ; and eax, 0x31337 ; mylabel: ret. Here `and eax, imm32` is encoded as 25 id (opcode plus a 4-byte immediate), and jz uses the short form 74 cb. What 8-bit displacement (decimal) should follow the 74?",
+      "answer": 5,
+      "explain": "The displacement counts from the end of the jz instruction. To land on ret it must skip the whole and instruction: 1 opcode byte + 4 immediate bytes = 5, giving 74 05."
+    },
+    {
+      "type": "num",
+      "category": "Hand-encoding instructions",
+      "q": "Using these encodings, how many bytes long is the whole sequence mov eax, 0xAABBCCDD ; sahf ; jz mylabel ; and eax, 0x31337 ; mylabel: ret?  mov eax, imm32 = B8 id; sahf = 9E; jz rel8 = 74 cb; and eax, imm32 = 25 id; ret = C3.",
+      "answer": 14,
+      "explain": "5 (mov) + 1 (sahf) + 2 (jz) + 5 (and) + 1 (ret) = 14 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Hand-encoding instructions",
+      "q": "The sequence ends with ret, whose opcode is C3. Which MASM line emits that byte?",
+      "choices": [
+        "db 0C3h",
+        "db C3h",
+        "db C3",
+        ".byte 0xC3"
+      ],
+      "answer": 0,
+      "explain": "In MASM the byte needs a leading 0 because C3h starts with a letter. .byte 0xC3 is the gas (GCC) form, not MASM."
+    }
+  ]
+}

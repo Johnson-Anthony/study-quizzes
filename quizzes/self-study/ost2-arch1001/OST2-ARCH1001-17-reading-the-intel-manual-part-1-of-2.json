@@ -1,0 +1,636 @@
+{
+  "title": "Reading the Intel Manual (part 1 of 2)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Manual organization",
+      "q": "In Intel's Software Developer's Manual, which volumes hold the per-instruction reference pages (opcode table, Description, Operation, Flags Affected)?",
+      "choices": ["Volume 1", "Volumes 2a-2d", "Volumes 3a-3d", "Only the appendices of Volume 1"],
+      "answer": 1,
+      "explain": "Volumes 2a-2d explain all the instructions, including the instruction-set extensions. Volume 1 is an overview, and Volumes 3a-3d cover system-level detail."
+    },
+    {
+      "type": "mc",
+      "category": "Manual organization",
+      "q": "You need the detailed description of virtual memory, VMX (Virtual Machine eXtensions), or system management mode. Which volumes do you open?",
+      "choices": ["Volume 1", "Volumes 2a-2d", "Volumes 3a-3d", "Volume 2a, the first chapter only"],
+      "answer": 2,
+      "explain": "Volumes 3a-3d hold the gory details of everything added over the years: MMX, VMX, virtual memory, 16/64-bit modes, SMM, and so on."
+    },
+    {
+      "type": "mc",
+      "category": "Manual organization",
+      "q": "Which best describes Volume 1 of the Intel manual?",
+      "choices": [
+        "A high-level summary of the x86 architecture (registers, flags, instruction categories)",
+        "An alphabetical reference of every instruction's encodings",
+        "The system-programming details for paging and virtualization",
+        "A list of opcode maps with no explanatory text"
+      ],
+      "answer": 0,
+      "explain": "Volume 1 is the 'life, the universe, and everything about x86' overview. It is a useful summary, but the real detail is in Volumes 2 and 3."
+    },
+    {
+      "type": "mc",
+      "category": "Manual organization",
+      "q": "Where does the manual explain how to read its own instruction reference pages (opcode notation, what each column means)?",
+      "choices": [
+        "In Volume 2a itself, in the chapters before the alphabetical instruction pages",
+        "In Volume 3d, in the virtualization chapter",
+        "Nowhere; the notation has to be inferred",
+        "Only in the Volume 1 appendices"
+      ],
+      "answer": 0,
+      "explain": "The instruction-format and column-interpretation sections are at the start of Volume 2a. In other words, you have to RTFM before you can RTFM."
+    },
+    {
+      "type": "mc",
+      "category": "Instruction table columns",
+      "q": "What does the Opcode column of an instruction table (e.g., '24 ib', '25 id') represent?",
+      "choices": [
+        "The literal byte values that encode that particular form of the instruction",
+        "The human-readable mnemonic a disassembler prints",
+        "The number of clock cycles the instruction takes",
+        "Which flags the instruction modifies"
+      ],
+      "answer": 0,
+      "explain": "These are the bytes a compiler emits. If you see 0x24 followed by one byte, you know it is AND AL, imm8."
+    },
+    {
+      "type": "mc",
+      "category": "Instruction table columns",
+      "q": "Row: 'REX.W + 25 id | AND RAX, imm32 | I | Valid | N.E.'. What does N.E. in the Compat/Leg Mode column tell you?",
+      "choices": [
+        "This form cannot be encoded in 32/16-bit (compatibility/legacy) code; those bytes may instead decode as a different sequence of legacy instructions",
+        "The instruction is never executable on any processor",
+        "The instruction does not affect any flags",
+        "The instruction is valid but deprecated"
+      ],
+      "answer": 0,
+      "explain": "N.E. means not encodable. In legacy/compat mode, RAX does not exist, and a REX byte decodes as something else (e.g., 0x40 is INC EAX in 32-bit code)."
+    },
+    {
+      "type": "mc",
+      "category": "Instruction table columns",
+      "q": "A row shows 64-bit Mode = Valid and Compat/Leg Mode = N.E. What does that pattern usually indicate?",
+      "choices": [
+        "A new form of the instruction added specifically for 64-bit mode (e.g., a REX.W form using 64-bit registers)",
+        "An old form that was removed from 64-bit mode",
+        "A form that works only in 16-bit mode",
+        "An undocumented form reserved for future use"
+      ],
+      "answer": 0,
+      "explain": "Code running in the old 32-bit/compatibility modes has no notion of RAX or the REX prefix, so those 64-bit forms are not encodable there."
+    },
+    {
+      "type": "mc",
+      "category": "Instruction table columns",
+      "q": "JA rel16 and CALL rel16 show 'N.S.' in the 64-bit Mode column. What does N.S. mean?",
+      "choices": [
+        "The syntax would need an override prefix in 64-bit mode and is not supported there",
+        "Not signed: the displacement is treated as unsigned",
+        "No side effects: no flags are changed",
+        "Needs a shadow stack to be enabled"
+      ],
+      "answer": 0,
+      "explain": "The manual's legend says N.S. marks syntax that would require an override prefix in 64-bit mode and is not supported (behavior may be model-specific). In 64-bit mode, near Jcc/CALL use rel32."
+    },
+    {
+      "type": "mc",
+      "category": "Instruction table columns",
+      "q": "AND r/m32, r32 has Op/En 'MR', where Operand 1 = ModRM:r/m (r, w) and Operand 2 = ModRM:reg (r). What does that tell you?",
+      "choices": [
+        "The r/m operand is read and written (it is the destination); the reg operand is only read",
+        "The reg operand is the destination and gets written",
+        "Both operands are written",
+        "The r/m operand must be a memory location and is only read"
+      ],
+      "answer": 0,
+      "explain": "(r, w) means read and written. For MR forms, the destination is the ModRM r/m operand. RM forms flip this, so the reg operand is the destination."
+    },
+    {
+      "type": "tf",
+      "category": "Instruction table columns",
+      "q": "The short Description column of the instruction table (e.g., 'AL AND imm8.') holds most of the details of an instruction's behavior.",
+      "answer": false,
+      "explain": "It only gives the flavor of the instruction. The details are in the long-form Description text, the Operation pseudocode, and the Flags Affected section below the table."
+    },
+    {
+      "type": "mc",
+      "category": "Opcodes, immediates & operand size",
+      "q": "In 64-bit mode, with no prefixes, a CPU decodes opcode byte 0x25 (AND accumulator with immediate). How many immediate bytes does it expect next?",
+      "choices": ["1", "2", "4", "8"],
+      "answer": 2,
+      "explain": "The default operand size in 64-bit mode is 32 bits, so this is '25 id' = AND EAX, imm32, with 4 immediate bytes."
+    },
+    {
+      "type": "num",
+      "category": "Opcodes, immediates & operand size",
+      "q": "The same 0x25 opcode executed in 16-bit mode decodes as AND AX, imm16. What is the total instruction length in bytes (opcode + immediate)?",
+      "answer": 3,
+      "explain": "In 16-bit mode, the default operand size is 16 bits, so 0x25 is followed by a 2-byte immediate: 1 + 2 = 3."
+    },
+    {
+      "type": "mc",
+      "category": "Opcodes, immediates & operand size",
+      "q": "For most instructions in 64-bit mode, what are the default operand size and default address size?",
+      "choices": [
+        "32-bit operand size, 64-bit address size",
+        "64-bit operand size, 64-bit address size",
+        "32-bit operand size, 32-bit address size",
+        "64-bit operand size, 32-bit address size"
+      ],
+      "answer": 0,
+      "explain": "That is why the r/m32, r32, imm32 (or EAX) forms are the default interpretation in 64-bit code unless a prefix such as REX.W overrides the operand size."
+    },
+    {
+      "type": "mc",
+      "category": "Opcodes, immediates & operand size",
+      "q": "In opcode notation such as '24 ib', '25 iw', '25 id', what do the suffixes ib / iw / id indicate?",
+      "choices": [
+        "An immediate operand of 1, 2, or 4 bytes follows the opcode",
+        "The instruction must be byte-, word-, or dword-aligned",
+        "An index, base, or displacement register is used",
+        "The instruction's interrupt behavior"
+      ],
+      "answer": 0,
+      "explain": "They line up with the Instruction column: 24 ib = AND AL, imm8; 25 iw = AND AX, imm16; 25 id = AND EAX, imm32."
+    },
+    {
+      "type": "multi",
+      "category": "Opcodes, immediates & operand size",
+      "q": "According to the AND/ADD Description text, what do these REX prefix forms do in 64-bit mode?",
+      "choices": [
+        "REX.W promotes the operation to 64 bits",
+        "REX.R permits access to the additional registers (R8-R15)",
+        "REX.W makes the instruction execute atomically",
+        "REX makes every immediate 64 bits wide"
+      ],
+      "answer": [0, 1],
+      "explain": "REX.W overrides the default 32-bit operand size, and REX.R extends register encoding. Atomicity comes from the LOCK prefix. Immediates remain at most 32 bits and are sign-extended (e.g., AND RAX, imm32)."
+    },
+    {
+      "type": "text",
+      "category": "Opcodes, immediates & operand size",
+      "q": "'REX.W + 25 id' is AND RAX, imm32, with the imm32 sign-extended to 64 bits. If the encoded imm32 is 0xFFFFFFF0, what 64-bit mask is actually ANDed with RAX? (hex)",
+      "answer": ["0xFFFFFFFFFFFFFFF0", "FFFFFFFFFFFFFFF0", "0xfffffffffffffff0", "fffffffffffffff0"],
+      "explain": "The top bit of 0xFFFFFFF0 is 1, so sign extension fills the upper 32 bits with 1s. The result clears only the low 4 bits of RAX."
+    },
+    {
+      "type": "num",
+      "category": "Opcodes, immediates & operand size",
+      "q": "How many bytes long is the 64-bit-mode encoding 'REX.W + 25 id' (AND RAX, imm32)?",
+      "answer": 6,
+      "explain": "1 REX byte + 1 opcode byte (0x25) + 4 immediate bytes = 6."
+    },
+    {
+      "type": "text",
+      "category": "Opcodes, immediates & operand size",
+      "q": "'83 /4 ib' is AND r/m32, imm8 (sign-extended). To encode 'and eax, 0xFFFFFFF0' in this short form, which single immediate byte (hex) goes in the ib slot?",
+      "answer": ["0xF0", "F0", "0xf0", "f0"],
+      "explain": "0xF0 has its top bit set, so sign extension to 32 bits gives 0xFFFFFFF0. That saves 3 bytes compared with the imm32 form."
+    },
+    {
+      "type": "mc",
+      "category": "Opcodes, immediates & operand size",
+      "q": "In the Instruction column, an operand written as r/m32 can be:",
+      "choices": [
+        "Either a 32-bit register or a 32-bit memory location",
+        "Only a 32-bit memory location",
+        "Only a 32-bit register",
+        "A 32-bit immediate value"
+      ],
+      "answer": 0,
+      "explain": "Any time you see r/mX, it can be a register or a memory value. Immediates are written immX."
+    },
+    {
+      "type": "mc",
+      "category": "Opcodes, immediates & operand size",
+      "q": "In opcode entries like '20 /r' or '21 /r', what does /r indicate?",
+      "choices": [
+        "A following byte (ModRM) specifies a register operand along with the r/m operand",
+        "A REX prefix is required",
+        "An immediate byte follows",
+        "The instruction may take a REP prefix"
+      ],
+      "answer": 0,
+      "explain": "/r is a register placeholder. The byte after the opcode selects the registers. For example, 20 C0 = and al, al and 20 C1 = and cl, al."
+    },
+    {
+      "type": "mc",
+      "category": "REX prefix & byte registers",
+      "q": "In 64-bit mode, '20 C4' disassembles as 'and ah, al'. What does '40 20 C4' (same bytes plus the REX prefix 0x40) disassemble as?",
+      "choices": ["and spl, al", "and ah, al", "and rsp, rax", "and r12b, al"],
+      "answer": 0,
+      "explain": "With any REX prefix present, the encodings that normally mean AH/BH/CH/DH are reused for SPL/BPL/SIL/DIL. Plain 0x40 sets no W/R/B bits, so the operation stays 8-bit."
+    },
+    {
+      "type": "multi",
+      "category": "REX prefix & byte registers",
+      "q": "When a REX prefix is present in 64-bit mode, which byte registers CANNOT be encoded as 8-bit operands?",
+      "choices": ["AH", "BH", "CH", "DH", "AL", "SPL", "R8B"],
+      "answer": [0, 1, 2, 3],
+      "explain": "The asterisk footnote on r/m8* says r/m8 cannot access AH, BH, CH, DH if a REX prefix is used. Those encodings now mean SPL, BPL, SIL, DIL."
+    },
+    {
+      "type": "mc",
+      "category": "REX prefix & byte registers",
+      "q": "With the disassembler set to 32-bit (i386), '40 20 C0' disassembles as two instructions, starting with an INC. Why?",
+      "choices": [
+        "In 32-bit code, 0x40 is the one-byte INC EAX instruction; REX prefixes exist only in 64-bit mode",
+        "The disassembler has a bug; it should show a REX prefix",
+        "0x40 is the LOCK prefix in 32-bit mode",
+        "C0 is the INC opcode"
+      ],
+      "answer": 0,
+      "explain": "The REX bytes were taken from old one-byte opcodes. Switch the disassembler to 64-bit and the same bytes become 'and al, al'."
+    },
+    {
+      "type": "mc",
+      "category": "REX prefix & byte registers",
+      "q": "In 64-bit mode, '20 C0' is 'and al, al'. What is '41 20 C0'?",
+      "choices": ["and r8b, al", "and al, al", "and spl, al", "and cl, al"],
+      "answer": 0,
+      "explain": "This REX byte extends the r/m register number, so the slot that meant AL now means R8B (the low byte of R8). Changing the ModRM byte walks through R9B, R10B, and so on."
+    },
+    {
+      "type": "mc",
+      "category": "REX prefix & byte registers",
+      "q": "'REX + 20 /r' and '20 /r' both perform an 8-bit AND. What is the point of the REX variant?",
+      "choices": [
+        "To reach the 64-bit-mode-only byte registers SPL, BPL, SIL, DIL and R8B-R15B",
+        "To promote the AND to 64 bits",
+        "To sign-extend the 8-bit register to 64 bits",
+        "To make the AND atomic"
+      ],
+      "answer": 0,
+      "explain": "The REX variants exist so 64-bit code can access the new byte registers. Despite what the manual's description says, they do not operate on r/m64."
+    },
+    {
+      "type": "tf",
+      "category": "REX prefix & byte registers",
+      "q": "SPL, BPL, SIL and DIL already existed in 16- and 32-bit x86; 64-bit mode only renamed them.",
+      "answer": false,
+      "explain": "They were added with the 64-bit extensions so that the stack, base, and index registers (and R8-R15) could be accessed 8 bits at a time."
+    },
+    {
+      "type": "mc",
+      "category": "REX prefix & byte registers",
+      "q": "Under the numbered register naming (RAX = R0, RCX = R1, ... ), what is another name for SPL?",
+      "choices": ["R4B", "R7B", "R0B", "R12B"],
+      "answer": 0,
+      "explain": "RSP is R4, so its low byte is R4B. Disassemblers choose which name to print, so the same register can show up under two names."
+    },
+    {
+      "type": "multi",
+      "category": "Manual errata",
+      "q": "Which of these instruction-table Description entries are documentation bugs?",
+      "choices": [
+        "REX + 20 /r | AND r/m8*, r8* | 'r/m64 AND r8 (sign-extended).'",
+        "REX + 22 /r | AND r8*, r/m8* | 'r/m64 AND r8 (sign-extended).'",
+        "REX + 80 /0 ib | ADD r/m8*, imm8 | 'Add sign-extended imm8 to r/m8.'",
+        "REX.W + 25 id | AND RAX, imm32 | 'RAX AND imm32 sign-extended to 64-bits.'",
+        "83 /4 ib | AND r/m32, imm8 | 'r/m32 AND imm8 (sign-extended).'",
+        "REX + 00 /r | ADD r/m8*, r8* | 'Add r8 to r/m8.'"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The REX-prefixed 8-bit forms still operate 8-bit with 8-bit; there is no r/m64 and no sign extension. The other rows correctly describe sign extension into a wider destination, or a plain 8-bit add."
+    },
+    {
+      "type": "mc",
+      "category": "Manual errata",
+      "q": "What is a reliable way to check what bytes like '40 20 C4' really do when the manual's description seems wrong?",
+      "choices": [
+        "Feed the raw bytes to a disassembler (or emit them in a test program) and see how they decode and behave",
+        "Trust the short Description column, since it is authoritative",
+        "Look up the instruction in Volume 1 instead",
+        "Assume the most complicated interpretation is correct"
+      ],
+      "answer": 0,
+      "explain": "When in doubt, test it out. The disassembler decoded the REX forms as 8-bit ANDs (and spl, al / and r8b, al), which exposed the manual's description bug."
+    },
+    {
+      "type": "tf",
+      "category": "Manual errata",
+      "q": "Because the Intel manual has been revised for decades, you can treat it as error-free.",
+      "answer": false,
+      "explain": "Bugs remain, such as the 'r/m64 ... (sign-extended)' descriptions on the 8-bit REX forms. Cross-check against real tools."
+    },
+    {
+      "type": "tf",
+      "category": "Manual errata",
+      "q": "Jcc's Operation pseudocode is written only in terms of EIP (with a special case for 16-bit operand size), without a separate 'IF 64-bit mode' RIP branch like JMP's pseudocode has.",
+      "answer": true,
+      "explain": "It computes tempEIP := EIP + SignExtend(DEST), masks it to 16 bits if OperandSize = 16, and checks the code segment limit. Arguably it should be updated to handle 64-bit mode explicitly, as JMP's does."
+    },
+    {
+      "type": "text",
+      "category": "AND & ADD semantics and flags",
+      "q": "AL = 0xCA and BL = 0x3F. After 'and al, bl', what is AL? (hex)",
+      "answer": ["0x0A", "0A", "0x0a", "0a", "0xA", "0xa", "A", "a"],
+      "explain": "11001010 AND 00111111 = 00001010 = 0x0A. A result bit is 1 only if both input bits are 1."
+    },
+    {
+      "type": "multi",
+      "category": "AND & ADD semantics and flags",
+      "q": "According to AND's Flags Affected section, which flags are always cleared by AND?",
+      "choices": ["OF", "CF", "ZF", "SF", "PF", "AF"],
+      "answer": [0, 1],
+      "explain": "OF and CF are cleared. SF, ZF, and PF are set according to the result, and AF is undefined."
+    },
+    {
+      "type": "mc",
+      "category": "AND & ADD semantics and flags",
+      "q": "AL = 0xF0. After 'and al, 0x0F', what is the state of these flags?",
+      "choices": [
+        "ZF=1, SF=0, CF=0, OF=0",
+        "ZF=0, SF=1, CF=0, OF=0",
+        "ZF=1, SF=0, CF=1, OF=0",
+        "ZF=0, SF=0, CF=0, OF=1"
+      ],
+      "answer": 0,
+      "explain": "The result is 0x00, so ZF=1 and SF=0 (the most significant bit is 0). AND always clears CF and OF."
+    },
+    {
+      "type": "mc",
+      "category": "AND & ADD semantics and flags",
+      "q": "According to the manual, what is the state of AF after an AND?",
+      "choices": ["Undefined", "Always cleared", "Always set", "Set according to the result"],
+      "answer": 0,
+      "explain": "The Flags Affected section says the state of the AF flag is undefined, so don't rely on it."
+    },
+    {
+      "type": "tf",
+      "category": "AND & ADD semantics and flags",
+      "q": "'and qword ptr [rax], qword ptr [rbx]' (memory AND memory) is a valid single x86 instruction.",
+      "answer": false,
+      "explain": "The Description says two memory operands cannot be used in one instruction. The same rule applies to ADD, MOV, XOR, and so on."
+    },
+    {
+      "type": "mc",
+      "category": "AND & ADD semantics and flags",
+      "q": "What does putting a LOCK prefix on AND (or ADD) do?",
+      "choices": [
+        "Lets the instruction execute atomically",
+        "Repeats the instruction RCX times",
+        "Promotes the operation to 64 bits",
+        "Prevents the instruction from modifying flags"
+      ],
+      "answer": 0,
+      "explain": "LOCK is an instruction prefix, like REP on REP MOVS, rather than an instruction itself. It allows atomic execution."
+    },
+    {
+      "type": "mc",
+      "category": "AND & ADD semantics and flags",
+      "q": "'REX.W + 83 /0 ib' is ADD r/m64, imm8 (sign-extended). If ib = 0xFF and the destination is RAX, what happens?",
+      "choices": [
+        "RAX decreases by 1, because 0xFF sign-extends to 0xFFFFFFFFFFFFFFFF (-1)",
+        "RAX increases by 255",
+        "RAX increases by 0xFF00000000000000",
+        "The encoding is invalid in 64-bit mode"
+      ],
+      "answer": 0,
+      "explain": "When an immediate is used with ADD, it is sign-extended to the length of the destination operand. Adding all 1s is the same as subtracting 1."
+    },
+    {
+      "type": "multi",
+      "category": "AND & ADD semantics and flags",
+      "q": "Which flags does ADD set according to its result?",
+      "choices": ["OF", "SF", "ZF", "AF", "CF", "PF", "DF"],
+      "answer": [0, 1, 2, 3, 4, 5],
+      "explain": "ADD's Flags Affected section lists OF, SF, ZF, AF, CF, and PF. DF (direction flag) is a control flag and is not affected by arithmetic."
+    },
+    {
+      "type": "mc",
+      "category": "AND & ADD semantics and flags",
+      "q": "When ADD sets the status flags, how does the hardware handle signed vs. unsigned operands?",
+      "choices": [
+        "It sets the flags as if the operands were both signed and unsigned; the compiler decides which flags/instructions matter based on the high-level type",
+        "It checks the variable's declared type in the program",
+        "A special prefix tells it whether the operands are signed",
+        "It always treats operands as unsigned, so signed math needs different instructions"
+      ],
+      "answer": 0,
+      "explain": "The hardware doesn't know or care how humans interpret the bits. The same ADD serves both, and the compiler emits signed or unsigned follow-ups (e.g., JL vs JB)."
+    },
+    {
+      "type": "tf",
+      "category": "AND & ADD semantics and flags",
+      "q": "The C operator '&' corresponds to the x86 bitwise AND instruction, while '&&' is logical AND.",
+      "answer": true,
+      "explain": "AND works bit by bit. Logical && produces a true/false result with short-circuit evaluation, which compiles to compares and jumps."
+    },
+    {
+      "type": "multi",
+      "category": "Conditional jumps",
+      "q": "Which mnemonics share an opcode with JB rel8 (72 cb)?",
+      "choices": ["JC", "JNAE", "JNB", "JBE", "JL"],
+      "answer": [0, 1],
+      "explain": "72 cb is listed as JB, JC, and JNAE, which all test CF=1. JNB is 73, JBE is 76, and JL is 7C."
+    },
+    {
+      "type": "mc",
+      "category": "Conditional jumps",
+      "q": "One disassembler shows the bytes '74 08' as JE and another shows them as JZ. Which is correct?",
+      "choices": [
+        "Both: they are the same opcode, and which mnemonic gets displayed depends on the disassembler",
+        "Only JE, because JZ is a different opcode",
+        "Only JZ, because JE requires a CMP first",
+        "Neither; 74 is JA"
+      ],
+      "answer": 0,
+      "explain": "The identical opcodes prove they are the same instruction (jump if ZF=1). Other pairs: JA/JNBE (77) and JL/JNGE (7C)."
+    },
+    {
+      "type": "num",
+      "category": "Conditional jumps",
+      "q": "A 'short' jump uses a signed 8-bit displacement. What is the farthest forward it can reach, in bytes past the next instruction?",
+      "answer": 127,
+      "explain": "A signed 8-bit value ranges from -128 to +127."
+    },
+    {
+      "type": "mc",
+      "category": "Conditional jumps",
+      "q": "In 64-bit mode, which displacement size can a 'near' conditional jump use?",
+      "choices": [
+        "Signed 32-bit only; rel16 near forms are not supported in 64-bit mode",
+        "Signed 8-, 16-, or 32-bit",
+        "Signed 16-bit only",
+        "Signed 64-bit"
+      ],
+      "answer": 0,
+      "explain": "A near displacement can be a signed 16-bit (except in 64-bit mode, where it is N.S.) or a signed 32-bit number. 8-bit displacements are 'short' jumps, a separate form."
+    },
+    {
+      "type": "mc",
+      "category": "Conditional jumps",
+      "q": "The bytes 'EB FE' (JMP rel8: RIP = RIP + 8-bit displacement sign-extended, relative to the next instruction) are at address 0x1000. Where does execution go?",
+      "choices": ["0x1000, itself (an infinite loop)", "0x0FFE", "0x10FE", "0x1002"],
+      "answer": 0,
+      "explain": "The instruction is 2 bytes, so the next instruction is at 0x1002. 0xFE sign-extends to -2, and 0x1002 - 2 = 0x1000."
+    },
+    {
+      "type": "mc",
+      "category": "Conditional jumps",
+      "q": "According to the Jcc table, JG rel8 (7F cb) jumps when:",
+      "choices": ["ZF=0 and SF=OF", "CF=0 and ZF=0", "SF≠OF", "CF=1 or ZF=1"],
+      "answer": 0,
+      "explain": "CF=0 and ZF=0 is JA, SF≠OF is JL, and CF=1 or ZF=1 is JBE/JNA."
+    },
+    {
+      "type": "mc",
+      "category": "Conditional jumps",
+      "q": "JA and JG both mean 'greater', but JA tests CF/ZF while JG tests ZF/SF/OF. Why?",
+      "choices": [
+        "JA ('above') is for unsigned comparisons; JG ('greater') is for signed comparisons. The flags were set for both interpretations, and the compiler picks the right jump",
+        "JA is the 16-bit form and JG is the 32-bit form",
+        "JA is a short jump and JG is a near jump",
+        "They are aliases for the same opcode"
+      ],
+      "answer": 0,
+      "explain": "Above/below are unsigned (carry-based) and greater/less are signed (sign/overflow-based). JA is 77 and JG is 7F, so they are different opcodes."
+    },
+    {
+      "type": "tf",
+      "category": "CALL, RET & JMP",
+      "q": "x86 has a 'call short' form with an 8-bit displacement, just like 'jmp short'.",
+      "answer": false,
+      "explain": "CALL has no short form. In 64-bit mode, relative calls are near calls with a 32-bit displacement (E8 cd)."
+    },
+    {
+      "type": "mc",
+      "category": "CALL, RET & JMP",
+      "q": "'E8 cd' (CALL rel32: near, relative, displacement relative to the next instruction) is at address 0x401000, with displacement 0x00000100. What is the call target?",
+      "choices": ["0x401105", "0x401100", "0x401005", "0x400F05"],
+      "answer": 0,
+      "explain": "The instruction is 1 + 4 = 5 bytes, so the next instruction is at 0x401005. Adding 0x100 gives 0x401105."
+    },
+    {
+      "type": "mc",
+      "category": "CALL, RET & JMP",
+      "q": "'call qword ptr [rbx+8]' is FF /2, CALL r/m64, an 'absolute indirect' call. Where does execution go?",
+      "choices": [
+        "To the 64-bit address stored in memory at rbx+8",
+        "To the address rbx+8 itself",
+        "To RIP + rbx + 8",
+        "To the address in RBX, after which 8 bytes are popped"
+      ],
+      "answer": 0,
+      "explain": "The absolute indirect form takes the absolute target address from a register, or from memory at an address computed as base + index*scale + displacement."
+    },
+    {
+      "type": "mc",
+      "category": "CALL, RET & JMP",
+      "q": "What distinguishes a 'far' call or jump from a 'near' one?",
+      "choices": [
+        "A far transfer specifies a segment selector (a different code segment); a near transfer stays in the current code segment (CS)",
+        "A far transfer uses a 32-bit displacement and a near transfer uses an 8-bit one",
+        "A far transfer goes more than 127 bytes away",
+        "A far transfer always uses an absolute address and a near transfer never does"
+      ],
+      "answer": 0,
+      "explain": "A near call is intra-segment and a far call is inter-segment. Near transfers can also be absolute indirect, so 'absolute' doesn't define far."
+    },
+    {
+      "type": "mc",
+      "category": "CALL, RET & JMP",
+      "q": "According to CALL's Operation pseudocode for a 64-bit near relative call, what happens, in order?",
+      "choices": [
+        "tempRIP := RIP + SignExtend(rel32); check room for an 8-byte return address; Push(RIP); push to the shadow stack if enabled; RIP := tempRIP",
+        "Push(tempRIP); RIP := RIP + rel32",
+        "RIP := RIP + rel32; then Push(RIP)",
+        "Pop the return address; RIP := RIP + SignExtend(rel32)"
+      ],
+      "answer": 0,
+      "explain": "The return address pushed is the current RIP, which already points to the next instruction. RIP is switched to the target only afterward."
+    },
+    {
+      "type": "mc",
+      "category": "CALL, RET & JMP",
+      "q": "Which RET encoding shows up in compiled code almost all the time?",
+      "choices": ["C3: near return", "CB: far return", "C2 iw: near return and pop imm16 bytes", "CA iw: far return and pop imm16 bytes"],
+      "answer": 0,
+      "explain": "RET supports near and far transfers, but you will almost only ever see the near return, 0xC3."
+    },
+    {
+      "type": "num",
+      "category": "CALL, RET & JMP",
+      "q": "'C2 10 00' is RET imm16 (near return and pop imm16 bytes from the stack). After the return address is popped, how many additional bytes (decimal) are removed from the stack?",
+      "answer": 16,
+      "explain": "The iw immediate is little-endian: bytes 10 00 = 0x0010 = 16. This is the form of RET that also adds a number of bytes to the stack pointer."
+    },
+    {
+      "type": "multi",
+      "category": "CALL, RET & JMP",
+      "q": "Why is CALL's Operation pseudocode nearly 10 pages long?",
+      "choices": [
+        "Different distance variants (near/far)",
+        "Privilege-level transitions",
+        "Different execution modes (16/32/64-bit)",
+        "CET shadow-stack handling",
+        "CALL updates all the arithmetic status flags",
+        "CALL supports a REP prefix"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Near/far, inter-privilege far calls, task switches, operand sizes, and shadow stacks all appear in the pseudocode. RET is about 10 pages and JMP about 5, which shows how much control-flow transfer involves."
+    },
+    {
+      "type": "tf",
+      "category": "CALL, RET & JMP",
+      "q": "The far absolute direct jump 'JMP ptr16:32' (EA cp) is valid in 64-bit mode.",
+      "answer": false,
+      "explain": "Its 64-bit Mode column says Inv. Far jumps in 64-bit mode use the indirect FF /5 (m16:xx) forms."
+    },
+    {
+      "type": "mc",
+      "category": "CALL, RET & JMP",
+      "q": "In 64-bit mode, 'jmp rax' (FF /4, JMP r/m64: near, absolute indirect) sets:",
+      "choices": ["RIP = RAX", "RIP = RIP + RAX", "RIP = the 8 bytes stored at address RAX", "RAX = RIP"],
+      "answer": 0,
+      "explain": "RIP becomes the 64-bit offset taken from the register. A memory operand such as [rax] would load the target from memory instead."
+    },
+    {
+      "type": "mc",
+      "category": "Sign-extension instructions",
+      "q": "What does CDQE (REX.W + 98) do?",
+      "choices": [
+        "RAX := sign-extension of EAX",
+        "RDX:RAX := sign-extension of RAX",
+        "EAX := zero-extension of AX",
+        "EDX:EAX := sign-extension of EAX"
+      ],
+      "answer": 0,
+      "explain": "Opcode 98 gives CBW (AX from AL), CWDE (EAX from AX), or, with REX.W, CDQE (RAX from EAX). Opcode 99 gives the CWD/CDQ/CQO family, which fills the D register."
+    },
+    {
+      "type": "text",
+      "category": "Sign-extension instructions",
+      "q": "EAX = 0x80000000. After CDQ (EDX:EAX := sign-extend of EAX), what is EDX? (hex)",
+      "answer": ["0xFFFFFFFF", "FFFFFFFF", "0xffffffff", "ffffffff"],
+      "explain": "EAX's top bit is 1 (negative), so EDX is filled with 1s. If EAX were 0x7FFFFFFF, EDX would become 0."
+    },
+    {
+      "type": "text",
+      "category": "Sign-extension instructions",
+      "q": "AL = 0x9C. After CBW (AX := sign-extend of AL), what is AX? (hex)",
+      "answer": ["0xFF9C", "FF9C", "0xff9c", "ff9c"],
+      "explain": "0x9C = 10011100b, so the sign bit is 1 and AH is filled with 0xFF."
+    },
+    {
+      "type": "tf",
+      "category": "Sign-extension instructions",
+      "q": "CBW, CWDE and CDQE all use opcode 0x98; which one executes depends on the operand size (CDQE needs REX.W).",
+      "answer": true,
+      "explain": "The Operation pseudocode branches on OperandSize = 16 / 32 / 64. That is also why CDQE is N.E. in compat/legacy mode."
+    },
+    {
+      "type": "mc",
+      "category": "Sign-extension instructions",
+      "q": "A signed 64-bit (long long) division uses RDX:RAX as the dividend. Which instruction would you expect the compiler to emit right before the divide, to fill RDX with copies of RAX's sign bit?",
+      "choices": ["CQO", "CDQE", "CBW", "xor edx, edx"],
+      "answer": 0,
+      "explain": "CQO (REX.W + 99) does RDX:RAX := sign-extend of RAX. Zeroing RDX (xor edx, edx) is what an unsigned division needs, and it would give the wrong result for negative dividends."
+    }
+  ]
+}
