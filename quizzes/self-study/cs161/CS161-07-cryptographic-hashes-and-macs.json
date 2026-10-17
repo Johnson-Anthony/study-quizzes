@@ -1,0 +1,618 @@
+{
+  "title": "Cryptographic Hashes and MACs",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "tf",
+      "category": "Hash function basics",
+      "q": "A cryptographic hash function H takes a secret key along with the message, so only key holders can compute H(M).",
+      "answer": false,
+      "explain": "Hash functions are unkeyed. They take only the message, so anyone can compute the hash of any message."
+    },
+    {
+      "type": "mc",
+      "category": "Hash function basics",
+      "q": "SHA-256 is applied to a 10-byte message and to a 1 GB file. How long are the two outputs?",
+      "choices": ["10 bytes and 1 GB, respectively", "256 bits each", "256 bits for the short message, longer for the file", "It depends on the key used"],
+      "answer": 1,
+      "explain": "A hash takes input of any length and always produces a fixed-size output. For SHA-256 that is 256 bits."
+    },
+    {
+      "type": "tf",
+      "category": "Hash function basics",
+      "q": "Computing H(M) twice on the same message M can give two different outputs, because secure hash outputs look random.",
+      "answer": false,
+      "explain": "Hash functions are deterministic: the same input always gives the same output. The output only looks like a random string chosen independently for each different message."
+    },
+    {
+      "type": "mc",
+      "category": "Hash function basics",
+      "q": "Alice changes a single bit of a message. What happens to its SHA-256 hash?",
+      "choices": ["Exactly one bit of the hash changes", "Only the last few bits of the hash change", "Many bits of the hash change, with no detectable pattern linking the input change to the output change", "Nothing, because one bit is too small to affect the fingerprint"],
+      "answer": 2,
+      "explain": "Any change to the message, however small, changes many bits of the hash in a way that looks random."
+    },
+    {
+      "type": "multi",
+      "category": "Hash function basics",
+      "q": "Which of these describe a cryptographic hash function such as SHA-256?",
+      "choices": ["Deterministic", "Uses no secret key, so anyone can compute it", "Accepts messages of any length", "Produces a fixed-length output", "Output length grows with the message length", "Output can be efficiently inverted to recover the message"],
+      "answer": [0, 1, 2, 3],
+      "explain": "Hashes are deterministic and unkeyed, and they map inputs of any size to a fixed-size output. They are one-way, so they cannot be efficiently inverted."
+    },
+    {
+      "type": "tf",
+      "category": "Hash function basics",
+      "q": "A hash function with a fixed-length output can be designed to have no collisions at all.",
+      "answer": false,
+      "explain": "There are more possible inputs than outputs, so by the pigeonhole principle collisions must exist. The goal is to make collisions infeasible to find."
+    },
+    {
+      "type": "mc",
+      "category": "Hash function basics",
+      "q": "Alice and Bob each hold a 1 GB file. They exchange SHA-256 hashes of their files over a secure channel, and the hashes differ. What can they conclude?",
+      "choices": ["The files are definitely different", "The files are probably identical, but one hash was miscomputed", "Nothing, because hashes are randomized", "The files differ in exactly one bit"],
+      "answer": 0,
+      "explain": "Hashing is deterministic, so identical files would produce identical hashes. Different hashes therefore mean the files differ."
+    },
+    {
+      "type": "mc",
+      "category": "Hash security properties",
+      "q": "Given only a hash output y, it is infeasible to find any input x with H(x) = y. Which property is this?",
+      "choices": ["Collision resistance", "One-way (preimage resistance)", "Second preimage resistance", "Determinism"],
+      "answer": 1,
+      "explain": "One-way, also called preimage resistance: H(x) is easy to compute from x, but going from an output back to any matching input is infeasible."
+    },
+    {
+      "type": "mc",
+      "category": "Hash security properties",
+      "q": "An attacker is given one specific contract x and must produce a different contract x' with H(x') = H(x). Which property is defined to prevent exactly this?",
+      "choices": ["One-way", "Second preimage resistance", "Collision resistance", "Length-extension resistance"],
+      "answer": 1,
+      "explain": "In second preimage resistance, the attacker starts from a fixed, given input x and cannot find a different x' with the same hash."
+    },
+    {
+      "type": "mc",
+      "category": "Hash security properties",
+      "q": "An attacker may choose both messages freely, even designing x specially, and needs any pair x != x' with H(x) = H(x'). Which property prevents this?",
+      "choices": ["Second preimage resistance", "One-way", "Collision resistance", "Unforgeability"],
+      "answer": 2,
+      "explain": "Collision resistance means it is infeasible to find any pair of distinct inputs with the same hash, even when the attacker picks both."
+    },
+    {
+      "type": "mc",
+      "category": "Hash security properties",
+      "q": "Which implication between hash properties holds?",
+      "choices": ["Collision resistance implies second preimage resistance", "Second preimage resistance implies collision resistance", "One-way implies collision resistance", "None of the properties are related"],
+      "answer": 0,
+      "explain": "If you could find a second preimage x' for some x, then (x, x') would be a collision. So a collision-resistant hash must also be second-preimage resistant."
+    },
+    {
+      "type": "text",
+      "category": "Hash security properties",
+      "q": "The one-way property of a hash function is also called ______ resistance.",
+      "answer": ["preimage", "pre-image", "preimage resistance", "pre-image resistance"],
+      "explain": "One-way = preimage resistant: given y, it is infeasible to find any x with H(x) = y."
+    },
+    {
+      "type": "mc",
+      "category": "Hash security properties",
+      "q": "Ubuntu publishes the SHA-256 hash of its install image, and Alice compares it with the hash of her download. In which situation does this check fail to protect her?",
+      "choices": ["The attacker can modify both the image and the hash value Alice compares against", "The image is much larger than 256 bits", "Alice downloaded the image over an untrusted network", "Anyone can compute SHA-256 without a key"],
+      "answer": 0,
+      "explain": "The check only works if Alice's copy of the hash is trustworthy. An attacker who can change the hash just modifies the software, hashes it, and presents the new hash."
+    },
+    {
+      "type": "mc",
+      "category": "Hash security properties",
+      "q": "When we say finding a hash collision is \"infeasible,\" what do we mean?",
+      "choices": ["It is mathematically impossible", "There is no known way to do it with any realistic amount of computing power", "It requires knowing the secret key", "It takes slightly longer than computing one hash"],
+      "answer": 1,
+      "explain": "Collisions do exist (pigeonhole), so \"infeasible\" means no known way to find them with realistic computing power."
+    },
+    {
+      "type": "tf",
+      "category": "Hash security properties",
+      "q": "Collision resistance and second preimage resistance are listed separately partly because a given hash function's resistance to one attack can differ from its resistance to the other.",
+      "answer": true,
+      "explain": "Collision resistance implies second preimage resistance, but the amount of computation needed to break each one can differ for a specific hash."
+    },
+    {
+      "type": "multi",
+      "category": "Hash algorithms and length extension",
+      "q": "Which of these hash functions should NOT be relied on to resist attackers today?",
+      "choices": ["MD5", "SHA1", "SHA-256", "SHA3-256", "SHA-512"],
+      "answer": [0, 1],
+      "explain": "MD5 was broken years ago, and SHA1 was broken in 2017. SHA2 (SHA-256/384/512) and SHA3 are believed secure."
+    },
+    {
+      "type": "mc",
+      "category": "Hash algorithms and length extension",
+      "q": "Given H(M) and the length of M, but not M itself, a length extension attack lets an attacker compute:",
+      "choices": ["M itself", "H(M') for some M' with the same hash as M", "H(M || M') for an M' of the attacker's choosing", "The secret key used to compute H(M)"],
+      "answer": 2,
+      "explain": "Length extension: from H(M) and len(M), the attacker can compute the hash of M with chosen data appended, without knowing M."
+    },
+    {
+      "type": "mc",
+      "category": "Hash algorithms and length extension",
+      "q": "Which hash family is vulnerable to length extension attacks?",
+      "choices": ["SHA3", "SHA2", "Both SHA2 and SHA3", "Neither"],
+      "answer": 1,
+      "explain": "SHA2 is vulnerable to length extension, and SHA3 is not. This is the main practical difference between the two families."
+    },
+    {
+      "type": "mc",
+      "category": "Hash algorithms and length extension",
+      "q": "Why is SHA3 immune to length extension while SHA2 is not?",
+      "choices": ["SHA3 uses a secret key", "SHA3 always has longer outputs", "SHA2's output reflects all of its internal state, while SHA3 keeps internal state that is never output", "SHA3 is randomized"],
+      "answer": 2,
+      "explain": "A SHA2 output gives the attacker the full internal state, so they can keep hashing from it. SHA3 keeps part of its state hidden, and that part is used only to compute later output."
+    },
+    {
+      "type": "tf",
+      "category": "Hash algorithms and length extension",
+      "q": "A length extension attack on SHA-256 breaks its collision resistance.",
+      "answer": false,
+      "explain": "Length extension does not violate one-wayness, second preimage resistance or collision resistance. It is still undesirable in some uses, though."
+    },
+    {
+      "type": "mc",
+      "category": "Hash algorithms and length extension",
+      "q": "git treats two files as identical if they have the same SHA1 hash. Why did this become a problem?",
+      "choices": ["SHA1 became too slow for large repositories", "Once SHA1 collisions could be produced, two different files could share a hash and be treated as identical", "Attackers could recover file contents from their SHA1 hashes", "SHA1 hashes became non-deterministic"],
+      "answer": 1,
+      "explain": "Identifying files by hash is safe only while collisions are infeasible to find. Practical SHA1 collisions broke that assumption."
+    },
+    {
+      "type": "mc",
+      "category": "Hash algorithms and length extension",
+      "q": "SHA-384 belongs to which family, and how long is its output?",
+      "choices": ["SHA3, 384 bits", "SHA2, 384 bits", "SHA2, 384 bytes", "SHA1, 384 bits"],
+      "answer": 1,
+      "explain": "SHA-256, SHA-384 and SHA-512 are SHA2 functions with 256-, 384- and 512-bit outputs. The SHA3 versions are named SHA3-256, SHA3-384 and SHA3-512."
+    },
+    {
+      "type": "num",
+      "category": "Matching hash and key lengths",
+      "q": "Finding a collision in a secure 256-bit hash function takes about 2^k operations. What is k?",
+      "answer": 128,
+      "explain": "Finding a collision takes about 2^(n/2) operations for an n-bit hash, so 2^128 for 256 bits. That equals the cost of brute-forcing a 128-bit key."
+    },
+    {
+      "type": "num",
+      "category": "Matching hash and key lengths",
+      "q": "Finding a collision in SHA-384 takes about 2^k operations. What is k?",
+      "answer": 192,
+      "explain": "Half the 384-bit output length: 2^192 operations, which is hugely impractical."
+    },
+    {
+      "type": "mc",
+      "category": "Matching hash and key lengths",
+      "q": "You encrypt with AES-128. Which hash should you pair with it so that both are equally hard to break?",
+      "choices": ["SHA1 (160-bit)", "SHA-256 or SHA3-256", "Only SHA-512", "MD5"],
+      "answer": 1,
+      "explain": "A 256-bit hash needs about 2^128 operations to find a collision. Brute-forcing a 128-bit AES key also takes about 2^128."
+    },
+    {
+      "type": "mc",
+      "category": "Matching hash and key lengths",
+      "q": "Why match a hash's output length to the key length of the symmetric cipher you use with it?",
+      "choices": ["So the hash output can be used directly as the AES key", "So it is equally difficult for an attacker to break either scheme", "Because AES requires its key to be a hash output", "To prevent length extension attacks"],
+      "answer": 1,
+      "explain": "Matching the lengths makes neither component the weak link. A 2n-bit hash gives about 2^n collision resistance, matching an n-bit key."
+    },
+    {
+      "type": "mc",
+      "category": "Matching hash and key lengths",
+      "q": "With 256-bit AES, the NSA pairs SHA-384 rather than SHA-512. Why is that acceptable?",
+      "choices": ["SHA-512 has been broken", "SHA-384 is in the SHA3 family", "About 2^192 operations to find a SHA-384 collision is already far beyond practical computation", "SHA-512 outputs are too long to transmit"],
+      "answer": 2,
+      "explain": "For long keys the hash requirement can be relaxed. 2^192 operations is already a hugely impractical amount of work."
+    },
+    {
+      "type": "mc",
+      "category": "Matching hash and key lengths",
+      "q": "You encrypt with AES-192 and want an HMAC whose output is twice the cipher's key length. Which do you choose?",
+      "choices": ["HMAC_SHA256", "HMAC_SHA_384 or HMAC_SHA3_384", "Only HMAC_SHA_512", "HMAC_MD5"],
+      "answer": 1,
+      "explain": "Twice 192 is 384, so use a 384-bit hash in HMAC."
+    },
+    {
+      "type": "mc",
+      "category": "Lowest-hash scheme",
+      "q": "A hacker claims to have stolen 150 million records. Why does asking for the 10 lowest hashes of the records help a reporter check that claim?",
+      "choices": ["Hashes reveal the contents of the records", "Hash outputs behave like independent random values, so the lowest of N hashes depends predictably on N", "Only real records can produce low hashes", "Each record's hash encodes its position in the database"],
+      "answer": 1,
+      "explain": "Hashing N distinct records is like drawing N random values. The more draws, the lower the minimums are expected to be."
+    },
+    {
+      "type": "mc",
+      "category": "Lowest-hash scheme",
+      "q": "Someone says they drew 150 million times (with replacement) from a box of balls numbered 1 to 100, and the lowest number they saw was 50. What should you conclude?",
+      "choices": ["That is plausible, since the minimum is usually near the middle", "Either an astronomically unlikely event happened or they are lying", "No conclusion is possible after that many draws", "The minimum should have been about 100"],
+      "answer": 1,
+      "explain": "With that many draws, the lowest number is almost certainly 1. A minimum of 50 is essentially impossible."
+    },
+    {
+      "type": "tf",
+      "category": "Lowest-hash scheme",
+      "q": "If the hacker really hashed only 15 million records, their 10 lowest hashes would tend to be noticeably higher than the 10 lowest hashes from 150 million records.",
+      "answer": true,
+      "explain": "Fewer samples give higher minimums. The chance that 15 million records produce minimums typical of 150 million is astronomically low."
+    },
+    {
+      "type": "mc",
+      "category": "Lowest-hash scheme",
+      "q": "Why does the reporter also require the records that produced the 10 lowest hashes?",
+      "choices": ["To check that SHA-256 was used", "So a hacker who pads the count with fake records must make all of them look valid, because they can't know in advance which ones will hash lowest", "To decrypt the remaining records", "To speed up the hash computation"],
+      "answer": 1,
+      "explain": "Hash outputs are unpredictable, so any fake record could end up among the lowest. To be safe, every fake record must pass inspection, for example by following the expected 'lastname, firstname' format."
+    },
+    {
+      "type": "mc",
+      "category": "Lowest-hash scheme",
+      "q": "In the lowest-hash scheme, what is an offline attack?",
+      "choices": ["Hashing the records while disconnected from the internet", "Precomputing fake records with low hashes before making the claim", "Stealing records from an offline backup", "Guessing the reporter's secret key"],
+      "answer": 1,
+      "explain": "The attacker does the work before interacting with the reporter. They search ahead of time for fake records that hash low."
+    },
+    {
+      "type": "mc",
+      "category": "Lowest-hash scheme",
+      "q": "How does the reporter prevent the offline attack?",
+      "choices": ["Asks for the 100 lowest hashes instead of 10", "Requires SHA3 instead of SHA2", "Sends a fresh random word at the start, has the hacker hash each record concatenated with it, and allows only enough time for 150 million hashes", "Requires each record to be encrypted before hashing"],
+      "answer": 2,
+      "explain": "The hashes depend on a word the hacker can't know in advance, so nothing can be precomputed. The time limit stops them from hashing more fake records than they claim to have."
+    },
+    {
+      "type": "num",
+      "category": "Lowest-hash scheme",
+      "q": "In a variation, each of 150 million records is hashed separately with each of 10 different reporter-chosen random words. How many hashes does the hacker compute in total?",
+      "answer": 1500000000,
+      "explain": "150 million x 10 = 1.5 billion hashes."
+    },
+    {
+      "type": "mc",
+      "category": "Lowest-hash scheme",
+      "q": "In the 10-random-word variation, what does the hacker return?",
+      "choices": ["The 10 lowest hashes overall", "For each random word, the record with the lowest hash", "Every hash computed with the first word", "For each random word, the record with the highest hash"],
+      "answer": 1,
+      "explain": "The hacker runs one pass over all records per word and returns that pass's lowest-hash record, giving 10 results. The math differs slightly (sampling with versus without replacement), but the idea is the same."
+    },
+    {
+      "type": "multi",
+      "category": "MAC definition and security",
+      "q": "Which threats does a MAC let the recipient detect?",
+      "choices": ["Spoofing: someone pretending to be a legitimate sender", "Tampering: modification of a legitimate sender's message", "Eavesdropping on the message contents"],
+      "answer": [0, 1],
+      "explain": "MACs provide integrity and authenticity. They do not provide confidentiality, so they do nothing against eavesdropping."
+    },
+    {
+      "type": "mc",
+      "category": "MAC definition and security",
+      "q": "What does a MAC take as input, and what does it output?",
+      "choices": ["Input: an arbitrary-length message only. Output: a fixed-length hash", "Input: a fixed-length secret key and an arbitrary-length message. Output: a fixed-length tag", "Input: a public key and a message. Output: a signature", "Input: a secret key and a message. Output: a ciphertext as long as the message"],
+      "answer": 1,
+      "explain": "A MAC is a keyed checksum F(K, M). It uses a shared secret key, accepts a message of any length, and outputs a fixed-length tag (often 128 bits)."
+    },
+    {
+      "type": "mc",
+      "category": "MAC definition and security",
+      "q": "Bob receives <M, T> from Alice, and they share key K. How does Bob verify it?",
+      "choices": ["He decrypts T to recover M and compares", "He recomputes F(K, M) on the received M and accepts only if it equals T", "He checks that T is 128 bits long", "He hashes T and compares the result with M"],
+      "answer": 1,
+      "explain": "Bob recomputes the tag. If F(K, M) != T, he discards M and assumes tampering or corruption."
+    },
+    {
+      "type": "tf",
+      "category": "MAC definition and security",
+      "q": "For correctness, a MAC must be deterministic: the same key and message always produce the same tag.",
+      "answer": true,
+      "explain": "Bob verifies by recomputing F(K, M), so he must get the same value Alice got."
+    },
+    {
+      "type": "mc",
+      "category": "MAC definition and security",
+      "q": "In the MAC security game, when has Georgia successfully forged a tag?",
+      "choices": ["When any generation query returns a tag", "When Reginald says \"Yes\" to her verification query for a message that never appeared in any of her earlier generation queries", "When Reginald says \"Yes\" to any verification query", "Only when she learns the key K"],
+      "answer": 1,
+      "explain": "A forgery is a valid tag on a new message. Re-verifying a tag she was already given doesn't count."
+    },
+    {
+      "type": "tf",
+      "category": "MAC definition and security",
+      "q": "Eve records a valid pair <M, T> and later sends that exact pair to Bob. Under the MAC security definition, this counts as a forgery.",
+      "answer": false,
+      "explain": "MACs are deterministic, so anyone who has seen <M, F(K,M)> knows a valid tag for M. Security only guarantees that no one can create valid tags for messages they haven't seen tagged."
+    },
+    {
+      "type": "mc",
+      "category": "MAC definition and security",
+      "q": "Eve chooses messages M1...Mn, gets Alice to tag them, and sees all the tags. With a secure MAC, what still holds?",
+      "choices": ["Eve can't learn the contents of M1...Mn", "Eve can't produce a valid tag for any message outside M1...Mn", "Eve can't resend any of the pairs <Mi, Ti>", "Eve can recover K once n is large enough"],
+      "answer": 1,
+      "explain": "Secure MACs resist chosen-plaintext attacks, the strongest threat model: seeing tags on chosen messages doesn't help forge a tag on a new one."
+    },
+    {
+      "type": "mc",
+      "category": "MAC definition and security",
+      "q": "Your machine stores a MAC of each file on a USB drive you share with friends, and it checks the MAC before using a file. What does this protect against?",
+      "choices": ["Friends reading your files", "Undetected tampering with the files", "Losing the drive", "Malware on a friend's computer copying the files"],
+      "answer": 1,
+      "explain": "This is like communicating with a future version of yourself. The MAC gives integrity, so modified files are detected, but it does not hide their contents."
+    },
+    {
+      "type": "mc",
+      "category": "MAC definition and security",
+      "q": "With a secure MAC and 128-bit tags, roughly how likely is it that the tag for M also happens to be valid for a different message M'?",
+      "choices": ["1/2", "1/128", "About 1/2^128", "About 1/2^64"],
+      "answer": 2,
+      "explain": "For a secure MAC with 128-bit tags, the chance is about 1/2^128, small enough to ignore safely."
+    },
+    {
+      "type": "num",
+      "category": "AES-EMAC",
+      "q": "How many bits long is the AES-EMAC key K = <K1, K2>?",
+      "answer": 256,
+      "explain": "The key is two 128-bit AES keys, for 256 bits total."
+    },
+    {
+      "type": "mc",
+      "category": "AES-EMAC",
+      "q": "In AES-EMAC, with the message split into blocks P1...Pn, how is S_i computed?",
+      "choices": ["S_i = AES_K1(S_{i-1}) XOR P_i", "S_i = AES_K1(S_{i-1} XOR P_i)", "S_i = AES_K2(P_i)", "S_i = H(S_{i-1} || P_i)"],
+      "answer": 1,
+      "explain": "Each block is XORed into the running state, and the result is encrypted under K1. This works like CBC encryption."
+    },
+    {
+      "type": "mc",
+      "category": "AES-EMAC",
+      "q": "How is the AES-EMAC tag computed from the final state S_n?",
+      "choices": ["T = S_n", "T = AES_K1(S_n)", "T = AES_K2(S_n)", "T = S_n XOR K2"],
+      "answer": 2,
+      "explain": "The final state gets one more encryption, this time under the second key K2."
+    },
+    {
+      "type": "num",
+      "category": "AES-EMAC",
+      "q": "In AES-EMAC, how many bits long is each message block P_i?",
+      "answer": 128,
+      "explain": "The message is split into 128-bit blocks, which is the AES block size."
+    },
+    {
+      "type": "num",
+      "category": "AES-EMAC",
+      "q": "What is the initial state S_0 in AES-EMAC?",
+      "answer": 0,
+      "explain": "S_0 = 0, and then S_i = AES_K1(S_{i-1} XOR P_i)."
+    },
+    {
+      "type": "tf",
+      "category": "AES-EMAC",
+      "q": "If AES is a secure block cipher, AES-EMAC is provably unforgeable, even when the attacker can obtain tags for other messages of their choice.",
+      "answer": true,
+      "explain": "Under the security game, AES-EMAC can be proven secure assuming AES is a secure block cipher."
+    },
+    {
+      "type": "text",
+      "category": "AES-EMAC",
+      "q": "AES-EMAC is a slightly simplified version of which NIST-standardized MAC algorithm?",
+      "answer": ["AES-CMAC", "CMAC", "AES CMAC", "AESCMAC"],
+      "explain": "AES-CMAC. EMAC keeps its essential structure but differs in a few details."
+    },
+    {
+      "type": "mc",
+      "category": "HMAC and NMAC",
+      "q": "What is NMAC(K1, K2, M)?",
+      "choices": ["H(K1 || K2 || M)", "H(K1 || H(K2 || M))", "H(M || H(K1 || K2))", "H(K1) XOR H(K2 || M)"],
+      "answer": 1,
+      "explain": "Compute the inner hash of K2 || M, prepend K1, and hash again."
+    },
+    {
+      "type": "mc",
+      "category": "HMAC and NMAC",
+      "q": "In NMAC, how long must K1 and K2 be?",
+      "choices": ["128 bits each, whatever the hash", "n bits each, where n is the hash output length", "Any length", "Half the hash output length each"],
+      "answer": 1,
+      "explain": "Both keys are n bits, the length of the hash output. If H is cryptographic and the keys are unrelated, NMAC is provably secure."
+    },
+    {
+      "type": "mc",
+      "category": "HMAC and NMAC",
+      "q": "HMAC accepts a variable-length key K. How is K turned into the n-bit key K'?",
+      "choices": ["Truncate it or repeat it until it is n bits", "Pad it with zeros if it is shorter than n bits, and hash it if it is longer", "Always hash it, then pad", "Encrypt it with AES"],
+      "answer": 1,
+      "explain": "Short keys are zero-padded to n bits, and long keys are hashed down to n bits."
+    },
+    {
+      "type": "mc",
+      "category": "HMAC and NMAC",
+      "q": "What is HMAC(M, K)?",
+      "choices": ["H((K' XOR opad) || H((K' XOR ipad) || M))", "H((K' XOR ipad) || H((K' XOR opad) || M))", "H(K' || M) XOR opad", "H((K' XOR opad XOR ipad) || M)"],
+      "answer": 0,
+      "explain": "The inner hash uses K' XOR ipad (inner pad) with the message. The outer hash uses K' XOR opad (outer pad) with the inner hash."
+    },
+    {
+      "type": "text",
+      "category": "HMAC and NMAC",
+      "q": "ipad is a single byte repeated to n bits. Which byte is it (in hex)?",
+      "answer": ["0x36", "36", "36h"],
+      "explain": "ipad = 0x36 repeated. opad = 0x5c repeated."
+    },
+    {
+      "type": "text",
+      "category": "HMAC and NMAC",
+      "q": "opad is a single byte repeated to n bits. Which byte is it (in hex)?",
+      "answer": ["0x5c", "0x5C", "5c", "5C", "5ch"],
+      "explain": "opad = 0x5c repeated. ipad = 0x36 repeated."
+    },
+    {
+      "type": "mc",
+      "category": "HMAC and NMAC",
+      "q": "Why is HMAC provably secure?",
+      "choices": ["It uses AES internally", "It is a special case of NMAC: K' XOR opad and K' XOR ipad serve as NMAC's two unrelated keys, so forging an HMAC would break the underlying hash", "Its output is longer than its key", "opad and ipad are kept secret"],
+      "answer": 1,
+      "explain": "XORing K' with two different pads is enough to meet NMAC's notion of unrelated keys. NMAC's proof then applies, assuming the hash is secure."
+    },
+    {
+      "type": "num",
+      "category": "HMAC and NMAC",
+      "q": "In HMAC_SHA256 (n = 256), how many bits does the outer hash call process?",
+      "answer": 512,
+      "explain": "The outer call hashes (K' XOR opad), which is n bits, followed by the n-bit inner hash: 2n = 512 bits. The inner call hashes the message plus n bits."
+    },
+    {
+      "type": "tf",
+      "category": "HMAC and NMAC",
+      "q": "HMAC's security proof only needs ipad and opad to differ in at least one bit; the designers made them very different anyway, out of caution.",
+      "answer": true,
+      "explain": "One differing bit is enough for the proof. The very different choice of pads reflects cryptographers' paranoia."
+    },
+    {
+      "type": "tf",
+      "category": "HMAC and NMAC",
+      "q": "Without the key, an attacker can't even distinguish an HMAC tag from a random value of the same length.",
+      "answer": true,
+      "explain": "Changing one bit of the message or key gives a completely different, unpredictable output. Without K, tags look random."
+    },
+    {
+      "type": "tf",
+      "category": "MACs and confidentiality",
+      "q": "A secure (unforgeable) MAC guarantees that its tag reveals nothing about the message.",
+      "answer": false,
+      "explain": "MACs give integrity and authenticity, not confidentiality. Given F(K, M), there is no guarantee an attacker learns nothing about M."
+    },
+    {
+      "type": "mc",
+      "category": "MACs and confidentiality",
+      "q": "Let F be a secure MAC and define F'(K, M) = F(K, M) || M. Which statement about F' is true?",
+      "choices": ["It is forgeable, because the message is exposed", "It is still an unforgeable MAC, but it leaks the entire message", "It provides both confidentiality and integrity", "It is not deterministic"],
+      "answer": 1,
+      "explain": "F' shows that unforgeability and confidentiality are separate properties: a perfectly valid MAC can reveal the whole plaintext."
+    },
+    {
+      "type": "mc",
+      "category": "MACs and confidentiality",
+      "q": "Why can't an attacker without K forge F'(K, M') = F(K, M') || M' for a new message M'?",
+      "choices": ["They don't know M'", "They would need the F(K, M') part, which they can't compute without K", "F' is encrypted", "M' is too long to append"],
+      "answer": 1,
+      "explain": "A valid F' tag contains a valid F tag. Forging F' would mean forging F, which is assumed secure."
+    },
+    {
+      "type": "tf",
+      "category": "MACs and confidentiality",
+      "q": "For an AES-based MAC on a single-block message, someone who knows the key can run the algorithm in reverse to recover the message from the tag.",
+      "answer": true,
+      "explain": "Nothing says a MAC can't be reversed with the key. For AES-based MACs on one block, this is clearly possible, and depending on the MAC, such reversal can leak the message."
+    },
+    {
+      "type": "multi",
+      "category": "MACs and confidentiality",
+      "q": "Which of these MAC constructions do not leak information about the message?",
+      "choices": ["HMAC", "A MAC that directly applies a block cipher", "F'(K, M) = F(K, M) || M", "Every unforgeable MAC"],
+      "answer": [0, 1],
+      "explain": "HMAC keeps the properties of the cryptographic hash, and a block cipher doesn't leak its plaintext. Unforgeability alone guarantees nothing about leakage, as F' shows."
+    },
+    {
+      "type": "tf",
+      "category": "MACs and confidentiality",
+      "q": "Bob reads Alice's message by \"decrypting\" her MAC tag.",
+      "answer": false,
+      "explain": "MACs have no notion of decryption. Alice and Bob both run the same algorithm to generate tags, and the message is sent alongside the tag."
+    },
+    {
+      "type": "mc",
+      "category": "Authenticated encryption",
+      "q": "What does encrypt-then-MAC send?",
+      "choices": ["<Enc_K1(M), MAC_K2(Enc_K1(M))>", "Enc_K1(M || MAC_K2(M))", "<Enc_K1(M), MAC_K2(M)>", "MAC_K2(Enc_K1(M)) only"],
+      "answer": 0,
+      "explain": "First encrypt, then compute the MAC over the ciphertext, and send both."
+    },
+    {
+      "type": "mc",
+      "category": "Authenticated encryption",
+      "q": "What does MAC-then-encrypt send?",
+      "choices": ["<Enc_K1(M), MAC_K2(Enc_K1(M))>", "Enc_K1(M || MAC_K2(M))", "<Enc_K1(M), MAC_K2(M)>", "MAC_K2(M) only"],
+      "answer": 1,
+      "explain": "First compute the MAC on the plaintext, then encrypt the message and tag together."
+    },
+    {
+      "type": "mc",
+      "category": "Authenticated encryption",
+      "q": "Which approach provides ciphertext integrity, so tampering is detected without decrypting?",
+      "choices": ["MAC-then-encrypt", "Encrypt-then-MAC", "Both equally", "Neither"],
+      "answer": 1,
+      "explain": "Encrypt-then-MAC tags the ciphertext itself. In MAC-then-encrypt only the plaintext is tagged, so tampering shows up only after decryption."
+    },
+    {
+      "type": "mc",
+      "category": "Authenticated encryption",
+      "q": "Why is encrypt-then-MAC generally preferred?",
+      "choices": ["It is the only approach that is theoretically secure", "MAC-then-encrypt runs decryption on arbitrary attacker input before detecting tampering, and it has been broken in practice through side channels such as a padding oracle attack on a TLS implementation", "Encrypt-then-MAC needs only one key", "MAC-then-encrypt leaks the plaintext through the tag"],
+      "answer": 1,
+      "explain": "Both are secure in theory if used correctly. In practice, MAC-then-encrypt exposes the decryption step to attacker input, which side-channel attacks exploit."
+    },
+    {
+      "type": "tf",
+      "category": "Authenticated encryption",
+      "q": "In encrypt-then-MAC, it is acceptable for the MAC tag to leak information about the ciphertext.",
+      "answer": true,
+      "explain": "The ciphertext is IND-CPA secure, so it reveals nothing about the plaintext. Leaking information about the ciphertext is therefore harmless."
+    },
+    {
+      "type": "tf",
+      "category": "Authenticated encryption",
+      "q": "Using the same key for the encryption and the MAC is fine, as long as each algorithm is secure on its own.",
+      "answer": false,
+      "explain": "Reusing one key across two algorithms opens a large class of attacks that can leak information about the message. Use different keys."
+    },
+    {
+      "type": "mc",
+      "category": "Authenticated encryption",
+      "q": "What is a side-channel attack?",
+      "choices": ["An attack that breaks the mathematics of the cipher", "Information leaking through means other than the algorithm itself, such as computation time or error messages", "Intercepting messages on a secondary network link", "Forging MAC tags by brute force"],
+      "answer": 1,
+      "explain": "Improper use of a scheme can leak information through timing, error messages and the like. The padding oracle attack on MAC-then-encrypt TLS is an example."
+    },
+    {
+      "type": "mc",
+      "category": "AEAD modes",
+      "q": "In AEAD (Authenticated Encryption with Additional Data), what is the \"additional data\"?",
+      "choices": ["Padding added to fill the last block", "Unencrypted data that is still covered by the integrity check, such as a 'From Alice to Bob' routing header", "A second encrypted copy of the message", "The secret key"],
+      "answer": 1,
+      "explain": "AEAD protects the integrity of both the encrypted part and some plaintext data that has to stay readable, for example by routing systems."
+    },
+    {
+      "type": "mc",
+      "category": "AEAD modes",
+      "q": "AES-GCM is a stream cipher that operates much like which block cipher mode?",
+      "choices": ["ECB", "CBC", "CTR (counter)", "CFB"],
+      "answer": 2,
+      "explain": "GCM works like CTR mode and has similar security properties, including the danger of reusing an IV."
+    },
+    {
+      "type": "tf",
+      "category": "AEAD modes",
+      "q": "Reusing an IV with AES-GCM breaks confidentiality, but integrity survives because the built-in MAC is independent of the encryption.",
+      "answer": false,
+      "explain": "GCM's built-in MAC is a function of the CTR-mode encryption, so misuse such as IV reuse loses both confidentiality and integrity."
+    },
+    {
+      "type": "mc",
+      "category": "AEAD modes",
+      "q": "Why is misusing an AEAD mode especially dangerous?",
+      "choices": ["It makes encryption much slower", "A single mistake loses confidentiality and integrity at the same time", "It makes the ciphertext longer than the plaintext", "It can only encrypt short messages"],
+      "answer": 1,
+      "explain": "One mode provides both guarantees, so one mistake breaks both at once."
+    },
+    {
+      "type": "multi",
+      "category": "AEAD modes",
+      "q": "Which of these are AEAD modes?",
+      "choices": ["GCM", "CCM", "OCB", "CWC", "CTR", "CBC"],
+      "answer": [0, 1, 2, 3],
+      "explain": "GCM, CCM, CWC and OCB provide authenticated encryption. CTR and CBC provide confidentiality only."
+    }
+  ]
+}

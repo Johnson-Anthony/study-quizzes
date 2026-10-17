@@ -1,0 +1,637 @@
+{
+  "title": "Security Principles",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Threat model",
+      "q": "What is a threat model?",
+      "choices": [
+        "A list of every known software vulnerability in a system",
+        "A model of who your attacker is and what resources they have",
+        "A formal proof that a system cannot be breached",
+        "A diagram of the network topology an attacker would traverse"
+      ],
+      "answer": 1,
+      "explain": "A threat model describes who the attacker is (and why they might attack) and what resources they have."
+    },
+    {
+      "type": "tf",
+      "category": "Threat model",
+      "q": "An attack that succeeds only 1 time in 1,000,000 can be safely ignored, because attackers won't bother with such poor odds.",
+      "answer": false,
+      "explain": "We assume the attacker is persistent and lucky: if an attack works 1/1,000,000 times, the attacker will try 1,000,000 times."
+    },
+    {
+      "type": "multi",
+      "category": "Threat model",
+      "q": "Which of the following are common assumptions we make about attackers?",
+      "choices": [
+        "They can interact with your systems without anyone noticing",
+        "They have general information about your system, such as its OS and potential vulnerabilities",
+        "They can coordinate or chain multiple attacks across several systems",
+        "They will attack only a single device at a time",
+        "They will give up after an attack fails the first time"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Attackers are assumed to be stealthy, informed about your system, persistent, willing to spend resources, and able to attack your whole network or chain attacks together."
+    },
+    {
+      "type": "mc",
+      "category": "Threat model",
+      "q": "A casino was hacked through a fish-tank thermometer on its network. Which attacker assumption does this illustrate?",
+      "choices": [
+        "Every system is a potential target",
+        "Attackers are motivated only by money",
+        "Attackers cannot coordinate attacks across systems",
+        "Old code is always more secure than new code"
+      ],
+      "answer": 0,
+      "explain": "Even a seemingly unimportant device can serve as the attacker's way into the network."
+    },
+    {
+      "type": "mc",
+      "category": "Threat model",
+      "q": "Why should you be especially careful with old code and old network protocols?",
+      "choices": [
+        "Old code is always written in memory-unsafe languages",
+        "Attackers cannot read old code, so its flaws are hard to find",
+        "The assumptions it was built on may no longer hold, because the threat model has changed",
+        "Old protocols were designed to be insecure on purpose"
+      ],
+      "answer": 2,
+      "explain": "For example, many early Internet protocols assumed all participants (mostly academics) could be trusted. That assumption no longer holds with billions of devices, some of them malicious."
+    },
+    {
+      "type": "mc",
+      "category": "Human factors",
+      "q": "A user keeps clicking \"remind me later\" on a prompt to restart and finish installing important security updates. What lesson does this illustrate?",
+      "choices": [
+        "Updates should never contain security patches",
+        "Security that inconveniences users tends to get put off or bypassed, which leaves the system vulnerable for longer",
+        "Users are the attacker in most threat models",
+        "Security patches should only be applied by administrators"
+      ],
+      "answer": 1,
+      "explain": "Users like convenience. If security gets in their way, they will skip it, and the computer stays vulnerable the whole time the update is delayed."
+    },
+    {
+      "type": "tf",
+      "category": "Human factors",
+      "q": "As long as a security system is strong enough, it does not matter whether it is user-friendly.",
+      "answer": false,
+      "explain": "An unusable security system will go unused or be subverted, no matter how secure it is in theory."
+    },
+    {
+      "type": "mc",
+      "category": "Human factors",
+      "q": "The NSA's cryptographic equipment stores key material on a token shaped like an ordinary door key, which you insert and turn to activate the device. Why is this a good design?",
+      "choices": [
+        "Physical keys cannot be copied",
+        "It makes the cryptography mathematically stronger",
+        "It hides the key material from the user",
+        "The interface is intuitive, even for people with minimal cryptography training"
+      ],
+      "answer": 3,
+      "explain": "It is an example of considering human factors: a familiar interface that soldiers in the field can use correctly with little training."
+    },
+    {
+      "type": "mc",
+      "category": "Human factors",
+      "q": "What do social engineering attacks exploit?",
+      "choices": [
+        "Bugs in the operating system kernel",
+        "Weak cryptographic algorithms",
+        "People's trust and access",
+        "Race conditions between concurrent processes"
+      ],
+      "answer": 2,
+      "explain": "Social engineering targets the human element, exploiting other people's trust and access for personal gain."
+    },
+    {
+      "type": "mc",
+      "category": "Security is economics",
+      "q": "\"There is no point putting a $100 lock on a $1 item.\" What principle does this express?",
+      "choices": [
+        "The expected benefit of a defense should be proportional to the expected cost of the attack",
+        "Cheap locks are always sufficient",
+        "Security should be designed in from the start",
+        "Attackers always target the most valuable item"
+      ],
+      "answer": 0,
+      "explain": "Security is economics: no system is 100% secure, and how much you spend on defense should match the value at stake."
+    },
+    {
+      "type": "tf",
+      "category": "Security is economics",
+      "q": "With careful enough engineering, a system can be made 100% secure against all attacks.",
+      "answer": false,
+      "explain": "No system is completely secure against all attacks. Systems only need protection against a certain level of attack, chosen by cost-benefit analysis."
+    },
+    {
+      "type": "mc",
+      "category": "Security is economics",
+      "q": "Putting an expensive high-end deadbolt on a screen door is pointless. Which idea does this illustrate?",
+      "choices": [
+        "Fail-safe defaults",
+        "Security is only as strong as its weakest link",
+        "Separation of responsibility",
+        "Shannon's Maxim"
+      ],
+      "answer": 1,
+      "explain": "Attackers take the path of least resistance. They'll rip through the screen instead of picking the lock, so put your effort into the weakest links."
+    },
+    {
+      "type": "mc",
+      "category": "Security is economics",
+      "q": "What does the principle of conservative design state?",
+      "choices": [
+        "Systems should use as little code as possible",
+        "Systems should be evaluated by their average-case security under typical conditions",
+        "Systems should be evaluated by the worst plausible security failure, under assumptions favorable to the attacker",
+        "Systems should avoid using new, unproven technologies"
+      ],
+      "answer": 2,
+      "explain": "If there is any plausible circumstance where the system becomes insecure, it is prudent to consider a more secure system. This is still balanced against security being economics."
+    },
+    {
+      "type": "mc",
+      "category": "Security is economics",
+      "q": "Safe ratings run from TL-15 (about $3,000) to TL-30 (about $5,000) to TXTL-60 (upwards of $50,000). What do these ratings illustrate?",
+      "choices": [
+        "More security generally costs more, so you must weigh the value of what you protect against what you are willing to pay",
+        "Expensive safes cannot be broken into",
+        "Safe ratings measure how many attackers a safe can resist",
+        "Physical security has nothing to do with computer security"
+      ],
+      "answer": 0,
+      "explain": "Each rating says how long the safe resists attack (and with which tools). Choosing one is a cost-benefit decision."
+    },
+    {
+      "type": "tf",
+      "category": "Security is economics",
+      "q": "Under conservative design, you must spend whatever it takes to address every plausible attack scenario, regardless of cost.",
+      "answer": false,
+      "explain": "Conservative design is balanced against \"security is economics.\" Your threat model decides how much it is worth spending to address a given scenario."
+    },
+    {
+      "type": "mc",
+      "category": "Detect if you can't prevent",
+      "q": "Learning that an attack has taken place, as opposed to stopping it or doing something about it, is called:",
+      "choices": [
+        "Prevention",
+        "Response",
+        "Mediation",
+        "Detection"
+      ],
+      "answer": 3,
+      "explain": "Prevention stops an attack, detection learns that an attack happened, and response does something about it."
+    },
+    {
+      "type": "tf",
+      "category": "Detect if you can't prevent",
+      "q": "Detection without response is pointless.",
+      "answer": true,
+      "explain": "Once you know an attack has happened, you need a way to respond. Otherwise knowing about it accomplishes nothing."
+    },
+    {
+      "type": "mc",
+      "category": "Detect if you can't prevent",
+      "q": "Under FIPS 140, Level III devices are meant to be tamper-resistant. What are Level II devices required to be?",
+      "choices": [
+        "Tamper-proof",
+        "Tamper-evident, so that tampering is visible (e.g., a broken seal)",
+        "Unbypassable",
+        "Free of any physical casing"
+      ],
+      "answer": 1,
+      "explain": "Level II devices only need to show that tampering happened (detection rather than prevention), so they are cheaper and can be used in more applications."
+    },
+    {
+      "type": "mc",
+      "category": "Detect if you can't prevent",
+      "q": "Keeping offsite backups of computer systems reflects which part of planning for security?",
+      "choices": [
+        "Response: assume bad things will happen and make sure you can get back to a working state",
+        "Prevention: backups stop attacks from happening",
+        "Least privilege: backups reduce the privileges of attackers",
+        "Complete mediation: backups check every access"
+      ],
+      "answer": 0,
+      "explain": "Plan for the worst case. Even if a system is completely destroyed, offsite backups let you recover."
+    },
+    {
+      "type": "mc",
+      "category": "Defense in depth",
+      "q": "What is the key idea of defense in depth?",
+      "choices": [
+        "Use one very strong defense instead of several weak ones",
+        "Hide the design of the system so attackers can't find weaknesses",
+        "Layer multiple types of defenses so an attacker must breach all of them",
+        "Give each component only the privileges it needs"
+      ],
+      "answer": 2,
+      "explain": "As with a castle's walls, moat, and second wall, the attacker has to get through every layer."
+    },
+    {
+      "type": "mc",
+      "category": "Defense in depth",
+      "q": "Two intrusion detectors D1 and D2 are combined in parallel, so either one alerting triggers a response. Compared with using one detector, what happens?",
+      "choices": [
+        "False alarm rate decreases; missed-attack rate increases",
+        "False alarm rate increases; missed-attack rate decreases",
+        "Both rates decrease",
+        "Both rates increase"
+      ],
+      "answer": 1,
+      "fixed": true,
+      "explain": "With either detector able to fire, more real attacks get caught (fewer misses), but each detector's false alarms also trigger responses (more false alarms)."
+    },
+    {
+      "type": "mc",
+      "category": "Defense in depth",
+      "q": "Two intrusion detectors D1 and D2 are combined in series, so both must alert to trigger a response. Compared with using one detector, what happens?",
+      "choices": [
+        "False alarm rate decreases; missed-attack rate increases",
+        "False alarm rate increases; missed-attack rate decreases",
+        "Both rates decrease",
+        "Both rates increase"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Requiring both to agree filters out false alarms, but an attack missed by either detector now goes unanswered (more misses)."
+    },
+    {
+      "type": "tf",
+      "category": "Defense in depth",
+      "q": "Under defense in depth, adding another layer of defense is always worth its cost.",
+      "answer": false,
+      "explain": "Beware of diminishing returns: if you already have 100 walls, the 101st may not add enough protection to justify its cost (security is economics). Layering is also not foolproof."
+    },
+    {
+      "type": "mc",
+      "category": "Least privilege",
+      "q": "What does the principle of least privilege say?",
+      "choices": [
+        "Give a program the access privileges it legitimately needs to do its job, and nothing more",
+        "Require more than one party to approve any privileged action",
+        "Check every access to every object",
+        "Run all programs as an unprivileged guest user, regardless of what they need"
+      ],
+      "answer": 0,
+      "explain": "Each party or component should have exactly as much privilege as its intended role requires."
+    },
+    {
+      "type": "tf",
+      "category": "Least privilege",
+      "q": "Least privilege reduces the probability that a program will fail or be compromised.",
+      "answer": false,
+      "explain": "Least privilege doesn't reduce the probability of failure. It reduces the expected cost of failure, because a program with less privilege can do less harm if it goes awry or is subverted."
+    },
+    {
+      "type": "mc",
+      "category": "Least privilege",
+      "q": "An attacker takes over a program through a buffer overflow. How does least privilege help?",
+      "choices": [
+        "It prevents the buffer overflow from occurring",
+        "It detects the overflow and alerts an administrator",
+        "The intruder gains only the privileges the program had, so fewer privileges means less harm",
+        "It automatically restores the program from a backup"
+      ],
+      "answer": 2,
+      "explain": "A compromised program is likely fully taken over, so the damage is limited by whatever privileges that program held."
+    },
+    {
+      "type": "mc",
+      "category": "Least privilege",
+      "q": "Which environment does best at least privilege?",
+      "choices": [
+        "Unix, where each program runs with all of the invoking user's privileges",
+        "Windows, where programs run with the user's full privileges",
+        "Mobile phones, where each app is sandboxed and usually cannot access other apps' data",
+        "None of these differ in least privilege"
+      ],
+      "answer": 2,
+      "explain": "On Unix and Windows, an editor opened to change one file can read, modify, or delete all of your files. Phone app sandboxing limits the damage a malicious or compromised app can do."
+    },
+    {
+      "type": "mc",
+      "category": "Separation of responsibility",
+      "q": "A nuclear missile silo requires two launch officers to agree before a launch. Which principle is this?",
+      "choices": [
+        "Least privilege",
+        "Separation of responsibility",
+        "Fail-safe defaults",
+        "Complete mediation"
+      ],
+      "answer": 1,
+      "explain": "Privilege is split so that no single person has complete power, and more than one party must approve the sensitive action."
+    },
+    {
+      "type": "mc",
+      "category": "Separation of responsibility",
+      "q": "At a movie theater, one employee sells you a ticket and a different employee tears it and keeps half in a lockbox. What does this mainly protect against?",
+      "choices": [
+        "Counterfeit tickets printed by customers",
+        "Customers losing their tickets",
+        "Insider fraud: an employee letting friends in without paying",
+        "Theater fires blocking the exits"
+      ],
+      "answer": 2,
+      "explain": "Letting someone in for free would require both employees to collude, which makes the attack harder."
+    },
+    {
+      "type": "tf",
+      "category": "Separation of responsibility",
+      "q": "Separation of responsibility works because it is more likely that a single party is malicious than that all of several parties are malicious and collude.",
+      "answer": true,
+      "explain": "Requiring multiple parties to cooperate on a sensitive action means one bad actor is not enough."
+    },
+    {
+      "type": "mc",
+      "category": "Complete mediation",
+      "q": "What does the principle of complete mediation require?",
+      "choices": [
+        "Every user must be mediated by a human administrator",
+        "Access control must check every access to every object",
+        "Disputes between users must be resolved by a third party",
+        "Each access is checked only the first time it occurs"
+      ],
+      "answer": 1,
+      "explain": "All access must be monitored and protected, with no unchecked paths."
+    },
+    {
+      "type": "text",
+      "category": "Complete mediation",
+      "q": "What is the name for a single point through which all access must occur, used to ensure complete mediation?",
+      "answer": ["reference monitor", "a reference monitor"],
+      "explain": "A reference monitor funnels all access through one checkpoint, like an airport security checkpoint."
+    },
+    {
+      "type": "mc",
+      "category": "Complete mediation",
+      "q": "A small number of airport security checkpoints can protect hundreds of gates. What condition must hold for this to work?",
+      "choices": [
+        "Each gate must also have its own checkpoint",
+        "Passengers must be screened at random",
+        "The checkpoints are handled correctly and there is no way to bypass them",
+        "The design of the checkpoints must be kept secret"
+      ],
+      "answer": 2,
+      "explain": "A reference monitor only works if every access really goes through it and it does its checks correctly."
+    },
+    {
+      "type": "mc",
+      "category": "Shannon's Maxim",
+      "q": "What does Shannon's Maxim state?",
+      "choices": [
+        "The attacker knows the system they are attacking",
+        "Every system has at least one vulnerability",
+        "Security is only as strong as the weakest link",
+        "Longer keys are always more secure"
+      ],
+      "answer": 0,
+      "explain": "Always assume the attacker knows every detail of the system: its algorithms, hardware, defenses, and so on."
+    },
+    {
+      "type": "tf",
+      "category": "Shannon's Maxim",
+      "q": "Shannon's Maxim implies that open-source applications are necessarily more secure than closed-source applications.",
+      "answer": false,
+      "explain": "It does not say open source is necessarily more secure. It says not to trust any system that relies on obscurity, and to be skeptical of claims that secret source code makes a system much more secure."
+    },
+    {
+      "type": "mc",
+      "category": "Shannon's Maxim",
+      "q": "Someone argues: \"Only 100 people in the world understand this system, so attackers won't bother with it.\" What is a key flaw in this reasoning?",
+      "choices": [
+        "Obscure systems are always open source",
+        "It is self-defeating: if the system becomes popular, attackers have more incentive and obscurity no longer protects it",
+        "Obscurity is the strongest form of security",
+        "Attackers only target systems with fewer than 100 users"
+      ],
+      "answer": 1,
+      "explain": "Security through obscurity is brittle and has a poor track record. A motivated attacker can learn the design, and popularity draws attackers."
+    },
+    {
+      "type": "mc",
+      "category": "Shannon's Maxim",
+      "q": "Kerckhoffs's Principle says a cryptographic system should remain secure even when the attacker knows all of its internal details. What is the only thing that should need to be kept secret?",
+      "choices": [
+        "The source code",
+        "The encryption algorithm",
+        "The hardware design",
+        "The secret key"
+      ],
+      "answer": 3,
+      "explain": "Only the key must stay secret, and the system should make it easy to change keys that are leaked or suspected to be leaked."
+    },
+    {
+      "type": "mc",
+      "category": "Shannon's Maxim",
+      "q": "Why should a system be designed so that only the key is secret and keys are easy to change?",
+      "choices": [
+        "Keys are impossible to leak",
+        "If a secret leaks, changing a key is much easier than replacing every running instance of the software",
+        "It lets you keep the algorithm secret too",
+        "It removes the need for any access control"
+      ],
+      "answer": 1,
+      "explain": "A leaked key can be swapped out cheaply. A leaked secret design would mean redeploying the system everywhere."
+    },
+    {
+      "type": "mc",
+      "category": "Fail-safe defaults and designing security in",
+      "q": "A default-deny firewall must explicitly decide to forward each packet, or the packet is dropped. What happens if the firewall crashes?",
+      "choices": [
+        "All packets are forwarded, so it fails open",
+        "No packets are forwarded, so it fails safe",
+        "Only previously seen packets are forwarded",
+        "It switches to an allow-all policy until restarted"
+      ],
+      "answer": 1,
+      "explain": "With default-deny, a failure means nothing gets forwarded. That is secure behavior, which is what fail-safe defaults call for."
+    },
+    {
+      "type": "mc",
+      "category": "Fail-safe defaults and designing security in",
+      "q": "Why is fail-open behavior dangerous for a security mechanism such as a firewall?",
+      "choices": [
+        "It makes the system slower",
+        "It makes the system harder to use",
+        "An attacker only has to wait for a crash, or cause one, and then everything is let through",
+        "It increases the size of the trusted computing base"
+      ],
+      "answer": 2,
+      "explain": "If failure means \"allow,\" crashing the mechanism becomes an attack."
+    },
+    {
+      "type": "tf",
+      "category": "Fail-safe defaults and designing security in",
+      "q": "Under fail-safe defaults, if a security mechanism fails or crashes, it should default to secure behavior rather than insecure behavior.",
+      "answer": true,
+      "explain": "That is the definition of fail-safe defaults, balanced against usability when the system goes down."
+    },
+    {
+      "type": "multi",
+      "category": "Fail-safe defaults and designing security in",
+      "q": "Why is it usually hard to retrofit security onto an existing application after it has been specified, designed, and implemented?",
+      "choices": [
+        "You are stuck with the architecture already chosen",
+        "You may be unable to decompose the system to get least privilege, complete mediation, defense in depth, and similar properties",
+        "Backwards compatibility can force you to keep supporting the insecurities of earlier versions",
+        "Security features can only be written in the same language as the original code"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Once the architecture is set, good security decompositions may no longer be possible, and backwards compatibility drags old insecurities along."
+    },
+    {
+      "type": "mc",
+      "category": "Trusted Computing Base",
+      "q": "What is the trusted computing base (TCB) of a system?",
+      "choices": [
+        "All of the code that runs on the system",
+        "The portion of the system that must operate correctly for the system's security goals to be assured",
+        "The set of users who are trusted to log in",
+        "The hardware components only"
+      ],
+      "answer": 1,
+      "explain": "Every TCB component must work correctly. Anything outside the TCB can misbehave, even maliciously, without defeating the security goals."
+    },
+    {
+      "type": "multi",
+      "category": "Trusted Computing Base",
+      "q": "The security goal is that only authorized users can log in to a Linux server over SSH. In a reasonably built system, which components are in the TCB?",
+      "choices": [
+        "The SSH daemon",
+        "The operating system",
+        "The CPU",
+        "A web browser installed on the same machine"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The SSH daemon makes the authentication decisions, the OS could tamper with the daemon (e.g., its address space), and the CPU executes its instructions. The OS's memory protection should keep an unprivileged browser from interfering, so the browser is outside the TCB."
+    },
+    {
+      "type": "mc",
+      "category": "Trusted Computing Base",
+      "q": "Which TCB design principle requires that parts of the system outside the TCB cannot modify the TCB's code or state?",
+      "choices": [
+        "Unbypassable (completeness)",
+        "Tamper-resistant (security)",
+        "Verifiable (correctness)",
+        "Least privilege"
+      ],
+      "answer": 1,
+      "fixed": true,
+      "explain": "Tamper-resistance means the TCB's integrity is protected from everyone else."
+    },
+    {
+      "type": "mc",
+      "category": "Trusted Computing Base",
+      "q": "Which TCB design principle says there must be no way to breach system security by going around the TCB?",
+      "choices": [
+        "Unbypassable (completeness)",
+        "Tamper-resistant (security)",
+        "Verifiable (correctness)",
+        "Fail-safe defaults"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Unbypassability, or completeness, means all security-relevant activity must go through the TCB."
+    },
+    {
+      "type": "mc",
+      "category": "Trusted Computing Base",
+      "q": "Why does the verifiable (correctness) principle push the TCB to be as simple as possible?",
+      "choices": [
+        "Simple code runs faster",
+        "Simple code cannot be attacked",
+        "Verifying the correctness of complex subsystems is generally beyond the state of the art",
+        "Simple code is easier to keep secret"
+      ],
+      "answer": 2,
+      "explain": "Only small, simple TCBs can realistically be checked for correctness, hence Keep It Simple, Stupid (KISS)."
+    },
+    {
+      "type": "num",
+      "category": "Trusted Computing Base",
+      "q": "Industry-standard error rates are 1 to 5 defects per thousand lines of code. At the upper end of that range, about how many defects would you expect in a TCB of 100,000 lines?",
+      "answer": 500,
+      "explain": "5 defects/KLOC x 100 KLOC = 500. A 1,000-line TCB would have only 1 to 5, which is why you should move as much code as possible outside the TCB."
+    },
+    {
+      "type": "tf",
+      "category": "Trusted Computing Base",
+      "q": "A component outside the TCB that behaves maliciously can defeat the system's security goals.",
+      "answer": false,
+      "explain": "By definition, nothing outside the TCB is relied on. Even if it misbehaves or acts maliciously, it cannot defeat the security goals."
+    },
+    {
+      "type": "mc",
+      "category": "Trusted Computing Base",
+      "q": "What does the advice \"decompose for security\" mean when designing a system?",
+      "choices": [
+        "Split the system into as many processes as possible for performance",
+        "Choose a modular structure based not only on functionality or performance, but so that the TCB is as simple and clear as possible",
+        "Put every component in the TCB so that all of it gets audited",
+        "Remove all security checks from non-critical modules"
+      ],
+      "answer": 1,
+      "explain": "A clear separation between the security-critical part (the TCB) and everything else lets you focus effort where it matters and keeps the TCB small."
+    },
+    {
+      "type": "text",
+      "category": "TOCTTOU",
+      "q": "What does the acronym TOCTTOU stand for?",
+      "answer": ["time of check to time of use", "time-of-check to time-of-use", "time-of-check-to-time-of-use"],
+      "explain": "Time-Of-Check To Time-Of-Use: the state that was checked changes before it is used."
+    },
+    {
+      "type": "mc",
+      "category": "TOCTTOU",
+      "q": "What is the root cause of a TOCTTOU vulnerability?",
+      "choices": [
+        "A buffer overflow in the checking code",
+        "The checked state changes between the time it is checked and the time it is used",
+        "Using a weak cryptographic key",
+        "The attacker knowing the design of the system"
+      ],
+      "answer": 1,
+      "explain": "It is a race condition: the check is no longer valid by the time the program acts on it."
+    },
+    {
+      "type": "mc",
+      "category": "TOCTTOU",
+      "q": "TOCTTOU race conditions are a common failure of which security principle?",
+      "choices": [
+        "Shannon's Maxim",
+        "Separation of responsibility",
+        "Complete mediation",
+        "Defense in depth"
+      ],
+      "answer": 2,
+      "explain": "TOCTTOU bugs often show up when enforcing access control, such as with a reference monitor. The check no longer covers the access that actually happens."
+    },
+    {
+      "type": "mc",
+      "category": "TOCTTOU",
+      "q": "An ATM runs: (1) b := balance, (2) if b < w abort, (3) balance := b - w, (4) dispense w. An attacker can pause one ATM and use a second ATM at the same time. Where should the attacker pause the first ATM to exploit TOCTTOU?",
+      "choices": [
+        "Before step 1",
+        "After step 2, before step 3",
+        "After step 3, before step 4",
+        "After step 4"
+      ],
+      "answer": 1,
+      "fixed": true,
+      "explain": "After step 2 the balance check has passed but the balance hasn't been decremented yet. Withdrawing at another ATM changes the balance, and the paused ATM then acts on the stale value."
+    },
+    {
+      "type": "num",
+      "category": "TOCTTOU",
+      "q": "In the ATM TOCTTOU attack, the account starts with $100. The attacker pauses ATM 1 after its balance check passes, withdraws $100 at ATM 2, then resumes ATM 1 to withdraw $100. How many dollars in total does the attacker receive?",
+      "answer": 200,
+      "explain": "Both ATMs saw a balance of $100 when they checked, so each dispenses $100, for $200 from a $100 account."
+    }
+  ]
+}

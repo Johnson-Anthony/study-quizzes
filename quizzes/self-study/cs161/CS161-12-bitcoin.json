@@ -1,0 +1,492 @@
+{
+  "title": "Bitcoin",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Goals and Primitives",
+      "topic": "Problem statement",
+      "q": "In traditional currency, a trusted centralized party (like a bank) enforces account balances and transaction correctness. What does Bitcoin use instead?",
+      "choices": [
+        "A smaller group of regional banks that audit each other",
+        "Cryptography, with no centralized party",
+        "A government-run registry of public keys",
+        "A single trusted server that stores the ledger"
+      ],
+      "answer": 1,
+      "explain": "Bitcoin's goal is to provide the basic properties of a working currency without any centralized party. It uses cryptography to enforce them instead of a trusted entity."
+    },
+    {
+      "type": "multi",
+      "category": "Goals and Primitives",
+      "topic": "Problem statement",
+      "q": "Which of these are properties of a functioning currency in the simplified model Bitcoin tries to replicate?",
+      "choices": [
+        "Each person has an account that stores the units of currency they own",
+        "Alice cannot impersonate Bob and act as Bob",
+        "When Alice sends Bob n units, her balance drops by n and his rises by n",
+        "A user with n units cannot spend more than n units in a transaction",
+        "Every transaction must be approved by a designated authority",
+        "Account balances are hidden from all other users"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The four properties are: accounts, no impersonation, transactions that move n units from sender to receiver, and no spending beyond your balance. Approval by an authority is exactly what Bitcoin avoids. Hidden balances are not a property, and in fact anyone can work out balances from the public ledger."
+    },
+    {
+      "type": "mc",
+      "category": "Goals and Primitives",
+      "topic": "Cryptographic hashes",
+      "q": "What does it mean for a cryptographic hash H to be collision-resistant?",
+      "choices": [
+        "Given H(x), it is infeasible to recover x",
+        "H always produces an output the same length as its input",
+        "It is infeasible to find two inputs x != y such that H(x) = H(y)",
+        "H(x) changes every time it is computed on the same x"
+      ],
+      "answer": 2,
+      "explain": "Collision resistance means you can't feasibly find two different inputs that hash to the same output. Hash chains rely on this property: a modified block can't keep the same hash."
+    },
+    {
+      "type": "tf",
+      "category": "Goals and Primitives",
+      "topic": "Cryptographic hashes",
+      "q": "A cryptographic hash maps arbitrary-length input to an output whose length grows with the input length.",
+      "answer": false,
+      "explain": "A cryptographic hash maps arbitrary-length input to a fixed-length output."
+    },
+    {
+      "type": "mc",
+      "category": "Goals and Primitives",
+      "topic": "Digital signatures",
+      "q": "Alice signs a message. Which key does she use to create the signature, and which key do others use to verify it?",
+      "choices": [
+        "She signs with her public key PK; others verify with her secret key SK",
+        "She signs with her secret key SK; others verify with her public key PK",
+        "She signs with the recipient's public key; the recipient verifies with their secret key",
+        "She signs and others verify with the same shared secret key"
+      ],
+      "answer": 1,
+      "explain": "Alice keeps the secret signing key SK to herself and broadcasts the public verification key PK. She signs with SK, and anyone can check the signature with PK."
+    },
+    {
+      "type": "mc",
+      "category": "Identities and Transactions",
+      "topic": "Identities",
+      "q": "With no central party keeping accounts, what serves as a user's identity in Bitcoin?",
+      "choices": [
+        "Their secret signing key",
+        "A username registered with the miners",
+        "Their public key",
+        "The hash of their first transaction"
+      ],
+      "answer": 2,
+      "explain": "Each user generates a key pair and publishes the public key. That public key (for example PK_B for Bob) is their identity."
+    },
+    {
+      "type": "mc",
+      "category": "Identities and Transactions",
+      "topic": "Identities",
+      "q": "Why can't an attacker who doesn't know SK_B impersonate Bob (the user PK_B)?",
+      "choices": [
+        "Miners keep a list of IP addresses tied to each public key",
+        "Digital signatures are unforgeable, so the attacker can't produce a signature that verifies under PK_B",
+        "PK_B is kept secret, so the attacker never learns Bob's identity",
+        "The hash chain records which computer each user is on"
+      ],
+      "answer": 1,
+      "explain": "Bob proves he is PK_B by signing with SK_B. Without SK_B, the attacker can't make a signature that validates with PK_B, because signatures are unforgeable. PK_B is public, not secret."
+    },
+    {
+      "type": "text",
+      "category": "Identities and Transactions",
+      "topic": "Transactions",
+      "q": "Alice wants to send n units to Bob. She writes the message \"PK_A sends n units of currency to PK_B\". Which key does she sign it with? (Use notation like PK_X / SK_X.)",
+      "answer": ["SK_A", "SKA", "SK A", "Alice's secret key", "Alice's secret signing key", "Alice's private key", "her secret key", "her secret signing key"],
+      "explain": "The sender signs with her own secret key SK_A. Anyone can then verify the signature with PK_A and confirm that user PK_A intended the transaction."
+    },
+    {
+      "type": "tf",
+      "category": "Identities and Transactions",
+      "topic": "Transactions",
+      "q": "In Bitcoin, the recipient of a transaction must also sign it before the transaction is valid.",
+      "answer": false,
+      "explain": "Bitcoin doesn't validate the recipient. If the recipient doesn't want the money, they can make another transaction to send it back."
+    },
+    {
+      "type": "mc",
+      "category": "Identities and Transactions",
+      "topic": "Transactions",
+      "q": "Bob receives 3 units from Alice that he doesn't want. What can he do in Bitcoin?",
+      "choices": [
+        "Refuse to countersign, which cancels the transaction",
+        "Ask the miners to delete the transaction from the ledger",
+        "Create a new transaction that sends the money back to Alice",
+        "Nothing; the money is permanently locked in his account"
+      ],
+      "answer": 2,
+      "explain": "The ledger is append-only, so a transaction can't be removed, and recipients aren't validated. To refuse money, the recipient creates a new transaction sending it back."
+    },
+    {
+      "type": "tf",
+      "category": "Balances and the Ledger",
+      "topic": "Balances",
+      "q": "Bitcoin's ledger explicitly stores each user's current balance.",
+      "answer": false,
+      "explain": "Bitcoin doesn't record balances explicitly. It records every completed transaction with its signature, and anyone can work out any user's balance at any time from that history."
+    },
+    {
+      "type": "mc",
+      "category": "Balances and the Ledger",
+      "topic": "Ledger",
+      "q": "Which pair of properties must the public ledger have?",
+      "choices": [
+        "Private and editable",
+        "Append-only and immutable",
+        "Encrypted and deletable",
+        "Centralized and rewritable"
+      ],
+      "answer": 1,
+      "explain": "Everyone can view the ledger and add new entries, but nobody can change or delete existing entries. It works like a guest book."
+    },
+    {
+      "type": "num",
+      "category": "Balances and the Ledger",
+      "topic": "Computing balances",
+      "q": "Carol starts with 20 units and everyone else starts with 0. The ledger is: (1) Carol sends Dave 8. (2) Carol sends Erin 5. (3) Dave sends Erin 3. What is Erin's balance after these three transactions?",
+      "answer": 8,
+      "explain": "Erin receives 5 from Carol and 3 from Dave and spends nothing, so she has 8. (Carol has 7 and Dave has 5.)"
+    },
+    {
+      "type": "mc",
+      "category": "Balances and the Ledger",
+      "topic": "Computing balances",
+      "q": "Carol starts with 12 units and everyone else starts with 0. Which transaction in this ledger is invalid?",
+      "choices": [
+        "(1) Carol sends Dave 7",
+        "(2) Dave sends Erin 4",
+        "(3) Carol sends Erin 3",
+        "(4) Dave sends Frank 4"
+      ],
+      "answer": 3,
+      "explain": "After (1): Carol 5, Dave 7. After (2): Dave 3, Erin 4. After (3): Carol 2, Erin 7. In (4), Dave tries to spend 4 but has only 3, so it's invalid."
+    },
+    {
+      "type": "multi",
+      "category": "Balances and the Ledger",
+      "topic": "Validating transactions",
+      "q": "Which checks are part of validating a new transaction?",
+      "choices": [
+        "The signature verifies under the sender's public key",
+        "The sender was the receiver in some earlier transaction",
+        "The sender hasn't already spent that money in an earlier transaction",
+        "The recipient has signed to accept the transaction",
+        "The signature verifies under the recipient's public key",
+        "A bank has confirmed the sender's balance"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The three steps are: (1) check the signature with the sender's PK, (2) check that the sender received money in a previous transaction, and (3) check that the sender hasn't already spent it, so they have enough left. Recipients aren't validated, and there is no bank."
+    },
+    {
+      "type": "mc",
+      "category": "Balances and the Ledger",
+      "topic": "Validating transactions",
+      "q": "TX_1: Bob sends Alice 5 (from his initial budget). TX_2: Alice sends Eve 5, citing TX_1. Later, Alice broadcasts TX_3: Alice sends Mallory 5, also citing TX_1. Which validation check does TX_3 fail?",
+      "choices": [
+        "The signature check, because Alice's signature can't be verified",
+        "The check that the sender was the receiver in an earlier transaction",
+        "The check that the money hasn't already been spent in an earlier transaction",
+        "None; TX_3 is valid because TX_1 really did pay Alice"
+      ],
+      "answer": 2,
+      "explain": "Alice really was the receiver in TX_1, and she can sign validly. But scanning the history shows that the money from TX_1 was already used in TX_2, so TX_3 is trying to spend it a second time."
+    },
+    {
+      "type": "mc",
+      "category": "Balances and the Ledger",
+      "topic": "Validating transactions",
+      "q": "Why does each transaction record which earlier transaction its money came from (for example, TX_2 says its money came from TX_1)?",
+      "choices": [
+        "So the recipient can decide whether to accept the money",
+        "So verifiers can confirm the sender received those funds and hasn't already spent them",
+        "So the transaction can be encrypted under the earlier transaction's key",
+        "So miners know which user to charge a fee"
+      ],
+      "answer": 1,
+      "explain": "Pointing to the source lets anyone check that the sender received the money and that it hasn't been spent elsewhere. This is also why blocks have to be kept in order of creation."
+    },
+    {
+      "type": "tf",
+      "category": "Balances and the Ledger",
+      "topic": "Ledger",
+      "q": "Assuming a trusted append-only ledger that everyone can read, users can't spend more than their balance, because anyone can compute every balance from the ledger and reject overspending.",
+      "answer": true,
+      "explain": "Since the full transaction history is public and can't be changed, any overspending attempt can be detected and rejected."
+    },
+    {
+      "type": "mc",
+      "category": "Hash Chains",
+      "topic": "Structure",
+      "q": "In a hash chain holding messages m_1 ... m_5, what does Block 3 contain?",
+      "choices": [
+        "m_3 only",
+        "m_3 and H(Block 2)",
+        "m_3 and H(Block 4)",
+        "H(m_1), H(m_2) and m_3"
+      ],
+      "answer": 1,
+      "explain": "Each block after the first holds its message plus the hash of the previous block. Block 1 holds only m_1."
+    },
+    {
+      "type": "mc",
+      "category": "Hash Chains",
+      "topic": "Structure",
+      "q": "Fully expanded, what is Block 4 of a hash chain?",
+      "choices": [
+        "m_4, H(m_3)",
+        "m_4, H(m_1, m_2, m_3)",
+        "m_4, H(m_3, H(m_2, H(m_1)))",
+        "H(m_4, m_3, m_2, m_1)"
+      ],
+      "answer": 2,
+      "explain": "Block 4 = m_4, H(Block 3) = m_4, H(m_3, H(Block 2)) = m_4, H(m_3, H(m_2, H(Block 1))) = m_4, H(m_3, H(m_2, H(m_1)))."
+    },
+    {
+      "type": "multi",
+      "category": "Hash Chains",
+      "topic": "Structure",
+      "q": "In a five-block hash chain, which messages does H(Block 3) commit to (act as a digest of)?",
+      "choices": ["m_1", "m_2", "m_3", "m_4", "m_5"],
+      "answer": [0, 1, 2],
+      "fixed": true,
+      "explain": "Block 3 contains m_3 and H(Block 2), which in turn covers m_2 and H(Block 1) = H(m_1). So H(Block 3) is a digest of m_1, m_2 and m_3. Later blocks aren't included."
+    },
+    {
+      "type": "tf",
+      "category": "Hash Chains",
+      "topic": "Verification",
+      "q": "To verify a hash chain of blocks 1 through i downloaded from an untrusted server, Alice needs a trusted copy of the hash of every block.",
+      "answer": false,
+      "explain": "She only needs H(Block i), the hash of the latest block, from a trusted source. She recomputes each block's hash, checks it against the hash stored in the next block, and finally compares H(Block i) with the trusted value."
+    },
+    {
+      "type": "mc",
+      "category": "Hash Chains",
+      "topic": "Verification",
+      "q": "Alice gets H(Block 4) from a trusted source and downloads blocks 1-4 from a compromised server. The attacker replaces Block 2 with Block 2' and updates every later block so the stored hashes match. Why does Alice still catch the attack?",
+      "choices": [
+        "Block 2' has an invalid digital signature",
+        "The change carries forward: Block 3' holds H(Block 2'), Block 4' holds H(Block 3'), so H(Block 4') doesn't equal the trusted H(Block 4)",
+        "The attacker can't change Block 3, so H(Block 2') is left unreferenced",
+        "Alice compares Block 2' with a trusted copy of Block 2"
+      ],
+      "answer": 1,
+      "explain": "Because of collision resistance, H(Block 2') != H(Block 2). Block 3 must then change to hold the new hash, so H(Block 3') != H(Block 3), and so on up to H(Block 4') != H(Block 4). The mismatch with the trusted hash reveals the tampering."
+    },
+    {
+      "type": "mc",
+      "category": "Hash Chains",
+      "topic": "Verification",
+      "q": "An attacker modifies Block 2 into Block 2' but leaves Block 3 unchanged, so Block 3 still holds the original H(Block 2). How does Alice detect this while checking the chain?",
+      "choices": [
+        "The recomputed H(Block 2') doesn't match the hash stored in Block 3",
+        "Block 3's message no longer decrypts correctly",
+        "H(Block 1) stored in Block 2' is now wrong",
+        "She can't detect it, because Block 3 is unchanged"
+      ],
+      "answer": 0,
+      "explain": "Alice recomputes each block's hash and checks it against the hash stored in the next block. Since H(Block 2') != H(Block 2), the check against Block 3 fails right away."
+    },
+    {
+      "type": "mc",
+      "category": "Hash Chains",
+      "topic": "Verification",
+      "q": "Which property of the hash function guarantees that a tampered block can't have the same hash as the original?",
+      "choices": [
+        "Fixed output length",
+        "Collision resistance",
+        "Fast computation",
+        "Being keyed with a secret"
+      ],
+      "answer": 1,
+      "explain": "Collision resistance makes it infeasible to find a different block with the same hash, so any change to a block changes its hash."
+    },
+    {
+      "type": "tf",
+      "category": "Hash Chains",
+      "topic": "Verification",
+      "q": "If you get the hash of the latest block from a trusted source, you can verify that all earlier history in the hash chain is correct.",
+      "answer": true,
+      "explain": "This is the key property of a hash chain. The latest block's hash commits, through the chain of hashes, to every earlier block."
+    },
+    {
+      "type": "tf",
+      "category": "Consensus and Proof of Work",
+      "topic": "Decentralization",
+      "q": "In Bitcoin, every participant stores the entire blockchain.",
+      "answer": true,
+      "explain": "There is no centralized server, so every participant keeps the full blockchain and its history. New transactions are broadcast to everyone for checking."
+    },
+    {
+      "type": "mc",
+      "category": "Consensus and Proof of Work",
+      "topic": "Forks",
+      "q": "What is a fork in a blockchain?",
+      "choices": [
+        "A transaction that sends money to two recipients",
+        "Different versions of the blockchain that exist at the same time",
+        "A block that contains two proofs of work",
+        "A copy of the blockchain stored by a single miner"
+      ],
+      "answer": 1,
+      "explain": "A fork is when different versions of the blockchain exist at the same time, for example after someone builds a new chain starting from an earlier point."
+    },
+    {
+      "type": "mc",
+      "category": "Consensus and Proof of Work",
+      "topic": "Forks",
+      "q": "Mallory buys a house from Bob for 500 units, and the transaction is added to the ledger. She then builds a new chain starting just before that transaction. What is she trying to do?",
+      "choices": [
+        "Speed up confirmation of the payment",
+        "Get other users to accept a chain without the payment, so she gets her 500 units back",
+        "Make Bob's identity invalid",
+        "Recover Bob's secret key from the old block"
+      ],
+      "answer": 1,
+      "explain": "By 'going back in time' and forking from before the payment, Mallory hopes others will accept a history where she never paid. That would get her 500 units back. Consensus is needed to stop this."
+    },
+    {
+      "type": "mc",
+      "category": "Consensus and Proof of Work",
+      "topic": "Miners",
+      "q": "Who is allowed to append a new block to the Bitcoin blockchain?",
+      "choices": [
+        "Any user who stores the blockchain",
+        "Only the sender of the transactions in the block",
+        "Miners who have a valid proof of work",
+        "Users chosen by majority vote"
+      ],
+      "answer": 2,
+      "explain": "Every user stores the chain, but only miners can add blocks, and only with a valid proof of work. A miner validates transactions, then tries to solve the proof of work before other miners."
+    },
+    {
+      "type": "mc",
+      "category": "Consensus and Proof of Work",
+      "topic": "Proof of work",
+      "q": "When is a Bitcoin proof of work considered solved?",
+      "choices": [
+        "When the hash of the block concatenated with a random number starts with N zero bits",
+        "When the block's hash equals the previous block's hash",
+        "When a majority of users sign the block",
+        "When the random number reaches N"
+      ],
+      "answer": 0,
+      "explain": "The puzzle hashes the current block concatenated with a random number. The proof of work is solved when the resulting hash starts with N zero bits, where N (for example 33) is set by the Bitcoin algorithm."
+    },
+    {
+      "type": "mc",
+      "category": "Consensus and Proof of Work",
+      "topic": "Proof of work",
+      "q": "While mining, what does a miner change in order to search for a valid proof of work?",
+      "choices": [
+        "The transactions' signatures",
+        "The hash of the previous block",
+        "The random number concatenated with the block, which is incremented to change the hash",
+        "The value of N"
+      ],
+      "answer": 2,
+      "explain": "The miner keeps incrementing the random number. Each new value gives a different hash, and the miner continues until the hash starts with N zero bits."
+    },
+    {
+      "type": "mc",
+      "category": "Consensus and Proof of Work",
+      "topic": "Longest chain rule",
+      "q": "Honest miners hear about several competing chains. Which one do they accept?",
+      "choices": [
+        "The longest correct chain",
+        "The chain they heard about first",
+        "The chain whose latest block has the most zero bits",
+        "The chain with the most transactions in its newest block"
+      ],
+      "answer": 0,
+      "explain": "The key idea for consensus is that everyone always prefers the longest correct chain. Other versions are discarded."
+    },
+    {
+      "type": "tf",
+      "category": "Consensus and Proof of Work",
+      "topic": "Longest chain rule",
+      "q": "If a miner broadcasts a chain that is longer than everyone else's but contains a block with an incorrect transaction, honest miners adopt it because the longest chain always wins.",
+      "answer": false,
+      "explain": "Honest miners accept the longest correct chain. A block with an incorrect transaction is ignored."
+    },
+    {
+      "type": "mc",
+      "category": "Consensus and Proof of Work",
+      "topic": "Longest chain rule",
+      "q": "Honest miner M1 holds b1->b2->b3->b4 and is mining b5. It then hears a valid broadcast b1->b2->b3->b4'->b5'. What does M1 do?",
+      "choices": [
+        "Keep its own chain because it accepted b4 first",
+        "Merge b4 and b4' into one block",
+        "Discard its shorter chain, adopt b1->b2->b3->b4'->b5', and mine on top of b5'",
+        "Ignore both chains and wait for a majority vote"
+      ],
+      "answer": 2,
+      "explain": "The longer correct chain wins, so M1 drops b1->b2->b3->b4 in favor of b1->b2->b3->b4'->b5'. Always accepting the longest chain keeps all miners' views the same."
+    },
+    {
+      "type": "mc",
+      "category": "Consensus and Proof of Work",
+      "topic": "Longest chain rule",
+      "q": "Two miners solve a proof of work at the same time and append different blocks, forking the network. How is the fork resolved?",
+      "choices": [
+        "The block with the smaller hash value wins",
+        "The next miner to append onto one of the chains makes it longer, which invalidates the other",
+        "Both chains are kept permanently and merged later",
+        "The two miners must split the block between them"
+      ],
+      "answer": 1,
+      "explain": "When the next block is appended to one branch, that branch becomes the longest, and the other version is discarded."
+    },
+    {
+      "type": "mc",
+      "category": "Consensus and Proof of Work",
+      "topic": "Security assumption",
+      "q": "What assumption does Bitcoin's consensus rely on?",
+      "choices": [
+        "No user ever behaves maliciously",
+        "Miners are vetted by a central authority",
+        "More than half of the computing power belongs to honest miners",
+        "Every user has the same amount of computing power"
+      ],
+      "answer": 2,
+      "explain": "Bitcoin assumes most users are honest, meaning that more than half of the computing power belongs to honest miners. That gives the honest miners the advantage in building the longest chain."
+    },
+    {
+      "type": "mc",
+      "category": "Consensus and Proof of Work",
+      "topic": "Security assumption",
+      "q": "With proof-of-work consensus in place, why does Mallory's attempt to fork away her 500-unit house payment fail?",
+      "choices": [
+        "Her forked blocks have invalid signatures",
+        "Without more than 50% of the world's computing power, she can't mine faster than everyone else, so her fork stays shorter and is rejected",
+        "Bob can delete her forked blocks from the ledger",
+        "The hash chain stops anyone from creating blocks after an old block"
+      ],
+      "answer": 1,
+      "explain": "Only the longest chain is accepted. Mallory's fork would only win if she could mine new blocks faster than all the other miners combined, and that requires more than 50% of the computing power."
+    },
+    {
+      "type": "multi",
+      "category": "Consensus and Proof of Work",
+      "topic": "Malicious users",
+      "q": "Which of these are ways the text says malicious users in the network might misbehave?",
+      "choices": [
+        "Not appending certain transactions",
+        "Not checking certain transactions correctly",
+        "Replaying certain transactions",
+        "Allowing invalid transactions"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "All four are listed: refusing to append transactions, checking them incorrectly, replaying them, and allowing invalid ones. Bitcoin copes with these by assuming most users are honest."
+    }
+  ]
+}

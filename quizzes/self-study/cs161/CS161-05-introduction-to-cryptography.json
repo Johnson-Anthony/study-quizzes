@@ -1,0 +1,603 @@
+{
+  "title": "CS161 05 - Introduction to Cryptography",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Foundations and history",
+      "q": "In a nutshell, what is cryptography about?",
+      "choices": [
+        "Communicating securely over insecure communication channels",
+        "Building physically untappable communication lines",
+        "Hiding the existence of a computer system from attackers",
+        "Compressing data so it can be transmitted faster"
+      ],
+      "answer": 0,
+      "explain": "Cryptography is the set of techniques for securing information and communication when an attacker is present. It is about communicating securely over insecure channels, which means preventing adversaries from reading or altering private data."
+    },
+    {
+      "type": "mc",
+      "category": "Foundations and history",
+      "q": "What does the word \"cryptography\" literally mean, based on its roots?",
+      "choices": [
+        "Secret writing",
+        "Hidden numbers",
+        "Locked messages",
+        "Scrambled speech"
+      ],
+      "answer": 0,
+      "explain": "\"Crypt\" means secret and \"graphia\" means writing, so cryptography is literally the study of how to write secret messages."
+    },
+    {
+      "type": "text",
+      "category": "Foundations and history",
+      "q": "Using a Caesar cipher with a shift of 3 (each letter moves forward 3 places in the alphabet), what is the encryption of \"bob\"?",
+      "answer": ["ere", "ERE"],
+      "explain": "b moves to e, o moves to r, and b moves to e, which gives \"ere\". In the same way, \"cryptography\" encrypts to \"fubswrjudskb\"."
+    },
+    {
+      "type": "text",
+      "category": "Foundations and history",
+      "q": "A message was encrypted with a Caesar cipher using a shift of 3. The ciphertext is \"fdw\". What is the plaintext?",
+      "answer": ["cat", "CAT"],
+      "explain": "To decrypt, shift each letter back by 3: f goes to c, d goes to a, and w goes to t, which gives \"cat\"."
+    },
+    {
+      "type": "num",
+      "category": "Foundations and history",
+      "q": "An attacker breaks a Caesar cipher on the 26-letter alphabet by trying every possible shift. How many shifts are there to try?",
+      "answer": 26,
+      "explain": "The Caesar cipher has only 26 possible shifts. An attacker can try all of them and recover the original message, which is why the cipher is obviously insecure."
+    },
+    {
+      "type": "mc",
+      "category": "Foundations and history",
+      "q": "Why were codes from the \"pen and ink\" era (for example, the telegraph period of the 1800s) relatively simple?",
+      "choices": [
+        "Messages had to be decoded by hand",
+        "Telegraph lines could not be tapped, so strong codes were unnecessary",
+        "Governments banned complex codes",
+        "Mechanical encryption devices had not yet been made reliable enough to standardize"
+      ],
+      "answer": 0,
+      "explain": "Codes from that period had to be decoded by hand, so they stayed simple. By modern standards they were also not very secure."
+    },
+    {
+      "type": "multi",
+      "category": "Foundations and history",
+      "q": "Which factors helped the Allies break the German Enigma code during World War II?",
+      "choices": [
+        "Obtaining a replica of a working Enigma machine from Poland",
+        "Drawing on a great deal of mathematical brainpower, including Polish mathematicians and Alan Turing",
+        "The sheer scale of the effort, with over 10,000 people at its peak and electromechanical systems that searched many keys in parallel",
+        "A mathematical proof by Claude Shannon that the Enigma's design was fundamentally broken",
+        "German operators publicly announcing their daily keys"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Three factors mattered: a working replica obtained from Poland (which had cracked a simpler version), large amounts of brainpower (Polish mathematicians, then the British team that included Alan Turing), and an unprecedented scale of effort, including electromechanical machines that searched keys in parallel."
+    },
+    {
+      "type": "mc",
+      "category": "Foundations and history",
+      "q": "Whose work after World War II gave modern cryptography its early roots, including the analysis of the one-time pad?",
+      "choices": [
+        "Claude Shannon",
+        "Alan Turing",
+        "Julius Caesar",
+        "Auguste Kerckhoff"
+      ],
+      "answer": 0,
+      "explain": "Modern cryptography relies on mathematics and electronic computers. Its early roots are in Claude Shannon's post-war work, and the analysis of the one-time pad is due to Shannon."
+    },
+    {
+      "type": "mc",
+      "category": "Foundations and history",
+      "q": "What was DES, and what need did it answer?",
+      "choices": [
+        "A standardized cryptosystem from NIST that met the growing need for digital encryption standards in banking and other businesses",
+        "A mechanical cipher machine used in World War II",
+        "A public-key signature scheme for military communications",
+        "A key exchange protocol for agreeing on secrets over the telegraph"
+      ],
+      "answer": 0,
+      "explain": "DES was a standardized cryptosystem that the National Institute for Standards in Technology (NIST) introduced in the 1970s. It answered the growing need for digital encryption standards in banking and other businesses."
+    },
+    {
+      "type": "mc",
+      "category": "Cast of characters and keys",
+      "q": "In the standard cast of cryptography, how does Mallory differ from Eve?",
+      "choices": [
+        "Mallory is an active adversary who can tamper with communications as well as eavesdrop, while Eve only eavesdrops",
+        "Mallory only eavesdrops, while Eve can modify messages",
+        "Mallory is a trusted third party who distributes keys",
+        "Mallory and Eve are the same; the names are interchangeable"
+      ],
+      "answer": 0,
+      "explain": "Eve is a passive eavesdropper on the insecure channel. Mallory is an active adversary who can tamper with communications in addition to eavesdropping on them."
+    },
+    {
+      "type": "mc",
+      "category": "Cast of characters and keys",
+      "q": "An adversary intercepts Alice's message to Bob, changes the payment amount, and forwards it. Which character models this adversary?",
+      "choices": ["Mallory", "Eve", "Bob", "Alice"],
+      "answer": 0,
+      "explain": "Changing a message in transit is active tampering, which is Mallory's role. Eve only listens."
+    },
+    {
+      "type": "mc",
+      "category": "Cast of characters and keys",
+      "q": "What is the overall goal when designing a scheme for Alice and Bob?",
+      "choices": [
+        "Simulate an ideal communication channel using only the available insecure channel",
+        "Replace the insecure channel with a dedicated physical line",
+        "Make it impossible for Eve to see that any communication is happening",
+        "Make messages shorter so there is less for Eve to intercept"
+      ],
+      "answer": 0,
+      "explain": "The goal is to scramble messages so that Eve learns nothing about their contents and Mallory cannot tamper without being detected. In effect, this simulates the ideal channel over the insecure one."
+    },
+    {
+      "type": "tf",
+      "category": "Cast of characters and keys",
+      "q": "The key is the most basic building block of any cryptosystem. It is a secret value used to lock or unlock secret values.",
+      "answer": true,
+      "explain": "Many cryptographic algorithms and functions take a key as input to lock or unlock some secret value. The key is the fundamental secret that secures messages."
+    },
+    {
+      "type": "tf",
+      "category": "Cast of characters and keys",
+      "q": "In the symmetric-key model, each person has their own secret key and a corresponding public key.",
+      "answer": false,
+      "explain": "That describes the asymmetric-key model. In the symmetric-key model, Alice and Bob both know the same shared secret key and use it to secure their communications."
+    },
+    {
+      "type": "mc",
+      "category": "Cast of characters and keys",
+      "q": "RSA encryption is an example of which key model?",
+      "choices": ["Asymmetric-key", "Symmetric-key", "Keyless", "Hash-based"],
+      "answer": 0,
+      "explain": "RSA encryption is an asymmetric-key scheme. Each party has a secret (private) key and a corresponding public key."
+    },
+    {
+      "type": "mc",
+      "category": "Security properties",
+      "q": "Which security property prevents adversaries from reading private data?",
+      "choices": ["Confidentiality", "Integrity", "Authenticity", "Deniability"],
+      "answer": 0,
+      "explain": "If a message is confidential, the attacker does not know its contents. Integrity is about tampering, and authenticity is about who wrote the message."
+    },
+    {
+      "type": "mc",
+      "category": "Security properties",
+      "q": "Which security property means an attacker cannot change a message's contents without being detected?",
+      "choices": ["Integrity", "Confidentiality", "Authenticity", "Deniability"],
+      "answer": 0,
+      "explain": "Integrity prevents adversaries from tampering with data undetected. It does not hide the contents, which is the job of confidentiality."
+    },
+    {
+      "type": "mc",
+      "category": "Security properties",
+      "q": "Which security property lets you determine who created a given message?",
+      "choices": ["Authenticity", "Confidentiality", "Integrity", "Deniability"],
+      "answer": 0,
+      "explain": "Authenticity means you can be sure the message was written by the person who claims to have written it."
+    },
+    {
+      "type": "tf",
+      "category": "Security properties",
+      "q": "Before you can prove authenticity, you first have to be able to prove integrity.",
+      "answer": true,
+      "explain": "To show that a message came from a particular person, you first have to show that the message was not changed. Even so, integrity and authenticity are closely related but not identical properties."
+    },
+    {
+      "type": "tf",
+      "category": "Security properties",
+      "q": "Integrity and authenticity are identical properties, so a scheme that provides one always provides the other in every case.",
+      "answer": false,
+      "explain": "They are closely related, and authenticity requires integrity, but they are not identical. There are edge cases where they differ."
+    },
+    {
+      "type": "mc",
+      "category": "Security properties",
+      "q": "Alice puts a message in a locked box, sends it over an insecure channel, and Bob opens it with his key. Eve sees the box but cannot open it. Which property does this analogy illustrate?",
+      "choices": ["Confidentiality", "Integrity", "Authenticity", "Deniability"],
+      "answer": 0,
+      "explain": "The lockbox is the analogy for confidentiality. Eve can see that something was sent but cannot access what is inside without the key."
+    },
+    {
+      "type": "mc",
+      "category": "Security properties",
+      "q": "Alice puts a special tape seal on an envelope. If Mallory tampers with the message, the seal breaks, and Mallory cannot make a new seal without the key. Which properties does this analogy illustrate?",
+      "choices": [
+        "Integrity and authenticity",
+        "Confidentiality only",
+        "Confidentiality and deniability",
+        "Deniability only"
+      ],
+      "answer": 0,
+      "explain": "The seal is the analogy for integrity and authenticity. It does not hide the message. It lets Bob detect tampering and confirm the message came from someone who holds the key."
+    },
+    {
+      "type": "text",
+      "category": "Security properties",
+      "q": "An unencrypted message is called plaintext. What is the encrypted form called?",
+      "answer": ["ciphertext", "cipher text", "cyphertext"],
+      "explain": "Encryption turns plaintext into ciphertext, a scrambled form the attacker cannot read. Decryption turns ciphertext back into plaintext."
+    },
+    {
+      "type": "mc",
+      "category": "Security properties",
+      "q": "Alice sends Bob a message along with a tag. Mallory modifies the message in transit but cannot produce a new valid tag. What should happen when Bob checks the message?",
+      "choices": [
+        "The tag will no longer be valid for the modified message, so Bob's verification fails and he detects the alteration",
+        "Bob will be unable to read the message because it is still encrypted",
+        "The tag will automatically repair the message back to the original",
+        "Bob will accept the message, because tags only provide confidentiality"
+      ],
+      "answer": 0,
+      "explain": "Integrity and authenticity schemes have Alice generate a tag or signature, and Bob verifies it against the message he received. A modified message no longer matches the tag, and the attacker should not be able to generate valid tags for malicious messages."
+    },
+    {
+      "type": "mc",
+      "category": "Security properties",
+      "q": "Alice and Bob use the same shared key to generate signatures. Alice shows a judge a message with a valid signature and claims Bob wrote it. Why can't the judge be sure?",
+      "choices": [
+        "Alice also has the key, so she could have created the signature herself. The system has deniability",
+        "The signature only provides confidentiality, not authenticity",
+        "Shared-key signatures can be forged by anyone without the key",
+        "The judge does not have Bob's public key"
+      ],
+      "answer": 0,
+      "explain": "Deniability means there is no cryptographic proof that a published message came from Bob. When both parties share the signing key, a valid signature could plausibly have been made by Alice."
+    },
+    {
+      "type": "mc",
+      "category": "Overview of schemes",
+      "q": "Which kind of primitive provides confidentiality in the symmetric-key setting?",
+      "choices": [
+        "Block ciphers with chaining modes (e.g., AES-CBC)",
+        "MACs (e.g., AES-CBC-MAC)",
+        "Digital signatures (e.g., RSA signatures)",
+        "Public-key encryption (e.g., El Gamal)"
+      ],
+      "answer": 0,
+      "explain": "Symmetric confidentiality uses block ciphers with chaining modes such as AES-CBC. MACs give symmetric integrity and authentication. Public-key encryption and digital signatures are the asymmetric counterparts."
+    },
+    {
+      "type": "mc",
+      "category": "Overview of schemes",
+      "q": "Which kind of primitive provides integrity and authentication in the asymmetric-key setting?",
+      "choices": [
+        "Digital signatures (e.g., RSA signatures)",
+        "MACs (e.g., AES-CBC-MAC)",
+        "Block ciphers with chaining modes (e.g., AES-CBC)",
+        "Public-key encryption (e.g., RSA encryption)"
+      ],
+      "answer": 0,
+      "explain": "Digital signatures, also called public-key signatures, provide asymmetric integrity and authentication. MACs are the symmetric-key equivalent."
+    },
+    {
+      "type": "mc",
+      "category": "Overview of schemes",
+      "q": "In public-key encryption, Alice wants to send Bob a confidential message. Which keys are used?",
+      "choices": [
+        "Alice encrypts with Bob's public key, and Bob decrypts with his private key",
+        "Alice encrypts with her private key, and Bob decrypts with Alice's public key",
+        "Alice encrypts with Bob's private key, and Bob decrypts with his public key",
+        "Both use the same shared secret key"
+      ],
+      "answer": 0,
+      "explain": "Bob generates a key pair, shares only the public key, and keeps the private key to himself. Anyone can encrypt to Bob with his public key, but only Bob can decrypt."
+    },
+    {
+      "type": "mc",
+      "category": "Overview of schemes",
+      "q": "With digital signatures, how does Bob confirm that a message really came from Alice and was not modified?",
+      "choices": [
+        "Alice signs with her private key, and Bob verifies with Alice's public key",
+        "Alice signs with Bob's public key, and Bob verifies with his private key",
+        "Alice and Bob both sign and verify with a shared secret key",
+        "Alice signs with her public key, and Bob verifies with Alice's private key"
+      ],
+      "answer": 0,
+      "explain": "Alice keeps her private key secret and uses it to compute the signature. Bob uses Alice's public key to verify both integrity (no tampering) and authenticity (it came from Alice)."
+    },
+    {
+      "type": "mc",
+      "category": "Overview of schemes",
+      "q": "How are keys used with a message authentication code (MAC)?",
+      "choices": [
+        "Alice generates the MAC with a shared secret key, and Bob verifies it with the same secret key",
+        "Alice generates the MAC with her private key, and Bob verifies it with her public key",
+        "No key is needed; anyone can generate and verify MACs",
+        "Alice uses Bob's public key, and Bob uses his private key"
+      ],
+      "answer": 0,
+      "explain": "MACs are symmetric-key. The same shared secret key generates and verifies the MAC. A valid MAC tells Bob the message was not modified and came from Alice."
+    },
+    {
+      "type": "multi",
+      "category": "Overview of schemes",
+      "q": "Which of these primitives provide integrity and authenticity?",
+      "choices": [
+        "MACs",
+        "Digital signatures",
+        "AES-CBC encryption",
+        "El Gamal encryption",
+        "Pseudorandom number generators"
+      ],
+      "answer": [0, 1],
+      "explain": "MACs (symmetric) and digital signatures (asymmetric) provide integrity and authenticity. AES-CBC and El Gamal are encryption schemes for confidentiality. PRNGs do not provide these properties by themselves."
+    },
+    {
+      "type": "mc",
+      "category": "Overview of schemes",
+      "q": "Which description best fits a cryptographic hash?",
+      "choices": [
+        "A one-way digest that condenses a long message into a short, random-looking value; it cannot be reversed, but it is quick to check that a message has a given hash",
+        "A reversible encoding that lets anyone recover the original message from the digest",
+        "A protocol for agreeing on a shared key over an insecure channel",
+        "A process that stretches a small amount of true randomness into a long random-looking sequence"
+      ],
+      "answer": 0,
+      "explain": "Cryptographic hashes are irreversible one-way digests. You cannot go from the hash back to the message, but you can quickly verify a message against a hash."
+    },
+    {
+      "type": "mc",
+      "category": "Overview of schemes",
+      "q": "What does a pseudorandom number generator (PRNG) do?",
+      "choices": [
+        "Takes a small amount of true randomness and stretches it into a long sequence that should be indistinguishable from actual random data",
+        "Produces true randomness from nothing, with no input",
+        "Encrypts messages so that they look random",
+        "Condenses a long message into a short digest"
+      ],
+      "answer": 0,
+      "explain": "Many cryptographic systems need a lot of random bits. A PRNG expands a small seed of true randomness into a long sequence that looks random."
+    },
+    {
+      "type": "mc",
+      "category": "Overview of schemes",
+      "q": "What does a key exchange scheme such as Diffie-Hellman let Alice and Bob do?",
+      "choices": [
+        "Agree on a shared random secret key over an insecure channel, which they then use for symmetric-key encryption",
+        "Sign messages so that a judge can verify who wrote them",
+        "Send the key in plaintext safely, because Eve cannot read keys",
+        "Create a hash of a message that cannot be reversed"
+      ],
+      "answer": 0,
+      "explain": "Key exchange lets two parties use an insecure channel to agree on a shared secret key, which they then use for symmetric-key encryption."
+    },
+    {
+      "type": "tf",
+      "category": "Overview of schemes",
+      "q": "Cryptographic hashes, PRNGs, and key exchange each guarantee confidentiality, integrity, or authenticity by themselves.",
+      "answer": false,
+      "explain": "These primitives do not guarantee those properties on their own. Their useful properties help in building secure cryptosystems, and they also have uses unrelated to cryptography."
+    },
+    {
+      "type": "mc",
+      "category": "Kerckhoff's principle",
+      "q": "What does Kerckhoff's principle state?",
+      "choices": [
+        "A cryptosystem should remain secure even when the attacker knows all of its internal details; only the key must be kept secret",
+        "A cryptosystem is secure only if its algorithm is kept secret from attackers",
+        "Keys should never be changed once they are deployed",
+        "Every cryptosystem must use both symmetric and asymmetric keys"
+      ],
+      "answer": 0,
+      "explain": "The key should be the only secret, and the system should make it easy to change keys that are leaked or suspected to be leaked."
+    },
+    {
+      "type": "mc",
+      "category": "Kerckhoff's principle",
+      "q": "Why is it better for the key to be the only secret, rather than the design of the system?",
+      "choices": [
+        "If secrets leak, changing a key is usually much easier than replacing every instance of the running software",
+        "Keys are always longer than algorithms, so they are harder to guess",
+        "Algorithms cannot be leaked, but keys can",
+        "Attackers are legally forbidden from studying published algorithms"
+      ],
+      "answer": 0,
+      "explain": "A leaked key can simply be replaced. A leaked secret design would require replacing the system everywhere it runs."
+    },
+    {
+      "type": "text",
+      "category": "Kerckhoff's principle",
+      "q": "Kerckhoff's principle is closely related to Shannon's Maxim: \"Don't rely on security through ____.\" Fill in the blank.",
+      "answer": ["obscurity", "Obscurity"],
+      "explain": "Shannon's Maxim says not to rely on security through obscurity, meaning you should not depend on attackers being unaware of how the system works."
+    },
+    {
+      "type": "tf",
+      "category": "Kerckhoff's principle",
+      "q": "Under Kerckhoff's principle, we assume the attacker knows the encryption and decryption algorithms, and the only thing they are missing is the secret key(s).",
+      "answer": true,
+      "explain": "When analyzing attackers like Eve and Mallory, we assume they know the algorithms. Only the keys are secret."
+    },
+    {
+      "type": "mc",
+      "category": "Kerckhoff's principle",
+      "q": "How does the story of the Enigma justify assuming that the attacker knows the algorithm?",
+      "choices": [
+        "The Enigma was so widely used that the Allies were bound to get a machine eventually, and they did",
+        "The Germans published the Enigma's design in a public standard",
+        "The Enigma used no key, so the algorithm was the only secret",
+        "Alan Turing designed the Enigma, so the British already knew it"
+      ],
+      "answer": 0,
+      "explain": "A widely deployed system will sooner or later fall into enemy hands. The Allies did get hold of an Enigma machine, so security had to rest on the key, not on the design staying secret."
+    },
+    {
+      "type": "mc",
+      "category": "Kerckhoff's principle",
+      "q": "A vendor advertises that its product is secure because \"nobody outside the company knows how our encryption algorithm works.\" What is the problem with this claim?",
+      "choices": [
+        "It relies on security through obscurity and violates Kerckhoff's principle; the system should stay secure even if the algorithm becomes known",
+        "Nothing; keeping the algorithm secret is the main source of security in modern cryptography",
+        "The algorithm should be secret, but the key should be published",
+        "The claim is only a problem for asymmetric-key systems"
+      ],
+      "answer": 0,
+      "explain": "Security should depend only on keeping the key secret. A secret design will eventually leak, and it cannot be easily replaced the way a key can."
+    },
+    {
+      "type": "mc",
+      "category": "Threat models",
+      "q": "Eve has intercepted a single encrypted message and wants to recover the plaintext. She has no other information. What kind of attack is this?",
+      "choices": [
+        "Ciphertext-only attack",
+        "Known plaintext attack",
+        "Chosen-plaintext attack",
+        "Replay attack"
+      ],
+      "answer": 0,
+      "explain": "In a ciphertext-only attack, the attacker has only the intercepted ciphertext to work with."
+    },
+    {
+      "type": "mc",
+      "category": "Threat models",
+      "q": "Eve has intercepted an encrypted message and also already knows part of the plaintext, which helps her work out the nature of the encryption. What kind of attack is this?",
+      "choices": [
+        "Known plaintext attack",
+        "Ciphertext-only attack",
+        "Chosen-ciphertext attack",
+        "Replay attack"
+      ],
+      "answer": 0,
+      "explain": "In a known plaintext attack, Eve has partial (or sometimes complete) knowledge of the plaintext corresponding to a ciphertext."
+    },
+    {
+      "type": "mc",
+      "category": "Threat models",
+      "q": "Eve captures the encrypted message \"pay Eve $100\" sent to Bob's automatic payment system and re-sends it many times so that she gets paid repeatedly. What kind of attack is this?",
+      "choices": [
+        "Replay attack",
+        "Chosen-plaintext attack",
+        "Known plaintext attack",
+        "Chosen-ciphertext attack"
+      ],
+      "answer": 0,
+      "explain": "In a replay attack, the attacker captures an encrypted message and sends it again. The attacker does not need to be able to decrypt it."
+    },
+    {
+      "type": "tf",
+      "category": "Threat models",
+      "q": "To carry out a replay attack, Eve must first be able to decrypt the message she is replaying.",
+      "answer": false,
+      "explain": "Eve might not know what the message decrypts to, but she can still re-send the captured ciphertext to cause its effect again."
+    },
+    {
+      "type": "mc",
+      "category": "Threat models",
+      "q": "Eve can trick Alice into encrypting messages of Eve's choice and see the resulting ciphertexts. Later, she tries to recover an unknown message that Alice encrypts. What kind of attack is this?",
+      "choices": [
+        "Chosen-plaintext attack",
+        "Chosen-ciphertext attack",
+        "Known plaintext attack",
+        "Ciphertext-only attack"
+      ],
+      "answer": 0,
+      "explain": "In a chosen-plaintext attack, the attacker chooses plaintexts and sees their encryptions. This can happen if Eve has access to the encryption system or can trigger events that make Alice send predictable messages."
+    },
+    {
+      "type": "mc",
+      "category": "Threat models",
+      "q": "Eve can trick Bob into decrypting ciphertexts of her choice and wants to learn the decryption of a different ciphertext. What kind of attack is this?",
+      "choices": [
+        "Chosen-ciphertext attack",
+        "Chosen-plaintext attack",
+        "Replay attack",
+        "Known plaintext attack"
+      ],
+      "answer": 0,
+      "explain": "In a chosen-ciphertext attack, the attacker gets decryptions of chosen ciphertexts and uses them to learn the decryption of some other ciphertext."
+    },
+    {
+      "type": "mc",
+      "category": "Threat models",
+      "q": "Which threat model is considered the most serious?",
+      "choices": [
+        "Chosen-plaintext/ciphertext attack",
+        "Ciphertext-only attack",
+        "Known plaintext attack",
+        "Replay attack"
+      ],
+      "answer": 0,
+      "explain": "The combined model, where Eve can get chosen messages encrypted by Alice and chosen ciphertexts decrypted by Bob, gives the attacker the most power."
+    },
+    {
+      "type": "mc",
+      "category": "Threat models",
+      "q": "In a chosen-plaintext/ciphertext attack, why is Eve not allowed to trick Bob into decrypting the exact ciphertext Alice sent?",
+      "choices": [
+        "It would make the attack trivial, since Bob would simply give her the answer",
+        "Bob's decryption algorithm cannot process the same ciphertext twice",
+        "Alice's ciphertext is protected by a MAC, so Bob would refuse it",
+        "That would turn the attack into a replay attack, which is a weaker model"
+      ],
+      "answer": 0,
+      "explain": "If Eve could have Bob decrypt the target ciphertext itself, she would learn the plaintext directly. The restriction keeps the model meaningful."
+    },
+    {
+      "type": "mc",
+      "category": "Threat models",
+      "q": "Why do we usually insist today that encryption be secure against chosen-plaintext/ciphertext attacks?",
+      "choices": [
+        "These attacks are practical in some settings, and it is feasible to provide good security even against such a powerful attacker",
+        "Weaker attacks never happen in practice",
+        "It is the only threat model that can be defined mathematically",
+        "Security against this model also hides how long the messages are"
+      ],
+      "answer": 0,
+      "explain": "Two reasons: real attackers can sometimes mount these attacks, and strong security against this powerful model is achievable."
+    },
+    {
+      "type": "multi",
+      "category": "Cryptography in practice",
+      "q": "Which of these are real pitfalls that make real-world cryptographic implementations hard to get right?",
+      "choices": [
+        "Private information leaking through side channels",
+        "Random number generators going wrong",
+        "Cryptographic primitives losing all security when used the wrong way",
+        "Publishing the encryption algorithm, which automatically breaks the system",
+        "Using an algorithm that relies on mathematics"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Real implementations have hundreds of possible pitfalls, including side-channel leaks, faulty random number generation, and misuse of primitives. Publishing the algorithm is fine under Kerckhoff's principle."
+    },
+    {
+      "type": "mc",
+      "category": "Cryptography in practice",
+      "q": "You need an encrypted connection between two computers. Which approach is recommended?",
+      "choices": [
+        "Use existing, well-vetted cryptographic tools",
+        "Implement your own cipher from the textbook algorithms",
+        "Design a new secret algorithm so attackers cannot study it",
+        "Use a Caesar cipher with a large shift"
+      ],
+      "answer": 0,
+      "explain": "Real-world cryptography needs great attention to detail. Knowing how the primitives work conceptually is enough to understand and compare tools, but you should not build your own industrial-strength implementation."
+    },
+    {
+      "type": "tf",
+      "category": "Cryptography in practice",
+      "q": "Cryptographic primitives such as hashes, HMACs, and block ciphers can be useful for non-security tasks because of their randomness properties.",
+      "answer": true,
+      "explain": "Some applications use cryptographic primitives in non-cryptographic ways, for example relying on the random-looking output of a hash or block cipher."
+    },
+    {
+      "type": "mc",
+      "category": "Cryptography in practice",
+      "q": "Besides building systems, why is a conceptual understanding of cryptography valuable?",
+      "choices": [
+        "It lets you understand how a tool is supposed to work and evaluate the differences between alternatives",
+        "It is enough to safely write production-grade cryptographic libraries",
+        "It removes the need for keys",
+        "It guarantees immunity to side-channel attacks"
+      ],
+      "answer": 0,
+      "explain": "Knowing the building blocks makes you an informed consumer. You can understand how systems are meant to work and compare the alternatives, even though you shouldn't implement the cryptography yourself."
+    }
+  ]
+}

@@ -1,0 +1,763 @@
+{
+  "title": "CS161 15 - Network Basics, ARP, DHCP and WPA",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Layers & Headers",
+      "q": "Which layer uses the physical layer as a building block to connect local machines into a LAN?",
+      "choices": ["Layer 1 (Physical)", "Layer 2 (Link)", "Layer 3 (Internetwork)", "Layer 4 (Transport)"],
+      "answer": 1,
+      "explain": "Layer 1 moves bits across space; layer 2 (link) uses it to connect local machines in a LAN; layer 3 connects many LANs."
+    },
+    {
+      "type": "mc",
+      "category": "Layers & Headers",
+      "q": "What is a router?",
+      "choices": [
+        "A machine connected to two or more LANs that forwards messages from one LAN to another",
+        "A simple repeater that rebroadcasts every packet to all of its outputs",
+        "A server that hands out IP addresses to new machines",
+        "A device that translates IP addresses into MAC addresses"
+      ],
+      "answer": 0,
+      "explain": "A router connects multiple LANs. In the postal analogy it is the post office that forwards your letter to another apartment complex."
+    },
+    {
+      "type": "num",
+      "category": "Layers & Headers",
+      "q": "In the layered Internet model, what layer number is the Transport layer?",
+      "answer": 4,
+      "explain": "1 Physical, 2 Link, 3 (Inter)Network, 4 Transport, 5 and 6 obsolete, 6.5 Secure Transport, 7 Application."
+    },
+    {
+      "type": "mc",
+      "category": "Layers & Headers",
+      "q": "Which layer was added to the model at position 6.5?",
+      "choices": ["Application", "Secure Transport", "Session", "Presentation"],
+      "answer": 1,
+      "explain": "Layers 5 and 6 are obsolete, and a Secure Transport layer (6.5) was added for security."
+    },
+    {
+      "type": "tf",
+      "category": "Layers & Headers",
+      "q": "If a network switches from wired to wireless communication at layer 1, the protocols at the higher layers must change too.",
+      "answer": false,
+      "explain": "Layering gives a clean abstraction barrier. The layer 1 implementation does not affect protocols at the other layers."
+    },
+    {
+      "type": "mc",
+      "category": "Layers & Headers",
+      "q": "In what order do the parts of a packet appear, from the start of the packet?",
+      "choices": [
+        "Link header, IP header, transport header, application data",
+        "Application data, transport header, IP header, link header",
+        "IP header, link header, transport header, application data",
+        "Transport header, IP header, link header, application data"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Each layer adds its header in front of what the layer above gave it, so the lowest layer's header ends up first."
+    },
+    {
+      "type": "tf",
+      "category": "Layers & Headers",
+      "q": "When a message arrives, it moves up the protocol stack starting at the lowest layer, and each layer removes its own header before passing the rest to the layer above.",
+      "answer": true,
+      "explain": "Unpacking is the reverse of sending. When the message reaches the highest layer, every header has been processed."
+    },
+    {
+      "type": "multi",
+      "category": "Layers & Headers",
+      "q": "What does a network protocol specify?",
+      "choices": [
+        "How communication is structured (e.g., message format)",
+        "How machines behave while communicating (e.g., actions needed to send and receive)",
+        "How errors are handled (e.g., a message timing out)",
+        "Which physical medium (wire or radio) every network must use"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A protocol is an agreement on message structure, behavior and error handling. The physical medium is a separate layer 1 choice."
+    },
+    {
+      "type": "mc",
+      "category": "Layers & Headers",
+      "q": "In the postal analogy, what does a packet header correspond to?",
+      "choices": ["The letter itself", "The envelope", "The post office", "The apartment complex"],
+      "answer": 1,
+      "explain": "A header comes before the data and holds delivery metadata such as sender, recipient and length, like an envelope."
+    },
+    {
+      "type": "num",
+      "category": "Addressing",
+      "q": "How many bits long is a MAC address?",
+      "answer": 48,
+      "explain": "MAC addresses are 48 bits (6 bytes), written as 6 hex pairs such as ca:fe:f0:0d:be:ef."
+    },
+    {
+      "type": "num",
+      "category": "Addressing",
+      "q": "How many bits long is an IPv4 address?",
+      "answer": 32,
+      "explain": "IPv4 addresses are 32 bits (4 bytes), written as 4 integers from 0 to 255, such as 128.32.131.10."
+    },
+    {
+      "type": "num",
+      "category": "Addressing",
+      "q": "How many bits long is a port number?",
+      "answer": 16,
+      "explain": "Higher layers give each process on a machine a unique 16-bit port number."
+    },
+    {
+      "type": "num",
+      "category": "Addressing",
+      "q": "How many bits long is an IPv6 address?",
+      "answer": 128,
+      "explain": "IPv6 uses 128-bit addresses, written as 8 two-byte hex values separated by colons."
+    },
+    {
+      "type": "text",
+      "category": "Addressing",
+      "q": "What is the broadcast MAC address, which means \"send this to everyone on the local network\"?",
+      "answer": ["ff:ff:ff:ff:ff:ff", "FF:FF:FF:FF:FF:FF"],
+      "explain": "ff:ff:ff:ff:ff:ff is the special broadcast MAC address."
+    },
+    {
+      "type": "mc",
+      "category": "Addressing",
+      "q": "Which kind of address is like an apartment number: unique inside one local network but useless for identifying one machine worldwide?",
+      "choices": ["MAC address", "IP address", "Port number", "SSID"],
+      "answer": 0,
+      "explain": "MAC addresses identify machines on a LAN (layer 2). IP addresses (layer 3) identify machines globally."
+    },
+    {
+      "type": "mc",
+      "category": "Addressing",
+      "q": "Why do higher layers use port numbers?",
+      "choices": [
+        "So that several processes on one machine can each communicate over the network",
+        "So that a machine can be identified globally",
+        "So that machines on the same LAN can be told apart",
+        "So that packets can be encrypted"
+      ],
+      "answer": 0,
+      "explain": "A machine has one IP address but may have many tabs and applications using the network. Ports tell those processes apart, like room numbers in a building."
+    },
+    {
+      "type": "mc",
+      "category": "Addressing",
+      "q": "Which addresses are in the layer 3 header?",
+      "choices": ["MAC addresses", "IP addresses", "Port numbers", "SSIDs"],
+      "answer": 1,
+      "explain": "The layer 2 header holds MAC addresses, the layer 3 header holds IP addresses, and higher layer headers hold port numbers."
+    },
+    {
+      "type": "tf",
+      "category": "Addressing",
+      "q": "In networking, cryptographic message authentication codes are sometimes called MICs (message integrity codes) so they are not confused with MAC addresses.",
+      "answer": true,
+      "explain": "MAC can mean a hardware address or a message authentication code. MIC is the name used for the cryptographic one in networking."
+    },
+    {
+      "type": "tf",
+      "category": "Packets & Adversaries",
+      "q": "IP (layer 3) guarantees that every packet arrives uncorrupted.",
+      "answer": false,
+      "explain": "IP only offers best-effort delivery and does not handle errors. Packets can be corrupted or lost, and higher layers provide correctness and security."
+    },
+    {
+      "type": "tf",
+      "category": "Packets & Adversaries",
+      "q": "At the physical, link and internetwork layers, the network keeps track of connections between pairs of hosts.",
+      "answer": false,
+      "explain": "These layers have no concept of a connection. Each packet is handled on its own, and higher layers build two-way connections out of packets."
+    },
+    {
+      "type": "mc",
+      "category": "Packets & Adversaries",
+      "q": "Which type of network adversary can read packets on a connection but cannot modify them?",
+      "choices": ["Off-path", "On-path", "In-path", "Man-in-the-middle"],
+      "answer": 1,
+      "explain": "Off-path: can't read or modify. On-path: can read but not modify. In-path (man-in-the-middle): can read, modify and block."
+    },
+    {
+      "type": "mc",
+      "category": "Packets & Adversaries",
+      "q": "Which list orders network adversaries from weakest to strongest?",
+      "choices": [
+        "Off-path, on-path, in-path",
+        "On-path, off-path, in-path",
+        "In-path, on-path, off-path",
+        "Off-path, in-path, on-path"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Off-path sees nothing, on-path can read, and in-path can read, modify and block."
+    },
+    {
+      "type": "mc",
+      "category": "Packets & Adversaries",
+      "q": "What is another name for an in-path adversary?",
+      "choices": ["Sniffer", "Man-in-the-middle", "Spoofer", "Off-path attacker"],
+      "answer": 1,
+      "explain": "An in-path adversary can read, modify and block packets, which makes it a man-in-the-middle."
+    },
+    {
+      "type": "multi",
+      "category": "Packets & Adversaries",
+      "q": "Which adversaries can send their own packets with spoofed headers?",
+      "choices": ["Off-path adversaries", "On-path adversaries", "In-path adversaries"],
+      "answer": [0, 1, 2],
+      "explain": "Every adversary can send packets, including spoofed ones. Often it is as simple as setting the source field to someone else's address."
+    },
+    {
+      "type": "mc",
+      "category": "ARP",
+      "q": "What does ARP (Address Resolution Protocol) do?",
+      "choices": [
+        "Translates IP addresses into MAC addresses",
+        "Translates MAC addresses into IP addresses",
+        "Translates host names into IP addresses",
+        "Assigns IP addresses to new machines"
+      ],
+      "answer": 0,
+      "explain": "ARP is a link layer (2) protocol that maps a layer 3 IP address to a layer 2 MAC address."
+    },
+    {
+      "type": "mc",
+      "category": "ARP",
+      "q": "Alice knows Bob's IP is 1.1.1.1 and needs his MAC address. What is the first step of ARP?",
+      "choices": [
+        "Alice broadcasts to the LAN: \"What is the MAC address of 1.1.1.1?\"",
+        "Alice sends a request directly to Bob's MAC address",
+        "Alice asks the DHCP server for Bob's MAC address",
+        "Alice checks with the switch's VLAN table"
+      ],
+      "answer": 0,
+      "explain": "Alice broadcasts the request. Bob replies only to Alice with his IP and MAC, and Alice caches the mapping."
+    },
+    {
+      "type": "mc",
+      "category": "ARP",
+      "q": "During ARP, who replies if the requested IP address belongs to a machine outside the LAN?",
+      "choices": [
+        "The router, with its own MAC address",
+        "The remote machine, with its own MAC address",
+        "Nobody, because ARP only works inside the LAN",
+        "The DNS server"
+      ],
+      "answer": 0,
+      "explain": "For off-LAN destinations, the router answers with its MAC so the traffic goes to the router for forwarding."
+    },
+    {
+      "type": "tf",
+      "category": "ARP",
+      "q": "A machine caches an ARP reply only if it sent a matching broadcast request first.",
+      "answer": false,
+      "explain": "Received ARP replies are always cached, even if no request was ever made."
+    },
+    {
+      "type": "mc",
+      "category": "ARP",
+      "q": "Mallory sends Alice a spoofed ARP reply that maps Bob's IP to Mallory's MAC, and it arrives before Bob's real reply. What kind of adversary is Mallory now?",
+      "choices": ["Off-path", "On-path only", "Man-in-the-middle", "None, because the attack fails"],
+      "answer": 2,
+      "explain": "Alice's traffic for Bob now goes to Mallory, who can read and modify it before forwarding it to Bob."
+    },
+    {
+      "type": "mc",
+      "category": "ARP",
+      "q": "Why is ARP spoofing called a race condition?",
+      "choices": [
+        "The on-path attacker can't block the real reply, so the forged reply has to arrive first",
+        "The attacker has to brute-force the MAC address before the cache entry expires",
+        "Two switches compete to forward the same packet",
+        "The victim's cache can hold only one entry at a time"
+      ],
+      "answer": 0,
+      "explain": "On-path attackers can't stop the legitimate response, so their own response must win the race to fool the victim."
+    },
+    {
+      "type": "mc",
+      "category": "ARP",
+      "q": "On a broadcast Ethernet network such as one built on a hub, what kind of adversary is someone on the same LAN as the victim?",
+      "choices": ["Off-path", "On-path", "In-path", "None"],
+      "answer": 1,
+      "explain": "They can see all traffic and inject spoofed packets, but they can't block or modify packets in transit, so they are on-path."
+    },
+    {
+      "type": "text",
+      "category": "ARP",
+      "q": "What is the Ethernet device mode called in which the device receives all packets, not just those addressed to it or to broadcast?",
+      "answer": ["promiscuous mode", "promiscuous"],
+      "explain": "In promiscuous mode a device sniffs every packet. Ignoring other machines' packets is enforced only in software."
+    },
+    {
+      "type": "tf",
+      "category": "ARP",
+      "q": "On broadcast Ethernet, receivers are prevented from reading packets meant for other machines by a hardware restriction.",
+      "answer": false,
+      "explain": "Receivers are only supposed to ignore those packets, and that is enforced in software. Promiscuous mode lets a device receive everything."
+    },
+    {
+      "type": "mc",
+      "category": "ARP",
+      "q": "What is a network hub?",
+      "choices": [
+        "A simple repeater that rebroadcasts every packet it receives to all outputs",
+        "A device that sends a packet only to the MAC that the cache lists for its IP",
+        "A device that splits a network into isolated virtual networks",
+        "A device connecting two or more LANs"
+      ],
+      "answer": 0,
+      "explain": "A hub broadcasts everything, so every node sees all traffic. Switches forward based on a cache."
+    },
+    {
+      "type": "multi",
+      "category": "ARP",
+      "q": "Which of these defend against ARP spoofing on a wired LAN?",
+      "choices": [
+        "Using switches instead of hubs",
+        "Running a tool like arpwatch to monitor IP-to-MAC pairings for suspicious changes",
+        "Switching the network to WPA2-Enterprise",
+        "Making all ARP replies broadcast instead of sent to one machine"
+      ],
+      "answer": [0, 1],
+      "explain": "Switches and arpwatch are the defenses. WPA2-Enterprise is still vulnerable to an authenticated user running an ARP attack."
+    },
+    {
+      "type": "mc",
+      "category": "ARP",
+      "q": "What does a switch do with a packet whose IP address has no known MAC in its cache?",
+      "choices": [
+        "Broadcasts it to everyone",
+        "Drops it",
+        "Sends it back to the sender",
+        "Forwards it to the DHCP server"
+      ],
+      "answer": 0,
+      "explain": "With a known MAC, the switch sends the packet only to that MAC. Otherwise it broadcasts. Smarter switches can filter requests so they aren't all broadcast."
+    },
+    {
+      "type": "mc",
+      "category": "ARP",
+      "q": "What do VLANs (Virtual Local Area Networks) on better switches provide?",
+      "choices": [
+        "Isolation, by splitting the network into separate virtual networks",
+        "Encryption of every link layer frame",
+        "Automatic IP address assignment",
+        "Translation of private IP addresses into public ones"
+      ],
+      "answer": 0,
+      "explain": "VLANs isolate traffic by dividing one physical network into separate virtual networks."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP & NAT",
+      "q": "What is the correct order of the DHCP handshake?",
+      "choices": [
+        "Client Discover, Server Offer, Client Request, Server Acknowledge",
+        "Server Offer, Client Discover, Client Request, Server Acknowledge",
+        "Client Request, Server Offer, Client Discover, Server Acknowledge",
+        "Client Discover, Client Request, Server Offer, Server Acknowledge"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "The client asks for a configuration, servers offer one, the client broadcasts its choice, and the chosen server confirms."
+    },
+    {
+      "type": "multi",
+      "category": "DHCP & NAT",
+      "q": "Which items does a machine get from DHCP when it joins a network?",
+      "choices": [
+        "Its own IP address",
+        "The IP address of the DNS server",
+        "The IP address of the router (gateway)",
+        "The WiFi password",
+        "The MAC addresses of every machine on the LAN"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "You need an IP so others can reach you, the DNS server's IP to resolve names, and the gateway's IP to reach the Internet."
+    },
+    {
+      "type": "text",
+      "category": "DHCP & NAT",
+      "q": "What is another name for the router's IP address that DHCP gives a client so it can reach the Internet?",
+      "answer": ["gateway", "the gateway", "default gateway"],
+      "explain": "The router is also called the gateway."
+    },
+    {
+      "type": "multi",
+      "category": "DHCP & NAT",
+      "q": "Which DHCP messages are broadcast?",
+      "choices": ["Client Discover", "Server Offer", "Client Request", "Server Acknowledge"],
+      "answer": [0, 2],
+      "fixed": true,
+      "explain": "Both client messages are broadcast."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP & NAT",
+      "q": "Why must the DHCP Client Discover message be broadcast?",
+      "choices": [
+        "Before DHCP, the client doesn't know where the servers are",
+        "So every server knows which offer was chosen",
+        "To stop attackers from forging offers",
+        "Because the client already has a gateway address"
+      ],
+      "answer": 0,
+      "explain": "The client has no configuration yet, so it can't address any particular server."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP & NAT",
+      "q": "Why must the DHCP Client Request message be broadcast?",
+      "choices": [
+        "So that if several servers made offers, they all learn which one was chosen",
+        "Because the client doesn't yet know any server's address",
+        "So that the switch can update its MAC cache",
+        "To encrypt the chosen configuration"
+      ],
+      "answer": 0,
+      "explain": "Broadcasting the choice tells every server that made an offer which one was accepted."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP & NAT",
+      "q": "What happens when a DHCP lease time runs out?",
+      "choices": [
+        "The client must ask to renew the lease, or the server frees those settings for other devices",
+        "The client keeps the configuration permanently",
+        "The router switches the client to IPv6",
+        "The client must redo the WPA2 handshake"
+      ],
+      "answer": 0,
+      "explain": "The lease (the configuration from the server offer) can carry a lease time. Once it expires the client must renew or lose the settings."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP & NAT",
+      "q": "Why is DHCP sometimes called a layer 2-3 protocol?",
+      "choices": [
+        "It sets up the configuration that allows communication over LANs and the Internet, so it doesn't fit cleanly into one layer",
+        "It carries both MAC addresses and port numbers in its header",
+        "It runs on routers, which sit between layers 2 and 3",
+        "It encrypts traffic at both layers"
+      ],
+      "answer": 0,
+      "explain": "The layers are defined mainly for communication. Setup protocols like DHCP don't fit neatly inside the abstraction barriers."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP & NAT",
+      "q": "With NAT, a computer on the local network sends a packet to the Internet. Which address does the router replace?",
+      "choices": [
+        "The source IP address (the placeholder becomes a valid IP)",
+        "The destination IP address",
+        "The destination port only",
+        "The destination MAC address only"
+      ],
+      "answer": 0,
+      "explain": "For an outgoing packet the router swaps the private placeholder source IP for a valid one. For replies it converts the destination back to the placeholder."
+    },
+    {
+      "type": "tf",
+      "category": "DHCP & NAT",
+      "q": "NAT placeholder addresses usually come from a reserved block of private IP addresses that are not valid on the Internet.",
+      "answer": true,
+      "explain": "Private addresses work as placeholders inside the local network, and the router translates them so many computers can share one valid IP."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP & NAT",
+      "q": "Why does NAT exist?",
+      "choices": [
+        "There are more computers than IPv4 addresses, so several computers need to share one IP address",
+        "To encrypt traffic leaving the local network",
+        "To turn MAC addresses into IP addresses",
+        "To stop DHCP spoofing"
+      ],
+      "answer": 0,
+      "explain": "IPv4 address space is too small and not every network supports IPv6, so NAT lets a local network share an address."
+    },
+    {
+      "type": "multi",
+      "category": "DHCP & NAT",
+      "q": "An attacker wins the race with a forged DHCP offer. Which forged values let the attacker become a man-in-the-middle?",
+      "choices": [
+        "Their own IP address as the gateway address",
+        "Their own IP address as the DNS server address",
+        "A longer lease time",
+        "The broadcast MAC address as the client's MAC"
+      ],
+      "answer": [0, 1],
+      "explain": "A forged gateway sends the victim's outbound packets to the attacker. A forged DNS server lets the attacker give malicious name-to-IP translations."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP & NAT",
+      "q": "How do many networks deal with DHCP spoofing in practice?",
+      "choices": [
+        "They accept it as a fact of life and rely on higher layers, such as encryption, for protection",
+        "They use switches with VLANs to block all forged offers",
+        "They require WPA2-PSK on every wired port",
+        "They sign every DHCP offer with a certificate the client already trusts"
+      ],
+      "answer": 0,
+      "explain": "If messages are properly encrypted at higher layers, a man-in-the-middle can't do much with them."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP & NAT",
+      "q": "Why is it hard to defend against low-layer attacks like DHCP spoofing?",
+      "choices": [
+        "No trusted party exists to rely on when a machine first joins the network",
+        "DHCP messages are too short to carry a MAC",
+        "DHCP runs only over wireless links",
+        "Routers can't see DHCP traffic"
+      ],
+      "answer": 0,
+      "explain": "When a machine first connects, it has no established trust or keys to check whether an offer is legitimate."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP & NAT",
+      "q": "How is the attack on DHCP similar to ARP spoofing?",
+      "choices": [
+        "An on-path attacker sees a broadcast request and races to send a forged reply before the legitimate one",
+        "Both require the attacker to know the WiFi password",
+        "Both work by brute-forcing a low-entropy password",
+        "Both need the attacker to physically block the legitimate server"
+      ],
+      "answer": 0,
+      "explain": "In both, the attacker sees the request and wins a race with a spoofed response. The victim accepts whichever arrives first."
+    },
+    {
+      "type": "text",
+      "category": "WPA2",
+      "q": "What is the name of the WiFi network that an access point announces in its beacon packets?",
+      "answer": ["SSID", "Service Set Identifier", "the SSID"],
+      "explain": "The AP keeps broadcasting beacons that say \"I am here\" and give the network name, the SSID."
+    },
+    {
+      "type": "tf",
+      "category": "WPA2",
+      "q": "On a WiFi network with no password, data is sent unencrypted, so others on the network can see your traffic and inject packets.",
+      "answer": true,
+      "explain": "Without WPA2 there is no encryption, and attacks like ARP spoofing work as they do on a wired LAN."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "In WPA2-PSK, how is the PSK (Pre-Shared Key) derived?",
+      "choices": [
+        "PBKDF2-SHA1 applied to the SSID and the WiFi password",
+        "SHA1 applied to the AP's MAC address",
+        "From the ANonce and SNonce",
+        "Picked at random by an authentication server"
+      ],
+      "answer": 0,
+      "explain": "Both the AP and the client run a slow password-based key derivation function over the SSID and password."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "Why is the SSID an input to the PSK derivation?",
+      "choices": [
+        "So two networks with the same password still get different PSKs",
+        "So the PSK changes every handshake",
+        "So each user on the network gets a unique key",
+        "So the access point can be authenticated by TLS"
+      ],
+      "answer": 0,
+      "explain": "The SSID acts somewhat like a salt, so the same password on different networks gives different PSKs."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "Why is a slow password-based key derivation function (PBKDF2) used to make the PSK?",
+      "choices": [
+        "It makes brute-forcing the password harder",
+        "It makes the handshake shorter",
+        "It hides the nonces from eavesdroppers",
+        "It makes the PSK unique for each user"
+      ],
+      "answer": 0,
+      "explain": "Password-based KDFs are slower by a large constant factor, which raises the cost of each password guess."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "Once the client and AP both have the PSK, why don't they just use the PSK to encrypt everything?",
+      "choices": [
+        "Everyone on the network has the same PSK, so other users could decrypt your traffic",
+        "The PSK is too short to be an encryption key",
+        "The PSK is sent in the clear during the handshake",
+        "The PSK expires after one message"
+      ],
+      "answer": 0,
+      "explain": "The handshake gives each client its own keys (the PTK), so other users can't simply decrypt everything with the shared PSK."
+    },
+    {
+      "type": "multi",
+      "category": "WPA2",
+      "q": "Which values go into deriving the PTK (Pairwise Transport Keys) in WPA2-PSK?",
+      "choices": [
+        "The ANonce",
+        "The SNonce",
+        "The PSK",
+        "The MAC addresses of the access point and the client",
+        "The GTK",
+        "The client's DHCP-assigned IP address"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "PTK = f(ANonce, SNonce, PSK, AP MAC, client MAC). The GTK is sent encrypted after the PTK is derived."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "What do the random ANonce and SNonce do in the WPA2 handshake?",
+      "choices": [
+        "They make each handshake produce different keys",
+        "They encrypt the GTK",
+        "They identify the network by name",
+        "They prove the client knows the username and password"
+      ],
+      "answer": 0,
+      "explain": "Fresh nonces give fresh keys on every handshake. They are sent without encryption."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "Why do the client and AP exchange MICs during the WPA2 handshake?",
+      "choices": [
+        "To check that nobody tampered with the nonces and that both sides derived the same PTK",
+        "To send the GTK",
+        "To agree on an IP address",
+        "To announce the SSID"
+      ],
+      "answer": 0,
+      "explain": "The MICs are cryptographic MACs keyed from the PTK, so they confirm integrity and that both sides derived the same keys."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "What is the GTK (Group Temporal Key) used for?",
+      "choices": [
+        "Encrypting and decrypting broadcast messages sent to ff:ff:ff:ff:ff:ff",
+        "Encrypting one client's traffic with the AP",
+        "Deriving the PSK from the password",
+        "Authenticating to the WPA2-Enterprise server"
+      ],
+      "answer": 0,
+      "explain": "Everyone on the network shares the GTK, so all clients can send and receive broadcast messages. Unicast traffic uses the PTK."
+    },
+    {
+      "type": "tf",
+      "category": "WPA2",
+      "q": "Each client on a WPA2 network gets its own unique GTK.",
+      "answer": false,
+      "explain": "The GTK is the same for everyone, which is what lets everyone handle broadcast messages. The PTK is the per-client key."
+    },
+    {
+      "type": "num",
+      "category": "WPA2",
+      "q": "How many messages does the optimized WPA2 handshake used in practice exchange?",
+      "answer": 4,
+      "explain": "The 4-way handshake: ANonce; SNonce + MIC; encrypted GTK + MIC; ACK."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "In the optimized 4-way handshake, what does the client send in message 2?",
+      "choices": [
+        "The SNonce and a MIC, after deriving the PTK from the ANonce",
+        "The ANonce",
+        "The encrypted GTK and a MIC",
+        "An ACK confirming receipt of the GTK"
+      ],
+      "answer": 0,
+      "explain": "Once it has the ANonce, the client has everything it needs, so it derives the PTK and then sends the SNonce with a MIC. Message 3 is the AP's encrypted GTK + MIC."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "Which part of the WPA2 handshake is sent encrypted?",
+      "choices": ["Only the GTK", "The nonces", "The MICs", "Everything"],
+      "answer": 0,
+      "explain": "Everything except the GTK is sent in the clear, which is why eavesdroppers can collect the nonces and MAC addresses."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "An attacker who knows the WiFi password records another user's entire WPA2-PSK handshake. What can the attacker do?",
+      "choices": [
+        "Derive that user's PTK, then decrypt their traffic and encrypt and inject messages",
+        "Only read broadcast messages",
+        "Nothing, because the PTK is unique to each client",
+        "Only learn the user's MAC address"
+      ],
+      "answer": 0,
+      "explain": "The attacker has the PSK from the password, and the nonces and MACs travel in the clear, so they have every input to the PTK."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "An attacker who does NOT know the WiFi password records a WPA2-PSK handshake. How can they still recover the PTK?",
+      "choices": [
+        "Guess passwords offline: derive PSK and then PTK for each guess, and check it against the recorded MICs",
+        "Read the PTK, since it is sent in the clear",
+        "Decrypt the GTK with the ANonce",
+        "Send a spoofed ARP reply to the access point"
+      ],
+      "answer": 0,
+      "explain": "The MICs let the attacker check each guess. A low-entropy password can be brute-forced with enough computing power."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "What is the root problem behind the WPA2-PSK attacks?",
+      "choices": [
+        "Every user derives their keys from the same secret, the shared WiFi password",
+        "The nonces are too short",
+        "The GTK is sent unencrypted",
+        "PBKDF2 is too fast"
+      ],
+      "answer": 0,
+      "explain": "Anyone with the shared password can derive the PSK. The fix is to give each user a unique source of secrecy."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "In WPA2-Enterprise, what takes the place of the PSK when deriving the PTK?",
+      "choices": [
+        "A random PMK (Pairwise Master Key) that an authentication server gives to both the client and the AP",
+        "A hash of the user's username",
+        "The GTK",
+        "The SSID alone"
+      ],
+      "answer": 0,
+      "explain": "After the user proves their identity with a unique username and password over TLS, the server sends a per-user random PMK. The handshake then runs as before with the PMK."
+    },
+    {
+      "type": "mc",
+      "category": "WPA2",
+      "q": "How does a client prove its identity in WPA2-Enterprise before the handshake?",
+      "choices": [
+        "It gives its own username and password to an authentication server over a TLS-secured connection",
+        "It types in the shared WiFi password",
+        "It sends its MAC address to the AP",
+        "It broadcasts a DHCP Discover message"
+      ],
+      "answer": 0,
+      "explain": "Each authorized user has a unique username and password, checked by a secure authentication server."
+    },
+    {
+      "type": "tf",
+      "category": "WPA2",
+      "q": "WPA2-Enterprise stops another authenticated user on the same network from becoming a man-in-the-middle with ARP or DHCP spoofing.",
+      "answer": false,
+      "explain": "WPA2-Enterprise defeats the handshake-eavesdropping and password brute-force attacks, but an authenticated user can still run ARP or DHCP attacks."
+    }
+  ]
+}

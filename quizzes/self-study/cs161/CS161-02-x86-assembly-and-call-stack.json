@@ -1,0 +1,823 @@
+{
+  "title": "02 - x86 Assembly and Call Stack",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "tf",
+      "category": "Memory safety",
+      "q": "Memory safety means ensuring that attackers cannot read or write memory locations other than the ones the programmer intended.",
+      "answer": true,
+      "explain": "That is the definition: memory safety keeps attackers from reading or writing memory the programmer did not intend to be accessed."
+    },
+    {
+      "type": "mc",
+      "category": "Memory safety",
+      "q": "After configuration errors, what is probably the largest single class of security errors exploited in practice?",
+      "choices": ["Weaknesses in cryptographic algorithms", "Implementation errors", "Errors in the specification", "Hardware faults"],
+      "answer": 1,
+      "explain": "Implementation errors (software security flaws) are probably the largest class after configuration errors. A system can have a perfect design and still be broken by its implementation."
+    },
+    {
+      "type": "tf",
+      "category": "Memory safety",
+      "q": "If a system has a perfect design, a perfect specification, and perfect algorithms, it cannot have implementation vulnerabilities.",
+      "answer": false,
+      "explain": "Software security is about flaws in the implementation itself. A perfect design can still be implemented with exploitable bugs."
+    },
+    {
+      "type": "mc",
+      "category": "Memory safety",
+      "q": "Why is C the natural language for studying memory-safety vulnerabilities and defenses?",
+      "choices": [
+        "C is not memory-safe, and many security-critical applications are written in it",
+        "C checks every array access at runtime, so its failures are easy to study",
+        "C programs cannot be compiled to x86",
+        "C has garbage collection, which causes most memory bugs"
+      ],
+      "answer": 0,
+      "explain": "C is not a memory-safe language, and a lot of security-critical software is written in C. That combination makes its memory-safety bugs important."
+    },
+    {
+      "type": "mc",
+      "category": "Memory safety",
+      "q": "Which of these is a memory-safety violation?",
+      "choices": [
+        "A firewall left in its default configuration",
+        "A protocol whose design lets anyone replay old messages",
+        "Input that makes a program write to memory the programmer never meant it to write",
+        "A user picking a weak password"
+      ],
+      "answer": 2,
+      "explain": "Memory safety is specifically about reads and writes to unintended memory locations. The other options are configuration, design, or user problems."
+    },
+    {
+      "type": "num",
+      "category": "Number representation",
+      "q": "How many bytes long is the bit string 1000100010001000?",
+      "answer": 2,
+      "explain": "It has 16 bits, and 1 byte = 8 bits, so it is 2 bytes."
+    },
+    {
+      "type": "text",
+      "category": "Number representation",
+      "q": "Convert 0b1011111011101111 to hexadecimal.",
+      "answer": ["0xBEEF", "0xbeef", "BEEF", "beef", "0xBeef"],
+      "explain": "Split into groups of 4 bits: 1011 = B, 1110 = E, 1110 = E, 1111 = F, which gives 0xBEEF."
+    },
+    {
+      "type": "text",
+      "category": "Number representation",
+      "q": "Convert 0xA5 to binary (8 bits).",
+      "answer": ["0b10100101", "10100101", "0b1010 0101", "1010 0101"],
+      "explain": "Each hex digit is 4 bits: A = 1010 and 5 = 0101, so 0xA5 = 0b10100101."
+    },
+    {
+      "type": "num",
+      "category": "Number representation",
+      "q": "How many bits does a single hexadecimal digit represent?",
+      "answer": 4,
+      "explain": "Each hex digit stands for one of 16 values, which is exactly 4 bits (0000 to 1111)."
+    },
+    {
+      "type": "mc",
+      "category": "Number representation",
+      "q": "What determines the size of a \"word\"?",
+      "choices": ["The size of a char", "The size of a pointer, which depends on the CPU architecture", "Always 16 bits on every machine", "The size of one hexadecimal digit"],
+      "answer": 1,
+      "explain": "A word is the size of a pointer, so it depends on the architecture. On a 32-bit architecture a word is 32 bits."
+    },
+    {
+      "type": "num",
+      "category": "Number representation",
+      "q": "On a 32-bit architecture, how many bytes are in one word?",
+      "answer": 4,
+      "explain": "A word is 32 bits, and 32 / 8 = 4 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Number representation",
+      "q": "Which prefixes mark binary and hexadecimal strings?",
+      "choices": ["0x for binary, 0b for hexadecimal", "0b for binary, 0x for hexadecimal", "0h for hexadecimal, 0b for binary", "$ for binary, % for hexadecimal"],
+      "answer": 1,
+      "explain": "0b comes before binary strings (0b1010) and 0x comes before hexadecimal strings (0xA)."
+    },
+    {
+      "type": "mc",
+      "category": "Compiling and running C",
+      "q": "In what order do these steps happen when a C program goes from source code to running?",
+      "choices": [
+        "Compiler -> assembler -> linker -> loader",
+        "Assembler -> compiler -> loader -> linker",
+        "Compiler -> linker -> assembler -> loader",
+        "Loader -> compiler -> assembler -> linker"
+      ],
+      "fixed": true,
+      "answer": 0,
+      "explain": "The compiler turns C into assembly, the assembler turns assembly into machine code, the linker resolves external libraries and outputs an executable, and the loader sets up memory and runs it."
+    },
+    {
+      "type": "mc",
+      "category": "Compiling and running C",
+      "q": "Which tool translates assembly instructions into machine code (raw bits)?",
+      "choices": ["Compiler", "Assembler", "Linker", "Loader"],
+      "fixed": true,
+      "answer": 1,
+      "explain": "The assembler converts assembly instructions into machine code."
+    },
+    {
+      "type": "mc",
+      "category": "Compiling and running C",
+      "q": "Which tool resolves dependencies on external libraries and outputs a binary executable?",
+      "choices": ["Compiler", "Assembler", "Linker", "Loader"],
+      "fixed": true,
+      "answer": 2,
+      "explain": "The linker resolves external library dependencies and produces the final executable."
+    },
+    {
+      "type": "mc",
+      "category": "Compiling and running C",
+      "q": "When a user runs an executable, what sets up an address space in memory and runs the machine code?",
+      "choices": ["Compiler", "Assembler", "Linker", "Loader"],
+      "fixed": true,
+      "answer": 3,
+      "explain": "The loader creates the program's address space and starts executing its machine code."
+    },
+    {
+      "type": "mc",
+      "category": "Compiling and running C",
+      "q": "What does the compiler produce from C source code?",
+      "choices": ["Assembly instructions", "A running process", "Resolved library dependencies", "An address space"],
+      "answer": 0,
+      "explain": "The compiler translates C code into assembly instructions (x86 here). The assembler then turns those into machine code."
+    },
+    {
+      "type": "mc",
+      "category": "C memory layout",
+      "q": "From lowest address to highest address, what is the order of the four sections of a running C program's address space?",
+      "choices": [
+        "Code, static, heap, stack",
+        "Stack, heap, static, code",
+        "Static, code, stack, heap",
+        "Code, heap, static, stack"
+      ],
+      "fixed": true,
+      "answer": 0,
+      "explain": "Code is at the lowest addresses, then static, then heap (growing up), and the stack is at the highest addresses (growing down)."
+    },
+    {
+      "type": "mc",
+      "category": "C memory layout",
+      "q": "Which section holds global variables, static variables, and constants?",
+      "choices": ["Code", "Static", "Heap", "Stack"],
+      "fixed": true,
+      "answer": 1,
+      "explain": "The static section holds constants, static variables, and global variables."
+    },
+    {
+      "type": "mc",
+      "category": "C memory layout",
+      "q": "Memory returned by malloc lives in which section?",
+      "choices": ["Code", "Static", "Heap", "Stack"],
+      "fixed": true,
+      "answer": 2,
+      "explain": "Dynamically allocated memory from malloc is on the heap. It stays allocated until free is called."
+    },
+    {
+      "type": "mc",
+      "category": "C memory layout",
+      "q": "Which section holds local variables and other information about function calls?",
+      "choices": ["Code", "Static", "Heap", "Stack"],
+      "fixed": true,
+      "answer": 3,
+      "explain": "The stack holds local variables and per-call data such as saved registers and arguments."
+    },
+    {
+      "type": "tf",
+      "category": "C memory layout",
+      "q": "In the address space, each bit of memory has its own unique address.",
+      "answer": false,
+      "explain": "Addresses are per byte, not per bit. Each byte has a unique address."
+    },
+    {
+      "type": "num",
+      "category": "C memory layout",
+      "q": "How many bytes are in the address space of a 32-bit system? Give the exact number.",
+      "answer": 4294967296,
+      "explain": "Addresses are 32 bits long, so there are 2^32 = 4,294,967,296 byte addresses, from 0x00000000 to 0xFFFFFFFF."
+    },
+    {
+      "type": "mc",
+      "category": "C memory layout",
+      "q": "How big is the address space of a 64-bit system?",
+      "choices": ["64 bytes", "2^32 bytes", "2^64 bytes", "2^64 bits"],
+      "answer": 2,
+      "explain": "Addresses are 64 bits long and each address names one byte, so the space is 2^64 bytes."
+    },
+    {
+      "type": "multi",
+      "category": "C memory layout",
+      "q": "Which statements about how the heap and stack grow are true?",
+      "choices": [
+        "The heap starts at lower addresses and grows up toward higher addresses",
+        "On the heap, older allocations have lower addresses",
+        "The stack starts at higher addresses and grows down as more functions are called",
+        "A new local variable on the stack has a higher address than earlier ones",
+        "On the stack, older variables have lower addresses"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The heap grows up, so older allocations sit lower. The stack grows down, so newer locals get lower addresses and older ones sit higher."
+    },
+    {
+      "type": "tf",
+      "category": "C memory layout",
+      "q": "The first member of a struct is stored at the lowest address of the struct.",
+      "answer": true,
+      "explain": "Struct members are laid out with the first member at the lowest address, even when the struct is on the stack."
+    },
+    {
+      "type": "mc",
+      "category": "C memory layout",
+      "q": "When memory is drawn as a grid of bytes, where is address 0x00000000?",
+      "choices": ["Top-left", "Top-right", "Bottom-left", "Bottom-right"],
+      "fixed": true,
+      "answer": 2,
+      "explain": "Addresses increase from left to right and from bottom to top, so 0x00000000 is at the bottom-left and 0xFFFFFFFF is at the top-right."
+    },
+    {
+      "type": "mc",
+      "category": "Little-endian",
+      "q": "On x86, the word 0x44332211 is stored starting at address 0x1000. Which byte is at address 0x1000?",
+      "choices": ["0x44", "0x33", "0x22", "0x11"],
+      "fixed": true,
+      "answer": 3,
+      "explain": "x86 is little-endian: the least significant byte (0x11) goes at the lowest address and the most significant byte (0x44) at the highest."
+    },
+    {
+      "type": "mc",
+      "category": "Little-endian",
+      "q": "On x86, the word 0xDEADBEEF is stored at addresses 0x2000 through 0x2003. Which byte is at address 0x2003?",
+      "choices": ["0xEF", "0xBE", "0xAD", "0xDE"],
+      "fixed": true,
+      "answer": 3,
+      "explain": "In little-endian order the bytes are 0xEF, 0xBE, 0xAD, 0xDE from 0x2000 up to 0x2003. The most significant byte, 0xDE, is at the highest address."
+    },
+    {
+      "type": "mc",
+      "category": "Little-endian",
+      "q": "On x86, memory holds the bytes 0x78, 0x56, 0x34, 0x12 at four increasing addresses. What word is read from the lowest of those addresses?",
+      "choices": ["0x78563412", "0x12345678", "0x87654321", "0x56781234"],
+      "answer": 1,
+      "explain": "In little-endian order the byte at the lowest address (0x78) is the least significant, so the word is 0x12345678."
+    },
+    {
+      "type": "mc",
+      "category": "Little-endian",
+      "q": "If the word 0x44332211 were stored in big-endian format instead, which byte would be at the lowest address?",
+      "choices": ["0x11", "0x22", "0x33", "0x44"],
+      "fixed": true,
+      "answer": 3,
+      "explain": "Big-endian puts the least significant byte at the highest address, so the most significant byte (0x44) is at the lowest address."
+    },
+    {
+      "type": "tf",
+      "category": "Little-endian",
+      "q": "Networking protocols are often big-endian.",
+      "answer": true,
+      "explain": "Unlike x86, many networking protocols use big-endian byte order."
+    },
+    {
+      "type": "tf",
+      "category": "Little-endian",
+      "q": "When a memory diagram shows whole 4-byte words in each row instead of individual bytes, the bytes are no longer stored in little-endian order.",
+      "answer": false,
+      "explain": "Writing words on a diagram only hides little-endianness to make it easier to read. The bytes in memory are still stored little-endian."
+    },
+    {
+      "type": "mc",
+      "category": "Registers",
+      "q": "What does the eip register store?",
+      "choices": [
+        "The address of the top of the current stack frame",
+        "The address of the bottom of the current stack frame",
+        "The address of the machine instruction currently being executed",
+        "The return value of the last function call"
+      ],
+      "answer": 2,
+      "explain": "eip is the instruction pointer. It holds the address of the current instruction, like the PC in RISC-V."
+    },
+    {
+      "type": "mc",
+      "category": "Registers",
+      "q": "What does the ebp register store?",
+      "choices": [
+        "The address of the top (highest address) of the current stack frame",
+        "The address of the bottom (lowest address) of the current stack frame",
+        "The address of the current instruction",
+        "The address of the start of the heap"
+      ],
+      "answer": 0,
+      "explain": "ebp is the base pointer. It points to the top of the current stack frame, which is the frame's highest address."
+    },
+    {
+      "type": "mc",
+      "category": "Registers",
+      "q": "What does the esp register store?",
+      "choices": [
+        "The address of the top (highest address) of the current stack frame",
+        "The address of the bottom (lowest address) of the current stack frame",
+        "The address of the current instruction",
+        "The size of the current stack frame"
+      ],
+      "answer": 1,
+      "explain": "esp is the stack pointer. It points to the bottom of the current stack frame, which is the frame's lowest address."
+    },
+    {
+      "type": "multi",
+      "category": "Registers",
+      "q": "Which pairs of an x86 register and its RISC-V counterpart are correct?",
+      "choices": ["eip and PC", "esp and SP", "ebp and FP", "eip and SP", "esp and FP"],
+      "answer": [0, 1, 2],
+      "explain": "eip is the program counter (PC), esp is the stack pointer (SP), and ebp is the frame pointer (FP). RISC-V often uses FP as the general-purpose register s0."
+    },
+    {
+      "type": "mc",
+      "category": "Registers",
+      "q": "Which section of memory does eip usually point to?",
+      "choices": ["Code", "Static", "Heap", "Stack"],
+      "fixed": true,
+      "answer": 0,
+      "explain": "eip points to instructions, and instructions are stored in the code section."
+    },
+    {
+      "type": "mc",
+      "category": "Registers",
+      "q": "Which section of memory do ebp and esp usually point to?",
+      "choices": ["Code", "Static", "Heap", "Stack"],
+      "fixed": true,
+      "answer": 3,
+      "explain": "ebp and esp mark the top and bottom of the current stack frame, so they point into the stack."
+    },
+    {
+      "type": "tf",
+      "category": "Registers",
+      "q": "Like bytes of memory, x86 registers each have a numeric address.",
+      "answer": false,
+      "explain": "Registers live on the CPU and have no addresses. They are referred to by name (eip, ebp, esp, eax, ...). Each one holds one word (4 bytes)."
+    },
+    {
+      "type": "mc",
+      "category": "Registers",
+      "q": "What does the \"e\" at the start of eip, ebp, and esp stand for?",
+      "choices": ["Execution", "Extended", "Enhanced", "Effective"],
+      "answer": 1,
+      "explain": "\"e\" stands for extended. It shows the registers are the 32-bit versions of the original 16-bit registers."
+    },
+    {
+      "type": "mc",
+      "category": "Push and pop",
+      "q": "What does the x86 push instruction do?",
+      "choices": [
+        "Increments esp, then stores the value in the space just freed",
+        "Decrements esp to allocate space, then stores the value in that new space",
+        "Stores the value at ebp and leaves esp unchanged",
+        "Copies the value at esp into a register"
+      ],
+      "answer": 1,
+      "explain": "The stack grows down, so push first decrements esp to make room and then writes the value there."
+    },
+    {
+      "type": "mc",
+      "category": "Push and pop",
+      "q": "esp is 0x1000. After a 4-byte value is pushed, what is esp, and where is the value stored?",
+      "choices": [
+        "esp = 0x1004, value stored at 0x1000",
+        "esp = 0x1004, value stored at 0x1004",
+        "esp = 0x0FFC, value stored at 0x0FFC",
+        "esp = 0x0FFC, value stored at 0x1000"
+      ],
+      "answer": 2,
+      "explain": "push decrements esp by 4 to 0x0FFC and then stores the value at the new esp, 0x0FFC."
+    },
+    {
+      "type": "mc",
+      "category": "Push and pop",
+      "q": "What does the x86 pop instruction do?",
+      "choices": [
+        "Copies the value at the bottom of the stack into a register and increments esp",
+        "Erases the value at the bottom of the stack and decrements esp",
+        "Decrements esp and copies a register onto the stack",
+        "Sets ebp equal to esp"
+      ],
+      "answer": 0,
+      "explain": "pop copies the value at esp into a register and increments esp, which removes the value from the stack."
+    },
+    {
+      "type": "tf",
+      "category": "Push and pop",
+      "q": "When a value is popped off the stack, it is erased from memory.",
+      "answer": false,
+      "explain": "The bytes stay in memory. Only esp moves up, so the old value is now below esp, in undefined memory."
+    },
+    {
+      "type": "multi",
+      "category": "Push and pop",
+      "q": "esp is 0x0FFC and `pop %eax` runs. Which statements are true afterward?",
+      "choices": [
+        "eax holds the 4-byte value that was at 0x0FFC",
+        "esp is 0x1000",
+        "The bytes at 0x0FFC still hold the popped value",
+        "The memory at 0x0FFC is now considered undefined",
+        "esp is 0x0FF8"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "pop copies the value at esp into eax and increments esp by 4 to 0x1000. The bytes at 0x0FFC are not cleared, but they are below esp now, so they are undefined."
+    },
+    {
+      "type": "mc",
+      "category": "Push and pop",
+      "q": "How should memory on the stack below esp be treated?",
+      "choices": [
+        "As part of the current stack frame",
+        "As undefined",
+        "As holding the caller's local variables",
+        "As read-only"
+      ],
+      "answer": 1,
+      "explain": "esp marks the bottom of the stack, so anything below it is undefined. Popping and freeing a frame (moving esp up) work this way."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T syntax",
+      "q": "What does `addl $0x8, %ebx` do?",
+      "choices": ["EBX = EBX + 0x8", "0x8 = 0x8 + EBX", "EBX = *(0x8)", "EBX = EBX + *(0x8)"],
+      "answer": 0,
+      "explain": "In AT&T syntax the destination comes last. The source is the immediate $0x8 and the destination is %ebx, so EBX = EBX + 0x8."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T syntax",
+      "q": "What does `xorl 4(%esi), %eax` do?",
+      "choices": [
+        "EAX = EAX ^ (ESI + 4)",
+        "ESI = ESI ^ *(EAX + 4)",
+        "EAX = EAX ^ *(ESI + 4)",
+        "*(ESI + 4) = *(ESI + 4) ^ EAX"
+      ],
+      "answer": 2,
+      "explain": "4(%esi) is a memory reference: the value at the address 4 bytes above ESI. The destination is %eax, so EAX = EAX ^ *(ESI + 4)."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T syntax",
+      "q": "In AT&T x86 syntax, what does a `$` prefix mean, as in `$0x4`?",
+      "choices": ["A register", "An immediate (constant)", "A memory dereference", "A label"],
+      "answer": 1,
+      "explain": "Immediates (constants) start with $. Registers start with %, and memory references use parentheses."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T syntax",
+      "q": "In AT&T x86 syntax, what does `12(%esp)` refer to?",
+      "choices": [
+        "The value esp + 12",
+        "The memory 12 bytes below the address in esp",
+        "The memory 12 bytes above the address in esp",
+        "The 12th register after esp"
+      ],
+      "answer": 2,
+      "explain": "Parentheses dereference memory, and the number in front is added to the address. So 12(%esp) is the memory at esp + 12."
+    },
+    {
+      "type": "tf",
+      "category": "AT&T syntax",
+      "q": "In AT&T x86 syntax, the destination operand comes last, which is the opposite of RISC-V assembly.",
+      "answer": true,
+      "explain": "AT&T syntax writes source then destination. RISC-V writes the destination first."
+    },
+    {
+      "type": "tf",
+      "category": "AT&T syntax",
+      "q": "Every x86 instruction is exactly 4 bytes long.",
+      "answer": false,
+      "explain": "x86 instructions have variable length, from 1 to 16 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T syntax",
+      "q": "Inside a function after its prologue has run, what does `movl 8(%ebp), %eax` do?",
+      "choices": [
+        "Stores eax into the memory 8 bytes above ebp",
+        "Loads the function's first argument into eax",
+        "Loads the saved frame pointer (sfp) into eax",
+        "Sets eax to ebp + 8"
+      ],
+      "answer": 1,
+      "explain": "The source is the memory at ebp + 8 and the destination is eax. ebp points at the sfp, ebp + 4 holds the rip, and ebp + 8 holds the first argument."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T syntax",
+      "q": "How does Intel x86 syntax differ from AT&T syntax?",
+      "choices": [
+        "Intel syntax reverses the order of source and destination",
+        "Intel syntax has no memory references",
+        "Intel syntax uses % before every immediate",
+        "There is no difference, only the name"
+      ],
+      "answer": 0,
+      "explain": "Intel syntax reverses source and destination. Percent signs before register names usually mean you are reading AT&T syntax."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T syntax",
+      "q": "What does `(%esp)` mean when no offset is written before the parentheses?",
+      "choices": [
+        "The value of esp itself",
+        "The memory at the address in esp, with an implicit offset of 0",
+        "The memory 4 bytes above esp",
+        "It is invalid syntax"
+      ],
+      "answer": 1,
+      "explain": "Without an offset, the parentheses dereference the address in esp directly, which is the same as an offset of 0."
+    },
+    {
+      "type": "tf",
+      "category": "Calling convention",
+      "q": "Like RISC-V, x86 passes function arguments in registers.",
+      "answer": false,
+      "explain": "x86 passes arguments by pushing them onto the stack. RISC-V passes them in registers."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "main calls foo(1, 2). Which argument is pushed onto the stack first?",
+      "choices": ["1", "2", "Both are pushed at the same time", "Neither, they go in registers"],
+      "answer": 1,
+      "explain": "Arguments are pushed in reverse order, so 2 (the last argument) is pushed first and 1 is pushed second."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "After a function's arguments are pushed, which argument is at the lowest address?",
+      "choices": ["The first argument", "The last argument", "The largest argument", "Whichever the compiler picks"],
+      "answer": 0,
+      "explain": "Arguments are pushed in reverse order and the stack grows down, so the first argument ends up at the lowest address."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "What is the rip saved on the stack during a function call?",
+      "choices": [
+        "The caller's old ebp",
+        "The caller's old eip, so execution can return to the caller",
+        "The callee's first local variable",
+        "The caller's old esp"
+      ],
+      "answer": 1,
+      "explain": "The rip (return instruction pointer, or old eip) is pushed before eip is changed to the callee, so execution can resume in the caller."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "What is the sfp saved on the stack during a function call?",
+      "choices": [
+        "The caller's old eip",
+        "The caller's old esp",
+        "The caller's old ebp (saved frame pointer)",
+        "A pointer to the static section"
+      ],
+      "answer": 2,
+      "explain": "The sfp (saved frame pointer) is the old ebp. It is pushed before ebp is moved to the new frame."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "Which sequence correctly orders the first six steps of an x86 function call?",
+      "choices": [
+        "Push args -> push old eip (rip) -> update eip -> push old ebp (sfp) -> move ebp down -> move esp down",
+        "Push old eip (rip) -> push args -> update eip -> move ebp down -> push old ebp (sfp) -> move esp down",
+        "Push args -> update eip -> push old eip (rip) -> push old ebp (sfp) -> move esp down -> move ebp down",
+        "Push old ebp (sfp) -> push args -> push old eip (rip) -> update eip -> move esp down -> move ebp down"
+      ],
+      "fixed": true,
+      "answer": 0,
+      "explain": "Each register's old value is saved before it is overwritten: args, then rip, then update eip, then sfp, then ebp moves down to esp, then esp moves down to make room for locals."
+    },
+    {
+      "type": "num",
+      "category": "Calling convention",
+      "q": "Inside a callee after its prologue, the first argument is at address ebp + ___ (in bytes).",
+      "answer": 8,
+      "explain": "ebp points at the sfp (4 bytes), ebp + 4 is the rip (4 bytes), so the first argument starts at ebp + 8."
+    },
+    {
+      "type": "num",
+      "category": "Calling convention",
+      "q": "A callee takes two 4-byte int arguments. After its prologue, the second argument is at address ebp + ___ (in bytes).",
+      "answer": 12,
+      "explain": "The first argument is at ebp + 8 and takes 4 bytes. The second argument comes right after it, at a higher address, at ebp + 12."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "After a function's prologue, what is stored at the address ebp points to, and at ebp + 4?",
+      "choices": [
+        "ebp: the rip; ebp + 4: the sfp",
+        "ebp: the sfp; ebp + 4: the rip",
+        "ebp: the first local variable; ebp + 4: the first argument",
+        "ebp: the first argument; ebp + 4: the second argument"
+      ],
+      "answer": 1,
+      "explain": "The sfp was pushed last before ebp was set to esp, so ebp points at the sfp. The rip was pushed just before it, at ebp + 4."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "Which list shows a callee's stack contents from highest address to lowest?",
+      "choices": [
+        "Arguments, rip, sfp, local variables",
+        "Local variables, sfp, rip, arguments",
+        "rip, arguments, sfp, local variables",
+        "Arguments, sfp, rip, local variables"
+      ],
+      "fixed": true,
+      "answer": 0,
+      "explain": "Things pushed earlier are at higher addresses: the arguments, then the rip, then the sfp. The local variables go in the space below them."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "eip and ebp are saved on the stack during a call. Why isn't the old esp saved too?",
+      "choices": [
+        "esp is never changed during a function call",
+        "esp is saved in ebp automatically by the call instruction",
+        "esp moves down as values are pushed and back up as they are removed, so it returns to its old position by itself",
+        "The callee doesn't use esp"
+      ],
+      "answer": 2,
+      "explain": "Each push moves esp down and each removal moves it back up. When the call finishes, esp is back where it started."
+    },
+    {
+      "type": "tf",
+      "category": "Calling convention",
+      "q": "The rip pushed during a call is the address of the call instruction itself.",
+      "answer": false,
+      "explain": "The value pushed is the current eip advanced by one instruction, so after the return, execution continues with the instruction right after the call."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "When a function is ready to return, it first moves esp up to ebp. What does that do?",
+      "choices": [
+        "It frees the function's local variables, because they are now below esp",
+        "It restores the caller's ebp",
+        "It jumps back to the caller",
+        "It removes the arguments from the stack"
+      ],
+      "answer": 0,
+      "explain": "Moving esp up to ebp puts the locals below esp, so they are now undefined. The sfp and rip are then popped, and the caller removes the arguments last."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "Of the 11 steps of an x86 function call and return, which ones run in the caller?",
+      "choices": [
+        "Steps 1-3 and step 11",
+        "Steps 1-6",
+        "Steps 4-10",
+        "Only step 1"
+      ],
+      "answer": 0,
+      "explain": "The caller pushes the arguments, saves the rip, and changes eip (steps 1-3). The callee runs steps 4-10. After the return, the caller removes the arguments (step 11)."
+    },
+    {
+      "type": "mc",
+      "category": "Function call assembly",
+      "q": "What does `call foo` do?",
+      "choices": [
+        "Pushes the old eip (rip) onto the stack and sets eip to the start of foo",
+        "Pushes the old ebp (sfp) and sets ebp to esp",
+        "Pushes foo's arguments onto the stack",
+        "Pops the rip into eip"
+      ],
+      "answer": 0,
+      "explain": "call does steps 2-3: it saves the return address (rip) on the stack and then jumps by changing eip to foo's code."
+    },
+    {
+      "type": "mc",
+      "category": "Function call assembly",
+      "q": "The `leave` instruction is shorthand for which instructions?",
+      "choices": [
+        "mov %ebp, %esp then pop %ebp",
+        "push %ebp then mov %esp, %ebp",
+        "pop %eip",
+        "add $8, %esp"
+      ],
+      "answer": 0,
+      "explain": "leave combines steps 8 and 9: it moves esp back up to ebp and then pops the sfp back into ebp."
+    },
+    {
+      "type": "mc",
+      "category": "Function call assembly",
+      "q": "The `ret` instruction is shorthand for which step?",
+      "choices": [
+        "pop %eip, which restores the old eip (rip)",
+        "pop %ebp, which restores the old ebp (sfp)",
+        "add $8, %esp, which removes the arguments",
+        "mov %ebp, %esp, which frees the local variables"
+      ],
+      "answer": 0,
+      "explain": "ret is step 10: it pops the rip off the stack into eip, so execution returns to the caller."
+    },
+    {
+      "type": "mc",
+      "category": "Function call assembly",
+      "q": "Which instruction sequence is a function prologue?",
+      "choices": [
+        "push %ebp; mov %esp, %ebp; sub $16, %esp",
+        "mov %ebp, %esp; pop %ebp; pop %eip",
+        "push $2; push $1; call foo",
+        "push %ebp; mov %ebp, %esp; add $16, %esp"
+      ],
+      "answer": 0,
+      "explain": "The prologue is steps 4-6: save the old ebp, move ebp down to esp, and move esp down to allocate the frame. The second option is the epilogue."
+    },
+    {
+      "type": "mc",
+      "category": "Function call assembly",
+      "q": "Which steps make up the function epilogue?",
+      "choices": [
+        "Steps 8-10: move esp up, restore the old ebp, restore the old eip",
+        "Steps 4-6: push the sfp, move ebp down, move esp down",
+        "Steps 1-3: push args, push the rip, update eip",
+        "Step 11 only: remove arguments"
+      ],
+      "answer": 0,
+      "explain": "The epilogue is steps 8-10, usually written as `leave` followed by `ret`."
+    },
+    {
+      "type": "mc",
+      "category": "Function call assembly",
+      "q": "Which instruction moves ebp down to where esp points (step 5)?",
+      "choices": ["mov %esp, %ebp", "mov %ebp, %esp", "push %ebp", "sub %esp, %ebp"],
+      "answer": 0,
+      "explain": "In AT&T syntax the source is first, so `mov %esp, %ebp` copies esp into ebp. `mov %ebp, %esp` does the reverse and is step 8."
+    },
+    {
+      "type": "num",
+      "category": "Function call assembly",
+      "q": "A caller pushes three 4-byte int arguments and then calls a function. After the function returns, the caller runs `add $N, %esp` to remove the arguments. What is N?",
+      "answer": 12,
+      "explain": "Three 4-byte arguments take 12 bytes, so esp has to move up by 12. For two arguments, as in foo(1, 2), it is `add $8, %esp`."
+    },
+    {
+      "type": "mc",
+      "category": "Function call assembly",
+      "q": "In the prologue instruction `sub $16, %esp`, what decides the number 16?",
+      "choices": [
+        "The compiler, based on how much space the function's locals and other data need",
+        "It is always 16 for every function",
+        "The number of arguments times 8",
+        "The loader, at runtime"
+      ],
+      "answer": 0,
+      "explain": "The compiler picks how far to move esp down. A function with a big local array needs more space than one with a few small locals."
+    },
+    {
+      "type": "mc",
+      "category": "Function call assembly",
+      "q": "main calls foo(1, 2), where foo has a prologue of `push %ebp; mov %esp, %ebp; sub $16, %esp`. Just before main pushes the arguments, esp = 0xbfff0100. What is ebp after foo's prologue finishes?",
+      "choices": ["0xbfff00f8", "0xbfff00f4", "0xbfff00f0", "0xbfff00e0"],
+      "fixed": true,
+      "answer": 2,
+      "explain": "push $2 -> esp 0xbfff00fc; push $1 -> 0xbfff00f8; call pushes the rip -> 0xbfff00f4; push %ebp -> 0xbfff00f0; mov %esp, %ebp -> ebp = 0xbfff00f0."
+    },
+    {
+      "type": "mc",
+      "category": "Function call assembly",
+      "q": "Same setup: main calls foo(1, 2), esp = 0xbfff0100 before the arguments are pushed, and foo's prologue ends with `sub $16, %esp`. What is esp after the prologue?",
+      "choices": ["0xbfff00f0", "0xbfff00e0", "0xbfff00d0", "0xbfff0110"],
+      "fixed": true,
+      "answer": 1,
+      "explain": "esp reaches 0xbfff00f0 after the args, rip, and sfp are pushed. Subtracting 16 (0x10) gives 0xbfff00e0."
+    },
+    {
+      "type": "mc",
+      "category": "Function call assembly",
+      "q": "Same setup: main calls foo(1, 2) with esp = 0xbfff0100 before the arguments are pushed. At what address is foo's first argument, a = 1?",
+      "choices": ["0xbfff00fc", "0xbfff00f8", "0xbfff00f4", "0xbfff00f0"],
+      "fixed": true,
+      "answer": 1,
+      "explain": "1 was pushed second, so it is at 0xbfff00f8. That equals ebp + 8 = 0xbfff00f0 + 8. The 2 is at 0xbfff00fc and the rip is at 0xbfff00f4."
+    },
+    {
+      "type": "mc",
+      "category": "Function call assembly",
+      "q": "Same setup: esp = 0xbfff0100 before main pushes foo's two arguments. After foo returns and main runs `add $8, %esp`, what is esp?",
+      "choices": ["0xbfff00f8", "0xbfff0100", "0xbfff0108", "0xbfff00f0"],
+      "fixed": true,
+      "answer": 1,
+      "explain": "leave and ret bring esp back to 0xbfff00f8 (just above the rip), and add $8 removes the two arguments, so esp is back at 0xbfff0100. That is why esp never needs to be saved."
+    }
+  ]
+}

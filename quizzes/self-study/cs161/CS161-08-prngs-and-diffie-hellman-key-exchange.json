@@ -1,0 +1,676 @@
+{
+  "title": "CS161 08: PRNGs and Diffie-Hellman Key Exchange",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Randomness and entropy",
+      "q": "In cryptography, what does 'random' usually mean?",
+      "choices": [
+        "Random and unpredictable",
+        "Any non-deterministic outcome, even a heavily biased one",
+        "Produced by a physical process rather than an algorithm",
+        "Evenly spaced across a range of values"
+      ],
+      "answer": 0,
+      "explain": "Cryptographic randomness has to be unpredictable. A coin that lands heads 99% of the time is random, but it is easy to guess, so it is a poor source for keys."
+    },
+    {
+      "type": "tf",
+      "category": "Randomness and entropy",
+      "q": "A coin that lands heads 99% of the time has high entropy, because each flip is still a random event.",
+      "answer": false,
+      "explain": "Entropy measures uncertainty, or surprise. You can nearly always predict the biased coin, so its entropy is low. A fair coin has high entropy."
+    },
+    {
+      "type": "mc",
+      "category": "Randomness and entropy",
+      "q": "Which distribution produces the greatest entropy?",
+      "choices": [
+        "The uniform distribution (all outcomes equally likely)",
+        "A distribution heavily weighted toward one outcome",
+        "A normal (bell-curve) distribution",
+        "Any distribution, as long as the samples come from a physical source"
+      ],
+      "answer": 0,
+      "explain": "The uniform distribution has the most entropy. That is why we ideally want crypto randomness to be uniformly random bits, like fair coin tosses."
+    },
+    {
+      "type": "multi",
+      "category": "Randomness and entropy",
+      "q": "Which of these could serve as sources of true randomness?",
+      "choices": [
+        "An unpredictable circuit on a CPU",
+        "Random noise signals",
+        "The microsecond at which a user presses a key",
+        "The output of HMAC-DRBG",
+        "A counter that increments once per second"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "True randomness comes from sampling unpredictable physical processes. HMAC-DRBG is deterministic, so its output is pseudorandom, and a counter is completely predictable."
+    },
+    {
+      "type": "mc",
+      "category": "Randomness and entropy",
+      "q": "Why do systems use pseudorandomness instead of drawing true randomness every time an algorithm needs random bits?",
+      "choices": [
+        "True, unbiased randomness is computationally expensive to generate",
+        "Pseudorandom bits have more entropy than truly random bits",
+        "Truly random bits cannot be used as cryptographic keys",
+        "Pseudorandom bits are non-deterministic, so they are harder to reproduce"
+      ],
+      "answer": 0,
+      "explain": "True randomness has to be sampled from physical processes, which is expensive and can be biased. A pRNG stretches a small amount of it into many bits that look random."
+    },
+    {
+      "type": "text",
+      "category": "Randomness and entropy",
+      "q": "What is the term for pseudorandom bits that no efficient algorithm can tell apart from truly random bits? (two words)",
+      "answer": ["computationally indistinguishable", "computational indistinguishability", "computationally indistinguishable from random"],
+      "explain": "A good pseudorandom algorithm produces output that is computationally indistinguishable from true random bits. No efficient attacker can tell the difference."
+    },
+    {
+      "type": "text",
+      "category": "pRNG definition and security",
+      "q": "What is the name for the initial truly random input given to a pRNG?",
+      "answer": ["seed", "the seed", "a seed"],
+      "explain": "A pRNG takes a small truly random seed and outputs a long sequence of pseudorandom bits."
+    },
+    {
+      "type": "tf",
+      "category": "pRNG definition and security",
+      "q": "Two people who run the same pRNG algorithm with the same seed will get the same output.",
+      "answer": true,
+      "explain": "pRNGs are deterministic. This is exactly what lets a pRNG-based stream cipher decrypt: the receiver regenerates the same bits."
+    },
+    {
+      "type": "mc",
+      "category": "pRNG definition and security",
+      "q": "An attacker with unlimited computing power sees output from a pRNG that uses an n-bit seed. How could they tell it apart from truly random bits?",
+      "choices": [
+        "Run the pRNG on all 2^n possible seeds and check whether any of them produces the observed output",
+        "Check whether 0s and 1s appear equally often",
+        "They can't. pRNG output is perfectly indistinguishable even with unlimited computation",
+        "Invert the pRNG's output to recover the seed in polynomial time"
+      ],
+      "answer": 0,
+      "explain": "A pRNG is only computationally indistinguishable. Brute-forcing all 2^n seeds tells it apart, but that is infeasible under any practical limit on computation."
+    },
+    {
+      "type": "mc",
+      "category": "pRNG definition and security",
+      "q": "Why does a pRNG maintain internal state instead of outputting a fixed number of bits per seed?",
+      "choices": [
+        "So it can generate as many pseudorandom bits as needed, on demand, without needing new true randomness each time",
+        "So it can return the original seed to the caller later",
+        "So that its output becomes non-deterministic",
+        "So that an attacker who learns the state still cannot predict future output"
+      ],
+      "answer": 0,
+      "explain": "The state is updated on each Generate or seeding call, so a single seed can produce output indefinitely. Learning the state does let an attacker predict future output."
+    },
+    {
+      "type": "multi",
+      "category": "pRNG definition and security",
+      "q": "Which functions make up the formal definition of a pRNG?",
+      "choices": [
+        "Seed(entropy)",
+        "Reseed(entropy)",
+        "Generate(n)",
+        "Rollback(n)",
+        "Verify(output)"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Seed initializes the internal state, Reseed mixes in more entropy, and Generate outputs n pseudorandom bits while updating the state."
+    },
+    {
+      "type": "mc",
+      "category": "pRNG definition and security",
+      "q": "Which pRNG function outputs pseudorandom bits and also updates the internal state?",
+      "choices": [
+        "Generate(n)",
+        "Seed(entropy)",
+        "Reseed(entropy)",
+        "None of them. Output never changes the state"
+      ],
+      "answer": 0,
+      "explain": "Generate(n) returns n pseudorandom bits and updates the state. Some pRNGs also let it take extra entropy. Seed and Reseed only take in entropy and set or update the state."
+    },
+    {
+      "type": "mc",
+      "category": "Rollback resistance",
+      "q": "An attacker learns a pRNG's internal state right after bit 100 is generated. If the pRNG is rollback-resistant, what can the attacker learn about bits 1 through 100?",
+      "choices": [
+        "Nothing. Those earlier bits remain computationally indistinguishable from random",
+        "Only the most recently generated bit",
+        "All of them, but none of the future bits",
+        "Only the bits generated since the last reseed"
+      ],
+      "answer": 0,
+      "explain": "Rollback resistance means that knowing the current state reveals nothing about earlier output."
+    },
+    {
+      "type": "mc",
+      "category": "Rollback resistance",
+      "q": "A system uses one pRNG to generate a secret key first and then to generate IVs. The pRNG is NOT rollback-resistant, and an attacker compromises its state after the IVs are generated. What is most at risk?",
+      "choices": [
+        "The secret key that was generated earlier",
+        "Only the IVs, which are public anyway",
+        "Nothing, because secure pRNG output is indistinguishable from random",
+        "Only future output, never past output"
+      ],
+      "answer": 0,
+      "explain": "Without rollback resistance, the attacker can work backward from the compromised state to earlier output, which here is the secret key."
+    },
+    {
+      "type": "tf",
+      "category": "Rollback resistance",
+      "q": "Any pRNG whose output is indistinguishable from random (to someone who doesn't know the seed) is automatically rollback-resistant.",
+      "answer": false,
+      "explain": "Rollback resistance is an extra property. It covers what happens after the state is compromised, and not every secure pRNG has it."
+    },
+    {
+      "type": "mc",
+      "category": "Rollback resistance",
+      "q": "Why is HMAC-DRBG rollback-resistant?",
+      "choices": [
+        "Computing the previous state from the current state would mean reversing the underlying hash function",
+        "It resets K and V to 0 after every Generate call",
+        "It deletes the seed right after initialization",
+        "It reseeds with true randomness after every output block"
+      ],
+      "answer": 0,
+      "explain": "The state is updated with HMAC, which is built on a one-way hash. Going backward would require inverting the hash."
+    },
+    {
+      "type": "tf",
+      "category": "Rollback resistance",
+      "q": "Viewed as pRNGs, AES-CTR and ChaCha20 lack rollback resistance.",
+      "answer": true,
+      "explain": "Their internal state is the key plus a counter. Anyone with that state can set the counter back and recompute earlier output. That same ability to jump around is what makes them useful as stream ciphers."
+    },
+    {
+      "type": "mc",
+      "category": "HMAC-DRBG",
+      "q": "HMAC-DRBG's internal state has two values, K and V. What role does each play?",
+      "choices": [
+        "K is the HMAC key and V is the HMAC message input",
+        "K is the seed and V is the output buffer",
+        "K is the HMAC message input and V is the HMAC key",
+        "K is a counter and V is the IV"
+      ],
+      "answer": 0,
+      "explain": "K is used as the secret HMAC key, and V is the message that gets HMACed."
+    },
+    {
+      "type": "mc",
+      "category": "HMAC-DRBG",
+      "q": "Inside the Generate(n) loop of HMAC-DRBG, how is each new block of output produced?",
+      "choices": [
+        "V = HMAC(K, V), then V is appended to the output",
+        "V = HMAC(V, K), then K is appended to the output",
+        "K = HMAC(K, counter), then K is appended to the output",
+        "output = HMAC(seed, n)"
+      ],
+      "answer": 0,
+      "explain": "Each block is the HMAC of the previous block. The loop repeats until there are at least n bits, and output[0:n] is returned."
+    },
+    {
+      "type": "mc",
+      "category": "HMAC-DRBG",
+      "q": "Why is HMAC-DRBG's output indistinguishable from random?",
+      "choices": [
+        "It is essentially many HMAC outputs, and HMAC output looks random to anyone who doesn't know the key K",
+        "It mixes fresh true randomness into every output block",
+        "The 0x00 and 0x01 constants make the output uniform",
+        "It encrypts each block with AES before outputting it"
+      ],
+      "answer": 0,
+      "explain": "As long as the internal state, including K, stays secret, HMAC output cannot be told apart from random. HMAC-DRBG's output is just a chain of HMAC outputs."
+    },
+    {
+      "type": "num",
+      "category": "HMAC-DRBG",
+      "q": "HMAC-DRBG uses an HMAC with 256-bit output. Generate(600) is called with no additional entropy. How many HMAC calls are made in total, counting the state update at the end?",
+      "answer": 5,
+      "explain": "The loop runs until the output is at least 600 bits: 256, 512, 768, so 3 HMAC calls. The state update afterward adds 2 more: K = HMAC(K, V || 0x00) and V = HMAC(K, V). 3 + 2 = 5."
+    },
+    {
+      "type": "num",
+      "category": "HMAC-DRBG",
+      "q": "Same HMAC-DRBG (256-bit HMAC output), but now Generate(600) is called WITH additional true random input s. How many HMAC calls are made in total?",
+      "answer": 7,
+      "explain": "Producing 600 bits still takes 3 HMAC calls. With extra input the state update has 4 calls: K = HMAC(K, V||s||0x00), V = HMAC(K, V), K = HMAC(K, V||s||0x01), V = HMAC(K, V). 3 + 4 = 7."
+    },
+    {
+      "type": "mc",
+      "category": "HMAC-DRBG",
+      "q": "How does HMAC-DRBG's Reseed differ from its Seed?",
+      "choices": [
+        "Reseed does not reset K and V to 0 first. Otherwise the steps are the same",
+        "Reseed produces output bits, while Seed does not",
+        "Reseed skips the step that uses 0x01",
+        "Reseed replaces K directly with the new entropy"
+      ],
+      "answer": 0,
+      "explain": "Seed starts by setting K = 0 and V = 0. Reseed skips that and mixes the new entropy into the existing state with the same HMAC steps."
+    },
+    {
+      "type": "num",
+      "category": "HMAC-DRBG",
+      "q": "Your seed source is so biased that each bit carries only 0.2 bits of entropy. How many bits of seed material must you feed HMAC-DRBG for its internal state to get 128 bits of actual entropy?",
+      "answer": 640,
+      "explain": "128 / 0.2 = 640. HMAC-DRBG hashes the seed, so it accepts seeds of any length and gathers the entropy spread across them."
+    },
+    {
+      "type": "tf",
+      "category": "HMAC-DRBG",
+      "q": "Mixing a string with no entropy (such as all zero bits or the digits of pi) into HMAC-DRBG's seed material makes its internal state weaker.",
+      "answer": false,
+      "explain": "Adding zero-entropy strings does not make the internal state worse. It just adds no new unpredictability."
+    },
+    {
+      "type": "text",
+      "category": "HMAC-DRBG",
+      "q": "What does DRBG stand for in HMAC-DRBG?",
+      "answer": ["Deterministic Random Bit Generator", "deterministic random bit generator"],
+      "explain": "DRBG = Deterministic Random Bit Generator. It is deterministic given its seed, like any pRNG."
+    },
+    {
+      "type": "mc",
+      "category": "Stream ciphers",
+      "q": "How does a pRNG-based stream cipher encrypt a message?",
+      "choices": [
+        "It XORs the plaintext with pRNG output, using that output as a one-time pad",
+        "It splits the plaintext into fixed-size blocks and applies a pseudorandom permutation to each",
+        "It hashes the plaintext together with the key",
+        "It uses the plaintext as the pRNG's seed"
+      ],
+      "answer": 0,
+      "explain": "The pRNG generates a pseudorandom keystream, and each plaintext bit is XORed with the matching keystream bit."
+    },
+    {
+      "type": "mc",
+      "category": "Stream ciphers",
+      "q": "In a pRNG-based stream cipher, what is the secret key?",
+      "choices": [
+        "The seed used to seed the pRNG",
+        "The IV",
+        "The first block of pRNG output",
+        "The ciphertext's last block"
+      ],
+      "answer": 0,
+      "explain": "The secret key is the seed. Alice and Bob seed the same pRNG with it, so they get the same keystream."
+    },
+    {
+      "type": "mc",
+      "category": "Stream ciphers",
+      "q": "Why do Alice and Bob seed the pRNG with a random IV in addition to their secret key?",
+      "choices": [
+        "So the pRNG output is different for each message, which avoids reusing the one-time pad",
+        "So the ciphertext is shorter than the plaintext",
+        "Because the pRNG cannot be seeded with the key alone",
+        "So that the IV can be kept secret as a second key"
+      ],
+      "answer": 0,
+      "explain": "Without an IV, the same key would give the same keystream every time, which is key reuse. A fresh random IV makes each keystream different and unpredictable. The IV is sent in the clear."
+    },
+    {
+      "type": "mc",
+      "category": "Stream ciphers",
+      "q": "Which is the correct encryption for a pRNG-based stream cipher with key K and message M?",
+      "choices": [
+        "Enc(K, M) = <IV, PRNG(K, IV) XOR M>",
+        "Enc(K, M) = <IV, PRNG(K) XOR M XOR IV>",
+        "Enc(K, M) = <IV, PRNG(M, IV) XOR K>",
+        "Enc(K, M) = <PRNG(K, IV), IV XOR M>"
+      ],
+      "answer": 0,
+      "explain": "The ciphertext is the IV plus the keystream PRNG(K, IV) XORed with M. To decrypt, compute PRNG(K, IV) XOR C2."
+    },
+    {
+      "type": "mc",
+      "category": "Stream ciphers",
+      "q": "An encrypted file is being downloaded. What can a stream cipher do here that a block cipher mode typically cannot?",
+      "choices": [
+        "Decrypt each bit as soon as it arrives, without waiting for a full block",
+        "Decrypt without knowing the key",
+        "Detect whether the file was tampered with",
+        "Shrink the file while decrypting it"
+      ],
+      "answer": 0,
+      "explain": "Stream ciphers work bit by bit as data arrives. Block ciphers may need a whole block, several blocks, or the entire message before they can decrypt."
+    },
+    {
+      "type": "mc",
+      "category": "Stream ciphers",
+      "q": "You want to read only the last few bytes of a 1 TB encrypted file. Why is AES-CTR or ChaCha20 much better for this than using HMAC-DRBG as a stream cipher?",
+      "choices": [
+        "Their keystream includes a counter, so you can jump straight to the right position",
+        "HMAC-DRBG's output is not indistinguishable from random",
+        "AES-CTR and ChaCha20 are rollback-resistant, but HMAC-DRBG is not",
+        "HMAC-DRBG can only generate 256 bits per seed"
+      ],
+      "answer": 0,
+      "explain": "With a counter you set it to the target position and decrypt just those bytes. HMAC-DRBG would have to compute about 1 TB of output from the start before it reached the end."
+    },
+    {
+      "type": "tf",
+      "category": "Stream ciphers",
+      "q": "Bob can decrypt a pRNG-based stream cipher because the pRNG is deterministic: the same key and IV produce the same pseudorandom bits Alice used.",
+      "answer": true,
+      "explain": "Bob regenerates PRNG(K, IV) and XORs it with the ciphertext. XORing the keystream a second time cancels it out and recovers the plaintext."
+    },
+    {
+      "type": "mc",
+      "category": "Stream ciphers",
+      "q": "About how much total ciphertext can you encrypt under one key before AES-CTR's keystream stops being effectively indistinguishable from pRNG output?",
+      "choices": [
+        "About 2^64 bits",
+        "About 2^32 bits",
+        "About 2^128 bits",
+        "There is no limit"
+      ],
+      "answer": 0,
+      "explain": "AES is a pseudorandom permutation, not a generator. As long as the total under one key stays around 2^64 bits, its keystream works effectively like pRNG output."
+    },
+    {
+      "type": "mc",
+      "category": "One-way functions and discrete log",
+      "q": "What is a one-way function?",
+      "choices": [
+        "Given x, f(x) is easy to compute, but given y it is practically impossible to find an x with f(x) = y",
+        "A function that only the holder of a secret key can compute",
+        "A function that can be inverted easily, but only once",
+        "A function that maps every input to the same output"
+      ],
+      "answer": 0,
+      "explain": "Easy forward, infeasible backward. It's like turning a cow into hamburger: you can't get the cow back."
+    },
+    {
+      "type": "text",
+      "category": "One-way functions and discrete log",
+      "q": "Given g^x mod p (with p a large prime and g a generator), recovering x is believed to be hard. What is this problem called?",
+      "answer": ["discrete logarithm problem", "discrete log problem", "discrete logarithm", "discrete log", "DLP", "the discrete logarithm problem", "the discrete log problem"],
+      "explain": "This is the discrete logarithm problem. No efficient algorithm for it is known, which makes f(x) = g^x mod p a candidate one-way function."
+    },
+    {
+      "type": "mc",
+      "category": "One-way functions and discrete log",
+      "q": "In the paint-mixing analogy for Diffie-Hellman, what assumption makes the scheme secure?",
+      "choices": [
+        "Mixing colors is easy, but separating a mixture back into its colors is practically impossible",
+        "The common public color is kept secret from Eve",
+        "Eve cannot see the paint mixtures being exchanged",
+        "Alice and Bob choose the same secret color"
+      ],
+      "answer": 0,
+      "explain": "Mixing corresponds to the easy direction of a one-way function. The common color is public, and Eve sees every mixture that is exchanged."
+    },
+    {
+      "type": "mc",
+      "category": "One-way functions and discrete log",
+      "q": "In the paint analogy, why doesn't Eve get the shared secret just by mixing the green-amber and green-blue mixtures she saw?",
+      "choices": [
+        "The result has the common green in it twice (green-amber-green-blue), so it isn't green-amber-blue",
+        "Mixing two mixtures is computationally impossible",
+        "Eve never sees the green-blue mixture",
+        "The shared secret contains no green at all"
+      ],
+      "answer": 0,
+      "explain": "Combining the two public values doubles the common component. The math version: multiplying g^a and g^b gives g^(a+b), not g^(ab)."
+    },
+    {
+      "type": "mc",
+      "category": "One-way functions and discrete log",
+      "q": "Which technique makes computing g^x mod p efficient when x is known?",
+      "choices": [
+        "Repeated squaring",
+        "Trying every exponent until the result matches",
+        "Factoring p",
+        "Brute-forcing g"
+      ],
+      "answer": 0,
+      "explain": "Repeated squaring computes modular exponentiation quickly. That is the easy direction of the one-way function."
+    },
+    {
+      "type": "tf",
+      "category": "One-way functions and discrete log",
+      "q": "For a 2048-bit prime p, the fastest known algorithms for computing g^(ab) mod p from g^a mod p, g^b mod p, g, and p are fast enough for practical attacks.",
+      "answer": false,
+      "explain": "The best known algorithms take about 2^(c n^(1/3) (log n)^(2/3)) time for an n-bit prime. At n = 2048 that is far too slow for any reasonable attack."
+    },
+    {
+      "type": "multi",
+      "category": "Diffie-Hellman protocol",
+      "q": "In a Diffie-Hellman exchange between Alice and Bob, which values can an eavesdropper Eve see?",
+      "choices": [
+        "p",
+        "g",
+        "A = g^a mod p",
+        "B = g^b mod p",
+        "a",
+        "The shared secret S = g^(ab) mod p"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "p and g are public parameters, and A and B are sent openly. The exponents a and b are never sent, and Eve cannot feasibly compute S from what she sees."
+    },
+    {
+      "type": "num",
+      "category": "Diffie-Hellman protocol",
+      "q": "Toy Diffie-Hellman: p = 11, g = 2. Alice's secret is a = 3. What value A does Alice send to Bob?",
+      "answer": 8,
+      "explain": "A = g^a mod p = 2^3 mod 11 = 8."
+    },
+    {
+      "type": "num",
+      "category": "Diffie-Hellman protocol",
+      "q": "Toy Diffie-Hellman: p = 11, g = 2, Alice's secret a = 3, Bob's secret b = 4. What shared secret S do they compute?",
+      "answer": 4,
+      "explain": "A = 2^3 mod 11 = 8 and B = 2^4 mod 11 = 5. Alice computes B^a = 5^3 = 125 mod 11 = 4. Bob computes A^b = 8^4 = 4096 mod 11 = 4."
+    },
+    {
+      "type": "mc",
+      "category": "Diffie-Hellman protocol",
+      "q": "Alice has her secret a and has received Bob's B = g^b mod p. How does she compute the shared secret?",
+      "choices": [
+        "B^a mod p",
+        "A^b mod p",
+        "A * B mod p",
+        "g^(a+b) mod p"
+      ],
+      "answer": 0,
+      "explain": "B^a = (g^b)^a = g^(ab) mod p. Alice can't compute A^b because she doesn't know b. A*B mod p equals g^(a+b), which is the wrong value."
+    },
+    {
+      "type": "mc",
+      "category": "Diffie-Hellman protocol",
+      "q": "Diffie-Hellman is usually used to create an ephemeral key. What does 'ephemeral' mean here?",
+      "choices": [
+        "The key is used for a series of encryptions and decryptions, then discarded once it is no longer needed",
+        "The key is published for anyone to use",
+        "The key is reused across every session for years",
+        "The key is derived from a password"
+      ],
+      "answer": 0,
+      "explain": "Ephemeral keys are temporary. Diffie-Hellman essentially lets two parties agree on a fresh random value even with an eavesdropper listening."
+    },
+    {
+      "type": "mc",
+      "category": "Diffie-Hellman protocol",
+      "q": "In practice, what is done to the shared value S before it is used as a symmetric key?",
+      "choices": [
+        "It is passed through a hash function",
+        "It is sent to the other party for confirmation",
+        "It is reduced modulo g",
+        "Nothing. S is always used directly"
+      ],
+      "answer": 0,
+      "explain": "For technical reasons, a hash function is applied to S, and the hash output is used as the shared key."
+    },
+    {
+      "type": "mc",
+      "category": "Diffie-Hellman protocol",
+      "q": "On a network, each participant picks a secret x and publishes X = g^x mod p ahead of time. When two participants want to talk, how much work does each one do to get their shared key?",
+      "choices": [
+        "One modular exponentiation",
+        "A brute-force search over all exponents",
+        "A full new exchange, including choosing new p and g",
+        "Nothing, because the shared key is published too"
+      ],
+      "answer": 0,
+      "explain": "Each looks up the other's public value Y and computes Y^x mod p. Choosing p, g, x, and X can all be done in advance."
+    },
+    {
+      "type": "tf",
+      "category": "Diffie-Hellman protocol",
+      "q": "The parameters p and g must be kept secret between Alice and Bob for Diffie-Hellman to be secure.",
+      "answer": false,
+      "explain": "p and g are public. They are often hardcoded or set by a standard, and they don't have to be specific to Alice or Bob."
+    },
+    {
+      "type": "mc",
+      "category": "Elliptic-curve DH and security levels",
+      "q": "In elliptic-curve Diffie-Hellman, what does A = a * G mean?",
+      "choices": [
+        "The curve point G added to itself a times",
+        "G raised to the power a, modulo a prime",
+        "The integer a multiplied by the x-coordinate of G",
+        "G hashed a times"
+      ],
+      "answer": 0,
+      "explain": "a * G is a point on the curve, obtained by adding the public point G to itself a times."
+    },
+    {
+      "type": "mc",
+      "category": "Elliptic-curve DH and security levels",
+      "q": "What shared secret do Alice and Bob end up with in elliptic-curve Diffie-Hellman?",
+      "choices": [
+        "S = a * B = b * A = a * b * G",
+        "S = A + B",
+        "S = (a + b) * G",
+        "S = G^(ab) mod p"
+      ],
+      "answer": 0,
+      "explain": "Alice computes a * B = a * b * G and Bob computes b * A = b * a * G. Both get the same point. Eve sees only A and B and has no known efficient way to compute S."
+    },
+    {
+      "type": "mc",
+      "category": "Elliptic-curve DH and security levels",
+      "q": "What is the main practical advantage of elliptic-curve Diffie-Hellman over modular-arithmetic Diffie-Hellman?",
+      "choices": [
+        "It achieves the same security with smaller keys",
+        "It is secure against man-in-the-middle attacks",
+        "It doesn't need any public parameters",
+        "Its underlying math is simpler"
+      ],
+      "answer": 0,
+      "explain": "ECDH reaches the same security with much smaller keys, for example a 256-bit curve versus a 2048-bit prime. The math is more complicated, and ECDH is still vulnerable to MITM without authentication."
+    },
+    {
+      "type": "mc",
+      "category": "Elliptic-curve DH and security levels",
+      "q": "Which three problems are believed to be roughly equally hard?",
+      "choices": [
+        "Discrete log modulo a 2048-bit prime, elliptic-curve discrete log on a 256-bit curve, and brute-forcing a 128-bit symmetric key",
+        "Discrete log modulo a 256-bit prime, elliptic-curve discrete log on a 256-bit curve, and brute-forcing a 256-bit symmetric key",
+        "Discrete log modulo a 2048-bit prime, elliptic-curve discrete log on a 2048-bit curve, and brute-forcing a 2048-bit symmetric key",
+        "Discrete log modulo a 128-bit prime, elliptic-curve discrete log on a 256-bit curve, and brute-forcing a 2048-bit symmetric key"
+      ],
+      "answer": 0,
+      "explain": "A 2048-bit prime, a 256-bit curve, and a 128-bit symmetric key give roughly equal security. Brute-forcing the 128-bit key is believed to be slightly harder."
+    },
+    {
+      "type": "mc",
+      "category": "Elliptic-curve DH and security levels",
+      "q": "You are using 128-bit AES and want the other parts of the system to be about equally hard to break. Which choice fits?",
+      "choices": [
+        "SHA-256 with a 256-bit elliptic curve or a 2048-bit prime for Diffie-Hellman",
+        "SHA-256 with a 128-bit prime for Diffie-Hellman",
+        "SHA-384 with a 2048-bit elliptic curve",
+        "A 128-bit hash with a 4096-bit elliptic curve"
+      ],
+      "answer": 0,
+      "explain": "Security levels are matched so no single piece is the weak link. 128-bit AES is usually paired with SHA-256 and either 256-bit ECDH or 2048-bit DH."
+    },
+    {
+      "type": "tf",
+      "category": "Elliptic-curve DH and security levels",
+      "q": "Among discrete log modulo a 2048-bit prime, elliptic-curve discrete log on a 256-bit curve, and brute-forcing a 128-bit key, brute-forcing the 128-bit key is believed to be slightly harder than the other two.",
+      "answer": true,
+      "explain": "All three are roughly equal in difficulty, and the 128-bit symmetric brute force is believed to be slightly harder."
+    },
+    {
+      "type": "mc",
+      "category": "Attacks on Diffie-Hellman",
+      "q": "Basic Diffie-Hellman is secure against which kind of adversary?",
+      "choices": [
+        "A passive eavesdropper, but not an active man-in-the-middle",
+        "An active man-in-the-middle, but not a passive eavesdropper",
+        "Both passive and active adversaries",
+        "Neither, unless elliptic curves are used"
+      ],
+      "answer": 0,
+      "explain": "Eve, who only watches, can't get the key. Mallory, who can tamper with messages, can set up a separate key with each side."
+    },
+    {
+      "type": "mc",
+      "category": "Attacks on Diffie-Hellman",
+      "q": "Mallory intercepts Alice's g^a mod p and sends Bob g^m mod p instead, where m is Mallory's secret. What key does Bob compute?",
+      "choices": [
+        "g^(mb) mod p",
+        "g^(ab) mod p",
+        "g^(am) mod p",
+        "g^m mod p"
+      ],
+      "answer": 0,
+      "explain": "Bob raises the value he received to his secret: (g^m)^b = g^(mb) mod p. Mallory can compute the same key as (g^b)^m."
+    },
+    {
+      "type": "num",
+      "category": "Attacks on Diffie-Hellman",
+      "q": "Toy MITM: p = 11, g = 2, Alice's a = 3, Bob's b = 4. Mallory picks m = 2 and replaces both A and B with g^m mod p. What key does Bob end up with?",
+      "answer": 3,
+      "explain": "g^m = 2^2 = 4. Bob computes 4^b = 4^4 = 256 mod 11 = 3. Mallory computes the same key from Bob's real B = 5: 5^2 = 25 mod 11 = 3. Alice's key is 4^3 mod 11 = 9, so Alice and Bob no longer share a key."
+    },
+    {
+      "type": "multi",
+      "category": "Attacks on Diffie-Hellman",
+      "q": "After a successful man-in-the-middle attack on Diffie-Hellman, what can Mallory do?",
+      "choices": [
+        "Decrypt messages Alice sends",
+        "Change messages and re-encrypt them under Bob's key before forwarding",
+        "Compute the key Bob thinks he shares with Alice",
+        "Recover Alice's secret exponent a"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Mallory knows g^(am) and g^(bm), so she can decrypt, modify, and re-encrypt traffic in both directions without being noticed. Finding a itself would still mean solving the discrete log problem."
+    },
+    {
+      "type": "mc",
+      "category": "Attacks on Diffie-Hellman",
+      "q": "What is the root cause of Diffie-Hellman's vulnerability to man-in-the-middle attacks?",
+      "choices": [
+        "The exchanged values have no integrity or authenticity",
+        "The discrete log problem is easy for active attackers",
+        "The prime p is public",
+        "The shared secret is not hashed before use"
+      ],
+      "answer": 0,
+      "explain": "Nothing proves that the g^x value Bob receives actually came from Alice, so Mallory can swap in her own."
+    },
+    {
+      "type": "mc",
+      "category": "Attacks on Diffie-Hellman",
+      "q": "How can Alice and Bob defend against a man-in-the-middle during Diffie-Hellman?",
+      "choices": [
+        "Protect the exchanged messages with a scheme that gives integrity and authenticity, such as digital signatures",
+        "Use a larger prime p",
+        "Switch to elliptic-curve Diffie-Hellman",
+        "Hash the shared secret before using it"
+      ],
+      "answer": 0,
+      "explain": "With authenticated messages, Alice and Bob can detect Mallory's tampering. Larger parameters, ECDH, or hashing S don't stop an active attacker."
+    }
+  ]
+}

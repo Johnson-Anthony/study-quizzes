@@ -1,0 +1,619 @@
+{
+  "title": "Symmetric-Key Cryptography",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "IND-CPA Security",
+      "q": "In the IND-CPA game, Eve sends Alice two messages M_0 and M_1. What does Alice send back?",
+      "choices": [
+        "The encryption of both messages, in random order",
+        "Enc(K, M_b), where b is a bit chosen uniformly at random",
+        "Enc(K, M_0 ⊕ M_1)",
+        "The encryption of whichever message is shorter"
+      ],
+      "answer": 1,
+      "explain": "Alice flips a fair coin to pick b ∈ {0, 1}, encrypts only M_b, and returns that ciphertext. Eve then has to guess b."
+    },
+    {
+      "type": "mc",
+      "category": "IND-CPA Security",
+      "q": "Why must M_0 and M_1 be the same length in the IND-CPA game?",
+      "choices": [
+        "XOR is only defined on equal-length bitstrings",
+        "Block ciphers can only encrypt one length of message",
+        "Practical schemes are allowed to leak plaintext length. With unequal lengths, Eve could win against an otherwise secure scheme just by checking whether the ciphertext is short or long",
+        "Eve's chosen-plaintext queries must all be the same length"
+      ],
+      "answer": 2,
+      "explain": "Hiding length would need every ciphertext to be the same fixed size, which is impractical. Ciphertexts are allowed to leak length, so the game uses equal-length messages to keep secure schemes from being wrongly marked insecure."
+    },
+    {
+      "type": "tf",
+      "category": "IND-CPA Security",
+      "q": "In the chosen-plaintext attack model used for IND-CPA, Eve can also trick Alice into decrypting ciphertexts that Eve chooses.",
+      "answer": false,
+      "explain": "Under chosen plaintext, Eve can only ask for encryptions of messages she picks. Getting decryptions would be a different, stronger threat model."
+    },
+    {
+      "type": "tf",
+      "category": "IND-CPA Security",
+      "q": "In step 3 of the IND-CPA game, Eve is allowed to ask for the encryption of M_0 (or M_1) again.",
+      "answer": true,
+      "explain": "This is intentional. It guarantees that every deterministic scheme fails IND-CPA, so any IND-CPA secure scheme has to be non-deterministic."
+    },
+    {
+      "type": "tf",
+      "category": "IND-CPA Security",
+      "q": "Eve can win the IND-CPA game against any deterministic encryption scheme with probability 1.",
+      "answer": true,
+      "explain": "She requests Enc(K, M_0) and compares it to the challenge ciphertext. A deterministic scheme gives the same output for the same input, so a match means M_0 and a mismatch means M_1."
+    },
+    {
+      "type": "mc",
+      "category": "IND-CPA Security",
+      "q": "Eve can guess which message was encrypted with probability 1/2 + 1/2^128. Does that make the scheme IND-CPA insecure?",
+      "choices": [
+        "No. Her advantage is negligible, so she cannot use it for any practical attack",
+        "Yes. Any success probability above 1/2 means Eve wins",
+        "Yes. A 128-bit key can be brute-forced in polynomial time",
+        "No. Eve only wins if she guesses correctly with probability 1"
+      ],
+      "answer": 0,
+      "explain": "Eve only wins if she does better than 1/2 by a non-negligible amount. An advantage of 1/2^128 (about the odds of guessing a 128-bit key) is negligible."
+    },
+    {
+      "type": "mc",
+      "category": "IND-CPA Security",
+      "q": "Why is Eve limited to a practical (e.g. polynomially-bounded) amount of computation in the IND-CPA game?",
+      "choices": [
+        "So that Alice never has to answer more than one encryption request",
+        "So that attacks that are possible in theory but computationally infeasible, like brute-forcing a 128-bit key, don't count as breaking the scheme",
+        "Because Eve doesn't know the length of the key",
+        "Because a block cipher can only process polynomially many blocks"
+      ],
+      "answer": 1,
+      "explain": "Trying 2^128 keys at 1 ms each would take about 10^28 years. Attacks that inefficient are excluded by bounding Eve's runtime to O(n^k)."
+    },
+    {
+      "type": "num",
+      "category": "IND-CPA Security",
+      "q": "If an encryption scheme is IND-CPA secure, what is the best probability with which Eve can guess which message was encrypted, ignoring negligible terms? (Give a decimal.)",
+      "answer": 0.5,
+      "tolerance": 0.001,
+      "explain": "She can do no better than a random guess: 1/2."
+    },
+    {
+      "type": "text",
+      "category": "XOR",
+      "q": "Compute 1011 ⊕ 0110.",
+      "answer": ["1101"],
+      "explain": "Bitwise: 1⊕0=1, 0⊕1=1, 1⊕1=0, 1⊕0=1, giving 1101."
+    },
+    {
+      "type": "text",
+      "category": "XOR",
+      "q": "Solve for y: y ⊕ 1011 = 0110.",
+      "answer": ["1101"],
+      "explain": "XOR both sides by 1011: y = 0110 ⊕ 1011 = 1101."
+    },
+    {
+      "type": "mc",
+      "category": "XOR",
+      "q": "What does x ⊕ y ⊕ x simplify to?",
+      "choices": ["0", "x", "y", "x ⊕ y"],
+      "answer": 2,
+      "explain": "By commutativity and associativity it equals (x ⊕ x) ⊕ y = 0 ⊕ y = y. The x cancels out."
+    },
+    {
+      "type": "multi",
+      "category": "XOR",
+      "q": "Which of the following identities hold for XOR?",
+      "choices": [
+        "x ⊕ 0 = x",
+        "x ⊕ x = 0",
+        "x ⊕ y = y ⊕ x",
+        "x ⊕ x = x",
+        "(x ⊕ y) ⊕ z = x ⊕ (y ⊕ z)",
+        "x ⊕ 1 = x"
+      ],
+      "answer": [0, 1, 2, 4],
+      "explain": "0 is the identity, every value is its own inverse, and XOR is commutative and associative. x ⊕ x = 0, not x, and x ⊕ 1 flips the bit."
+    },
+    {
+      "type": "text",
+      "category": "One-Time Pad",
+      "q": "One-time pad: the message is M = 1100 and the key is K = 1010. What is the ciphertext C?",
+      "answer": ["0110"],
+      "explain": "C = M ⊕ K = 1100 ⊕ 1010 = 0110."
+    },
+    {
+      "type": "mc",
+      "category": "One-Time Pad",
+      "q": "A one-time pad key K is reused to encrypt two messages, C = M ⊕ K and C' = M' ⊕ K. What does Eve get by computing C ⊕ C'?",
+      "choices": ["K", "M ⊕ M'", "M ⊕ K", "Nothing, because the result is uniformly random"],
+      "answer": 1,
+      "explain": "C ⊕ C' = M ⊕ K ⊕ M' ⊕ K = M ⊕ M'. The key cancels out, and if the messages contain redundancy, M ⊕ M' often reveals most of both."
+    },
+    {
+      "type": "mc",
+      "category": "One-Time Pad",
+      "q": "Eve knows a plaintext M and its one-time-pad ciphertext C. How does she recover the key?",
+      "choices": ["K = M ⊕ C", "K = C ⊕ C", "K = M", "She cannot, because the one-time pad is information-theoretically secure"],
+      "answer": 0,
+      "explain": "Since C = M ⊕ K, XORing both sides with M gives K = M ⊕ C. That is exactly why a reused key is fatal: one known plaintext exposes the key for every other message."
+    },
+    {
+      "type": "tf",
+      "category": "One-Time Pad",
+      "q": "With the one-time pad (fresh random key, used once), for a fixed message M every possible ciphertext C can be produced by exactly one key.",
+      "answer": true,
+      "explain": "The key is K = M ⊕ C. All keys are equally likely, so every ciphertext is too. The eavesdropper sees a uniformly random string no matter what the message is, which is information-theoretic security."
+    },
+    {
+      "type": "mc",
+      "category": "One-Time Pad",
+      "q": "What is the main reason the one-time pad is impractical for most real-world use?",
+      "choices": [
+        "XOR is too slow to compute on large messages",
+        "It leaks the plaintext length",
+        "Every message needs a fresh, never-reused key as long as the message. A secure way to exchange that key could just as well have been used to send the message",
+        "Decryption requires a different key than encryption"
+      ],
+      "answer": 2,
+      "explain": "Key reuse breaks the scheme, so Alice and Bob need a new n-bit secret for every n-bit message. That is no easier than securely sending the message itself."
+    },
+    {
+      "type": "mc",
+      "category": "One-Time Pad",
+      "q": "In the IND-CPA game against a one-time pad whose key is reused, how does Eve win?",
+      "choices": [
+        "She brute-forces all 2^n keys",
+        "She asks for the encryption of M_0 and checks whether it equals the challenge ciphertext. This wins with probability 1",
+        "She guesses at random and wins with probability 1/2",
+        "She cannot win, because the one-time pad is IND-CPA secure in every setting"
+      ],
+      "answer": 1,
+      "explain": "With the same key every time, Enc(M_0) = M_0 ⊕ K always. A match with the challenge means M_0 was encrypted, and a mismatch means M_1."
+    },
+    {
+      "type": "mc",
+      "category": "One-Time Pad",
+      "q": "What weakness let US cryptanalysts (the VENONA project) read some WWII-era Soviet messages that were encrypted with one-time pads?",
+      "choices": [
+        "The Soviets used keys shorter than their messages",
+        "The Soviets reused old one-time pad keys",
+        "The one-time pad's XOR operation can be inverted without the key",
+        "The Soviets sent their keys in plaintext"
+      ],
+      "answer": 1,
+      "explain": "The officials generating keys got lazy and reused old ones. Because of message redundancy, knowing M ⊕ M' was enough to recover a lot of plaintext."
+    },
+    {
+      "type": "mc",
+      "category": "Block Ciphers",
+      "q": "A block cipher takes a k-bit key and an n-bit block. How many different scrambling settings does it have?",
+      "choices": ["2^n", "2^k", "k · n", "2^(k+n)"],
+      "answer": 1,
+      "explain": "Each of the 2^k keys picks a different scrambling setting (a different permutation of n-bit strings)."
+    },
+    {
+      "type": "mc",
+      "category": "Block Ciphers",
+      "q": "Why must E_K be a permutation (a bijection) on n-bit strings for each fixed key K?",
+      "choices": [
+        "So that the ciphertext is longer than the plaintext",
+        "So that it is randomized",
+        "If two plaintexts mapped to the same ciphertext, that ciphertext could not be decrypted unambiguously",
+        "So that the key can be recovered from the ciphertext"
+      ],
+      "answer": 2,
+      "explain": "Decryption D_K is the inverse of E_K, so E_K must map every input to a unique output. That also means the block cipher is deterministic."
+    },
+    {
+      "type": "tf",
+      "category": "Block Ciphers",
+      "q": "Given the same key and the same input block, a block cipher always produces the same output.",
+      "answer": true,
+      "explain": "Block ciphers are deterministic. That is required for invertibility, and it is also why a bare block cipher is not IND-CPA secure."
+    },
+    {
+      "type": "mc",
+      "category": "Block Ciphers",
+      "q": "What is D_K(E_K(M))?",
+      "choices": ["K", "E_K(M)", "M ⊕ K", "M"],
+      "answer": 3,
+      "explain": "Decryption is the inverse permutation of encryption, so it gives back M."
+    },
+    {
+      "type": "mc",
+      "category": "Block Ciphers",
+      "q": "Why does block cipher decryption need the key as input?",
+      "choices": [
+        "The key tells which scrambling setting produced the ciphertext. Without it, anyone could decrypt",
+        "The key holds the length of the plaintext",
+        "Decryption XORs the ciphertext with the key and nothing else",
+        "It doesn't. Only encryption needs the key"
+      ],
+      "answer": 0,
+      "explain": "Each key is a different permutation. To invert the right one you need to know which one was used."
+    },
+    {
+      "type": "num",
+      "category": "Block Ciphers",
+      "q": "What is AES's block length, in bits?",
+      "answer": 128,
+      "explain": "AES uses n = 128-bit blocks. Its key is 128 bits by default, and 192- or 256-bit keys are also supported."
+    },
+    {
+      "type": "multi",
+      "category": "Block Ciphers",
+      "q": "Which key lengths does AES support?",
+      "choices": ["64 bits", "128 bits", "192 bits", "256 bits", "512 bits"],
+      "answer": [1, 2, 3],
+      "fixed": true,
+      "explain": "AES supports 128-, 192- and 256-bit keys. The block size is always 128 bits."
+    },
+    {
+      "type": "tf",
+      "category": "Block Cipher Security",
+      "q": "Using AES directly as the encryption scheme (Enc(K, M) = E_K(M)) is IND-CPA secure.",
+      "answer": false,
+      "explain": "AES is deterministic. Eve asks for E_K(M_0) and compares it to the challenge, winning with probability 1, which is the same attack as against a reused one-time pad."
+    },
+    {
+      "type": "mc",
+      "category": "Block Cipher Security",
+      "q": "In the experiment showing a block cipher is indistinguishable from random, what is Eve trying to decide?",
+      "choices": [
+        "Which key K the box uses",
+        "Whether the box computes E_K for a random key or a permutation chosen uniformly at random",
+        "Which of two messages was encrypted",
+        "Whether the box is deterministic"
+      ],
+      "answer": 1,
+      "explain": "Eve feeds inputs into the box and sees the outputs, then guesses type I (E_K) or type II (random permutation π). If she can't beat 1/2, the cipher is indistinguishable from random."
+    },
+    {
+      "type": "tf",
+      "category": "Block Cipher Security",
+      "q": "It has been proven that AES is computationally indistinguishable from a random permutation.",
+      "answer": false,
+      "explain": "There is no proof. AES is believed to be computationally indistinguishable because, after years of analysis, the best known attack is still exhaustive key search."
+    },
+    {
+      "type": "tf",
+      "category": "Block Cipher Security",
+      "q": "Once a random permutation has been generated, giving it the same input twice gives the same output twice.",
+      "answer": true,
+      "explain": "The randomness is only in choosing the mapping when it is created. After that, the function is fixed (deterministic)."
+    },
+    {
+      "type": "mc",
+      "category": "Block Cipher Security",
+      "q": "What is the best known attack against AES?",
+      "choices": [
+        "XORing two ciphertexts to cancel the key",
+        "Exhaustive key search",
+        "Comparing identical ciphertext blocks",
+        "Requesting decryptions of chosen ciphertexts"
+      ],
+      "answer": 1,
+      "explain": "Exhaustive key search tries every key until one decrypts a ciphertext to intelligible plaintext. With a 128-bit key that is infeasible."
+    },
+    {
+      "type": "num",
+      "category": "Block Cipher Security",
+      "q": "Exhaustive key search against a 128-bit key takes 2^x attempts on average. What is x?",
+      "answer": 127,
+      "explain": "The worst case is 2^128. On average the key turns up halfway through, after 2^127 attempts."
+    },
+    {
+      "type": "mc",
+      "category": "Block Cipher Security",
+      "q": "Why is AES only computationally indistinguishable from random, not truly indistinguishable?",
+      "choices": [
+        "Because it leaks plaintext length",
+        "Because it is randomized",
+        "With unlimited time and computing power, exhaustive key search could tell it apart from a random permutation",
+        "Because its block size is smaller than its key size"
+      ],
+      "answer": 2,
+      "explain": "Eve's advantage is only negligible (on the order of 1/2^128). Given infinite compute it could be exploited, but given practical compute it is useless."
+    },
+    {
+      "type": "mc",
+      "category": "Modes of Operation",
+      "q": "What is the main flaw of ECB mode?",
+      "choices": [
+        "It cannot encrypt messages longer than one block",
+        "Equal plaintext blocks produce equal ciphertext blocks, so patterns in the plaintext leak",
+        "Decryption cannot be parallelized",
+        "It needs a different key for every block"
+      ],
+      "answer": 1,
+      "explain": "ECB computes C_i = E_K(M_i) separately for each block. If M_i = M_j, then C_i = C_j, which an eavesdropper can see."
+    },
+    {
+      "type": "mc",
+      "category": "Modes of Operation",
+      "q": "What is the CBC mode encryption equation (with C_0 = IV)?",
+      "choices": [
+        "C_i = E_K(P_i) ⊕ C_{i-1}",
+        "C_i = E_K(C_{i-1}) ⊕ P_i",
+        "C_i = E_K(P_i ⊕ C_{i-1})",
+        "C_i = E_K(IV ‖ i) ⊕ P_i"
+      ],
+      "answer": 2,
+      "explain": "CBC XORs the plaintext block with the previous ciphertext block, then encrypts. E_K(C_{i-1}) ⊕ P_i is CFB, and E_K(IV ‖ i) ⊕ P_i is CTR."
+    },
+    {
+      "type": "mc",
+      "category": "Modes of Operation",
+      "q": "What is the CBC mode decryption equation?",
+      "choices": [
+        "P_i = D_K(C_i ⊕ C_{i-1})",
+        "P_i = D_K(C_i) ⊕ C_{i-1}",
+        "P_i = E_K(C_{i-1}) ⊕ C_i",
+        "P_i = D_K(C_i) ⊕ P_{i-1}"
+      ],
+      "answer": 1,
+      "explain": "Undo the encryption step first (D_K(C_i) = P_i ⊕ C_{i-1}), then XOR with C_{i-1} to cancel it."
+    },
+    {
+      "type": "mc",
+      "category": "Modes of Operation",
+      "q": "What is the CFB mode encryption equation (with C_0 = IV)?",
+      "choices": [
+        "C_i = E_K(C_{i-1}) ⊕ M_i",
+        "C_i = E_K(C_{i-1} ⊕ M_i)",
+        "C_i = E_K(M_i)",
+        "C_i = Z_i ⊕ M_i where Z_i = E_K(Z_{i-1})"
+      ],
+      "answer": 0,
+      "explain": "CFB encrypts the previous ciphertext block and XORs the result with the plaintext. The last choice is OFB, where the chain uses Z values instead of ciphertext."
+    },
+    {
+      "type": "mc",
+      "category": "Modes of Operation",
+      "q": "In CTR mode, what is the i-th pad block Z_i that gets XORed with M_i?",
+      "choices": ["E_K(Z_{i-1})", "E_K(C_{i-1})", "E_K(IV ‖ i)", "D_K(IV ‖ i)"],
+      "answer": 2,
+      "explain": "CTR encrypts the nonce (IV) together with the counter i. The output works like a one-time pad: C_i = E_K(IV ‖ i) ⊕ M_i."
+    },
+    {
+      "type": "multi",
+      "category": "Modes of Operation",
+      "q": "In which modes does decryption use only the block cipher's encryption function E_K and never D_K?",
+      "choices": ["ECB", "CBC", "CFB", "OFB", "CTR"],
+      "answer": [2, 3, 4],
+      "fixed": true,
+      "explain": "CFB (P_i = E_K(C_{i-1}) ⊕ C_i), OFB and CTR all use E_K to generate a pad that is XORed with the data, so decryption regenerates the same pad with E_K. ECB and CBC pass the plaintext through E_K, so they need D_K to decrypt."
+    },
+    {
+      "type": "mc",
+      "category": "Modes of Operation",
+      "q": "In OFB mode, an attacker knows that block M_j is 100 (the amount being transferred) and sees ciphertext block C_j. Which replacement block makes it decrypt to an amount M' of his choosing?",
+      "choices": [
+        "C_j ⊕ 100 ⊕ M'",
+        "E_K(M')",
+        "C_j ⊕ M'",
+        "D_K(C_j) ⊕ M'"
+      ],
+      "answer": 0,
+      "explain": "Z_j = C_j ⊕ 100. The new block Z_j ⊕ M' = C_j ⊕ 100 ⊕ M' decrypts to M'. No key needed."
+    },
+    {
+      "type": "tf",
+      "category": "Modes of Operation",
+      "q": "Unlike OFB, CBC mode protects ciphertexts from tampering.",
+      "answer": false,
+      "explain": "Tampering is possible with other modes too, CBC included. These modes provide confidentiality, not integrity. OFB just makes tampering easier to show."
+    },
+    {
+      "type": "mc",
+      "category": "Modes of Operation",
+      "q": "To fix determinism, a mode's encryption algorithm is either randomized or stateful. What about its decryption algorithm?",
+      "choices": [
+        "It is neither randomized nor stateful",
+        "It must also be randomized",
+        "It must be stateful",
+        "It must use a different key than encryption"
+      ],
+      "answer": 0,
+      "explain": "Only encryption flips coins (e.g. picks a random IV) or keeps state. Decryption reads the IV from the ciphertext and is deterministic."
+    },
+    {
+      "type": "text",
+      "category": "Modes of Operation",
+      "q": "In CBC mode, C_0 is defined as what value? (Abbreviation is fine.)",
+      "answer": ["IV", "the IV", "initial vector", "the initial vector", "initialization vector", "the initialization vector"],
+      "explain": "C_0 = IV, a random n-bit string picked fresh for each message. It is sent as the first block: C = IV · C_1 · C_2 ⋯ C_l."
+    },
+    {
+      "type": "mc",
+      "category": "Parallelization",
+      "q": "Which is true of CBC mode?",
+      "choices": [
+        "Encryption and decryption can both be parallelized",
+        "Encryption can be parallelized but decryption cannot",
+        "Decryption can be parallelized but encryption cannot",
+        "Neither can be parallelized"
+      ],
+      "answer": 2,
+      "explain": "Encryption needs C_{i-1} before it can compute C_i. Decryption, P_i = D_K(C_i) ⊕ C_{i-1}, only uses ciphertext blocks the receiver already has."
+    },
+    {
+      "type": "mc",
+      "category": "Parallelization",
+      "q": "Which is true of CTR mode?",
+      "choices": [
+        "Encryption and decryption can both be parallelized",
+        "Only encryption can be parallelized",
+        "Only decryption can be parallelized",
+        "Neither can be parallelized"
+      ],
+      "answer": 0,
+      "explain": "Each block cipher call takes only the nonce and counter, E_K(IV ‖ i), and doesn't depend on any earlier plaintext or ciphertext."
+    },
+    {
+      "type": "multi",
+      "category": "Parallelization",
+      "q": "Using each mode's encryption equation, which modes have parallelizable encryption?",
+      "choices": ["ECB", "CBC", "CFB", "OFB", "CTR"],
+      "answer": [0, 4],
+      "fixed": true,
+      "explain": "ECB (C_i = E_K(M_i)) and CTR (E_K(IV ‖ i)) need nothing from earlier blocks. CBC and CFB need C_{i-1}, and OFB needs Z_{i-1}."
+    },
+    {
+      "type": "multi",
+      "category": "Parallelization",
+      "q": "Using each mode's decryption equation, which modes have parallelizable decryption?",
+      "choices": ["ECB", "CBC", "CFB", "OFB", "CTR"],
+      "answer": [0, 1, 2, 4],
+      "fixed": true,
+      "explain": "CBC (D_K(C_i) ⊕ C_{i-1}) and CFB (E_K(C_{i-1}) ⊕ C_i) only need ciphertext blocks, which are all available. OFB still has to build the chain Z_i = E_K(Z_{i-1}) one step at a time."
+    },
+    {
+      "type": "mc",
+      "category": "Parallelization",
+      "q": "Why can CBC decryption be parallelized even though CBC encryption can't?",
+      "choices": [
+        "Decryption uses D_K, which is faster than E_K",
+        "When decrypting, every C_i and C_{i-1} is already known, so no block depends on another block's computation",
+        "Decryption doesn't use the IV",
+        "Decryption processes the blocks in reverse order"
+      ],
+      "answer": 1,
+      "explain": "Encryption has to wait for C_{i-1} to be computed. Decryption gets all the ciphertext blocks at the start."
+    },
+    {
+      "type": "num",
+      "category": "Padding",
+      "q": "PKCS#7 padding with 16-byte blocks: how many padding bytes are added to a 13-byte message?",
+      "answer": 3,
+      "explain": "13 + 3 = 16. Each of the 3 padding bytes has the value 3."
+    },
+    {
+      "type": "num",
+      "category": "Padding",
+      "q": "PKCS#7 padding with 16-byte blocks: how many padding bytes are added to a 32-byte message?",
+      "answer": 16,
+      "explain": "When the message is already a multiple of the block size, a whole new block of padding is added, so there is always exactly one padding pattern to remove."
+    },
+    {
+      "type": "mc",
+      "category": "Padding",
+      "q": "PKCS#7 padding with 16-byte blocks: a 20-byte message is padded. What value does each padding byte hold?",
+      "choices": ["4", "12", "16", "20"],
+      "answer": 1,
+      "explain": "20 bytes need 12 more to reach 32, and every padding byte holds the number of padding bytes, 12. The receiver reads the last byte (12) and removes 12 bytes."
+    },
+    {
+      "type": "tf",
+      "category": "Padding",
+      "q": "Under PKCS#7, a message whose length is already a multiple of the block size gets no padding.",
+      "answer": false,
+      "explain": "An entire extra block of padding is added. Otherwise a message that happened to end in bytes that look like padding couldn't be unpadded unambiguously."
+    },
+    {
+      "type": "mc",
+      "category": "Padding",
+      "q": "Why is \"pad with 1s until the length is a multiple of the block size\" a bad padding scheme?",
+      "choices": [
+        "It makes the ciphertext too long",
+        "If the message already ends in 1s, the receiver can't tell how many trailing 1s are padding",
+        "1s can't be XORed with ciphertext",
+        "It only works in CTR mode"
+      ],
+      "answer": 1,
+      "explain": "For example, 0000000010111 padded to 0000000010111111: there's no way to know how many of the final 1s to remove."
+    },
+    {
+      "type": "mc",
+      "category": "Padding",
+      "q": "Why does CTR mode not need padding?",
+      "choices": [
+        "CTR mode only encrypts messages that are a multiple of the block size",
+        "The short last block is XORed with the first bits of the pad block and the rest of the pad is discarded. The result is never fed into the block cipher",
+        "CTR mode pads automatically with the nonce",
+        "The block cipher in CTR mode accepts any input length"
+      ],
+      "answer": 1,
+      "explain": "In CBC, the plaintext is XORed with a full 128-bit block and then encrypted, so it must be full length. In CTR the XOR output is just ciphertext and never goes back into E_K, so it can be shorter."
+    },
+    {
+      "type": "num",
+      "category": "Padding",
+      "q": "CTR mode with a 128-bit block cipher: the last plaintext block is only 100 bits. How many bits of that block's block cipher output are discarded?",
+      "answer": 28,
+      "explain": "The 100 plaintext bits are XORed with the first 100 bits of E_K(IV ‖ i), and the last 28 bits are thrown away (in both encryption and decryption)."
+    },
+    {
+      "type": "num",
+      "category": "Padding",
+      "q": "A 40-byte message is encrypted with AES-CBC and PKCS#7 padding. How many bytes long is the full ciphertext, including the IV?",
+      "answer": 64,
+      "explain": "40 bytes are padded with 8 bytes to 48 (3 blocks). The ciphertext is IV + 3 blocks = 4 × 16 = 64 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "IV Reuse",
+      "q": "Two different messages are encrypted in CTR mode with the same key and the same nonce. What does an eavesdropper learn?",
+      "choices": [
+        "Only whether the messages start with the same blocks",
+        "The XOR of the two messages",
+        "The key",
+        "Nothing, because CTR is IND-CPA secure"
+      ],
+      "answer": 1,
+      "explain": "The same nonce gives the same pad E_K(IV ‖ i), so this is exactly a reused one-time pad: C ⊕ C' = M ⊕ M'."
+    },
+    {
+      "type": "mc",
+      "category": "IV Reuse",
+      "q": "Two different messages are encrypted in CBC mode with the same key and the same IV. What does an eavesdropper learn?",
+      "choices": [
+        "The XOR of the two messages",
+        "The key",
+        "Whether the messages start with the same blocks, up to the first block where they differ",
+        "Nothing at all"
+      ],
+      "answer": 2,
+      "explain": "With equal IVs, equal leading plaintext blocks give equal ciphertext blocks. Once one block differs, every later block depends on it and looks unrelated."
+    },
+    {
+      "type": "tf",
+      "category": "IV Reuse",
+      "q": "If the IV is reused with the same key, a block cipher mode like CBC or CTR becomes deterministic and is no longer IND-CPA secure.",
+      "answer": true,
+      "explain": "The fresh IV is what makes repeated encryptions of the same plaintext look different. Reuse it and Eve's 'ask for Enc(M_0) again' strategy works."
+    },
+    {
+      "type": "mc",
+      "category": "IV Reuse",
+      "q": "Which statement correctly compares CBC and CTR?",
+      "choices": [
+        "IV reuse leaks more in CBC than in CTR, and CBC can be parallelized",
+        "IV reuse leakage is contained in CBC but catastrophic in CTR. CTR can be parallelized, but CBC encryption cannot",
+        "Both leak the XOR of the messages under IV reuse, and neither can be parallelized",
+        "Only CBC is IND-CPA secure when used correctly"
+      ],
+      "answer": 1,
+      "explain": "Used correctly, both are IND-CPA secure. The tradeoff: CTR is faster (parallelizable), which is why high-performance systems use it, but mistakes with the nonce are far worse."
+    },
+    {
+      "type": "mc",
+      "category": "IV Reuse",
+      "q": "What properties should the IV have for each new encryption in a secure block cipher mode?",
+      "choices": [
+        "It should be fixed and publicly known",
+        "It should equal the key",
+        "It should be different, random, and unpredictable each time",
+        "It should be the hash of the plaintext"
+      ],
+      "answer": 2,
+      "explain": "A fresh random IV keeps encrypting the same plaintext twice under the same key from producing the same ciphertext."
+    }
+  ]
+}
