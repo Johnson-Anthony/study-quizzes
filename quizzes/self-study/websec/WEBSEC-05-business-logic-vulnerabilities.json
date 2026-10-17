@@ -1,0 +1,517 @@
+{
+  "title": "WEBSEC 05: Business logic vulnerabilities",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Logic flaw fundamentals",
+      "q": "Which best describes a business logic vulnerability?",
+      "choices": [
+        "A memory-corruption bug in a third-party library used by the application",
+        "A flaw in the design and implementation of an application that lets an attacker elicit unintended behavior, often by manipulating legitimate functionality",
+        "A weakness in a cryptographic primitive that allows ciphertext to be decrypted without the key",
+        "A server misconfiguration such as leaving default credentials enabled"
+      ],
+      "answer": 1,
+      "explain": "Logic flaws are flaws in an application's design and implementation that let an attacker elicit unintended behavior and potentially turn legitimate functionality toward a malicious goal. They usually come from failing to anticipate unusual application states and handle them safely."
+    },
+    {
+      "type": "multi",
+      "category": "Logic flaw fundamentals",
+      "q": "Which other names are used for business logic vulnerabilities?",
+      "choices": [
+        "Application logic vulnerabilities",
+        "Logic flaws",
+        "Injection flaws",
+        "Side-channel vulnerabilities"
+      ],
+      "answer": [0, 1],
+      "explain": "\"Business logic\" just means the set of rules that define how the application operates. Those rules aren't always related to a business, so the flaws are also called application logic vulnerabilities or simply logic flaws."
+    },
+    {
+      "type": "tf",
+      "category": "Logic flaw fundamentals",
+      "q": "True or false: In \"business logic vulnerability\", the word \"business\" means these flaws can only occur in applications that handle commercial transactions.",
+      "answer": false,
+      "explain": "\"Business logic\" refers to the rules that define how any application operates, whether or not they relate to a business."
+    },
+    {
+      "type": "tf",
+      "category": "Logic flaw fundamentals",
+      "q": "True or false: Automated vulnerability scanners are generally effective at finding logic flaws, because logic flaws follow a small number of generic patterns.",
+      "answer": false,
+      "explain": "Logic flaws are extremely diverse and often unique to an application. Finding them usually takes human knowledge, such as understanding the business domain or what an attacker might want, which makes them hard for scanners to detect and a good target for manual testers and bug bounty hunters."
+    },
+    {
+      "type": "mc",
+      "category": "Logic flaw fundamentals",
+      "q": "Why are logic flaws often invisible to people who aren't explicitly looking for them?",
+      "choices": [
+        "They only occur in client-side JavaScript, which testers rarely read",
+        "They are always hidden behind authentication",
+        "Normal use of the application typically won't expose them",
+        "They exist only in compiled native code, not in web applications"
+      ],
+      "answer": 2,
+      "explain": "Ordinary users following the expected flow won't trigger them. An attacker finds them by interacting with the application in ways the developers never intended."
+    },
+    {
+      "type": "mc",
+      "category": "Logic flaw fundamentals",
+      "q": "Developers assume users will only send data through a web browser. What is the likely consequence?",
+      "choices": [
+        "The server rejects any request that wasn't sent from a browser",
+        "The application becomes tamper-proof, because browsers enforce form constraints",
+        "All input validation is moved to the server",
+        "The application relies on weak client-side controls to validate input, which an attacker can bypass with an intercepting proxy"
+      ],
+      "answer": 3,
+      "explain": "Flawed assumptions about how users interact with the application lead to inadequate validation. If developers assume browser-only input, validation may live entirely in client-side controls, and an intercepting proxy gets around those easily."
+    },
+    {
+      "type": "mc",
+      "category": "Logic flaw fundamentals",
+      "q": "Under which conditions are logic flaws especially likely to creep into an application?",
+      "choices": [
+        "In small applications written by a single developer who understands all of the code",
+        "In overly complicated systems where developers working on one component make undocumented assumptions about how other components work",
+        "In applications that document every assumption made at each stage",
+        "Only in applications that have no authentication"
+      ],
+      "answer": 1,
+      "explain": "Logic flaws are common in overly complicated systems that even the development team doesn't fully understand. A developer on one component may make flawed assumptions about another component, and if those assumptions aren't documented, flaws creep in easily."
+    },
+    {
+      "type": "mc",
+      "category": "Impact and prevention",
+      "q": "What fundamentally determines the impact of a given logic flaw?",
+      "choices": [
+        "The programming language the application is written in",
+        "Whether an automated scanner found the flaw",
+        "The functionality the flaw is related to",
+        "The number of users the application has"
+      ],
+      "answer": 2,
+      "explain": "Impact varies widely. A flaw in authentication can seriously damage overall security, and a flaw in financial transactions can cause large losses through stolen funds and fraud."
+    },
+    {
+      "type": "multi",
+      "category": "Impact and prevention",
+      "q": "A logic flaw exists in an application's authentication mechanism. Which outcomes could it lead to?",
+      "choices": [
+        "Privilege escalation",
+        "Bypassing authentication entirely",
+        "Access to sensitive data and functionality",
+        "A larger attack surface for other exploits",
+        "Nothing serious, because logic flaws are always low-impact"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Authentication logic flaws can allow privilege escalation or a full authentication bypass, giving access to sensitive data and functionality and exposing more attack surface. Logic flaws are not inherently low-impact. Any unintended behavior can potentially lead to high-severity attacks."
+    },
+    {
+      "type": "tf",
+      "category": "Impact and prevention",
+      "q": "True or false: Quirky logic that you can't work out how to exploit yourself can safely be left unfixed.",
+      "answer": false,
+      "explain": "Quirky logic should ideally be fixed even if you can't find an exploit, because someone else may be able to."
+    },
+    {
+      "type": "tf",
+      "category": "Impact and prevention",
+      "q": "True or false: A logic flaw that gives an attacker no direct benefit can still be a problem.",
+      "answer": true,
+      "explain": "Even when attackers can't profit directly, a logic flaw may still let a malicious party damage the business in some way."
+    },
+    {
+      "type": "multi",
+      "category": "Impact and prevention",
+      "q": "Which of the following are key ways to prevent business logic vulnerabilities?",
+      "choices": [
+        "Make sure developers and testers understand the domain the application serves",
+        "Avoid implicit assumptions about user behavior or about the behavior of other parts of the application",
+        "Rely on client-side validation to stop nonsensical values from reaching the server",
+        "Depend on automated scanners to catch logic flaws before release"
+      ],
+      "answer": [0, 1],
+      "explain": "The two keys are domain understanding and not making implicit assumptions. Client-side validation is easily bypassed, and scanners are poor at finding logic flaws."
+    },
+    {
+      "type": "multi",
+      "category": "Impact and prevention",
+      "q": "Which development practices help a team spot logic flaws early?",
+      "choices": [
+        "Maintain clear design documents and data flows for all transactions and workflows, noting the assumptions made at each stage",
+        "Write code as clearly as possible, and document unavoidably complex cases",
+        "Note references to other code that uses each component, and consider side-effects if a malicious party manipulated those dependencies",
+        "Keep assumptions undocumented so attackers can't learn them",
+        "Divide knowledge of the components so that no developer needs to understand the application as a whole"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Documenting assumptions, writing clear code, and tracking dependencies with their possible side-effects all help developers and testers understand the expected behavior. Undocumented assumptions and fragmented understanding are exactly how logic flaws get in."
+    },
+    {
+      "type": "mc",
+      "category": "Impact and prevention",
+      "q": "After a logic flaw has been found and fixed, what is the recommended next step?",
+      "choices": [
+        "Treat it as a one-time human error and move on, since logic flaws are unique",
+        "Add a client-side check that blocks the input that triggered it",
+        "Add the specific payload to an automated scanner's signature list",
+        "Analyze why the flaw existed and how the team missed it, to find weaknesses in the development process"
+      ],
+      "answer": 3,
+      "explain": "Logic flaws often come from bad practices early in development. Finding the root cause, and why it was missed, lets small process changes stop similar flaws at the source or catch them earlier."
+    },
+    {
+      "type": "mc",
+      "category": "Impact and prevention",
+      "q": "What should you do with the assumptions you have made about server-side state?",
+      "choices": [
+        "Enforce them in client-side JavaScript so invalid state never reaches the server",
+        "Identify them and implement logic that verifies they hold, including checking that each input value is sensible before proceeding",
+        "Assume they hold once the user has authenticated",
+        "Encrypt them so users can't read them"
+      ],
+      "answer": 1,
+      "explain": "Prevention means making assumptions explicit and verifying them on the server, for example by checking that every input value is sensible before acting on it."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side trust and unconventional input",
+      "q": "Why are client-side validation controls ineffective as a security measure?",
+      "choices": [
+        "Browsers routinely disable JavaScript validation to improve performance",
+        "Client-side validation only runs on GET requests",
+        "An attacker can use an intercepting proxy such as Burp Proxy to change data after the browser sends it but before the server-side logic receives it",
+        "Client-side code is unable to check numeric ranges"
+      ],
+      "answer": 2,
+      "explain": "Tampering with requests in transit makes client-side controls useless. Without integrity checks and server-side validation, the server is accepting attacker-controlled data at face value."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side trust and unconventional input",
+      "q": "A bank's transfer handler takes `$transferAmount` straight from `$_POST['amount']` and completes the transfer if `$transferAmount <= $currentBalance`. Otherwise it blocks the transfer. An attacker submits amount = -1000 for a transfer to a victim. What is the likely result?",
+      "choices": [
+        "The check passes because -1000 is less than the balance, and the money moves the wrong way: the attacker receives $1000 from the victim",
+        "The check fails because a negative amount is treated as exceeding the balance",
+        "The transfer is blocked because POST parameters cannot hold negative numbers",
+        "The attacker's balance goes down by $1000 as with a normal transfer"
+      ],
+      "answer": 0,
+      "explain": "Nothing rejects negative values. -1000 always compares as less than the current balance, so the transfer is approved, and sending -$1000 may result in the attacker receiving $1000 from the victim."
+    },
+    {
+      "type": "tf",
+      "category": "Client-side trust and unconventional input",
+      "q": "True or false: With the check `if ($transferAmount <= $currentBalance)`, a user whose balance is $0 is blocked from submitting a transfer of -500.",
+      "answer": false,
+      "explain": "-500 <= 0 is true, so the check approves it. The check only compares against the balance and never ensures the amount is positive."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side trust and unconventional input",
+      "q": "Why are simple flaws like the negative-transfer bug easy to miss in development and testing?",
+      "choices": [
+        "They only appear under heavy load",
+        "The web interface's client-side controls may block such inputs, so testing through the UI never sends them to the server-side logic",
+        "Server logs never record negative values",
+        "They only affect applications written in PHP"
+      ],
+      "answer": 1,
+      "explain": "If the browser form rejects negative numbers, testers using the UI never see the server accept them. An attacker sending requests directly does."
+    },
+    {
+      "type": "multi",
+      "category": "Client-side trust and unconventional input",
+      "q": "When auditing an application for flaws in handling unconventional input, which kinds of input should you try?",
+      "choices": [
+        "Exceptionally high numeric values",
+        "Exceptionally low numeric values",
+        "Abnormally long strings in text fields",
+        "Unexpected data types",
+        "Only values in the ranges legitimate users typically enter"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The point is to try input in ranges that legitimate users are unlikely to ever enter, using tools such as Burp Proxy and Repeater, and then see how the application responds."
+    },
+    {
+      "type": "multi",
+      "category": "Client-side trust and unconventional input",
+      "q": "While submitting unconventional values, which questions should you try to answer from the application's responses?",
+      "choices": [
+        "Are any limits imposed on the data?",
+        "What happens when you reach those limits?",
+        "Is any transformation or normalization being performed on your input?",
+        "Would a typical legitimate user ever enter this value?"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Limits, behavior at those limits, and transformation or normalization of input can all expose weak validation. Whether a normal user would enter the value doesn't matter, because the target is values legitimate users are unlikely to enter."
+    },
+    {
+      "type": "tf",
+      "category": "Client-side trust and unconventional input",
+      "q": "True or false: If one form on a website fails to safely handle unconventional input, other forms on the same site are likely to have the same problem.",
+      "answer": true,
+      "explain": "Weak input handling tends to be systematic. One vulnerable form suggests others share the same issue."
+    },
+    {
+      "type": "mc",
+      "category": "Flawed assumptions about user behavior",
+      "q": "An application applies strict checks when a user first registers but enforces the same rules loosely afterward. Which flawed assumption does this reflect?",
+      "choices": [
+        "That users will always supply mandatory input",
+        "That users will always follow the intended sequence of steps",
+        "That a user and their data, having passed strict controls once, can be trusted indefinitely",
+        "That testers are familiar with the application's domain"
+      ],
+      "answer": 2,
+      "explain": "Trusted users won't always remain trustworthy. If business rules and security measures aren't applied consistently throughout the application, the result is loopholes an attacker can exploit."
+    },
+    {
+      "type": "mc",
+      "category": "Flawed assumptions about user behavior",
+      "q": "Why can removing a parameter be especially effective when multiple functions are implemented in the same server-side script?",
+      "choices": [
+        "Removing parameters makes the server skip authentication for the request",
+        "Smaller requests get past web application firewall size limits",
+        "Browsers can't send requests with missing parameters, so the server never handles that case",
+        "Whether a parameter is present may decide which code runs, so removing it can reach code paths that are supposed to be out of reach"
+      ],
+      "answer": 3,
+      "explain": "Browsers may enforce required fields, but attackers can remove parameters in transit. When a parameter's presence or absence selects the code path, removing it can expose functionality that was never meant to be reachable."
+    },
+    {
+      "type": "multi",
+      "category": "Flawed assumptions about user behavior",
+      "q": "When probing for logic flaws by removing parameters, which practices are recommended?",
+      "choices": [
+        "Remove only one parameter at a time",
+        "Try deleting the parameter name as well as its value",
+        "Follow multi-stage processes through to completion",
+        "Remove all parameters at once to cover the most code paths in a single request",
+        "Test only URL and POST parameters, since cookies don't affect code paths"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Removing one parameter at a time ensures all relevant code paths are reached. Deleting the name and deleting the value are usually handled differently. Tampering in one step can affect a later step, so follow the process to the end. Cookies should be checked as well as URL and POST parameters."
+    },
+    {
+      "type": "tf",
+      "category": "Flawed assumptions about user behavior",
+      "q": "True or false: Servers typically handle a parameter sent with an empty value the same way as a parameter that has been removed entirely.",
+      "answer": false,
+      "explain": "The server will typically handle the two cases differently, which is why you should try deleting the parameter name as well as the value."
+    },
+    {
+      "type": "mc",
+      "category": "Flawed assumptions about user behavior",
+      "q": "A site has users log in on one page and then enter a two-factor code on a separate page, but it never checks that the second step was completed. What can an attacker with valid credentials do?",
+      "choices": [
+        "Nothing, because the login page itself enforces 2FA",
+        "Skip the verification page and access the account, bypassing 2FA entirely",
+        "Only read the 2FA code, not use it",
+        "Change the victim's password without logging in"
+      ],
+      "answer": 1,
+      "explain": "The site assumes users always complete the workflow and never verifies that they did. An attacker can therefore skip the verification step altogether."
+    },
+    {
+      "type": "text",
+      "category": "Flawed assumptions about user behavior",
+      "q": "What is the name of the technique where you directly request pages or endpoints in an order the interface doesn't offer, such as skipping steps of a workflow?",
+      "answer": ["forced browsing", "forced-browsing", "force browsing"],
+      "explain": "After seeing a request, an attacker can replay it at will (e.g. with Burp Proxy and Repeater) and use forced browsing to interact with the server in any order, leaving the application in an unexpected state."
+    },
+    {
+      "type": "multi",
+      "category": "Flawed assumptions about user behavior",
+      "q": "Which of these are ways to test a multi-step workflow for sequence-related logic flaws?",
+      "choices": [
+        "Skip certain steps",
+        "Access a single step more than once",
+        "Return to earlier steps",
+        "Submit different sets of parameters to the same URL to reach different steps",
+        "Complete the steps only in the order the interface guides you"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Submit requests in an unintended sequence and pay attention to how each step is reached. Sometimes steps are distinguished by parameter sets sent to one URL rather than by different URLs."
+    },
+    {
+      "type": "mc",
+      "category": "Flawed assumptions about user behavior",
+      "q": "Submitting workflow requests out of sequence often causes exceptions because expected variables are null or uninitialized. How should you treat the resulting error messages and debug output?",
+      "choices": [
+        "Ignore them as noise unrelated to the logic flaw",
+        "Stop testing, since errors mean the application is safely rejecting the request",
+        "Pay close attention, because they can disclose details of the back-end behavior that help refine the attack",
+        "Report them as the vulnerability without investigating further"
+      ],
+      "answer": 2,
+      "explain": "Reaching a location in a partly defined or inconsistent state often makes the application complain. Those errors are a valuable source of information disclosure about how the back end works."
+    },
+    {
+      "type": "mc",
+      "category": "Domain-specific flaws",
+      "q": "A shop gives 10% off orders over $1000. An attacker adds items until the cart passes $1000, gets the discount, then removes the unwanted items before placing the order and keeps the discount. What check is missing?",
+      "choices": [
+        "A check that the discount code is spelled correctly",
+        "A client-side check that hides the discount banner",
+        "A limit on how many items a cart can hold",
+        "A check that the order hasn't changed since the discount was applied, so it still meets the criteria when placed"
+      ],
+      "answer": 3,
+      "explain": "The logic never re-checks the order after the discount is applied. The attacker gets a discount on an order that no longer meets the intended criteria."
+    },
+    {
+      "type": "mc",
+      "category": "Domain-specific flaws",
+      "q": "Which feature of online shops is a classic attack surface when hunting for logic flaws?",
+      "choices": [
+        "Discounting functionality",
+        "Product image hosting",
+        "Static \"About us\" pages",
+        "The site's CSS stylesheets"
+      ],
+      "answer": 0,
+      "explain": "Discounting is a potential gold mine, with many basic logic flaws in how discounts get applied."
+    },
+    {
+      "type": "mc",
+      "category": "Domain-specific flaws",
+      "q": "When hunting domain-specific flaws, which situations deserve particular attention?",
+      "choices": [
+        "Pages that only serve static content",
+        "Any situation where prices or other sensitive values are adjusted based on criteria determined by user actions",
+        "Endpoints that return HTTP 404",
+        "Features that require no user input"
+      ],
+      "answer": 1,
+      "explain": "Work out which algorithms make these adjustments and when they are applied. Then try to put the application in a state where the adjustments no longer match the criteria the developers intended."
+    },
+    {
+      "type": "mc",
+      "category": "Domain-specific flaws",
+      "q": "A tester finds a way to force large numbers of users to follow their social media account but doesn't report it. What best explains how this happens?",
+      "choices": [
+        "Automated scanners already flag every such issue",
+        "The behavior can't be reproduced with an intercepting proxy",
+        "Without knowledge of the domain, the tester may not see why this is valuable to an attacker and dismisses it",
+        "Social media platforms have no business logic"
+      ],
+      "answer": 2,
+      "explain": "Spotting domain-specific flaws takes an understanding of what an attacker would want in that context. Without it, you may dismiss dangerous behavior or fail to see how two functions combine harmfully."
+    },
+    {
+      "type": "multi",
+      "category": "Domain-specific flaws",
+      "q": "When testing an application from a domain you're unfamiliar with, what is recommended?",
+      "choices": [
+        "Read as much documentation as possible",
+        "Where available, talk to subject-matter experts from the domain",
+        "Focus on familiar features and skip the domain-specific ones, since they rarely contain bugs",
+        "Rely on automated scanners to cover the domain-specific logic"
+      ],
+      "answer": [0, 1],
+      "explain": "Documentation and subject-matter experts supply the domain knowledge needed to recognize harmful behavior. Domain-specific features are where these flaws live."
+    },
+    {
+      "type": "tf",
+      "category": "Domain-specific flaws",
+      "q": "True or false: The more obscure an application's domain is, the more likely it is that other testers have missed bugs in it.",
+      "answer": true,
+      "explain": "Learning an obscure domain takes work, but that same difficulty means fewer people have tested it properly."
+    },
+    {
+      "type": "mc",
+      "category": "Encryption oracles and email parsing",
+      "q": "In a web application, what is an \"encryption oracle\"?",
+      "choices": [
+        "A server that stores all of an application's encryption keys",
+        "A user-controllable input that the application encrypts, with the resulting ciphertext then made available to the user in some way",
+        "A third-party service that certifies TLS certificates",
+        "A brute-force tool for recovering encryption keys"
+      ],
+      "answer": 1,
+      "explain": "Because the application encrypts attacker-chosen data and returns the ciphertext, the attacker can encrypt arbitrary data with the application's own algorithm and key."
+    },
+    {
+      "type": "mc",
+      "category": "Encryption oracles and email parsing",
+      "q": "When does an encryption oracle become dangerous?",
+      "choices": [
+        "Whenever the application uses TLS",
+        "Only when the oracle uses an outdated cipher",
+        "When the ciphertext is longer than the plaintext",
+        "When other user-controllable inputs expect data encrypted with the same algorithm, so the attacker can produce valid encrypted input for sensitive functions"
+      ],
+      "answer": 3,
+      "explain": "The attacker uses the oracle to generate valid encrypted data and then passes it into other sensitive functions that trust data encrypted with that algorithm."
+    },
+    {
+      "type": "tf",
+      "category": "Encryption oracles and email parsing",
+      "q": "True or false: To exploit an encryption oracle, the attacker must also find a user-controllable input that performs the matching decryption.",
+      "answer": false,
+      "explain": "A reverse (decryption) function makes things worse, because the attacker can decrypt data to learn the expected structure. It saves effort but is not necessarily required to build a successful exploit."
+    },
+    {
+      "type": "mc",
+      "category": "Encryption oracles and email parsing",
+      "q": "What mainly determines the severity of an encryption oracle?",
+      "choices": [
+        "The length of the encryption key",
+        "How many times the oracle can be called per minute",
+        "What other functionality uses the same algorithm as the oracle",
+        "Whether the ciphertext is Base64-encoded"
+      ],
+      "answer": 2,
+      "explain": "The oracle matters only as much as the functions that accept data encrypted with the same algorithm."
+    },
+    {
+      "type": "mc",
+      "category": "Encryption oracles and email parsing",
+      "q": "Some sites parse email addresses to extract the domain and decide which organization the owner belongs to. What causes an email address parser discrepancy?",
+      "choices": [
+        "Different parts of the application handle email addresses differently",
+        "The user enters an email address in uppercase",
+        "The mail server is temporarily unavailable",
+        "The email address contains no domain part"
+      ],
+      "answer": 0,
+      "explain": "When validation and later processing parse the same address differently, the domain-based logic can be undermined. Email parsing is complex even for valid RFC-compliant addresses."
+    },
+    {
+      "type": "mc",
+      "category": "Encryption oracles and email parsing",
+      "q": "How does an attacker typically exploit an email address parser discrepancy?",
+      "choices": [
+        "By sending a very large number of registration requests",
+        "By using encoding techniques to disguise parts of the address, so it passes initial validation but the server's parsing logic interprets it differently",
+        "By guessing the administrator's password",
+        "By intercepting the confirmation email in transit"
+      ],
+      "answer": 1,
+      "explain": "Encoding hides parts of the address, so the validation check and the server's parser reach different conclusions about the same address."
+    },
+    {
+      "type": "mc",
+      "category": "Encryption oracles and email parsing",
+      "q": "What is the main impact of email address parser discrepancies?",
+      "choices": [
+        "Denial of service against the mail server",
+        "Leaking the plaintext of encrypted emails",
+        "Corrupting the application's database",
+        "Unauthorized access: registering accounts with seemingly valid addresses from restricted domains to reach areas such as admin panels or restricted user functions"
+      ],
+      "answer": 3,
+      "explain": "If the application grants privileges based on the email domain, an address that appears to belong to a restricted domain can unlock sensitive functionality."
+    },
+    {
+      "type": "tf",
+      "category": "Encryption oracles and email parsing",
+      "q": "True or false: Extracting the domain from an email address is straightforward as long as the address is valid and RFC-compliant.",
+      "answer": false,
+      "explain": "It may look simple, but parsing email addresses is very complex even for valid RFC-compliant addresses. That complexity is what leads to parser discrepancies."
+    }
+  ]
+}

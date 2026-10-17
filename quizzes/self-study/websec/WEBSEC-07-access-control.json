@@ -1,0 +1,525 @@
+{
+  "title": "WEBSEC 07: Access control",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Access control basics",
+      "q": "In a web application, which mechanism decides whether a user is allowed to carry out the action they are attempting?",
+      "choices": ["Authentication", "Session management", "Access control", "Input validation"],
+      "answer": 2,
+      "explain": "Authentication confirms who the user is, session management links later requests to that user, and access control decides whether the action is permitted."
+    },
+    {
+      "type": "mc",
+      "category": "Access control basics",
+      "q": "Which mechanism works out that a series of later HTTP requests are all coming from the same user?",
+      "choices": ["Authentication", "Session management", "Access control", "Transport encryption"],
+      "answer": 1,
+      "explain": "Session management identifies which subsequent HTTP requests are being made by the same user. Access control depends on it and on authentication."
+    },
+    {
+      "type": "mc",
+      "category": "Access control basics",
+      "q": "A banking app lets each customer view transactions and make payments from their own accounts, but not from anyone else's. What kind of access control is this?",
+      "choices": ["Vertical", "Horizontal", "Context-dependent", "Location-based"],
+      "answer": 1,
+      "explain": "Horizontal access controls give different users access to their own subset of resources of the same type."
+    },
+    {
+      "type": "mc",
+      "category": "Access control basics",
+      "q": "A retail site stops users from changing the contents of their shopping cart once they have paid. What kind of access control is this?",
+      "choices": ["Vertical", "Discretionary", "Horizontal", "Context-dependent"],
+      "answer": 3,
+      "explain": "Context-dependent access controls restrict actions based on the state of the application or the user's interaction with it, which stops actions being done in the wrong order."
+    },
+    {
+      "type": "tf",
+      "category": "Access control basics",
+      "q": "Letting administrators delete any user's account while ordinary users cannot is an example of a horizontal access control.",
+      "answer": false,
+      "explain": "This is a vertical access control. Different types of users get access to different functions. Horizontal controls separate resources of the same type between users."
+    },
+    {
+      "type": "text",
+      "category": "Access control basics",
+      "q": "Vertical access controls can be fine-grained implementations of security models that enforce business policies such as separation of duties and ________.",
+      "answer": ["least privilege", "the principle of least privilege", "principle of least privilege"],
+      "explain": "Separation of duties and least privilege are the business policies that vertical controls can enforce."
+    },
+    {
+      "type": "mc",
+      "category": "Access control basics",
+      "q": "Why is the potential for errors in access control described as high?",
+      "choices": [
+        "Frameworks generate the rules automatically and they cannot be reviewed",
+        "HTTP cannot carry any information about who the user is",
+        "Humans must translate business, organizational and legal rules into code",
+        "Access control can only be enforced in client-side JavaScript"
+      ],
+      "answer": 2,
+      "explain": "Access control design is a complex, changing problem. People have to apply business, organizational and legal constraints to a technical implementation, so mistakes are common."
+    },
+    {
+      "type": "mc",
+      "category": "Vertical privilege escalation",
+      "q": "Admin functions are linked only from the administrator's welcome page, but any logged-in user who types https://insecure-website.com/admin can use them. What is this flaw?",
+      "choices": ["Horizontal privilege escalation", "Unprotected functionality", "Context-dependent access control", "Referer-based access control"],
+      "answer": 1,
+      "explain": "The most basic form of vertical privilege escalation is when the application does not protect sensitive functionality at all. Hiding the link is not a control."
+    },
+    {
+      "type": "text",
+      "category": "Vertical privilege escalation",
+      "q": "Name a standard file at the root of a website that might reveal the location of an admin URL, even though the UI never links to it.",
+      "answer": ["robots.txt", "/robots.txt"],
+      "explain": "Admin URLs are sometimes listed in robots.txt, for example https://insecure-website.com/robots.txt."
+    },
+    {
+      "type": "mc",
+      "category": "Vertical privilege escalation",
+      "q": "An admin URL isn't disclosed anywhere in the application. How might an attacker still find it?",
+      "choices": [
+        "By reading the server's access-control configuration file",
+        "By changing the session cookie's expiry date",
+        "By brute-forcing likely paths with a wordlist",
+        "By sending the request over HTTP instead of HTTPS"
+      ],
+      "answer": 2,
+      "explain": "Even when the URL isn't disclosed, an attacker can use a wordlist to brute-force the location of the sensitive functionality."
+    },
+    {
+      "type": "tf",
+      "category": "Vertical privilege escalation",
+      "q": "Moving the admin panel to an unpredictable URL such as /administrator-panel-yb556 is effective access control, as long as only admins are shown the link.",
+      "answer": false,
+      "explain": "This is security by obscurity. The URL can still leak, for example in JavaScript that is sent to every user. Without a real authorization check, anyone who finds it gets in."
+    },
+    {
+      "type": "mc",
+      "category": "Vertical privilege escalation",
+      "q": "A page sent to every user contains:\n\nvar isAdmin = false;\nif (isAdmin) {\n  var adminPanelTag = document.createElement('a');\n  adminPanelTag.setAttribute('href', 'https://insecure-website.com/administrator-panel-yb556');\n  ...\n}\n\nWhy does this leak the admin URL to non-admins?",
+      "choices": [
+        "Setting isAdmin to false makes the browser log the URL to the console",
+        "The script containing the URL is sent to everyone, and isAdmin only decides whether the link is drawn",
+        "The href value is always sent to the server in the Referer header",
+        "Browsers run both branches of an if statement when the condition is false"
+      ],
+      "answer": 1,
+      "explain": "The script itself, with the URL hard-coded in it, is visible to all users regardless of role. Anyone can read the page source."
+    },
+    {
+      "type": "multi",
+      "category": "Vertical privilege escalation",
+      "q": "After login, some applications store the user's access rights or role in a user-controllable location and trust it later. Which of these are such locations?",
+      "choices": ["A hidden form field", "A cookie", "A preset query string parameter", "The server-side session store", "A server-side database table of privileges"],
+      "answer": [0, 1, 2],
+      "explain": "Hidden fields, cookies and query string parameters can all be changed by the user, so trusting them for access decisions is insecure. Server-side storage cannot be edited directly by the client."
+    },
+    {
+      "type": "mc",
+      "category": "Vertical privilege escalation",
+      "q": "After logging in, a user lands on https://insecure-website.com/login/home.jsp?role=1 and the application grants privileges based on that value. What is the most direct attack?",
+      "choices": [
+        "Brute-force the administrator's login password",
+        "Replay the request with a different User-Agent header",
+        "Delete the role parameter to trigger an error page",
+        "Change the role parameter to a value that corresponds to a more privileged role"
+      ],
+      "answer": 3,
+      "explain": "This is parameter-based access control. The user can simply change the submitted value, for example role=1 or admin=true, and reach functions they aren't authorized to use."
+    },
+    {
+      "type": "mc",
+      "category": "Vertical privilege escalation",
+      "q": "Which of these is vertical privilege escalation?",
+      "choices": [
+        "An employee views other employees' records as well as their own",
+        "A user views another customer's order history",
+        "A user reads another user's chat transcript",
+        "A non-admin user reaches an admin page and deletes user accounts"
+      ],
+      "answer": 3,
+      "explain": "Vertical escalation means gaining access to functionality you aren't permitted to use, such as admin functions. The other options are about other users' resources of the same type, which is horizontal."
+    },
+    {
+      "type": "mc",
+      "category": "Platform and URL-matching bypasses",
+      "q": "A platform-layer rule reads: DENY: POST, /admin/deleteUser, managers. What does it do?",
+      "choices": [
+        "Allows only managers to send POST requests anywhere under /admin",
+        "Denies every HTTP method on /admin/deleteUser except for managers",
+        "Denies POST requests to /admin/deleteUser for users in the managers group",
+        "Deletes the managers group whenever /admin/deleteUser receives a POST"
+      ],
+      "answer": 2,
+      "explain": "Platform-layer rules restrict specific URLs and HTTP methods based on the user's role. This one blocks the POST method on that URL for the managers group."
+    },
+    {
+      "type": "mc",
+      "category": "Platform and URL-matching bypasses",
+      "q": "A front end strictly blocks requests by URL path, but the back-end framework honors the X-Original-URL header. Which request might reach the delete-user function?",
+      "choices": [
+        "POST /admin/deleteUser with header X-Original-URL: /",
+        "POST / with header X-Original-URL: /admin/deleteUser",
+        "GET /robots.txt with header X-Original-URL: /admin",
+        "POST /admin/deleteUser with header Referer: /admin"
+      ],
+      "answer": 1,
+      "explain": "The front end sees an allowed path (/) and lets the request through. The back end then uses the header to override the URL and routes the request to /admin/deleteUser."
+    },
+    {
+      "type": "multi",
+      "category": "Platform and URL-matching bypasses",
+      "q": "Which non-standard HTTP headers do some frameworks support for overriding the URL in the original request?",
+      "choices": ["X-Original-URL", "X-Rewrite-URL", "X-Forwarded-For", "Referer"],
+      "answer": [0, 1],
+      "explain": "X-Original-URL and X-Rewrite-URL can override the request URL. If a front end enforces access by URL but the back end honors these headers, the control can be bypassed."
+    },
+    {
+      "type": "mc",
+      "category": "Platform and URL-matching bypasses",
+      "q": "Platform rules deny POST /admin/deleteUser to ordinary users, but the application also performs the deletion when it receives the same parameters through GET. What kind of weakness is this?",
+      "choices": ["A URL-override header bypass", "A Referer-based access control bypass", "An IDOR with a static file reference", "A method-based access control bypass"],
+      "answer": 3,
+      "explain": "The platform rule restricts by URL and method. If the site accepts other methods for the same action, an attacker can use GET (or another method) to get around the rule."
+    },
+    {
+      "type": "tf",
+      "category": "Platform and URL-matching bypasses",
+      "q": "Case-insensitive routing becomes an access control problem when the access control check is less tolerant than the router. For example, the check treats /ADMIN/DELETEUSER as a different endpoint from /admin/deleteUser, but the router sends both to the same place.",
+      "answer": true,
+      "explain": "The router maps the uppercase path to the real endpoint, but the stricter access control mechanism doesn't see a match. So it fails to apply the restriction."
+    },
+    {
+      "type": "mc",
+      "category": "Platform and URL-matching bypasses",
+      "q": "With Spring's useSuffixPatternMatch option enabled, which request would still match the /admin/deleteUser pattern?",
+      "choices": ["/admin.anything/deleteUser", "/admin/deleteUser.anything", "/anything/admin/deleteUser", "/admin/deleteUserAnything"],
+      "answer": 1,
+      "explain": "useSuffixPatternMatch maps a path with any file extension to the same endpoint without the extension. So /admin/deleteUser.anything matches /admin/deleteUser."
+    },
+    {
+      "type": "mc",
+      "category": "Platform and URL-matching bypasses",
+      "q": "Before which Spring version was useSuffixPatternMatch enabled by default?",
+      "choices": ["4.3", "5.0", "5.3", "6.1"],
+      "fixed": true,
+      "answer": 2,
+      "explain": "Before Spring 5.3, this option is enabled by default."
+    },
+    {
+      "type": "multi",
+      "category": "Platform and URL-matching bypasses",
+      "q": "An access control rule protects exactly /admin/deleteUser. Depending on how the server matches paths, which requests might reach the same endpoint while getting past the rule?",
+      "choices": ["/ADMIN/DELETEUSER", "/admin/deleteUser/", "/admin/deleteUser.anything", "/admin/listUsers"],
+      "answer": [0, 1, 2],
+      "explain": "Inconsistent capitalization, a trailing slash, or an arbitrary suffix (Spring's useSuffixPatternMatch) can all map to the endpoint while the access check treats them as different paths. /admin/listUsers is just a different endpoint."
+    },
+    {
+      "type": "mc",
+      "category": "Horizontal privilege escalation and IDOR",
+      "q": "You view your account at /myaccount?id=123. Changing it to id=124 shows another user's account page. What best describes this?",
+      "choices": [
+        "Vertical privilege escalation through unprotected functionality",
+        "Horizontal privilege escalation through an IDOR",
+        "Context-dependent access control working as designed",
+        "A platform misconfiguration bypass"
+      ],
+      "answer": 1,
+      "explain": "You reached another user's resource of the same type, which is horizontal escalation. The cause is a user-controlled parameter used to fetch the object directly, which is an IDOR."
+    },
+    {
+      "type": "tf",
+      "category": "Horizontal privilege escalation and IDOR",
+      "q": "Switching user identifiers from incrementing numbers to GUIDs removes the horizontal privilege escalation risk from an id parameter.",
+      "answer": false,
+      "explain": "GUIDs make IDs hard to guess, but other users' GUIDs may be disclosed wherever users are referenced, such as messages or reviews. Without an authorization check, the attack still works."
+    },
+    {
+      "type": "mc",
+      "category": "Horizontal privilege escalation and IDOR",
+      "q": "An application notices you aren't allowed to view another user's account and responds with a redirect to the login page, yet the attack still succeeds. Why?",
+      "choices": [
+        "The login page auto-fills the victim's password",
+        "The server follows the redirect with admin rights",
+        "The redirect response itself still contains the target user's sensitive data",
+        "The browser caches the victim's page before redirecting"
+      ],
+      "answer": 2,
+      "explain": "The redirect is sent, but the body of that same response can still include the target user's data. An attacker reading the raw response gets it."
+    },
+    {
+      "type": "mc",
+      "category": "Horizontal privilege escalation and IDOR",
+      "q": "How can a horizontal privilege escalation be turned into a vertical one?",
+      "choices": [
+        "By targeting an administrator's account, e.g. capturing or resetting their password",
+        "By repeating the horizontal attack against many ordinary users",
+        "By switching the request method from GET to POST",
+        "By converting numeric user IDs into GUIDs"
+      ],
+      "answer": 0,
+      "explain": "If the account you reach horizontally belongs to an admin, its page may disclose the password, let you change it, or give direct access to privileged functions."
+    },
+    {
+      "type": "mc",
+      "category": "Horizontal privilege escalation and IDOR",
+      "q": "What is an insecure direct object reference (IDOR)?",
+      "choices": [
+        "An injection flaw where user input is joined into a database query",
+        "An access control flaw where user-supplied input fetches objects directly, so changing it reaches unauthorized objects",
+        "A flaw where server-side objects are deserialized from untrusted data",
+        "A session flaw where session identifiers are predictable"
+      ],
+      "answer": 1,
+      "explain": "IDOR is a subcategory of access control vulnerability. The application uses user-supplied input to access objects directly, and an attacker modifies that input to get unauthorized access."
+    },
+    {
+      "type": "tf",
+      "category": "Horizontal privilege escalation and IDOR",
+      "q": "IDOR vulnerabilities can only lead to horizontal privilege escalation.",
+      "answer": false,
+      "explain": "IDORs are most commonly associated with horizontal escalation, but they can also lead to vertical escalation, for example by switching to a more privileged user."
+    },
+    {
+      "type": "mc",
+      "category": "Horizontal privilege escalation and IDOR",
+      "q": "Chat transcripts are saved to disk with incrementing filenames and served at https://insecure-website.com/static/12144.txt. What can an attacker do?",
+      "choices": [
+        "Nothing, because static files are outside the application's access control",
+        "Upload a script named 12145.txt to run code on the server",
+        "Read only their own transcript, because the filenames are sequential",
+        "Change the filename to fetch transcripts created by other users"
+      ],
+      "answer": 3,
+      "explain": "This is an IDOR with a direct reference to static files. Changing the number retrieves other users' transcripts, which may contain credentials or other sensitive data."
+    },
+    {
+      "type": "mc",
+      "category": "Horizontal privilege escalation and IDOR",
+      "q": "In /customer_account?customer_number=132355, the customer number is used directly as a record index in back-end database queries, with no other checks. This is an IDOR with a direct reference to:",
+      "choices": ["Static files", "Database objects", "Session tokens", "HTTP headers"],
+      "answer": 1,
+      "explain": "The parameter maps directly to a database record. Changing it lets the attacker view other customers' records, which is horizontal escalation."
+    },
+    {
+      "type": "mc",
+      "category": "Horizontal privilege escalation and IDOR",
+      "q": "The term IDOR was popularized by its appearance in:",
+      "choices": ["The CWE Top 25 of 2019", "The OWASP 2007 Top Ten", "RFC 2616", "PCI DSS version 1.0"],
+      "answer": 1,
+      "explain": "IDOR became widely known through the OWASP 2007 Top Ten. It is just one of many implementation mistakes that let access controls be bypassed."
+    },
+    {
+      "type": "mc",
+      "category": "Multi-step, Referer and location flaws",
+      "q": "An admin 'update user details' function has three steps: (1) load the form, (2) submit changes, (3) review and confirm. Access checks are applied to steps 1 and 2 only. How can an unauthorized user exploit this?",
+      "choices": [
+        "Repeat step 1 until the server times out",
+        "Submit step 2 twice so that step 3 is skipped",
+        "Send the step 3 request directly with the required parameters",
+        "Change the Referer header on step 1"
+      ],
+      "answer": 2,
+      "explain": "Step 3 is unprotected, so the attacker skips the controlled steps and submits the confirmation request directly."
+    },
+    {
+      "type": "mc",
+      "category": "Multi-step, Referer and location flaws",
+      "q": "What faulty assumption causes the multi-step flaw where only the final step lacks an access check?",
+      "choices": [
+        "That the confirmation page is always cached by the browser",
+        "That a user can only reach the final step after completing the earlier, protected steps",
+        "That the final step can only be reached with POST",
+        "That administrators never use multi-step forms"
+      ],
+      "answer": 1,
+      "explain": "The site assumes the flow is followed in order. An attacker can send any step's request directly, so every step needs its own check."
+    },
+    {
+      "type": "mc",
+      "category": "Multi-step, Referer and location flaws",
+      "q": "/admin enforces access control properly, but /admin/deleteUser only allows a request if its Referer header contains the /admin URL. How is this bypassed?",
+      "choices": [
+        "Remove the Referer header entirely",
+        "Change the HTTP method to OPTIONS",
+        "Load /admin first so the server trusts the session",
+        "Send a direct request to /admin/deleteUser with a forged Referer containing the /admin URL"
+      ],
+      "answer": 3,
+      "explain": "The attacker fully controls the Referer header, so they can supply whatever value the check expects."
+    },
+    {
+      "type": "tf",
+      "category": "Multi-step, Referer and location flaws",
+      "q": "Because browsers add the Referer header automatically, it is a reliable basis for access control decisions.",
+      "answer": false,
+      "explain": "Browsers usually set Referer, but an attacker can craft requests with any Referer value. Basing access control on it is insecure."
+    },
+    {
+      "type": "multi",
+      "category": "Multi-step, Referer and location flaws",
+      "q": "Location-based access controls can often be circumvented by:",
+      "choices": ["Web proxies", "VPNs", "Manipulating client-side geolocation mechanisms", "Changing the account password", "Clearing browser cookies"],
+      "answer": [0, 1, 2],
+      "explain": "Proxies and VPNs change the apparent location, and client-side geolocation can be manipulated. Changing a password or clearing cookies doesn't affect where you appear to be."
+    },
+    {
+      "type": "mc",
+      "category": "Multi-step, Referer and location flaws",
+      "q": "Why might a banking application or media service enforce location-based access control?",
+      "choices": [
+        "To speed up content delivery",
+        "Because state legislation or business restrictions apply",
+        "To prevent cross-site request forgery",
+        "To replace the need for authentication"
+      ],
+      "answer": 1,
+      "explain": "Geographic restrictions usually come from state legislation or business restrictions, such as licensing or regulation."
+    },
+    {
+      "type": "multi",
+      "category": "Prevention",
+      "q": "Which of these are recommended principles for preventing access control vulnerabilities?",
+      "choices": [
+        "Never rely on obfuscation alone for access control",
+        "Deny access by default unless a resource is meant to be public",
+        "Use a single application-wide mechanism for enforcing access controls wherever possible",
+        "Allow access by default and add deny rules for known sensitive pages",
+        "Store each user's role in a cookie so every page can check it",
+        "Thoroughly audit and test access controls to confirm they work as designed"
+      ],
+      "answer": [0, 1, 2, 5],
+      "explain": "Allowing by default leaves forgotten resources exposed. Storing roles in a cookie makes them user-controllable, which is the parameter-based flaw."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "Unless a resource is intended to be publicly accessible, access to it should by default be:",
+      "choices": ["Allowed for all authenticated users", "Allowed for all users", "Denied", "Decided by the client"],
+      "answer": 2,
+      "explain": "Deny by default. Then a missing or forgotten rule fails closed, not open."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "What overall approach is recommended for preventing access control vulnerabilities?",
+      "choices": ["Security by obscurity", "Defense in depth", "Client-side enforcement", "Allow by default"],
+      "answer": 1,
+      "explain": "Access control flaws are prevented with a defense-in-depth approach that applies several principles together."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "A team writes separate permission checks by hand in each controller, and several endpoints were forgotten. Which recommendation most directly addresses this?",
+      "choices": [
+        "Hide the forgotten endpoints behind unpredictable URLs",
+        "Store the user's role in a cookie so each controller can read it",
+        "Use a single application-wide mechanism for enforcing access controls",
+        "Have the forgotten endpoints check that the Referer is a protected page"
+      ],
+      "answer": 2,
+      "explain": "One application-wide mechanism avoids scattered, inconsistent checks. The other options are obscurity, user-controllable roles, and Referer-based control, all of which are flaws from this topic."
+    },
+    {
+      "type": "tf",
+      "category": "Prevention",
+      "q": "At the code level, developers should be required to declare the access allowed for each resource, and access should be denied by default.",
+      "answer": true,
+      "explain": "Making the declaration mandatory and denying by default means an undeclared resource can't be reached by accident."
+    },
+    {
+      "type": "mc",
+      "category": "Access control security models",
+      "q": "What is an access control security model?",
+      "choices": [
+        "A specific web framework's authorization middleware",
+        "A formally defined set of access control rules that is independent of technology or platform",
+        "A diagram of an application's URL structure",
+        "A table of user passwords and their hashes"
+      ],
+      "answer": 1,
+      "explain": "Security models are formal, technology-independent rule sets. They are implemented in operating systems, networks, DBMSs and application and web server software."
+    },
+    {
+      "type": "mc",
+      "category": "Access control security models",
+      "q": "In which model can the owners of resources assign or delegate access permissions to other users?",
+      "choices": ["Mandatory access control (MAC)", "Role-based access control (RBAC)", "Discretionary access control (DAC)", "Location-based access control"],
+      "answer": 2,
+      "explain": "In DAC, access is based on users or named groups, and owners can grant or delegate permissions."
+    },
+    {
+      "type": "mc",
+      "category": "Access control security models",
+      "q": "Which model is centrally controlled, gives users and owners no ability to delegate or change access rights, and is often associated with military clearance-based systems?",
+      "choices": ["Mandatory access control (MAC)", "Discretionary access control (DAC)", "Role-based access control (RBAC)", "Programmatic access control"],
+      "answer": 0,
+      "explain": "MAC is centrally controlled. Unlike DAC, owners cannot modify or delegate access to their resources."
+    },
+    {
+      "type": "mc",
+      "category": "Access control security models",
+      "q": "Named roles are defined and given access privileges, and users are then assigned to one or more of those roles. Which model is this?",
+      "choices": ["Discretionary access control (DAC)", "Mandatory access control (MAC)", "Programmatic access control", "Role-based access control (RBAC)"],
+      "answer": 3,
+      "explain": "This is RBAC, for example a 'purchase clerk' role with access to part of the purchase ledger."
+    },
+    {
+      "type": "mc",
+      "category": "Access control security models",
+      "q": "A matrix of user privileges is stored in a database, and the application code checks it before each action. Which model is this?",
+      "choices": ["Mandatory access control (MAC)", "Programmatic access control", "Role-based access control (RBAC)", "Context-dependent access control"],
+      "answer": 1,
+      "explain": "Programmatic access control applies rules in code by referring to a stored privilege matrix. It can cover roles, groups, individual users and workflows, and can be highly granular."
+    },
+    {
+      "type": "mc",
+      "category": "Access control security models",
+      "q": "What is the main drawback of discretionary access control (DAC)?",
+      "choices": [
+        "Owners cannot change who has access to their resources",
+        "It cannot be applied to groups of users",
+        "It is only usable in military systems",
+        "Its very fine granularity makes it complex to design and manage"
+      ],
+      "answer": 3,
+      "explain": "In DAC, access rights are defined per individual resource or function and per user, so the model can become very complex."
+    },
+    {
+      "type": "mc",
+      "category": "Access control security models",
+      "q": "When is role-based access control (RBAC) most effective?",
+      "choices": [
+        "When every user has their own unique role",
+        "When there are enough roles to apply controls properly, but not so many that the model becomes unwieldy",
+        "When a single role is shared by all users",
+        "When roles are stored in a client-side cookie"
+      ],
+      "answer": 1,
+      "explain": "Too few roles can't express the needed controls. Too many make RBAC excessively complex and unwieldy to manage."
+    },
+    {
+      "type": "tf",
+      "category": "Access control security models",
+      "q": "In RBAC, each user can be assigned to only one role.",
+      "answer": false,
+      "explain": "In RBAC, users can be assigned to a single role or to multiple roles."
+    },
+    {
+      "type": "mc",
+      "category": "Access control security models",
+      "q": "An employee leaves the purchasing department of an organization that uses RBAC. What is the main access-management task?",
+      "choices": [
+        "Ask each resource owner to remove the employee's access",
+        "Change the permissions granted to the purchase clerk role",
+        "Revoke the employee's membership of the purchase clerk role",
+        "Edit the permissions on every purchase ledger record one by one"
+      ],
+      "answer": 2,
+      "explain": "RBAC makes joiners and leavers simple. You just add or revoke role membership. The role's permissions stay as they are."
+    }
+  ]
+}
