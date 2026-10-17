@@ -1,0 +1,424 @@
+{
+  "title": "File upload vulnerabilities",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Fundamentals and impact",
+      "topic": "What are file upload vulnerabilities",
+      "q": "A file upload vulnerability arises when a web server lets users upload files without sufficiently validating what?",
+      "choices": [
+        "Only the uploading user's identity",
+        "The file's name, type, contents, or size",
+        "Only the HTTP method used",
+        "Only the time of day of the upload"
+      ],
+      "answer": 1,
+      "explain": "Failing to enforce restrictions on name, type, contents, or size can turn even a basic image upload into a way to place arbitrary, dangerous files on the server."
+    },
+    {
+      "type": "tf",
+      "category": "Fundamentals and impact",
+      "topic": "Attack mechanics",
+      "q": "In some cases, the act of uploading a file is itself enough to cause damage, without any follow-up request.",
+      "answer": true,
+      "explain": "Sometimes uploading alone is damaging; other attacks need a follow-up HTTP request for the file, typically to trigger its execution."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals and impact",
+      "topic": "Impact - size",
+      "q": "Failing to check that an uploaded file's size is within expected thresholds can enable which kind of attack?",
+      "choices": [
+        "SQL injection",
+        "Denial of service by filling available disk space",
+        "Cross-site request forgery",
+        "TLS downgrade"
+      ],
+      "answer": 1,
+      "explain": "An attacker can upload enough data to exhaust the server's disk, a form of DoS."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals and impact",
+      "topic": "Impact - filename",
+      "q": "If the filename is not validated properly, what can an attacker potentially do?",
+      "choices": [
+        "Read the server's RAM directly",
+        "Overwrite critical files by uploading a file with the same name",
+        "Force the browser to run JavaScript as root",
+        "Disable the server's firewall"
+      ],
+      "answer": 1,
+      "explain": "A reused name can overwrite critical files; combined with directory traversal, files can even be written to unanticipated locations."
+    },
+    {
+      "type": "mc",
+      "category": "Static file handling",
+      "topic": "How servers identify file type",
+      "q": "How does a web server typically determine the type of a requested static file?",
+      "choices": [
+        "It asks the client which type it wants",
+        "It parses the file extension and compares it to preconfigured extension-to-MIME-type mappings",
+        "It reads the entire file into memory and guesses",
+        "It uses the file's creation timestamp"
+      ],
+      "answer": 1,
+      "explain": "The server parses the path for the extension and maps it to a MIME type; behavior then depends on the type and the server's configuration."
+    },
+    {
+      "type": "tf",
+      "category": "Static file handling",
+      "topic": "Request path vs filesystem",
+      "q": "On modern, dynamic websites the path of every request still maps 1:1 to the server's filesystem hierarchy.",
+      "answer": false,
+      "explain": "Historically paths mapped 1:1 to files, but modern dynamic sites often have no direct relationship between request path and filesystem, though static files are still handled much the same way."
+    },
+    {
+      "type": "mc",
+      "category": "Static file handling",
+      "topic": "Executable but not configured",
+      "q": "If a requested file type is executable but the server is NOT configured to execute it, what commonly happens?",
+      "choices": [
+        "The server executes it anyway",
+        "The server returns an error or, in some cases, serves the file's contents as plain text",
+        "The server deletes the file",
+        "The browser is told to execute it client-side"
+      ],
+      "answer": 1,
+      "explain": "Unconfigured executable types usually yield an error or get served as plain text, which can leak source code but nullifies a web shell."
+    },
+    {
+      "type": "text",
+      "category": "Static file handling",
+      "topic": "Content-Type clue",
+      "q": "Which HTTP response header can hint at what kind of file the server thinks it served, often reflecting the extension/MIME mapping?",
+      "answer": ["Content-Type", "content-type"],
+      "explain": "If not explicitly set by application code, Content-Type usually contains the result of the extension/MIME-type mapping."
+    },
+    {
+      "type": "text",
+      "category": "Web shells and RCE",
+      "topic": "Definition",
+      "q": "What is the term for a malicious script that lets an attacker run arbitrary commands on a remote server just by sending HTTP requests to the right endpoint?",
+      "answer": ["web shell", "webshell", "web-shell"],
+      "explain": "A web shell gives effectively full control: reading/writing files, exfiltrating data, and pivoting to other systems."
+    },
+    {
+      "type": "mc",
+      "category": "Web shells and RCE",
+      "topic": "File-read one-liner",
+      "q": "What does the PHP one-liner `<?php echo file_get_contents('/path/to/target/file'); ?>` do when requested?",
+      "choices": [
+        "Runs an arbitrary system command",
+        "Returns the contents of a target file from the server's filesystem",
+        "Opens a reverse TCP shell",
+        "Deletes the target file"
+      ],
+      "answer": 1,
+      "explain": "Requesting the uploaded script returns the target file's contents in the response."
+    },
+    {
+      "type": "mc",
+      "category": "Web shells and RCE",
+      "topic": "Command web shell",
+      "q": "Which web shell lets an attacker pass an arbitrary system command via a query parameter such as ?command=id?",
+      "choices": [
+        "<?php phpinfo(); ?>",
+        "<?php echo system($_GET['command']); ?>",
+        "<?php echo file_get_contents($_GET['f']); ?>",
+        "<?php echo date('Y'); ?>"
+      ],
+      "answer": 1,
+      "explain": "system($_GET['command']) runs whatever command is supplied in the 'command' parameter, e.g. GET /exploit.php?command=id."
+    },
+    {
+      "type": "tf",
+      "category": "Web shells and RCE",
+      "topic": "Impact of a web shell",
+      "q": "Successfully uploading a working web shell effectively grants the attacker full control over the server.",
+      "answer": true,
+      "explain": "With a web shell you can read/write arbitrary files, exfiltrate data, and pivot to internal and external systems."
+    },
+    {
+      "type": "mc",
+      "category": "Validating type and contents",
+      "topic": "Content-Type trust bypass",
+      "q": "Why is trusting the part-specific Content-Type header of a multipart/form-data upload an insufficient defense?",
+      "choices": [
+        "Browsers never send that header",
+        "An attacker can freely set it (e.g. with Burp Repeater) while the actual file contents are unrestricted",
+        "It is encrypted and unreadable",
+        "It only appears for plain-text fields"
+      ],
+      "answer": 1,
+      "explain": "If the server implicitly trusts the declared MIME type without checking that the contents match, the attacker just sets image/jpeg on a PHP file."
+    },
+    {
+      "type": "mc",
+      "category": "Validating type and contents",
+      "topic": "multipart/form-data",
+      "q": "Which content type is preferred for submitting large binary data such as an image or PDF in an HTML form?",
+      "choices": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data",
+        "text/plain",
+        "application/json"
+      ],
+      "answer": 1,
+      "explain": "x-www-form-urlencoded suits simple text; multipart/form-data splits the body into parts, each with its own Content-Disposition and optional Content-Type."
+    },
+    {
+      "type": "mc",
+      "category": "Validating type and contents",
+      "topic": "Magic bytes",
+      "q": "JPEG files can be fingerprinted because they always begin with which byte sequence?",
+      "choices": [
+        "FF D8 FF",
+        "89 50 4E 47",
+        "25 50 44 46",
+        "50 4B 03 04"
+      ],
+      "answer": 0,
+      "explain": "Checking header/footer signatures (JPEG begins with FF D8 FF) is more robust than trusting Content-Type, but still beatable with polyglots."
+    },
+    {
+      "type": "text",
+      "category": "Validating type and contents",
+      "topic": "Polyglot tool",
+      "q": "Which tool is named for trivially creating a polyglot JPEG that hides malicious code in its metadata?",
+      "answer": ["ExifTool", "exiftool"],
+      "explain": "Even signature/dimension checks can be bypassed by embedding code in image metadata with ExifTool, producing a valid-looking JPEG that is also a script."
+    },
+    {
+      "type": "tf",
+      "category": "Blacklist bypass and obfuscation",
+      "topic": "Why blacklists fail",
+      "q": "Blacklisting dangerous file extensions is inherently flawed because it is hard to block every possible extension that could execute code.",
+      "answer": true,
+      "explain": "Blacklists miss obscure-but-executable extensions such as .php5 and .shtml, and can be beaten with obfuscation."
+    },
+    {
+      "type": "multi",
+      "category": "Blacklist bypass and obfuscation",
+      "topic": "Obfuscation techniques",
+      "q": "Which of the following are described techniques for obfuscating a file extension to slip past a blacklist? (Select all that apply)",
+      "choices": [
+        "Mixed case, e.g. exploit.pHp",
+        "Multiple extensions, e.g. exploit.php.jpg",
+        "Trailing characters, e.g. exploit.php.",
+        "Sending the upload over TLS 1.3"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Case tricks, multiple extensions, trailing chars/dots, URL-encoded or null-byte sequences, and multibyte unicode are all obfuscation tactics. The transport protocol is irrelevant."
+    },
+    {
+      "type": "mc",
+      "category": "Blacklist bypass and obfuscation",
+      "topic": "Non-recursive stripping",
+      "q": "If a server strips the substring `.php` from the filename `exploit.p.phphp` but does not do so recursively, what remains?",
+      "choices": [
+        "exploit (no extension)",
+        "exploit.php",
+        "exploit.p",
+        "exploit.jpg"
+      ],
+      "answer": 1,
+      "explain": "Removing the inner .php from exploit.p.phphp leaves exploit.php, a valid executable extension."
+    },
+    {
+      "type": "mc",
+      "category": "Blacklist bypass and obfuscation",
+      "topic": "Config override - Apache",
+      "q": "On an Apache server, which uploadable file could let an attacker map a custom extension to an executable MIME type, overriding global config?",
+      "choices": [
+        "web.config",
+        "a .htaccess file",
+        "robots.txt",
+        ".gitignore"
+      ],
+      "answer": 1,
+      "explain": "Apache loads directory-specific config from .htaccess; if you can upload your own, you may map an arbitrary extension to an executable type even when the normal extension is blacklisted."
+    },
+    {
+      "type": "mc",
+      "category": "Execution config and path traversal",
+      "topic": "Config override - IIS",
+      "q": "On an IIS server, which file provides directory-specific configuration, such as adding a MIME mapping?",
+      "choices": [
+        ".htaccess",
+        "web.config",
+        "apache2.conf",
+        "php.ini"
+      ],
+      "answer": 1,
+      "explain": "IIS uses web.config, e.g. a <staticContent><mimeMap .../></staticContent> directive to map an extension to a MIME type."
+    },
+    {
+      "type": "mc",
+      "category": "Execution config and path traversal",
+      "topic": "Execution differs by directory",
+      "q": "Why might uploading a script to a directory not intended for user files lead to it being executed?",
+      "choices": [
+        "All directories always run uploads as root",
+        "Execution configuration often differs between directories, and non-upload locations may lack the stricter controls",
+        "The browser caches and runs the script",
+        "Scripts outside the upload folder auto-compile"
+      ],
+      "answer": 1,
+      "explain": "Upload directories usually have stricter controls; getting a script into a directory that is assumed out of reach of users may allow execution."
+    },
+    {
+      "type": "text",
+      "category": "Execution config and path traversal",
+      "topic": "filename field",
+      "q": "Web servers often use which field in multipart/form-data requests to decide the name and location where an uploaded file is saved (enabling path traversal)?",
+      "answer": ["filename", "filename field", "the filename field"],
+      "explain": "Manipulating the filename field with ../ sequences can place a file in a directory where it will be executed."
+    },
+    {
+      "type": "tf",
+      "category": "Execution config and path traversal",
+      "topic": "Reverse proxy",
+      "q": "Sending all requests to a single domain name guarantees that one server with one configuration handles them.",
+      "answer": false,
+      "explain": "A domain often points to a reverse proxy or load balancer, with requests handled by additional, possibly differently configured, back-end servers."
+    },
+    {
+      "type": "mc",
+      "category": "Race conditions",
+      "topic": "Upload-then-remove race",
+      "q": "How can a classic file-upload race condition arise?",
+      "choices": [
+        "The server validates the file before the upload even starts",
+        "The file is written to the live filesystem and only removed after failing validation, leaving a brief window to execute it",
+        "Files are never written to disk at all",
+        "The antivirus runs before the upload completes"
+      ],
+      "answer": 1,
+      "explain": "Sites that upload directly then delete on failure (common with AV scanning) leave the file present for a few milliseconds, which may be enough to request and execute it."
+    },
+    {
+      "type": "mc",
+      "category": "Race conditions",
+      "topic": "uniqid brute force",
+      "q": "If a temporary upload directory's randomized name is generated with PHP's uniqid(), why is that risky?",
+      "choices": [
+        "uniqid() always returns the same value",
+        "The pseudo-random name can potentially be brute-forced",
+        "uniqid() leaks the admin password",
+        "It turns off all validation"
+      ],
+      "answer": 1,
+      "explain": "Because uniqid() is pseudo-random, the directory name may be brute-forced so the attacker can request the file before validation finishes."
+    },
+    {
+      "type": "tf",
+      "category": "Race conditions",
+      "topic": "Extending the window",
+      "q": "Uploading a larger file (payload at the start, followed by padding bytes) can lengthen the window for brute-forcing a randomized temp directory name.",
+      "answer": true,
+      "explain": "If the file is processed in chunks, a larger file extends processing time, widening the race window."
+    },
+    {
+      "type": "mc",
+      "category": "Race conditions",
+      "topic": "Framework defenses",
+      "q": "How do modern frameworks generally guard against these upload race conditions?",
+      "choices": [
+        "By refusing all file uploads",
+        "By uploading to a temporary sandboxed directory with a randomized name, validating there, and only then moving the file to its destination",
+        "By running every uploaded file as root to test it",
+        "By disabling HTTP entirely"
+      ],
+      "answer": 1,
+      "explain": "Battle-hardened frameworks avoid writing directly to the destination; they validate a randomized temp copy first. Hand-rolled processing is where race conditions tend to appear."
+    },
+    {
+      "type": "mc",
+      "category": "Non-RCE exploits and PUT",
+      "topic": "Client-side scripts",
+      "q": "If you can upload HTML files or SVG images, which client-side attack can you potentially launch with <script> tags?",
+      "choices": [
+        "Stored XSS",
+        "SQL injection",
+        "Buffer overflow",
+        "TLS downgrade"
+      ],
+      "answer": 0,
+      "explain": "An uploaded HTML/SVG file shown to other users runs its embedded script in their browser, a stored XSS."
+    },
+    {
+      "type": "tf",
+      "category": "Non-RCE exploits and PUT",
+      "topic": "Same-origin requirement",
+      "q": "Because of the same-origin policy, an uploaded malicious client-side script works only if the file is served from the same origin to which it was uploaded.",
+      "answer": true,
+      "explain": "If the upload is served from a different origin, same-origin policy restrictions prevent the client-side attack."
+    },
+    {
+      "type": "mc",
+      "category": "Non-RCE exploits and PUT",
+      "topic": "Parser exploits",
+      "q": "Parsing of uploaded XML-based files such as .doc or .xls may be a vector for which attack?",
+      "choices": [
+        "XXE injection",
+        "CSRF",
+        "Clickjacking",
+        "DNS poisoning"
+      ],
+      "answer": 0,
+      "explain": "If the server parses XML-based office files, it may be vulnerable to XML external entity (XXE) injection."
+    },
+    {
+      "type": "mc",
+      "category": "Non-RCE exploits and PUT",
+      "topic": "PUT uploads",
+      "q": "Some web servers may be configured to support which HTTP method, providing an alternative way to upload malicious files even without an upload form?",
+      "choices": [
+        "HEAD",
+        "PUT",
+        "TRACE",
+        "CONNECT"
+      ],
+      "answer": 1,
+      "explain": "PUT can upload a file directly if defenses are lacking. You can send OPTIONS requests to endpoints to find ones that advertise PUT support."
+    },
+    {
+      "type": "tf",
+      "category": "Prevention",
+      "topic": "Whitelist vs blacklist",
+      "q": "It is recommended to check a file's extension against a whitelist of permitted extensions rather than a blacklist of prohibited ones.",
+      "answer": true,
+      "explain": "Guessing which extensions to allow is far easier and safer than trying to enumerate every extension an attacker might try."
+    },
+    {
+      "type": "multi",
+      "category": "Prevention",
+      "topic": "Prevention practices",
+      "q": "Which of the following are recommended practices to prevent file upload vulnerabilities? (Select all that apply)",
+      "choices": [
+        "Ensure filenames contain no directory or traversal sequences like ../",
+        "Rename uploaded files to avoid overwriting existing ones",
+        "Avoid writing files to the permanent filesystem until fully validated",
+        "Execute every uploaded file once to confirm it is safe"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Strip traversal sequences, rename to prevent collisions, and defer permanent storage until validation passes. Executing uploads to 'test' them is exactly what you want to avoid."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "topic": "Use a framework",
+      "q": "According to the prevention guidance, what should you do as much as possible instead of writing your own upload validation?",
+      "choices": [
+        "Disable all uploads permanently",
+        "Use an established framework for preprocessing file uploads",
+        "Store uploads in the web root",
+        "Trust the client-supplied Content-Type"
+      ],
+      "answer": 1,
+      "explain": "Writing your own validation is complex and error-prone (and can introduce race conditions); an established framework handles preprocessing more safely."
+    }
+  ]
+}

@@ -1,0 +1,358 @@
+{
+  "title": "Cross-site request forgery (CSRF)",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "CSRF fundamentals",
+      "q": "What does a cross-site request forgery (CSRF) vulnerability allow an attacker to do?",
+      "choices": [
+        "Read arbitrary files from the web server's filesystem",
+        "Induce users to perform actions that they do not intend to perform",
+        "Execute arbitrary SQL against the application's database",
+        "Decrypt the victim's session cookie offline"
+      ],
+      "answer": 1,
+      "explain": "CSRF lets an attacker induce a user to carry out an unintended action, partly circumventing the same-origin policy."
+    },
+    {
+      "type": "multi",
+      "category": "CSRF fundamentals",
+      "q": "Which three conditions must be in place for a CSRF attack to be possible?",
+      "choices": [
+        "A relevant action the attacker has a reason to induce",
+        "Cookie-based session handling (the app relies solely on session cookies to identify the user)",
+        "A cross-site scripting flaw on the same page",
+        "No unpredictable request parameters the attacker cannot determine or guess",
+        "The victim must be using an outdated browser"
+      ],
+      "answer": [0, 1, 3],
+      "explain": "The three conditions are: a relevant action, cookie-based session handling, and no unpredictable request parameters."
+    },
+    {
+      "type": "tf",
+      "category": "CSRF fundamentals",
+      "q": "CSRF can only arise with cookie-based session handling and never in other contexts.",
+      "answer": false,
+      "explain": "Although normally described with cookie-based sessions, CSRF also arises wherever the app automatically adds credentials to requests, such as HTTP Basic authentication and certificate-based authentication."
+    },
+    {
+      "type": "mc",
+      "category": "CSRF fundamentals",
+      "q": "If a sensitive action can be performed with a GET request, how might a self-contained CSRF attack be delivered without an external site hosting a form?",
+      "choices": [
+        "By sending the victim an encrypted email attachment",
+        "With a single malicious URL on the vulnerable domain, e.g. an <img src> pointing at the action URL",
+        "By poisoning the victim's DNS cache",
+        "By brute-forcing the session cookie"
+      ],
+      "answer": 1,
+      "explain": "A GET-based action can be triggered with a single URL, for example <img src=\"https://vulnerable-website.com/email/change?email=pwned@evil-user.net\">."
+    },
+    {
+      "type": "tf",
+      "category": "CSRF fundamentals",
+      "q": "The delivery mechanisms for CSRF attacks are essentially the same as for reflected XSS.",
+      "answer": true,
+      "explain": "Typically the attacker hosts malicious HTML on a site they control and induces victims to visit it (via a link, email, social media, or a comment on a popular site)."
+    },
+    {
+      "type": "mc",
+      "category": "XSS vs CSRF",
+      "q": "Why is CSRF described as a \"one-way\" vulnerability while XSS is \"two-way\"?",
+      "choices": [
+        "CSRF works only over HTTP while XSS works only over HTTPS",
+        "With CSRF the attacker can issue a request but cannot read the response, whereas XSS can issue requests, read responses, and exfiltrate data",
+        "CSRF affects only GET requests while XSS affects only POST requests",
+        "CSRF requires two victims while XSS requires one"
+      ],
+      "answer": 1,
+      "explain": "CSRF can induce a request but cannot retrieve the response; XSS can issue arbitrary requests, read the responses, and exfiltrate data to an attacker domain."
+    },
+    {
+      "type": "tf",
+      "category": "XSS vs CSRF",
+      "q": "CSRF tokens protect against stored XSS vulnerabilities.",
+      "answer": false,
+      "explain": "CSRF tokens do not protect against stored XSS. If a CSRF-token-protected page is the output point for stored XSS, the payload still executes when a user visits the page."
+    },
+    {
+      "type": "mc",
+      "category": "XSS vs CSRF",
+      "q": "How can an attacker use an exploitable XSS flaw to perform an action that is itself protected by a CSRF token?",
+      "choices": [
+        "By guessing the token through a timing side channel",
+        "The injected script can request the relevant page to obtain a valid CSRF token, then use that token to perform the protected action",
+        "XSS automatically disables all CSRF token checks",
+        "By replaying the victim's previous token from the browser cache"
+      ],
+      "answer": 1,
+      "explain": "Because the attacker's script runs in the victim's context, it can fetch a page to read a valid token and then submit the protected request with it."
+    },
+    {
+      "type": "mc",
+      "category": "XSS vs CSRF",
+      "q": "In general, how do the consequences of XSS compare to those of CSRF?",
+      "choices": [
+        "CSRF is generally more serious because it can read responses",
+        "They are always identical in severity",
+        "XSS is generally more serious; CSRF often applies only to a subset of actions while XSS can induce any action the user can perform",
+        "CSRF is more serious because it bypasses the same-origin policy entirely"
+      ],
+      "answer": 2,
+      "explain": "XSS consequences are generally more serious: CSRF often covers only a subset of actions, while a successful XSS can induce any action the user can perform."
+    },
+    {
+      "type": "mc",
+      "category": "Bypassing token validation",
+      "q": "An application validates the CSRF token on POST requests but skips validation for GET. How can this be bypassed?",
+      "choices": [
+        "Send the token twice in the POST body",
+        "Switch the request to the GET method, which is not validated",
+        "Remove the session cookie from the request",
+        "Base64-encode the token value"
+      ],
+      "answer": 1,
+      "explain": "If validation depends on the request method, the attacker switches to GET (e.g. GET /email/change?email=...) to skip the token check."
+    },
+    {
+      "type": "mc",
+      "category": "Bypassing token validation",
+      "q": "An application validates the CSRF token only when it is present. What is the correct bypass?",
+      "choices": [
+        "Send the token parameter with an empty value",
+        "Send the token parameter with a value of 0",
+        "Remove the entire parameter containing the token (not just its value)",
+        "Send a malformed token that fails parsing"
+      ],
+      "answer": 2,
+      "explain": "If validation is skipped when the token is omitted, removing the whole token parameter (not just blanking its value) bypasses the check."
+    },
+    {
+      "type": "tf",
+      "category": "Bypassing token validation",
+      "q": "If a CSRF token is not tied to the user's session but accepted from a global pool, an attacker can log in with their own account, obtain a valid token, and feed it to the victim.",
+      "answer": true,
+      "explain": "When tokens are validated against a global pool rather than the user's session, any issued token is accepted, so the attacker supplies one of their own."
+    },
+    {
+      "type": "mc",
+      "category": "Bypassing token validation",
+      "q": "When a CSRF token is tied to a non-session cookie (e.g. a separate csrfKey), what additional capability does the attacker need to exploit it?",
+      "choices": [
+        "The ability to read the victim's session cookie",
+        "Behavior that lets the attacker set a cookie in the victim's browser",
+        "Admin privileges on the target application",
+        "A valid TLS client certificate"
+      ],
+      "answer": 1,
+      "explain": "The attacker obtains a token and its matching csrfKey cookie, then uses cookie-setting behavior to plant that cookie in the victim's browser and feeds the matching token in the attack."
+    },
+    {
+      "type": "tf",
+      "category": "Bypassing token validation",
+      "q": "The cookie-setting behavior used to exploit a token-tied-to-cookie flaw must exist within the exact same web application as the CSRF vulnerability.",
+      "answer": false,
+      "explain": "Any other application within the same overall DNS domain can be leveraged to set a suitably scoped cookie, e.g. staging.demo.normal-website.com setting a cookie read by secure.normal-website.com."
+    },
+    {
+      "type": "mc",
+      "category": "Bypassing token validation",
+      "q": "In the \"double submit\" defense (token duplicated in a cookie and a request parameter) with no server-side state, why can an attacker succeed without obtaining a real token?",
+      "choices": [
+        "The server derives the real token from the session cookie",
+        "They can invent a token, use cookie-setting behavior to plant it as the cookie, and submit the same value as the parameter so the two match",
+        "The browser automatically signs the token",
+        "Double submit is immune to CSRF"
+      ],
+      "answer": 1,
+      "explain": "Validation only checks the parameter equals the cookie, so the attacker invents a value, plants it in both the cookie and the request, and the match passes."
+    },
+    {
+      "type": "mc",
+      "category": "SameSite restrictions",
+      "q": "In the context of SameSite cookies, how is a \"site\" defined?",
+      "choices": [
+        "The exact scheme, domain, and port",
+        "The top-level domain plus one additional level of the domain name (TLD+1)",
+        "Any domain sharing the same IP address",
+        "The full hostname including all subdomains"
+      ],
+      "answer": 1,
+      "explain": "A site is the TLD (e.g. .com) plus one more label, i.e. TLD+1; scheme is also considered when deciding same-site."
+    },
+    {
+      "type": "tf",
+      "category": "SameSite restrictions",
+      "q": "A cross-origin request can still be same-site, but a same-origin request cannot be cross-site.",
+      "answer": true,
+      "explain": "A site (scheme + TLD+1) is broader than an origin (scheme + domain + port). So two URLs can differ in origin yet share a site; same origin always implies same site."
+    },
+    {
+      "type": "multi",
+      "category": "SameSite restrictions",
+      "q": "Under SameSite=Lax, which conditions must both be met for a cookie to be sent in a cross-site request?",
+      "choices": [
+        "The request uses the GET method",
+        "The request resulted from a top-level navigation by the user (e.g. clicking a link)",
+        "The request includes a valid CSRF token",
+        "The request was initiated by a script or iframe"
+      ],
+      "answer": [0, 1],
+      "explain": "Lax sends the cookie cross-site only for top-level navigations using GET; it is not sent on cross-site POSTs or background requests from scripts, iframes, or image references."
+    },
+    {
+      "type": "mc",
+      "category": "SameSite restrictions",
+      "q": "Which SameSite restriction level means the browser will not send the cookie in ANY cross-site request?",
+      "choices": ["None", "Lax", "Strict", "Secure"],
+      "answer": 2,
+      "explain": "SameSite=Strict withholds the cookie from all cross-site requests, so it is only sent when the target site matches the site in the address bar."
+    },
+    {
+      "type": "tf",
+      "category": "SameSite restrictions",
+      "q": "A cookie set with SameSite=None must also include the Secure attribute, or browsers will reject it.",
+      "answer": true,
+      "explain": "SameSite=None disables SameSite restrictions but requires Secure, so the cookie is only sent over HTTPS; otherwise the browser rejects the cookie."
+    },
+    {
+      "type": "mc",
+      "category": "SameSite restrictions",
+      "q": "How can a SameSite Strict restriction be bypassed using an on-site gadget?",
+      "choices": [
+        "By using a server-side redirect from the attacker's site",
+        "By finding a client-side redirect that builds its target from attacker-controllable input, producing a same-site secondary request that carries the cookies",
+        "By setting SameSite=None on the attacker's own cookie",
+        "By sending the request over HTTP instead of HTTPS"
+      ],
+      "answer": 1,
+      "explain": "Browsers treat a client-side redirect's resulting request as an ordinary standalone same-site request, so it includes all site cookies. A server-side redirect does NOT work, since the browser still sees the original cross-site origin."
+    },
+    {
+      "type": "mc",
+      "category": "SameSite restrictions",
+      "q": "Some frameworks (e.g. Symfony) allow a CSRF attacker to bypass Lax restrictions on a POST-only action. How?",
+      "choices": [
+        "By sending the POST body as JSON",
+        "By using a GET-method form with a _method=POST override parameter that takes precedence for routing",
+        "By adding a Referrer-Policy header",
+        "By duplicating the session cookie"
+      ],
+      "answer": 1,
+      "explain": "A top-level GET navigation includes a Lax cookie; a _method override parameter then makes the framework route it as a POST, performing the sensitive action."
+    },
+    {
+      "type": "mc",
+      "category": "Referer-based defenses",
+      "q": "What does the HTTP Referer header contain, and what is a notable quirk about it?",
+      "choices": [
+        "The server's hostname; it is required on every request",
+        "The URL of the page that linked to the requested resource; it is an optional header and is misspelled in the HTTP spec",
+        "The victim's session token; it is always encrypted",
+        "The user's IP address; it cannot be modified"
+      ],
+      "answer": 1,
+      "explain": "Referer holds the URL of the linking page, is optional, and is famously misspelled in the HTTP specification; linking pages can withhold or modify it."
+    },
+    {
+      "type": "mc",
+      "category": "Referer-based defenses",
+      "q": "An application validates the Referer only when it is present. What technique drops the header so the check is skipped?",
+      "choices": [
+        "Adding Referrer-Policy: unsafe-url",
+        "Including a <meta name=\"referrer\" content=\"never\"> tag on the attack page",
+        "Appending the target domain as a query string",
+        "Using the POST method instead of GET"
+      ],
+      "answer": 1,
+      "explain": "A META referrer tag set to never causes the browser to omit the Referer header, bypassing validation that is skipped when the header is absent."
+    },
+    {
+      "type": "multi",
+      "category": "Referer-based defenses",
+      "q": "Which of the following can bypass naive Referer validation?",
+      "choices": [
+        "Placing the expected domain as a subdomain of the attacker's domain (e.g. vulnerable-website.com.attacker-website.com) when the app checks the Referer starts with its domain",
+        "Placing the expected domain elsewhere in the URL (e.g. attacker-website.com/csrf?vulnerable-website.com) when the app only checks the Referer contains its domain",
+        "Encrypting the Referer header value",
+        "Removing the session cookie"
+      ],
+      "answer": [0, 1],
+      "explain": "Prefix checks are defeated by crafting a subdomain; substring/contains checks are defeated by putting the domain elsewhere in the URL."
+    },
+    {
+      "type": "mc",
+      "category": "Referer-based defenses",
+      "q": "Many browsers strip the query string from the Referer by default. How can an attacker force the full URL (including query string) to be sent?",
+      "choices": [
+        "Set the Referrer-Policy: unsafe-url header on the exploit response",
+        "Set SameSite=None on the attacker's cookie",
+        "Use the _method override parameter",
+        "Add a <meta name=\"referrer\" content=\"never\"> tag"
+      ],
+      "answer": 0,
+      "explain": "Referrer-Policy: unsafe-url (spelled correctly here) ensures the full URL, including the query string, is sent in the Referer."
+    },
+    {
+      "type": "multi",
+      "category": "Preventing CSRF",
+      "q": "According to the guidance, which criteria must a CSRF token meet?",
+      "choices": [
+        "Unpredictable with high entropy, like session tokens",
+        "Tied to the user's session",
+        "Strictly validated in every case before the action is executed",
+        "Stored in a cookie for convenience"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A proper CSRF token is unpredictable/high-entropy, tied to the session, and strictly validated every time. Tokens should NOT be transmitted in cookies."
+    },
+    {
+      "type": "tf",
+      "category": "Preventing CSRF",
+      "q": "CSRF tokens should be transmitted within cookies for simplicity.",
+      "answer": false,
+      "explain": "CSRF tokens should not be transmitted within cookies; a typical secure approach is a hidden field in a POST form."
+    },
+    {
+      "type": "mc",
+      "category": "Preventing CSRF",
+      "q": "Why is placing a CSRF token in the URL query string considered less safe than a hidden form field?",
+      "choices": [
+        "Query strings cannot be read by JavaScript",
+        "The query string is logged in various places, may leak via the Referer header, and can be displayed on-screen",
+        "Query strings are always sent over HTTP",
+        "Query strings cannot hold enough entropy"
+      ],
+      "answer": 1,
+      "explain": "The query string is logged client- and server-side, is liable to leak to third parties in the Referer header, and can be shown on-screen in the browser."
+    },
+    {
+      "type": "tf",
+      "category": "Preventing CSRF",
+      "q": "CSRF token validation should be performed regardless of the HTTP method or content type of the request, and a request with no token should be rejected the same as one with an invalid token.",
+      "answer": true,
+      "explain": "Server-side validation must compare the request's token to the session-stored value in every case, independent of method or content type; a missing token is rejected like an invalid one."
+    },
+    {
+      "type": "mc",
+      "category": "Preventing CSRF",
+      "q": "What SameSite policy does the guidance recommend using by default for cookies?",
+      "choices": [
+        "None, for maximum compatibility",
+        "Lax, since it is the browser default",
+        "Strict by default, lowering to Lax only with good reason, and never None unless the implications are fully understood",
+        "No SameSite attribute at all"
+      ],
+      "answer": 2,
+      "explain": "Use Strict by default, lower to Lax only when necessary, and avoid SameSite=None unless you fully understand the security implications."
+    },
+    {
+      "type": "tf",
+      "category": "Preventing CSRF",
+      "q": "Properly configured SameSite restrictions are completely powerless against cross-origin, same-site attacks.",
+      "answer": true,
+      "explain": "SameSite only distinguishes sites, so it gives no protection against same-site, cross-origin attacks; isolate insecure content (like user uploads) on a separate site and audit sibling domains."
+    }
+  ]
+}

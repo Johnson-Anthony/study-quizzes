@@ -1,0 +1,396 @@
+{
+  "title": "GraphQL API vulnerabilities",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "tf",
+      "category": "GraphQL basics",
+      "topic": "Endpoints",
+      "q": "All GraphQL operations are sent to the same endpoint.",
+      "answer": true,
+      "explain": "Unlike REST, which uses operation-specific endpoints across a range of HTTP methods, every GraphQL operation uses a single endpoint."
+    },
+    {
+      "type": "mc",
+      "category": "GraphQL basics",
+      "topic": "Operation handling",
+      "q": "What determines how a GraphQL request is handled?",
+      "choices": [
+        "The endpoint path it is sent to",
+        "The HTTP method used",
+        "The type and name of the operation",
+        "The Content-Length header"
+      ],
+      "answer": 2,
+      "explain": "With GraphQL the type and name of the operation define how the query is handled, rather than the endpoint it is sent to or the HTTP method used."
+    },
+    {
+      "type": "multi",
+      "category": "GraphQL basics",
+      "topic": "Operation types",
+      "q": "Which of the following are the operation types used to manipulate data described by a GraphQL schema?",
+      "choices": ["Query", "Mutation", "Subscription", "Transaction", "Directive"],
+      "answer": [0, 1, 2],
+      "explain": "Queries fetch data, mutations add/change/remove data, and subscriptions set up a permanent connection by which the server pushes data to the client."
+    },
+    {
+      "type": "text",
+      "category": "GraphQL basics",
+      "topic": "Operation types",
+      "q": "Which GraphQL operation type adds, changes, or removes data (roughly equivalent to REST's POST, PUT, and DELETE)?",
+      "answer": ["mutation", "mutations", "a mutation"],
+      "explain": "Mutations change data in some way. They always take an input of some type, generally provided as a variable."
+    },
+    {
+      "type": "mc",
+      "category": "GraphQL basics",
+      "topic": "Purpose of GraphQL",
+      "q": "GraphQL lets a client specify exactly what data it wants, helping to avoid which problem common with REST APIs?",
+      "choices": [
+        "Large response objects and multiple calls",
+        "Lack of TLS encryption",
+        "Missing authentication headers",
+        "Unparseable binary responses"
+      ],
+      "answer": 0,
+      "explain": "By specifying exactly what data it wants, the client avoids the large response objects and multiple calls that can be seen with REST APIs."
+    },
+    {
+      "type": "mc",
+      "category": "Schema",
+      "topic": "Non-nullable fields",
+      "q": "In a GraphQL schema definition, what does the `!` operator after a field's type indicate?",
+      "choices": [
+        "The field is deprecated",
+        "The field is non-nullable (mandatory)",
+        "The field is an array",
+        "The field is read-only"
+      ],
+      "answer": 1,
+      "explain": "The `!` operator indicates that the field is non-nullable when called, that is, mandatory."
+    },
+    {
+      "type": "tf",
+      "category": "Schema",
+      "topic": "Schema requirements",
+      "q": "A GraphQL schema must include at least one available query.",
+      "answer": true,
+      "explain": "Schemas must include at least one available query, and usually also contain details of available mutations."
+    },
+    {
+      "type": "mc",
+      "category": "Schema",
+      "topic": "Types",
+      "q": "Most of the types defined in a GraphQL schema are which kind of type?",
+      "choices": ["Scalar types", "Enum types", "Object types", "Union types"],
+      "answer": 2,
+      "explain": "Most of the types defined are object types, which define the objects available and the fields and arguments they have."
+    },
+    {
+      "type": "text",
+      "category": "Schema",
+      "topic": "Schema definition",
+      "q": "What is the name for the contract between the frontend and backend that defines the available data as a series of types using a human-readable definition language?",
+      "answer": ["schema", "the schema", "graphql schema"],
+      "explain": "The schema defines the structure of the service's data, listing the available types, fields, and relationships."
+    },
+    {
+      "type": "mc",
+      "category": "Query components",
+      "topic": "Aliases",
+      "q": "What problem do aliases solve in a GraphQL query?",
+      "choices": [
+        "They encrypt field names",
+        "They allow returning multiple instances of the same object type in one request",
+        "They disable introspection",
+        "They validate CSRF tokens"
+      ],
+      "answer": 1,
+      "explain": "GraphQL objects can't contain multiple properties with the same name; aliases bypass this by explicitly naming the properties, letting you return multiple instances of the same type in one request."
+    },
+    {
+      "type": "tf",
+      "category": "Query components",
+      "topic": "Aliases",
+      "q": "Without using aliases, a single GraphQL query can contain multiple properties with the same name.",
+      "answer": false,
+      "explain": "Ordinarily GraphQL objects can't contain multiple properties with the same name, which is exactly the restriction aliases work around."
+    },
+    {
+      "type": "mc",
+      "category": "Query components",
+      "topic": "Fragments",
+      "q": "What is a GraphQL fragment?",
+      "choices": [
+        "A partially received response",
+        "A reusable part of a query or mutation containing a subset of a type's fields",
+        "A fragment of the schema exposed by introspection",
+        "A malformed query that triggers an error"
+      ],
+      "answer": 1,
+      "explain": "Fragments are reusable parts of queries or mutations that contain a subset of the fields belonging to the associated type; changing a fragment updates every query that calls it."
+    },
+    {
+      "type": "mc",
+      "category": "Query components",
+      "topic": "Variables",
+      "q": "What do GraphQL variables enable you to do?",
+      "choices": [
+        "Pass dynamic arguments instead of embedding them directly in the query string",
+        "Store responses on the server",
+        "Bypass the schema's type checks",
+        "Combine queries and mutations into one operation type"
+      ],
+      "answer": 0,
+      "explain": "Variables let you pass dynamic arguments from a separate JSON variables dictionary, so a common query structure can be reused with only the variable value changing."
+    },
+    {
+      "type": "mc",
+      "category": "Query components",
+      "topic": "Aliases with mutations",
+      "q": "Using aliases with mutations effectively enables an attacker to do what?",
+      "choices": [
+        "Disable rate limiting entirely",
+        "Send multiple GraphQL messages in a single HTTP request",
+        "Read the server's filesystem",
+        "Force introspection to run"
+      ],
+      "answer": 1,
+      "explain": "Aliases with mutations let you send multiple GraphQL messages in one HTTP request, which can be used to bypass request-count-based rate limiting."
+    },
+    {
+      "type": "text",
+      "category": "Query components",
+      "topic": "Arguments and IDOR",
+      "q": "Which query component, if user-supplied and used to access objects directly, can make a GraphQL API vulnerable to IDOR?",
+      "answer": ["arguments", "argument", "an argument"],
+      "explain": "If user-supplied arguments are used to access objects directly, the API can be vulnerable to access control issues such as insecure direct object references (IDOR)."
+    },
+    {
+      "type": "mc",
+      "category": "Query components",
+      "topic": "Subscriptions",
+      "q": "How are GraphQL subscriptions commonly implemented?",
+      "choices": ["Server-sent events", "Long polling", "WebSockets", "gRPC streams"],
+      "answer": 2,
+      "explain": "Subscriptions establish a long-lived connection so the server can push real-time updates, and are commonly implemented using WebSockets."
+    },
+    {
+      "type": "text",
+      "category": "Finding endpoints",
+      "topic": "Universal query",
+      "q": "What universal query can you send to probe whether a URL corresponds to a GraphQL service?",
+      "answer": ["query{__typename}", "query { __typename }", "{__typename}", "__typename"],
+      "explain": "Sending query{__typename} to a GraphQL endpoint returns the string {\"data\": {\"__typename\": \"query\"}} somewhere in the response."
+    },
+    {
+      "type": "mc",
+      "category": "Finding endpoints",
+      "topic": "Universal query",
+      "q": "Why does the universal query work on any GraphQL endpoint?",
+      "choices": [
+        "Every endpoint exposes a /debug route",
+        "Every endpoint has a reserved __typename field that returns the queried object's type as a string",
+        "Every endpoint leaks its schema by default",
+        "Every endpoint accepts GET requests"
+      ],
+      "answer": 1,
+      "explain": "Every GraphQL endpoint has a reserved field called __typename that returns the queried object's type as a string."
+    },
+    {
+      "type": "multi",
+      "category": "Finding endpoints",
+      "topic": "Common endpoint names",
+      "q": "Which of these are common GraphQL endpoint suffixes worth probing with a universal query?",
+      "choices": ["/graphql", "/api", "/api/graphql", "/graphql/graphql", "/admin/query"],
+      "answer": [0, 1, 2, 3],
+      "explain": "Common suffixes include /graphql, /api, /api/graphql, /graphql/api, and /graphql/graphql; you can also try appending /v1."
+    },
+    {
+      "type": "mc",
+      "category": "Finding endpoints",
+      "topic": "Request methods",
+      "q": "As best practice, what should a production GraphQL endpoint accept to help protect against CSRF?",
+      "choices": [
+        "Only POST requests with a content-type of application/json",
+        "Only GET requests",
+        "Any method with a content-type of x-www-form-urlencoded",
+        "Only requests over HTTP/2"
+      ],
+      "answer": 0,
+      "explain": "Best practice is for production endpoints to only accept POST requests with a content-type of application/json, which helps protect against CSRF."
+    },
+    {
+      "type": "text",
+      "category": "Finding endpoints",
+      "topic": "Common endpoint names",
+      "q": "If common GraphQL endpoint paths don't return a GraphQL response, what short path segment does the material suggest appending to try?",
+      "answer": ["/v1", "v1"],
+      "explain": "If the common endpoints don't return a GraphQL response, you could also try appending /v1 to the path."
+    },
+    {
+      "type": "tf",
+      "category": "Introspection",
+      "topic": "Best practice",
+      "q": "Best practice is for introspection to be enabled in production environments.",
+      "answer": false,
+      "explain": "It is best practice for introspection to be disabled in production, as it can disclose sensitive data and help an attacker learn how to interact with the API."
+    },
+    {
+      "type": "mc",
+      "category": "Introspection",
+      "topic": "Schema field",
+      "q": "Which field do you query to use introspection to discover schema information?",
+      "choices": ["__typename", "__schema", "__introspect", "__type"],
+      "answer": 1,
+      "explain": "To use introspection, query the __schema field, which is available on the root type of all queries."
+    },
+    {
+      "type": "text",
+      "category": "Introspection",
+      "topic": "Clairvoyance / suggestions",
+      "q": "Name the tool that uses suggestions to automatically recover all or part of a GraphQL schema even when introspection is disabled.",
+      "answer": ["Clairvoyance", "clairvoyance"],
+      "explain": "Clairvoyance uses suggestion responses to piece together the schema, even when introspection is turned off."
+    },
+    {
+      "type": "mc",
+      "category": "Introspection",
+      "topic": "Suggestions",
+      "q": "Suggestions, which can reveal valid parts of the schema in error messages, are a feature of which platform?",
+      "choices": ["Apollo GraphQL", "Hasura", "GraphiQL", "Relay"],
+      "answer": 0,
+      "explain": "Suggestions are an Apollo GraphQL feature where the server suggests query amendments (for example, 'Did you mean...') in error messages, effectively giving away valid schema parts."
+    },
+    {
+      "type": "multi",
+      "category": "Introspection",
+      "topic": "Bypassing defenses",
+      "q": "To bypass a flawed regex that blocks the string `__schema{`, which characters can you insert after `__schema` because GraphQL ignores them but the regex may not?",
+      "choices": ["Spaces", "New lines", "Commas", "Semicolons", "Null bytes"],
+      "answer": [0, 1, 2],
+      "explain": "Spaces, new lines, and commas are ignored by GraphQL but not by a flawed regex, so inserting one after __schema can defeat a regex that only excludes '__schema{'."
+    },
+    {
+      "type": "mc",
+      "category": "Introspection",
+      "topic": "Bypassing defenses",
+      "q": "If an introspection probe is blocked over POST, what else should you try?",
+      "choices": [
+        "Resending it over an alternative method such as GET or POST with x-www-form-urlencoded",
+        "Encrypting the query body",
+        "Adding a CSRF token",
+        "Sending it to /robots.txt"
+      ],
+      "answer": 0,
+      "explain": "Introspection may only be disabled over POST, so try a GET request or a POST with a content-type of x-www-form-urlencoded."
+    },
+    {
+      "type": "mc",
+      "category": "Exploitation",
+      "topic": "IDOR",
+      "q": "Retrieving a delisted product by directly supplying its sequential ID to a query is an example of what vulnerability class?",
+      "choices": [
+        "Cross-site scripting",
+        "An access control vulnerability / insecure direct object reference (IDOR)",
+        "SQL injection",
+        "Server-side request forgery"
+      ],
+      "answer": 1,
+      "explain": "If arguments are used to access objects directly, a user can obtain data they shouldn't by supplying a matching argument, which is an access control issue known as IDOR."
+    },
+    {
+      "type": "mc",
+      "category": "Exploitation",
+      "topic": "Rate limiting",
+      "q": "How can aliases be used to bypass rate limiting?",
+      "choices": [
+        "They make the server forget previous requests",
+        "They let many queries ride in one HTTP request, defeating limiters that count HTTP requests rather than operations",
+        "They disable the rate limiter in the schema",
+        "They spoof the client's IP address"
+      ],
+      "answer": 1,
+      "explain": "Some rate limiters count HTTP requests instead of operations performed; because aliases send multiple queries in a single HTTP message, they can bypass such limits (for example, brute forcing discount codes)."
+    },
+    {
+      "type": "mc",
+      "category": "Exploitation",
+      "topic": "CSRF",
+      "q": "Under what conditions does a CSRF-over-GraphQL vulnerability arise?",
+      "choices": [
+        "When introspection is enabled",
+        "When the endpoint does not validate the content type of requests and no CSRF tokens are implemented",
+        "When aliases are allowed",
+        "When the schema exposes a mutation"
+      ],
+      "answer": 1,
+      "explain": "GraphQL CSRF can arise where the endpoint does not validate request content type and no CSRF tokens are implemented, letting a browser send a forged GET or x-www-form-urlencoded request."
+    },
+    {
+      "type": "tf",
+      "category": "Exploitation",
+      "topic": "CSRF",
+      "q": "A POST request with a content type of application/json is secure against forgery as long as the content type is validated.",
+      "answer": true,
+      "explain": "A browser can't be made to send a cross-site application/json POST, so if the endpoint validates that content type, such requests are secure against CSRF."
+    },
+    {
+      "type": "multi",
+      "category": "Prevention",
+      "topic": "Brute force defenses",
+      "q": "Which design steps help defend a GraphQL API against brute force and DoS attacks?",
+      "choices": [
+        "Limit the query depth",
+        "Configure operation limits (max unique fields, aliases, and root fields)",
+        "Configure the maximum number of bytes a query can contain",
+        "Implement cost analysis",
+        "Expose private user fields for faster lookups"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Limiting query depth, configuring operation limits, capping query bytes, and implementing cost analysis all reduce the opportunity for brute force and DoS attacks."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "topic": "Query depth",
+      "q": "What does the term 'query depth' refer to?",
+      "choices": [
+        "The number of aliases in a query",
+        "The number of levels of nesting within a query",
+        "The byte size of a query",
+        "The number of fields requested"
+      ],
+      "answer": 1,
+      "explain": "Query depth is the number of levels of nesting within a query; heavily nested queries can hurt performance and enable DoS, so limiting depth helps."
+    },
+    {
+      "type": "multi",
+      "category": "Prevention",
+      "topic": "CSRF defenses",
+      "q": "Which measures specifically defend against GraphQL CSRF?",
+      "choices": [
+        "Only accept queries over JSON-encoded POST",
+        "Validate that the provided content matches the supplied content type",
+        "Implement a secure CSRF token mechanism",
+        "Accept GET requests for all operations"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "To defend against GraphQL CSRF, accept queries only over JSON-encoded POST, validate the content matches the content type, and use a secure CSRF token mechanism."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "topic": "Cost analysis",
+      "q": "What does cost analysis do for a GraphQL API?",
+      "choices": [
+        "Bills clients per query",
+        "Identifies the resource cost of incoming queries and drops ones too computationally complex to run",
+        "Measures the monetary cost of hosting",
+        "Caches expensive query results"
+      ],
+      "answer": 1,
+      "explain": "Cost analysis has a library identify the resource cost of queries as they arrive and drop any query that would be too computationally complex to run."
+    }
+  ]
+}

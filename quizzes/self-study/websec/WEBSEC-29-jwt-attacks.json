@@ -1,0 +1,323 @@
+{
+  "title": "JWT attacks",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "JWT basics",
+      "q": "A JWT consists of three parts separated by dots. In order, what are they?",
+      "choices": [
+        "Header, payload, signature",
+        "Payload, header, signature",
+        "Signature, header, payload",
+        "Header, signature, payload"
+      ],
+      "answer": 0,
+      "explain": "A JWT is header.payload.signature. The header and payload are base64url-encoded JSON objects; the signature is derived from them."
+    },
+    {
+      "type": "tf",
+      "category": "JWT basics",
+      "q": "The header and payload of a JWT are encrypted, so their contents cannot be read without the server's secret key.",
+      "answer": false,
+      "explain": "In a JWS token the header and payload are only base64url-encoded JSON, not encrypted. Anyone with the token can read (and usually modify) them. Security relies on the cryptographic signature."
+    },
+    {
+      "type": "text",
+      "category": "JWT basics",
+      "q": "In the JWT header, which parameter names the algorithm used to sign the token (and thus which algorithm the server uses to verify it)?",
+      "answer": ["alg", "\"alg\""],
+      "explain": "The alg header parameter tells the server which algorithm was used. According to the JWS spec, alg is the only mandatory header parameter."
+    },
+    {
+      "type": "mc",
+      "category": "JWT basics",
+      "q": "When people use the term \"JWT\", which of the following do they almost always actually mean?",
+      "choices": [
+        "A JWS (signed) token",
+        "A JWE (encrypted) token",
+        "A raw, unsigned JSON object",
+        "An OAuth access token"
+      ],
+      "answer": 0,
+      "explain": "The bare JWT spec only defines a claims format. In practice a JWT is a JWS or JWE; the term \"JWT\" almost always refers to a JWS (signed) token. JWEs are similar but have encrypted contents."
+    },
+    {
+      "type": "multi",
+      "category": "JWT basics",
+      "q": "According to the slides, what two properties does a correct JWT signature give the server?",
+      "choices": [
+        "Changing a single byte of the header or payload produces a mismatched signature",
+        "Without the secret signing key, it shouldn't be possible to generate a correct signature for a given header/payload",
+        "The payload is hidden from anyone who intercepts the token",
+        "The token can never expire"
+      ],
+      "answer": [0, 1],
+      "explain": "The signature is derived from the rest of the token, so tampering breaks it, and generating a valid signature requires the secret signing key. The signature does not hide the payload."
+    },
+    {
+      "type": "tf",
+      "category": "Flawed signature verification",
+      "q": "By design, servers usually store a record of every JWT they issue, including its original signature, so they can detect tampering.",
+      "answer": false,
+      "explain": "JWTs are self-contained; servers typically store no information about issued tokens. That is why improper signature verification lets an attacker freely change the token contents."
+    },
+    {
+      "type": "mc",
+      "category": "Flawed signature verification",
+      "q": "In the Node.js jsonwebtoken library, which mistake effectively means the application never verifies the signature at all?",
+      "choices": [
+        "Passing incoming tokens to decode() instead of verify()",
+        "Passing incoming tokens to verify() instead of decode()",
+        "Calling sign() with the public key",
+        "Setting the alg header to RS256"
+      ],
+      "answer": 0,
+      "explain": "decode() only decodes the token; verify() checks the signature. Confusing the two and using decode() leaves the signature unverified, so arbitrary payload changes are accepted."
+    },
+    {
+      "type": "text",
+      "category": "Flawed signature verification",
+      "q": "What value in the alg header indicates an \"unsecured JWT\" that carries no signature?",
+      "answer": ["none", "\"none\""],
+      "explain": "alg: none marks an unsecured JWT. Servers usually reject unsigned tokens, but string-based filters can sometimes be bypassed with mixed capitalization or unexpected encodings."
+    },
+    {
+      "type": "tf",
+      "category": "Flawed signature verification",
+      "q": "Even when a JWT is unsigned (alg: none), the payload part must still be terminated with a trailing dot.",
+      "answer": true,
+      "explain": "The slides note that even an unsigned token keeps the trailing dot after the payload, so the structure remains header.payload. (with an empty signature segment)."
+    },
+    {
+      "type": "mc",
+      "category": "Flawed signature verification",
+      "q": "Why is trusting the alg header parameter inherently flawed?",
+      "choices": [
+        "It forces the server to trust user-controllable input to decide how to verify the token, before that input has been verified",
+        "It is encrypted and the server cannot read it",
+        "It can only ever contain the value HS256",
+        "It is stored server-side and never sent to the client"
+      ],
+      "answer": 0,
+      "explain": "The alg value is attacker-controllable and tells the server how to check trustworthiness, yet it hasn't been verified at that point. This lets an attacker influence the verification process."
+    },
+    {
+      "type": "mc",
+      "category": "Brute-forcing secret keys",
+      "q": "HS256 is an example of which kind of signing algorithm?",
+      "choices": [
+        "Symmetric (HMAC + SHA-256), using a single standalone secret string",
+        "Asymmetric, using an RSA private/public key pair",
+        "An unsigned algorithm equivalent to alg: none",
+        "An encryption-only algorithm with no signature"
+      ],
+      "answer": 0,
+      "explain": "HS256 is HMAC + SHA-256, a symmetric algorithm. It uses one secret string to both sign and verify, so a weak or guessable secret can be brute-forced."
+    },
+    {
+      "type": "text",
+      "category": "Brute-forcing secret keys",
+      "q": "What tool do the slides recommend for brute-forcing a JWT's secret signing key offline against a wordlist?",
+      "answer": ["hashcat"],
+      "explain": "hashcat (e.g. hashcat -a 0 -m 16500 <jwt> <wordlist>) signs the header/payload with each candidate secret and compares to the real signature. It runs locally, so it is very fast."
+    },
+    {
+      "type": "tf",
+      "category": "Brute-forcing secret keys",
+      "q": "Because hashcat runs locally and does not send requests to the target server, brute-forcing a weak JWT secret is extremely fast even with a large wordlist.",
+      "answer": true,
+      "explain": "hashcat computes signatures locally and compares them to the captured one, so no network round-trips are needed, making the process very quick."
+    },
+    {
+      "type": "mc",
+      "category": "Brute-forcing secret keys",
+      "q": "Once an attacker has brute-forced the server's secret key, what can they do?",
+      "choices": [
+        "Generate a valid signature for any header and payload they choose",
+        "Only read the existing payload, but not modify it",
+        "Decrypt the server's TLS traffic",
+        "Nothing, because the key only verifies and cannot sign"
+      ],
+      "answer": 0,
+      "explain": "With the symmetric secret the attacker can re-sign arbitrary tokens, producing valid signatures for any header/payload and fully compromising the mechanism."
+    },
+    {
+      "type": "multi",
+      "category": "Header parameter injection",
+      "q": "Which JWT (JOSE) header parameters are highlighted as being of particular interest to attackers because they tell the server which key to use?",
+      "choices": [
+        "jwk (embedded JSON Web Key)",
+        "jku (JSON Web Key Set URL)",
+        "kid (Key ID)",
+        "typ (token type)"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "jwk, jku, and kid all point the server at a verification key and are user-controllable, making them injection vectors. typ merely declares the token type."
+    },
+    {
+      "type": "mc",
+      "category": "Header parameter injection",
+      "q": "How does an attacker exploit a server that trusts a public key embedded in the jwk header parameter?",
+      "choices": [
+        "Sign a modified JWT with their own RSA private key and embed the matching public key in the jwk header",
+        "Set alg to none and remove the signature entirely",
+        "Brute-force the server's HMAC secret and re-sign with it",
+        "Embed the server's own private key in the jwk header"
+      ],
+      "answer": 0,
+      "explain": "A misconfigured server verifies using whatever key is embedded in jwk. The attacker signs with their own private key and embeds the corresponding public key, so the forged signature verifies."
+    },
+    {
+      "type": "mc",
+      "category": "Header parameter injection",
+      "q": "What does the jku header parameter do, and how can it be abused?",
+      "choices": [
+        "It gives a URL for a JWK Set; attackers host their own key set and use URL-parsing discrepancies to bypass host filtering",
+        "It embeds the key directly in the token; attackers swap in their own key",
+        "It sets the algorithm; attackers change it to none",
+        "It declares the content type; attackers change it to text/xml"
+      ],
+      "answer": 0,
+      "explain": "jku references a JWK Set URL the server fetches keys from. If host filtering is weak, SSRF-style URL-parsing tricks can make the server fetch the attacker's key set. (Changing content type is the cty parameter.)"
+    },
+    {
+      "type": "mc",
+      "category": "Header parameter injection",
+      "q": "The kid header parameter is an arbitrary developer-chosen string that may point to a key file on disk. What classic vulnerability does this most directly enable?",
+      "choices": [
+        "Directory traversal to force the server to use an arbitrary file as the verification key",
+        "Cross-site scripting in the login form",
+        "Clickjacking of the admin panel",
+        "CRLF injection in the response headers"
+      ],
+      "answer": 0,
+      "explain": "Because kid can name a file, a traversal payload like ../../path/to/file can force the server to use an attacker-chosen file as the key. If keys are stored in a database, kid is also a SQL injection vector."
+    },
+    {
+      "type": "text",
+      "category": "Header parameter injection",
+      "q": "In a kid path-traversal attack against a server that supports symmetric signing, which simple, predictable empty file on most Linux systems can be pointed to so that signing with an empty string yields a valid signature?",
+      "answer": ["/dev/null", "dev/null"],
+      "explain": "/dev/null is an empty file present on most Linux systems. Reading it returns an empty string, so signing the token with an empty-string secret verifies against it."
+    },
+    {
+      "type": "mc",
+      "category": "Header parameter injection",
+      "q": "If an attacker has already bypassed signature verification, injecting which header parameter could open new vectors for XXE or deserialization attacks?",
+      "choices": [
+        "cty (Content Type), set to text/xml or application/x-java-serialized-object",
+        "kid (Key ID), set to a database row",
+        "jku (JWK Set URL), set to an attacker domain",
+        "alg, set to RS256"
+      ],
+      "answer": 0,
+      "explain": "The cty parameter declares the payload media type. If the parsing library honors it, changing it to text/xml or a serialized-object type can enable XXE or deserialization attacks."
+    },
+    {
+      "type": "mc",
+      "category": "Algorithm confusion",
+      "q": "What defines an algorithm confusion (key confusion) attack?",
+      "choices": [
+        "Forcing the server to verify the signature using a different algorithm than the developers intended",
+        "Guessing the server's secret with a wordlist",
+        "Removing the signature so the token is unsigned",
+        "Replaying an expired token after changing its exp claim"
+      ],
+      "answer": 0,
+      "explain": "Algorithm confusion forces verification under an unexpected algorithm. If unhandled, an attacker can forge valid JWTs without knowing the secret signing key."
+    },
+    {
+      "type": "mc",
+      "category": "Algorithm confusion",
+      "q": "What is the key distinction between symmetric algorithms (e.g. HS256) and asymmetric algorithms (e.g. RS256)?",
+      "choices": [
+        "Symmetric uses one secret key to sign and verify; asymmetric uses a private key to sign and a related public key to verify",
+        "Symmetric uses a private/public key pair; asymmetric uses one shared secret",
+        "Symmetric tokens are encrypted; asymmetric tokens are only encoded",
+        "Symmetric cannot be brute-forced; asymmetric always can"
+      ],
+      "answer": 0,
+      "explain": "HS256 (symmetric) uses a single secret for both signing and verifying. RS256 (asymmetric) signs with a private key and verifies with the mathematically related public key, which is often shared."
+    },
+    {
+      "type": "tf",
+      "category": "Algorithm confusion",
+      "q": "Algorithm confusion vulnerabilities typically arise because a single algorithm-agnostic verify() method relies on the token's alg header to decide how to verify, while the developer always passes a fixed public key.",
+      "answer": true,
+      "explain": "A generic verify(token, secretOrPublicKey) picks its behavior from alg. If the developer assumes RS256 and always passes the public key, an HS256 token makes the library treat that public key as an HMAC secret."
+    },
+    {
+      "type": "mc",
+      "category": "Algorithm confusion",
+      "q": "In the classic algorithm confusion attack, what does the attacker use as the HMAC secret to sign their forged HS256 token?",
+      "choices": [
+        "The server's public key",
+        "The server's private key",
+        "A brute-forced password",
+        "The string 'none'"
+      ],
+      "answer": 0,
+      "explain": "The attacker sets alg to HS256 and signs using the server's public key as the HMAC secret. The server, expecting RS256, passes the same public key to its generic verify() and the signature matches."
+    },
+    {
+      "type": "tf",
+      "category": "Algorithm confusion",
+      "q": "For an algorithm confusion attack to work, the public key used to sign the token must match the server's copy byte-for-byte, including format and non-printing characters like newlines.",
+      "answer": true,
+      "explain": "The signing key must be absolutely identical to the server's stored public key (e.g. X.509 PEM), preserving every byte and non-printing character. In practice you may need to experiment with formatting."
+    },
+    {
+      "type": "multi",
+      "category": "Algorithm confusion",
+      "q": "Which are legitimate ways to obtain the server's public key for an algorithm confusion attack?",
+      "choices": [
+        "Fetch it from a standard endpoint such as /jwks.json or /.well-known/jwks.json",
+        "Derive it from a pair of existing JWTs using a tool like jwt_forgery.py / sig2n",
+        "Brute-force it with hashcat from a single token",
+        "Read it directly from the token's signature segment"
+      ],
+      "answer": [0, 1],
+      "explain": "Public keys are often exposed as JWK Sets at /jwks.json or /.well-known/jwks.json, and if not, can be derived from two existing JWTs using rsa_sign2n tools (jwt_forgery.py / the portswigger/sig2n Docker image)."
+    },
+    {
+      "type": "mc",
+      "category": "Algorithm confusion",
+      "q": "When deriving a public key from two JWTs with the sig2n tool, it produces several candidate values of n, each with a forged JWT. How do you identify the correct key?",
+      "choices": [
+        "Send each forged JWT to the server; only the one signed with the matching key is accepted",
+        "Pick the longest value of n",
+        "Choose the key whose kid matches the token",
+        "Only the first candidate is ever valid"
+      ],
+      "answer": 0,
+      "explain": "Only one candidate n matches the server's actual key. You send each forged JWT (in Burp Repeater) and the server accepts just one; that matching key is then used for the attack."
+    },
+    {
+      "type": "multi",
+      "category": "Prevention",
+      "q": "Which measures do the slides recommend to protect against JWT attacks?",
+      "choices": [
+        "Perform robust signature verification, accounting for tokens signed with unexpected algorithms",
+        "Enforce a strict whitelist of permitted hosts for the jku header",
+        "Ensure the kid parameter isn't vulnerable to path traversal or SQL injection",
+        "Always set alg to none to simplify verification"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Robust signature verification (including unexpected-algorithm edge cases), a strict jku host whitelist, and a traversal/SQLi-safe kid are all recommended. Using alg: none would remove signing entirely and is the opposite of safe."
+    },
+    {
+      "type": "multi",
+      "category": "Prevention",
+      "q": "Which of these are listed as additional best practices for JWT handling (not strictly required to avoid a vulnerability)?",
+      "choices": [
+        "Always set an expiration date for tokens you issue",
+        "Avoid sending tokens in URL parameters where possible",
+        "Include an aud (audience) claim specifying the intended recipient",
+        "Store the secret key in the token's payload for convenience"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Best practices include setting expirations, avoiding tokens in URLs, including an aud claim to bind the token to its intended site, and enabling revocation. Putting the secret in the payload would expose it to anyone."
+    }
+  ]
+}

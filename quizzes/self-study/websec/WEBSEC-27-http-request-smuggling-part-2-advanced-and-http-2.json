@@ -1,0 +1,348 @@
+{
+  "title": "HTTP request smuggling part 2: Advanced and HTTP/2",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "tf",
+      "category": "HTTP/2 fundamentals and downgrading",
+      "q": "HTTP/2 messages are sent over the wire as a series of frames, each preceded by an explicit length field, so the length of a request is the sum of its frame lengths.",
+      "answer": true,
+      "explain": "HTTP/2's single, robust built-in length mechanism (explicit per-frame lengths) is why it is considered inherently immune to request smuggling when used end to end."
+    },
+    {
+      "type": "text",
+      "category": "HTTP/2 fundamentals and downgrading",
+      "q": "What is the name for the process of rewriting an HTTP/2 request using HTTP/1 syntax to produce an equivalent HTTP/1 request? (one or two words)",
+      "answer": ["HTTP/2 downgrading", "downgrading", "HTTP2 downgrading", "http/2 downgrading", "http2 downgrading"],
+      "explain": "Front-end servers and reverse proxies downgrade so they can offer HTTP/2 to clients while talking to back-ends that only speak HTTP/1. It is a prerequisite for many of these attacks."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP/2 fundamentals and downgrading",
+      "q": "Why does HTTP/2 downgrading reintroduce the possibility of request smuggling that end-to-end HTTP/2 avoids?",
+      "choices": [
+        "It forces all requests to use chunked transfer encoding",
+        "It creates potentially three different ways to specify the length of the same request",
+        "It disables TLS between the front-end and back-end",
+        "It removes the Host header entirely"
+      ],
+      "answer": 1,
+      "explain": "Once a request is downgraded to HTTP/1, there can be up to three competing length indicators (the HTTP/2 built-in length, a Content-Length, and a Transfer-Encoding), which is the basis of all request smuggling."
+    },
+    {
+      "type": "tf",
+      "category": "HTTP/2 fundamentals and downgrading",
+      "q": "HTTP/2 downgrading is rare and is disabled by default in most reverse proxy products.",
+      "answer": false,
+      "explain": "It is extremely widespread and is even the default behavior for a number of popular reverse proxy services; in some cases it cannot be disabled at all."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP/2 fundamentals and downgrading",
+      "q": "Clients including Burp normally only use HTTP/2 with servers that advertise support for it via which TLS mechanism?",
+      "choices": ["SNI", "ALPN", "OCSP stapling", "HSTS"],
+      "answer": 1,
+      "explain": "Clients learn of HTTP/2 support via ALPN in the TLS handshake. 'Hidden' HTTP/2 support occurs when a server supports HTTP/2 but fails to advertise it, so clients fall back to HTTP/1.1 and the attack surface is overlooked."
+    },
+    {
+      "type": "mc",
+      "category": "H2.CL and H2.TE smuggling",
+      "q": "In an H2.CL attack, where does the dangerous Content-Length value that desyncs the back-end come from?",
+      "choices": [
+        "It is calculated correctly from the HTTP/2 frame lengths",
+        "A content-length header the attacker injected into the HTTP/2 request that the front-end copies into the downgraded HTTP/1 request",
+        "The Transfer-Encoding header",
+        "The :authority pseudo-header"
+      ],
+      "answer": 1,
+      "explain": "HTTP/2 requests may carry their own content-length. If the front-end reuses that injected value instead of validating it against the built-in length, the HTTP/1 back-end trusts the misleading Content-Length and desyncs."
+    },
+    {
+      "type": "tf",
+      "category": "H2.CL and H2.TE smuggling",
+      "q": "The HTTP/2 spec says any content-length header in an HTTP/2 request must match the length calculated from the built-in mechanism, but this is not always validated before downgrading.",
+      "answer": true,
+      "explain": "This missing validation is exactly what makes H2.CL smuggling possible: the front-end uses the implicit HTTP/2 length while the back-end obeys the attacker's Content-Length."
+    },
+    {
+      "type": "mc",
+      "category": "H2.CL and H2.TE smuggling",
+      "q": "An H2.TE vulnerability arises when the front-end server does what with an injected transfer-encoding: chunked header?",
+      "choices": [
+        "Correctly strips or blocks it as the spec recommends",
+        "Fails to strip or block it, then downgrades the request to an HTTP/1 back-end that supports chunked encoding",
+        "Converts it to a Content-Length header",
+        "Rejects the entire TLS connection"
+      ],
+      "answer": 1,
+      "explain": "Chunked encoding is incompatible with HTTP/2, so the spec says such a header should be stripped or the request blocked. If the front-end forwards it to a chunked-capable HTTP/1 back-end, the back-end desyncs on the chunked body."
+    },
+    {
+      "type": "text",
+      "category": "H2.CL and H2.TE smuggling",
+      "q": "In the H2.CL tip, why include a trailing body parameter plus a Content-Length header slightly longer than the body in the smuggled prefix?",
+      "answer": ["to append the victim's request but truncate it before its headers", "so the victim request is appended but truncated before the headers", "to avoid duplicate header errors by truncating the appended victim request before its headers"],
+      "explain": "A Content-Length slightly longer than the body lets the victim's request still be appended to the prefix but truncates it before its headers, avoiding duplicate-header errors that would break the attack."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP/2-exclusive vectors",
+      "q": "Why can an HTTP/2 header value contain a raw \\r\\n without being split into two headers, whereas HTTP/1 cannot?",
+      "choices": [
+        "HTTP/2 encrypts each header separately",
+        "HTTP/2 is binary, so header boundaries are explicit offsets and \\r\\n has no delimiter significance inside a value",
+        "HTTP/2 forbids \\r\\n entirely so it is always rejected",
+        "HTTP/2 escapes \\r\\n to %0d%0a automatically"
+      ],
+      "answer": 1,
+      "explain": "Because HTTP/2 is binary with predetermined header boundaries, \\r\\n carries no special meaning inside a value. On downgrade to HTTP/1 the \\r\\n becomes a real delimiter, so a back-end sees two separate headers (e.g. a smuggled Transfer-Encoding)."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP/2-exclusive vectors",
+      "q": "Which HTTP/2-exclusive injection technique relies on the fact that an HTTP/2 header NAME field is allowed to contain a colon, unlike HTTP/1?",
+      "choices": [
+        "Injecting via pseudo-headers",
+        "Injecting via header names",
+        "Injecting a URL prefix via :scheme",
+        "Supplying an ambiguous host"
+      ],
+      "answer": 1,
+      "explain": "In HTTP/1 a colon ends the header name, but HTTP/2 allows colons in names. Combining colons with \\r\\n in the name field (e.g. 'foo: bar\\r\\nTransfer-Encoding: chunked\\r\\nX:  ignore') sneaks extra headers past the front-end."
+    },
+    {
+      "type": "multi",
+      "category": "HTTP/2-exclusive vectors",
+      "q": "Which of the following are HTTP/2 pseudo-headers? (Select all that apply)",
+      "choices": [":method", ":path", ":authority", ":scheme", ":cookie"],
+      "answer": [0, 1, 2, 3],
+      "explain": "The five pseudo-headers are :method, :path, :authority, :scheme, and :status (:status is response-only). There is no :cookie pseudo-header."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP/2-exclusive vectors",
+      "q": "The :authority pseudo-header is roughly equivalent to which HTTP/1 header?",
+      "choices": ["Content-Length", "Host", "User-Agent", "Referer"],
+      "answer": 1,
+      "explain": ":authority replaces the HTTP/1 Host header. You can still send a separate host header too, which may produce two Host headers after downgrade and enable Host-header attacks or duplicate-Host filter bypasses."
+    },
+    {
+      "type": "tf",
+      "category": "HTTP/2-exclusive vectors",
+      "q": "Because the path is carried in a pseudo-header, an HTTP/2 request can specify two distinct :path values, which may enable an access-control bypass if one path is validated and another is used for routing.",
+      "answer": true,
+      "explain": "An ambiguous path is impossible in HTTP/1's request line but trivial with duplicate :path pseudo-headers; a routing/validation discrepancy can grant access to otherwise off-limits endpoints."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP/2-exclusive vectors",
+      "q": "To inject a full request line via the :method pseudo-header (e.g. ':method GET /admin HTTP/1.1'), the server must tolerate what in the :method value?",
+      "choices": [
+        "Lowercase letters",
+        "Spaces in the :method value",
+        "A trailing colon",
+        "Unicode characters"
+      ],
+      "answer": 1,
+      "explain": "The :method value is written to the very start of the downgraded HTTP/1 request line. If the server allows spaces there (and tolerates the arbitrary trailing characters), you can inject an entire alternate request line."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP/2-exclusive vectors",
+      "q": "When injecting \\r\\n into the :path pseudo-header, what must you append before the \\r\\n so the downgraded HTTP/1 request still has a valid request line?",
+      "choices": [
+        "A Content-Length header",
+        "A space and 'HTTP/1.1'",
+        "The :authority value",
+        "A chunked terminator '0'"
+      ],
+      "answer": 1,
+      "explain": "The rewritten request must contain '<method> + space + <path> + space + HTTP/1.1' before your first injected \\r\\n. Injecting into :path means you add ' HTTP/1.1' before the \\r\\n so the request line stays valid."
+    },
+    {
+      "type": "text",
+      "category": "HTTP/2-exclusive vectors",
+      "q": "Which pseudo-header can be abused to inject a URL prefix when the server uses its value to dynamically generate a URL (e.g. in a redirect Location)?",
+      "answer": [":scheme", "scheme"],
+      "explain": "Supplying an arbitrary :scheme value such as 'https://evil-user.net/poison?' can prefix or override a dynamically generated URL, pushing the real target into the query string."
+    },
+    {
+      "type": "tf",
+      "category": "Response queue poisoning",
+      "q": "Response queue poisoning works by smuggling a complete, standalone request so that the back-end produces two responses while the front-end expects only one.",
+      "answer": true,
+      "explain": "The extra, unmatched response is queued, so from then on the front-end hands each client the previous response in the queue, letting the attacker steal other users' responses."
+    },
+    {
+      "type": "multi",
+      "category": "Response queue poisoning",
+      "q": "Which conditions must be met for a successful response queue poisoning attack? (Select all that apply)",
+      "choices": [
+        "The front-end/back-end TCP connection is reused for multiple request/response cycles",
+        "The attacker can smuggle a complete, standalone request that gets its own distinct response",
+        "The attack does not cause either server to close the TCP connection",
+        "The back-end must be running HTTP/2 end to end"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Connection reuse, a complete smuggled request yielding its own response, and keeping the connection open (no invalid request) are the three requirements. The attack works via classic HTTP/1 smuggling or HTTP/2 downgrading, not only HTTP/2."
+    },
+    {
+      "type": "mc",
+      "category": "Response queue poisoning",
+      "q": "Why is smuggling a COMPLETE request (exactly two requests in one) important for response queue poisoning rather than smuggling just a prefix?",
+      "choices": [
+        "A prefix is faster to send",
+        "Leftover invalid bytes from a prefix typically cause an error and close the connection, which ends the attack",
+        "A complete request avoids needing the Host header",
+        "Only complete requests can use HTTP/2"
+      ],
+      "answer": 1,
+      "explain": "A partial prefix leaves leftover bytes that do not form a valid request, usually causing an error that closes the connection. Sending exactly two complete requests keeps subsequent traffic unchanged and the connection open."
+    },
+    {
+      "type": "mc",
+      "category": "Response queue poisoning",
+      "q": "After the queue is poisoned, how does the attacker capture another user's response?",
+      "choices": [
+        "By replaying the victim's session token",
+        "By sending an arbitrary follow-up request and receiving the next (victim's) response in the queue",
+        "By decrypting the TLS session",
+        "By forcing the front-end to close the connection"
+      ],
+      "answer": 1,
+      "explain": "The attacker has no control over which response comes back; they simply issue follow-up requests and are handed the next queued response (the previous user's). Automating this with Burp Intruder harvests many users' responses."
+    },
+    {
+      "type": "num",
+      "category": "Response queue poisoning",
+      "q": "The notes mention a common default limit for how many requests a connection handles before the server closes it. What is that number?",
+      "answer": 100,
+      "explain": "A common default is to terminate a connection after it has handled 100 requests. It is trivial to repoison a fresh connection once the old one closes."
+    },
+    {
+      "type": "text",
+      "category": "Response queue poisoning",
+      "q": "What simple trick helps distinguish stolen (victim) responses from responses to your own requests?",
+      "answer": ["use a non-existent path so your own requests get 404", "request a non-existent path so your requests return 404", "use a nonexistent path in both requests to get a consistent 404"],
+      "explain": "Using a non-existent path in both requests makes your own requests consistently return 404, so any non-404 response you receive is a stolen one intended for another user."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request tunnelling",
+      "q": "What makes HTTP request tunnelling different from the classic request smuggling attacks that rely on connection reuse?",
+      "choices": [
+        "It only works over plaintext HTTP",
+        "It sends a single request that elicits two responses, hiding a request/response from the front-end, even with no connection reuse",
+        "It requires the victim to click a link",
+        "It poisons a shared socket to affect other users"
+      ],
+      "answer": 1,
+      "explain": "Tunnelling does not poison a shared socket or touch other users' traffic; it tunnels a hidden second request (and response) to the back-end on your own connection, so it works even when connections are not reused."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request tunnelling",
+      "q": "Why is request tunnelling easier to confirm over HTTP/2 than over HTTP/1?",
+      "choices": [
+        "HTTP/2 shows the back-end IP address",
+        "Each HTTP/2 stream should contain only one request/response, so an HTTP/1 response nested in the body confirms a tunnelled request",
+        "HTTP/2 always closes the connection after tunnelling",
+        "HTTP/1 cannot return two responses at all"
+      ],
+      "answer": 1,
+      "explain": "In HTTP/1, keep-alive means receiving two responses does not prove smuggling. In HTTP/2 a stream should carry one response, so seeing what looks like an HTTP/1 response inside the body confirms a tunnelled second request."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request tunnelling",
+      "q": "In a blind request tunnelling vulnerability, why can't you see the tunnelled response?",
+      "choices": [
+        "The back-end encrypts it",
+        "The front-end only reads the number of bytes given in the response's Content-Length, forwarding just the first response",
+        "The tunnelled request is never actually sent",
+        "The browser strips the second response"
+      ],
+      "answer": 1,
+      "explain": "Front-ends that read only Content-Length bytes forward just the first response, hiding the nested tunnelled response. Front-ends that read all available data instead forward both, making the vulnerability non-blind."
+    },
+    {
+      "type": "tf",
+      "category": "HTTP request tunnelling",
+      "q": "A HEAD request can turn a blind tunnelling vulnerability into a non-blind one because HEAD responses often carry a content-length (for the GET resource) even though they have no body, causing some front-ends to over-read into the tunnelled response.",
+      "answer": true,
+      "explain": "The front-end tries to read content-length bytes from a HEAD response that has no body, over-reading into the start of the tunnelled response. It is a balancing act between the HEAD resource length and the tunnelled response length."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request tunnelling",
+      "q": "In the HEAD-based technique, what happens if the HEAD endpoint's resource is LONGER than the response to your tunnelled request?",
+      "choices": [
+        "You see the full tunnelled response immediately",
+        "You will likely encounter a timeout as the front-end waits for more bytes from the back-end",
+        "The connection is poisoned automatically",
+        "The tunnelled request is cached"
+      ],
+      "answer": 1,
+      "explain": "If the returned content-length exceeds the tunnelled response length, the front-end keeps waiting for bytes that never come, causing a timeout. If it is too short, the tunnelled response is truncated before anything interesting appears."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request tunnelling",
+      "q": "How can non-blind request tunnelling be combined into web cache poisoning / reflected XSS even when a reflected response is normally safe?",
+      "choices": [
+        "By changing the victim's cookies",
+        "By mixing one response's headers (e.g. Content-Type text/html) with another response's body so JSON-reflected input is interpreted as HTML",
+        "By forcing the browser to downgrade to HTTP/1",
+        "By injecting a new TLS certificate"
+      ],
+      "answer": 1,
+      "explain": "A tunnelled response is nested inside another response's body and inherits its headers, so a payload that was harmless as application/json can be served under text/html and executed; caching on the front-end can serve this to other users."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request tunnelling",
+      "q": "When tunnelling is your only option, how can HTTP/2 downgrading be used to leak internal (front-end-added) headers?",
+      "choices": [
+        "By requesting /admin directly",
+        "By tricking the front-end into appending its internal headers inside what the back-end treats as a body parameter (e.g. a 'comment' value)",
+        "By reading the TLS session keys",
+        "By setting Transfer-Encoding to identity"
+      ],
+      "answer": 1,
+      "explain": "The front-end and back-end disagree on where the headers end: the back-end sees \\r\\n\\r\\n as the end and treats 'comment=' plus the appended internal headers as the body, reflecting the internal headers as the parameter's value."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP/2 request splitting and 0.CL",
+      "q": "Compared to body-based splitting, why is HTTP/2 request splitting in the HEADERS more versatile?",
+      "choices": [
+        "It is faster to transmit",
+        "It does not depend on using a request method that is allowed to contain a body, so even GET works, and it helps when content-length is validated and the back-end lacks chunked support",
+        "It avoids the need for a Host header",
+        "It cannot be detected by any front-end"
+      ],
+      "answer": 1,
+      "explain": "Splitting in the headers (via CRLF injection on downgrade) frees you from methods that allow a body and is useful when Content-Length is validated and chunked encoding is unsupported by the back-end."
+    },
+    {
+      "type": "tf",
+      "category": "HTTP/2 request splitting and 0.CL",
+      "q": "When splitting a request in the headers, you must account for how the front-end rewrites the :authority into a Host header, since some front-ends append the new Host after your split point, which could leave the first request with no Host and the smuggled one with two.",
+      "answer": true,
+      "explain": "Front-ends typically strip :authority and add an HTTP/1 Host header, sometimes at the end of the header list (after the split). You must position your injected Host header so each resulting request has exactly one valid Host."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP/2 request splitting and 0.CL",
+      "q": "What characterizes a 0.CL desync attack, and what broke the deadlock that long made it seem unexploitable?",
+      "choices": [
+        "The back-end ignores Content-Length; a chunked body breaks the deadlock",
+        "The front-end ignores a Content-Length that the back-end processes; an early-response gadget (plus a double desync) breaks the deadlock",
+        "Both servers ignore Content-Length; TLS renegotiation breaks the deadlock",
+        "The front-end processes a Content-Length the back-end ignores; ALPN override breaks the deadlock"
+      ],
+      "answer": 1,
+      "explain": "In 0.CL the front-end ignores a Content-Length the back-end honors, causing a connection deadlock. An early-response gadget makes the back-end respond before the full body arrives, breaking the deadlock; a double desync then builds the full exploit (see 'HTTP/1.1 Must Die')."
+    }
+  ]
+}

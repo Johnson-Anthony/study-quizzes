@@ -1,0 +1,548 @@
+{
+  "title": "WEBSEC 15 - Cross-site scripting (XSS) part 1: Reflected, stored and DOM-based",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "XSS fundamentals",
+      "q": "Cross-site scripting lets an attacker get around which browser security mechanism, the one meant to keep different websites apart?",
+      "choices": ["The same origin policy", "The Content-Type header", "TLS certificate validation", "HTTP basic authentication"],
+      "answer": 0,
+      "explain": "XSS lets an attacker get around the same origin policy, which is meant to keep different websites apart. The injected script runs as if it were part of the vulnerable site."
+    },
+    {
+      "type": "mc",
+      "category": "XSS fundamentals",
+      "q": "In general, how does cross-site scripting work?",
+      "choices": [
+        "It manipulates a vulnerable website so that it returns malicious JavaScript to users, and that code runs in the victim's browser",
+        "It injects SQL into a database query to read server-side tables",
+        "It tricks a victim into sending an unintended state-changing request without running any script",
+        "It intercepts traffic between the browser and the server on the network"
+      ],
+      "answer": 0,
+      "explain": "XSS makes the site return attacker-controlled JavaScript. When that code runs in the victim's browser, the attacker can fully compromise the victim's interaction with the application."
+    },
+    {
+      "type": "mc",
+      "category": "XSS fundamentals",
+      "q": "Of the three main XSS types, which one is described as 'the malicious script comes from the website's database'?",
+      "choices": ["Stored XSS", "Reflected XSS", "DOM-based XSS", "Self-XSS"],
+      "answer": 0,
+      "explain": "In reflected XSS the script comes from the current HTTP request. In stored XSS it comes from the website's database. In DOM-based XSS the flaw is in client-side code, not server-side code."
+    },
+    {
+      "type": "mc",
+      "category": "XSS fundamentals",
+      "q": "What is the difference between XSS and SQL injection?",
+      "choices": [
+        "XSS is a client-side vulnerability that targets other application users; SQL injection is a server-side vulnerability that targets the application's database",
+        "XSS targets the database; SQL injection targets other users' browsers",
+        "They are the same vulnerability with different payload syntax",
+        "XSS only affects administrators; SQL injection only affects anonymous users"
+      ],
+      "answer": 0,
+      "explain": "XSS attacks other users through their browsers (client side). SQL injection attacks the application's database (server side)."
+    },
+    {
+      "type": "mc",
+      "category": "XSS fundamentals",
+      "q": "What is the difference between XSS and CSRF?",
+      "choices": [
+        "XSS makes a website return malicious JavaScript; CSRF induces a victim to perform actions they do not intend",
+        "CSRF makes a website return malicious JavaScript; XSS induces a victim to perform unintended actions",
+        "XSS works only over HTTP; CSRF works only over HTTPS",
+        "There is no difference; CSRF is another name for stored XSS"
+      ],
+      "answer": 0,
+      "explain": "XSS gets the site to return malicious JavaScript. CSRF tricks the victim's browser into making requests the user did not intend."
+    },
+    {
+      "type": "mc",
+      "category": "XSS fundamentals",
+      "q": "In which situation will a successful XSS attack generally have CRITICAL impact?",
+      "choices": [
+        "The compromised user has elevated privileges within the application",
+        "The application is brochureware where all users are anonymous and all information is public",
+        "The vulnerable page is only reachable over HTTPS",
+        "The application has no login functionality at all"
+      ],
+      "answer": 0,
+      "explain": "If the victim has elevated privileges, the attacker may take full control of the application and compromise all users and their data. In anonymous, all-public brochureware the impact is often minimal. Apps holding sensitive data (banking, email, healthcare) usually suffer serious impact."
+    },
+    {
+      "type": "multi",
+      "category": "XSS fundamentals",
+      "q": "Which of the following can an attacker typically do by exploiting an XSS vulnerability?",
+      "choices": [
+        "Impersonate the victim user",
+        "Carry out any action the user is able to perform",
+        "Capture the user's login credentials",
+        "Perform virtual defacement of the website",
+        "Directly read files from the web server's filesystem"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "XSS runs in the victim's browser with the victim's session. It allows impersonation, any action the user can perform, reading the user's data, stealing credentials, virtual defacement, and injecting trojan functionality. It does not give direct access to the server's filesystem."
+    },
+    {
+      "type": "text",
+      "category": "XSS fundamentals",
+      "q": "From Chrome 92 onward, cross-origin iframes cannot call alert(). Which harmless JavaScript function is recommended instead as a proof-of-concept that script execution happened?",
+      "answer": ["print()", "print", "window.print()", "window.print"],
+      "explain": "Since Chrome 92 (July 2021), cross-origin iframes can't call alert(), so print() is the recommended alternative proof of concept."
+    },
+    {
+      "type": "tf",
+      "category": "XSS fundamentals",
+      "q": "XSS vulnerabilities are very common, and XSS is probably the most frequently occurring web security vulnerability.",
+      "answer": true,
+      "explain": "XSS vulnerabilities are very common, although reliable data on real-world XSS attacks is hard to get."
+    },
+    {
+      "type": "mc",
+      "category": "Reflected XSS",
+      "q": "Reflected XSS arises when an application...",
+      "choices": [
+        "receives data in an HTTP request and includes that data within the immediate response in an unsafe way",
+        "stores untrusted data and includes it in later HTTP responses in an unsafe way",
+        "has client-side JavaScript that writes untrusted data back to the DOM",
+        "reflects data only when the victim pastes it into their own browser console"
+      ],
+      "answer": 0,
+      "explain": "Reflected = request data echoed unsafely in the immediate response. Stored = saved and echoed in later responses. DOM-based = client-side JS processing untrusted data unsafely."
+    },
+    {
+      "type": "mc",
+      "category": "Reflected XSS",
+      "q": "Why is reflected XSS generally less severe than stored XSS?",
+      "choices": [
+        "It needs an external delivery mechanism to get the victim to make the attacker's request",
+        "Reflected payloads can never access the victim's session",
+        "Browsers automatically block all reflected scripts",
+        "Reflected XSS can only affect the attacker's own account"
+      ],
+      "answer": 0,
+      "explain": "With reflected XSS the attacker must get the victim to make a crafted request, for example through a link in an email or on another site. Stored XSS is self-contained inside the vulnerable application."
+    },
+    {
+      "type": "multi",
+      "category": "Reflected XSS",
+      "q": "Which are ways an attacker might get a victim to make the request needed for a reflected XSS attack?",
+      "choices": [
+        "Placing a link on a website the attacker controls",
+        "Placing a link on another website that allows user-generated content",
+        "Sending a link in an email, tweet or other message",
+        "Waiting for the victim to browse to a blog comment stored in the vulnerable app"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Reflected XSS is delivered through links on attacker-controlled sites, on sites with user-generated content, or in messages. A payload waiting inside the application describes stored XSS."
+    },
+    {
+      "type": "multi",
+      "category": "Reflected XSS",
+      "q": "Once a reflected XSS attack runs, which of these can the attacker typically do as the victim?",
+      "choices": [
+        "View any information the user is able to view",
+        "Modify any information the user is able to modify",
+        "Initiate interactions with other application users that appear to come from the victim",
+        "Gain operating-system access on the victim's machine"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A script the attacker controls in the victim's browser can do anything the user can do in the application, including interacting with other users as the victim. OS-level access is not part of XSS impact."
+    },
+    {
+      "type": "mc",
+      "category": "Reflected XSS",
+      "q": "What is self-XSS?",
+      "choices": [
+        "Behavior like reflected XSS that cannot be triggered through a crafted URL or cross-domain request, only by the victim submitting the payload themselves",
+        "Stored XSS where the attacker is also the only victim",
+        "DOM XSS that only fires on the attacker's own machine",
+        "XSS that exploits the browser's own internal pages"
+      ],
+      "answer": 0,
+      "explain": "Self-XSS can only be triggered by the victim submitting the payload from their own browser, which usually requires social engineering. It is normally considered a low-impact issue."
+    },
+    {
+      "type": "tf",
+      "category": "Reflected XSS",
+      "q": "For reflected XSS, where the data appears in the response, plus any validation the app applies to it, affects what kind of payload is needed.",
+      "answer": true,
+      "explain": "The reflection context (between tags, inside a quoted attribute, inside a JavaScript string, and so on) and any processing or validation determine what payload is needed and can affect impact."
+    },
+    {
+      "type": "text",
+      "category": "Stored XSS",
+      "q": "Stored XSS is also known by two other names. Give one.",
+      "answer": ["persistent", "persistent XSS", "second-order", "second-order XSS", "second order", "second order XSS"],
+      "explain": "Stored XSS is also called persistent XSS or second-order XSS."
+    },
+    {
+      "type": "mc",
+      "category": "Stored XSS",
+      "q": "Stored XSS arises when an application...",
+      "choices": [
+        "receives data from an untrusted source and includes that data within its later HTTP responses in an unsafe way",
+        "includes request data only in the immediate response",
+        "only processes data in client-side JavaScript",
+        "rejects all user input containing angle brackets"
+      ],
+      "answer": 0,
+      "explain": "In stored XSS the untrusted data is saved and then appears unsafely in later responses, which may be served to other users."
+    },
+    {
+      "type": "multi",
+      "category": "Stored XSS",
+      "q": "Which are examples of untrusted data sources that could lead to stored XSS?",
+      "choices": [
+        "Comments on a blog post",
+        "A webmail application displaying messages received over SMTP",
+        "A marketing application displaying social media posts",
+        "A network monitoring application displaying packet data",
+        "A hard-coded string constant in the server's source code"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Stored data can come from HTTP requests (comments, nicknames, contact details) or out-of-band sources (email, social media posts, network traffic). A hard-coded developer constant is not attacker-controlled."
+    },
+    {
+      "type": "mc",
+      "category": "Stored XSS",
+      "q": "Suppose an XSS vulnerability only affects logged-in users. Why does stored XSS have an advantage over reflected XSS here?",
+      "choices": [
+        "Users who come across the stored exploit inside the application are guaranteed to be logged in, so the attack doesn't depend on lucky timing",
+        "Stored XSS can force users to log in",
+        "Reflected XSS cannot run while users are logged in",
+        "Stored XSS bypasses the need for a session altogether"
+      ],
+      "answer": 0,
+      "explain": "A reflected attack only works if the victim happens to be logged in when they make the attacker's request. A stored exploit sits inside the app, so anyone who reaches it is logged in."
+    },
+    {
+      "type": "tf",
+      "category": "Stored XSS",
+      "q": "The exit points for stored XSS are limited to the responses returned to the user who originally submitted the data.",
+      "answer": false,
+      "explain": "Exit points are all possible HTTP responses returned to any kind of application user in any situation. For example, a display name might show up in an obscure audit log that only some users can see."
+    },
+    {
+      "type": "multi",
+      "category": "Stored XSS",
+      "q": "Why is mapping the links between entry points and exit points challenging when testing for stored XSS?",
+      "choices": [
+        "Data submitted at any entry point could, in principle, come out at any exit point",
+        "Stored data is often overwritten by other actions in the application (e.g., a recent-searches list)",
+        "Testing every entry/exit permutation separately is impractical in an application with more than a few pages",
+        "Stored data never appears in HTTP responses"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Data can surface anywhere, stored values can be replaced quickly, and exhaustive permutation testing is impractical. Instead, testers work through entry points systematically and watch the responses."
+    },
+    {
+      "type": "mc",
+      "category": "Stored XSS",
+      "q": "During stored XSS testing, your submitted value shows up in a response. What must you determine next?",
+      "choices": [
+        "Whether the data is actually stored across different requests, rather than just reflected in the immediate response",
+        "Whether the server is running PHP",
+        "Whether the value appears in the browser's address bar",
+        "Whether the response used HTTP/2"
+      ],
+      "answer": 0,
+      "explain": "Seeing the value in the response isn't enough. You must confirm it persists across requests, which makes it stored rather than just reflected."
+    },
+    {
+      "type": "multi",
+      "category": "Stored XSS",
+      "q": "Which are entry points to consider for stored XSS?",
+      "choices": [
+        "Parameters in the URL query string and message body",
+        "The URL file path",
+        "HTTP request headers that might not be exploitable for reflected XSS",
+        "Out-of-band routes such as incoming emails or third-party feeds"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "All four are entry points. Headers that are useless for reflected XSS can still matter for stored XSS, and out-of-band routes depend on what the application does."
+    },
+    {
+      "type": "mc",
+      "category": "DOM-based XSS",
+      "q": "DOM-based XSS vulnerabilities usually arise when...",
+      "choices": [
+        "JavaScript takes data from an attacker-controllable source and passes it to a sink that supports dynamic code execution",
+        "the server stores data in a database and outputs it later",
+        "the server reflects a query parameter into the HTML response without JavaScript involvement",
+        "a CSP header is missing"
+      ],
+      "answer": 0,
+      "explain": "DOM XSS is a source-to-sink flow in client-side JavaScript. Examples are data from the URL reaching eval() or innerHTML."
+    },
+    {
+      "type": "mc",
+      "category": "DOM-based XSS",
+      "q": "What is the most common source for DOM XSS?",
+      "choices": [
+        "The URL, typically accessed through the window.location object",
+        "The server's database",
+        "The HTTP Content-Type response header",
+        "Local filesystem files"
+      ],
+      "answer": 0,
+      "explain": "The URL (window.location) is the most common source. The query string and fragment are typical places for the data, and in some cases (404 pages, PHP sites) the path is too."
+    },
+    {
+      "type": "mc",
+      "category": "DOM-based XSS",
+      "q": "Why doesn't the browser's 'View source' option work for DOM XSS testing?",
+      "choices": [
+        "It shows the original HTML and ignores changes JavaScript made to the page",
+        "It is disabled on pages that use JavaScript",
+        "It only shows HTTP headers",
+        "It URL-decodes every value on the page"
+      ],
+      "answer": 0,
+      "explain": "View source shows the HTML as the server sent it. DOM XSS involves changes made by JavaScript, so you inspect the live DOM with developer tools instead."
+    },
+    {
+      "type": "mc",
+      "category": "DOM-based XSS",
+      "q": "Why is testing JavaScript execution sinks harder than testing HTML sinks for DOM XSS?",
+      "choices": [
+        "Your input doesn't necessarily appear anywhere in the DOM, so you have to trace it with the JavaScript debugger",
+        "Execution sinks only exist in Internet Explorer",
+        "Execution sinks always URL-encode their input",
+        "Execution sinks cannot receive data from the URL"
+      ],
+      "answer": 0,
+      "explain": "Input sent to execution sinks may never appear in the DOM. You find where the source is read in the code, set breakpoints, and follow the value (including through other variables) to the sink."
+    },
+    {
+      "type": "tf",
+      "category": "DOM-based XSS",
+      "q": "Chrome, Firefox and Safari URL-encode location.search and location.hash, and if your data gets URL-encoded before being processed, an XSS attack is unlikely to work.",
+      "answer": true,
+      "explain": "Modern Chrome, Firefox and Safari URL-encode these sources, which usually stops exploitation. IE11 and pre-Chromium Edge did not."
+    },
+    {
+      "type": "multi",
+      "category": "DOM-based XSS",
+      "q": "Which of these are listed as main sinks that can lead to DOM-XSS vulnerabilities?",
+      "choices": [
+        "document.write()",
+        "element.innerHTML",
+        "element.outerHTML",
+        "element.insertAdjacentHTML",
+        "element.textContent",
+        "Math.random()"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The listed sinks include document.write(), document.writeln(), document.domain, element.innerHTML, element.outerHTML, element.insertAdjacentHTML and element.onevent. textContent and Math.random() are not on the list."
+    },
+    {
+      "type": "tf",
+      "category": "DOM-based XSS",
+      "q": "On modern browsers, script elements inserted through innerHTML do not execute.",
+      "answer": true,
+      "explain": "innerHTML doesn't accept script elements on any modern browser, and svg onload events won't fire either. That is why innerHTML sinks are usually exploited through other elements with event handlers."
+    },
+    {
+      "type": "mc",
+      "category": "DOM-based XSS",
+      "q": "Older jQuery code often passed location.hash to the $() selector. How did newer jQuery versions mitigate this classic DOM XSS?",
+      "choices": [
+        "They stop HTML from being injected into a selector when the input begins with a '#' character",
+        "They removed the $() function entirely",
+        "They made location.hash read-only",
+        "They automatically apply a Content Security Policy"
+      ],
+      "answer": 0,
+      "explain": "Newer jQuery blocks HTML injection into selectors that start with '#'. The $() sink can still be vulnerable if the attacker fully controls input from a source that doesn't need a '#' prefix."
+    },
+    {
+      "type": "mc",
+      "category": "DOM-based XSS",
+      "q": "On a page where an element has the ng-app attribute (AngularJS), why might HTML-encoding angle brackets not be enough to prevent XSS?",
+      "choices": [
+        "AngularJS evaluates expressions inside double curly braces, in HTML or in attributes, so JavaScript can run without angle brackets or events",
+        "AngularJS automatically decodes all HTML entities into script tags",
+        "AngularJS disables the same origin policy",
+        "AngularJS turns every attribute into an event handler"
+      ],
+      "answer": 0,
+      "explain": "AngularJS processes elements under ng-app and runs expressions inside {{ }}. Injection can work even when angle brackets are encoded."
+    },
+    {
+      "type": "multi",
+      "category": "DOM-based XSS",
+      "q": "Which of these jQuery functions are listed as sinks that can lead to DOM-XSS?",
+      "choices": ["html()", "append()", "after()", "$.parseHTML()", "text()", "val()"],
+      "answer": [0, 1, 2, 3],
+      "explain": "The listed jQuery sinks include add(), after(), append(), animate(), insertAfter(), insertBefore(), before(), html(), prepend(), replaceAll(), replaceWith(), wrap(), wrapInner(), wrapAll(), has(), constructor(), init(), index(), jQuery.parseHTML() and $.parseHTML(). text() and val() are not on the list."
+    },
+    {
+      "type": "mc",
+      "category": "DOM-based XSS",
+      "q": "In a reflected DOM XSS vulnerability...",
+      "choices": [
+        "the server echoes request data into the response (e.g., into a JavaScript string or form field), and a script on the page then writes it unsafely to a dangerous sink",
+        "the server stores data and a later page's script writes it to a sink",
+        "the data never reaches the server and stays only in the URL fragment",
+        "the victim pastes the payload into their own console"
+      ],
+      "answer": 0,
+      "explain": "Reflected DOM XSS: the server reflects the data, then client-side script handles it unsafely. In stored DOM XSS the server stores the data and a script in a later response sends it to a sink."
+    },
+    {
+      "type": "tf",
+      "category": "DOM-based XSS",
+      "q": "A pure DOM-based XSS vulnerability can be contained within a single page and be entirely client-side.",
+      "answer": true,
+      "explain": "If a script reads data from the URL and writes it to a dangerous sink, the vulnerability is entirely client-side."
+    },
+    {
+      "type": "num",
+      "category": "Testing for XSS",
+      "q": "When testing entry points for reflected XSS, about how many characters long is the ideal random alphanumeric test value?",
+      "answer": 8,
+      "tolerance": 1,
+      "explain": "About 8 characters is ideal. That is short enough to survive most input validation and long enough that accidental matches in the response are very unlikely."
+    },
+    {
+      "type": "mc",
+      "category": "Testing for XSS",
+      "q": "Why should the test value for finding reflections be short and contain only alphanumeric characters?",
+      "choices": [
+        "So it survives most input validation, while still being long enough to avoid accidental matches in the response",
+        "So it executes as JavaScript right away",
+        "Because special characters are never reflected",
+        "So that it gets stored in the database"
+      ],
+      "answer": 0,
+      "explain": "The aim at this stage is just to find where input is reflected. Plain alphanumeric values avoid triggering filters."
+    },
+    {
+      "type": "multi",
+      "category": "Testing for XSS",
+      "q": "Which entry points should be tested separately for reflected XSS?",
+      "choices": [
+        "Parameters in the URL query string",
+        "Parameters in the message body",
+        "The URL file path",
+        "HTTP headers"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "All of these should be tested. XSS-like behavior that only certain HTTP headers can trigger may not be exploitable in practice."
+    },
+    {
+      "type": "mc",
+      "category": "Testing for XSS",
+      "q": "To find DOM-based vulnerabilities in non-URL-based input (like document.cookie) or non-HTML sinks (like setTimeout), what is described as having no substitute?",
+      "choices": [
+        "Reviewing the JavaScript code",
+        "Searching the page with 'View source'",
+        "Checking the HTTP status codes",
+        "Submitting random values in HTTP headers"
+      ],
+      "answer": 0,
+      "explain": "These cases need JavaScript code review, which can take a long time. Automated tools combine static and dynamic analysis of JavaScript to help."
+    },
+    {
+      "type": "mc",
+      "category": "Testing for XSS",
+      "q": "After finding where a test value is reflected, what is the next step before choosing a candidate payload?",
+      "choices": [
+        "Determine the reflection context (text between tags, a quoted attribute, a JavaScript string, etc.)",
+        "Immediately test in a real browser",
+        "Report the vulnerability as confirmed",
+        "Switch to testing for SQL injection"
+      ],
+      "answer": 0,
+      "explain": "The context decides which payload can work. After that, you test candidate payloads, try alternatives if they are filtered, and finally confirm in a real browser."
+    },
+    {
+      "type": "multi",
+      "category": "Preventing XSS",
+      "q": "Effective XSS prevention generally combines which measures?",
+      "choices": [
+        "Filter input on arrival, as strictly as possible based on what is expected",
+        "Encode data on output so it isn't interpreted as active content",
+        "Use appropriate response headers",
+        "Content Security Policy as a last line of defense",
+        "Rely on the browser to block all injected scripts by default"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Prevention combines strict input filtering, context-appropriate output encoding, correct response headers, and CSP as a last line of defense. Browsers do not block injected scripts by default."
+    },
+    {
+      "type": "mc",
+      "category": "Preventing XSS",
+      "q": "Which headers help prevent XSS in HTTP responses that aren't meant to contain any HTML or JavaScript?",
+      "choices": [
+        "Content-Type and X-Content-Type-Options",
+        "Cache-Control and Expires",
+        "Host and Referer",
+        "Accept-Language and Accept-Encoding"
+      ],
+      "answer": 0,
+      "explain": "Content-Type and X-Content-Type-Options make sure browsers interpret the response the way the developer intended."
+    },
+    {
+      "type": "tf",
+      "category": "Preventing XSS",
+      "q": "Depending on the output context, encoding data on output might require combining HTML, URL, JavaScript and CSS encoding.",
+      "answer": true,
+      "explain": "Output encoding has to match the context where the data lands, and that can mean several encoding types together."
+    },
+    {
+      "type": "mc",
+      "category": "Preventing XSS",
+      "q": "Which statement about Content Security Policy (CSP) is accurate?",
+      "choices": [
+        "It is a browser mechanism that can hinder or prevent XSS exploitation, but it can often be circumvented, so it works best as a last line of defense",
+        "It completely removes the need for output encoding",
+        "It is a server-side database filter",
+        "It only protects against SQL injection"
+      ],
+      "answer": 0,
+      "explain": "CSP reduces the impact of XSS. It can often be bypassed, so it is a last line of defense and not a replacement for fixing the underlying flaw."
+    },
+    {
+      "type": "mc",
+      "category": "Preventing XSS",
+      "q": "What is dangling markup injection?",
+      "choices": [
+        "A technique for capturing data cross-domain when a full XSS exploit isn't possible because of input filters or other defenses",
+        "A way of encoding output to prevent XSS",
+        "Another name for self-XSS",
+        "A CSP directive that blocks inline scripts"
+      ],
+      "answer": 0,
+      "explain": "Dangling markup injection can capture sensitive information visible to other users, such as CSRF tokens, even when full script execution is blocked."
+    },
+    {
+      "type": "mc",
+      "category": "Preventing XSS",
+      "q": "In PHP, which approach is recommended for escaping output in HTML contexts?",
+      "choices": [
+        "htmlentities with ENT_QUOTES",
+        "addslashes",
+        "strip_tags alone",
+        "urlencode for everything"
+      ],
+      "answer": 0,
+      "explain": "Filter input with a whitelist of allowed characters and use type hints or casting. Escape HTML output with htmlentities and ENT_QUOTES, and use JavaScript Unicode escapes in JavaScript contexts."
+    },
+    {
+      "type": "mc",
+      "category": "Preventing XSS",
+      "q": "Besides the general DOM-based vulnerability defenses, what is the key measure for preventing DOM XSS?",
+      "choices": [
+        "Avoid letting data from any untrusted source be written dynamically to the HTML document",
+        "Disable JavaScript on all pages",
+        "Store all user input in the database before displaying it",
+        "Use only GET requests"
+      ],
+      "answer": 0,
+      "explain": "The main rule is to avoid dynamically writing data from any untrusted source to the HTML document."
+    }
+  ]
+}

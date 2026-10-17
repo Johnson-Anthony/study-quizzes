@@ -1,0 +1,371 @@
+{
+  "title": "Insecure Deserialization",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "text",
+      "category": "Serialization basics",
+      "q": "What is the general term for the process of converting complex data structures, such as objects and their fields, into a flatter format that can be sent and received as a sequential stream of bytes?",
+      "answer": ["serialization", "serialisation"],
+      "explain": "Serialization flattens objects (including their state/attribute values) into a byte stream for storage or transmission. Deserialization reverses it, rebuilding a functional replica of the original object."
+    },
+    {
+      "type": "mc",
+      "category": "Serialization basics",
+      "q": "In Ruby and Python respectively, what names are commonly used for serialization?",
+      "choices": [
+        "pickling (Ruby) and marshalling (Python)",
+        "marshalling (Ruby) and pickling (Python)",
+        "flattening (Ruby) and freezing (Python)",
+        "boxing (Ruby) and curing (Python)"
+      ],
+      "answer": 1,
+      "explain": "Serialization is called marshalling in Ruby and pickling in Python. Both terms are synonymous with serialization in this context."
+    },
+    {
+      "type": "tf",
+      "category": "Serialization basics",
+      "q": "When an object is serialized, all of its original attributes are stored in the data stream, including private fields, unless a field is explicitly marked as 'transient'.",
+      "answer": true,
+      "explain": "Serialization persists the object's full state, including private fields. To keep a field out of the serialized data, it must be explicitly marked transient in the class declaration."
+    },
+    {
+      "type": "mc",
+      "category": "Serialization basics",
+      "q": "What best describes deserialization?",
+      "choices": [
+        "Encrypting an object before sending it over the network",
+        "Restoring a byte stream to a fully functional replica of the original object, in the exact state as when it was serialized",
+        "Permanently deleting an object from memory",
+        "Converting an object's methods into executable machine code"
+      ],
+      "answer": 1,
+      "explain": "Deserialization rebuilds the object from its byte stream so application logic can interact with it like any other object, in the same state it was serialized in."
+    },
+    {
+      "type": "text",
+      "category": "Deserialization concepts",
+      "q": "Because an attacker can replace a serialized object with an object of an entirely different class, insecure deserialization is sometimes known as what kind of injection vulnerability?",
+      "answer": ["object injection", "object injection vulnerability", "object"],
+      "explain": "Objects of any class available to the website will be deserialized and instantiated regardless of the expected class, so the flaw is sometimes called an 'object injection' vulnerability."
+    },
+    {
+      "type": "tf",
+      "category": "Deserialization concepts",
+      "q": "Many deserialization-based attacks complete before deserialization is finished, so even websites built in strongly typed languages can be vulnerable.",
+      "answer": true,
+      "explain": "The deserialization process itself can initiate the attack even if the app never interacts with the malicious object. An unexpected class may later throw an exception, but by then the damage may already be done."
+    },
+    {
+      "type": "multi",
+      "category": "Deserialization concepts",
+      "q": "According to the material, which of the following are possible impacts of insecure deserialization?",
+      "choices": [
+        "Remote code execution",
+        "Privilege escalation",
+        "Arbitrary file access",
+        "Denial-of-service",
+        "Guaranteed immunity to all other vulnerabilities"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Insecure deserialization provides a greatly increased attack surface. It often leads to remote code execution, and even when RCE is not possible it can cause privilege escalation, arbitrary file access, and denial-of-service."
+    },
+    {
+      "type": "mc",
+      "category": "Deserialization concepts",
+      "q": "Why is validating or sanitizing deserialized data often an ineffective defense?",
+      "choices": [
+        "Validation is too slow to run on every request",
+        "The checks rely on examining the data after it has been deserialized, which is often too late to prevent the attack",
+        "Serialized data cannot be inspected at all",
+        "Most languages forbid adding validation to deserialization"
+      ],
+      "answer": 1,
+      "explain": "Many attacks complete during deserialization, so post-deserialization checks come too late. It is also virtually impossible to validate for every eventuality."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "If you must deserialize data from an untrusted source, when should an integrity check such as a digital signature be performed?",
+      "choices": [
+        "After deserialization, on the reconstructed object",
+        "Before beginning the deserialization process",
+        "Only once per user session",
+        "After the object is used by application logic"
+      ],
+      "answer": 1,
+      "explain": "Any integrity check must take place before deserialization begins; otherwise it is of little use because attacks can complete during the deserialization process itself."
+    },
+    {
+      "type": "tf",
+      "category": "Prevention",
+      "q": "Because the real vulnerability is the deserialization of user input, trying to eliminate every gadget chain you find is a reliable way to secure a site.",
+      "answer": false,
+      "explain": "The vulnerability is deserialization of user input, not the presence of gadget chains. The web of cross-library dependencies and publicly documented memory corruption exploits make plugging every chain impractical; the material says don't rely on it."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "What is the single most recommended way to avoid insecure deserialization vulnerabilities?",
+      "choices": [
+        "Use a longer secret key for serialization",
+        "Avoid deserializing user input at all unless absolutely necessary",
+        "Compress serialized data before sending it",
+        "Switch all binary formats to human-readable formats"
+      ],
+      "answer": 1,
+      "explain": "Generally, deserialization of user input should be avoided unless absolutely necessary; its high severity and the difficulty of defending against it outweigh the benefits in many cases."
+    },
+    {
+      "type": "mc",
+      "category": "Identifying serialized data",
+      "q": "In PHP's serialized string O:4:\"User\":2:{...}, what does the leading O:4:\"User\":2 indicate?",
+      "choices": [
+        "A 4-byte offset into a user array with 2 checksums",
+        "An object with the 4-character class name \"User\" that has 2 attributes",
+        "A string of 4 users repeated 2 times",
+        "A ordered list of 4 objects at version 2"
+      ],
+      "answer": 1,
+      "explain": "O marks an object, 4 is the length of the class name, \"User\" is the class, and the final 2 is the number of attributes. PHP uses letters for data types and numbers for lengths."
+    },
+    {
+      "type": "mc",
+      "category": "Identifying serialized data",
+      "q": "In PHP serialization, how is the key/value pair for a boolean true attribute written?",
+      "choices": [
+        "t:1;",
+        "b:1;",
+        "bool:true;",
+        "i:1;"
+      ],
+      "answer": 1,
+      "explain": "b denotes a boolean, and b:1 is true (b:0 is false). For example s:10:\"isLoggedIn\";b:1; stores isLoggedIn = true."
+    },
+    {
+      "type": "text",
+      "category": "Identifying serialized data",
+      "q": "Serialized Java objects always begin with the same bytes. What are they in hexadecimal?",
+      "answer": ["ac ed", "aced", "0xac 0xed", "ac ed hex"],
+      "explain": "Java serialized data starts with bytes encoded as ac ed in hex (and rO0 in Base64), which are tell-tale signs even though Java uses a binary format."
+    },
+    {
+      "type": "mc",
+      "category": "Identifying serialized data",
+      "q": "With source code access, which method call is the key thing to look for when hunting Java deserialization, and which interface makes a class serializable?",
+      "choices": [
+        "unserialize(); java.io.Externalize",
+        "readObject(); java.io.Serializable",
+        "parseObject(); java.lang.Cloneable",
+        "fromStream(); java.io.Readable"
+      ],
+      "answer": 1,
+      "explain": "Any class implementing java.io.Serializable can be (de)serialized, and readObject() reads and deserializes data from an InputStream. In PHP the equivalent to look for is unserialize()."
+    },
+    {
+      "type": "mc",
+      "category": "Manipulating objects",
+      "q": "A session cookie decodes to O:4:\"User\":2:{s:8:\"username\";s:6:\"carlos\";s:7:\"isAdmin\";b:0;} and the server runs if ($user->isAdmin === true). What is the simplest attack?",
+      "choices": [
+        "Delete the isAdmin attribute from the object",
+        "Change b:0 to b:1 so isAdmin becomes true, re-encode, and overwrite the cookie",
+        "Change the class name from User to Admin",
+        "Base64-encode the username field twice"
+      ],
+      "answer": 1,
+      "explain": "The object state is persisted and never authenticated, so flipping the boolean (b:0 to b:1) makes isAdmin true after deserialization, granting an easy privilege escalation."
+    },
+    {
+      "type": "tf",
+      "category": "Manipulating objects",
+      "q": "When you change the value of a serialized attribute, you can ignore any length indicators and type labels in the serialized data.",
+      "answer": false,
+      "explain": "You must update type labels and length indicators (for example, the string length) to match, or the serialized object will be corrupted and will fail to deserialize."
+    },
+    {
+      "type": "mc",
+      "category": "Manipulating objects",
+      "q": "On PHP 7.x and earlier, why can replacing a password attribute with the integer 0 bypass the check if ($login['password'] == $password)?",
+      "choices": [
+        "PHP rejects integer comparisons and defaults to true",
+        "The loose == operator converts the stored string to an integer; 0 == \"non-numeric string\" evaluates to true (as long as the stored password does not start with a number)",
+        "The integer 0 is treated as an empty password that always matches",
+        "unserialize() strips the password field entirely"
+      ],
+      "answer": 1,
+      "explain": "Loose comparison converts the string so 0 == \"Example string\" is true on PHP 7.x. This works only because deserialization preserves the integer data type; reading the value from the request directly would make it a string."
+    },
+    {
+      "type": "tf",
+      "category": "Manipulating objects",
+      "q": "In PHP 8 and later, the comparison 0 == \"Example string\" evaluates to false, so the integer-0 authentication bypass no longer works.",
+      "answer": true,
+      "explain": "PHP 8 no longer implicitly converts strings to 0 during comparison. However, 5 == \"5 of something\" is still treated as 5 == 5 in PHP 8."
+    },
+    {
+      "type": "mc",
+      "category": "Application functionality",
+      "q": "A 'Delete user' feature removes the file at $user->image_location, and $user comes from a deserialized object. How can this be abused?",
+      "choices": [
+        "By deserializing an object of a different class name",
+        "By setting image_location to an arbitrary file path, so deleting the account deletes that file too",
+        "By disabling the delete function with a null byte",
+        "By uploading a larger profile picture"
+      ],
+      "answer": 1,
+      "explain": "This 'using application functionality' technique passes unexpected data into existing dangerous operations: an attacker-controlled image_location turns account deletion into arbitrary file deletion."
+    },
+    {
+      "type": "mc",
+      "category": "Magic methods",
+      "q": "What defines a 'magic method' in the context of deserialization exploits?",
+      "choices": [
+        "A method that encrypts object attributes automatically",
+        "A method you do not explicitly invoke; it is invoked automatically whenever a particular event or scenario occurs",
+        "A method that only runs in strongly typed languages",
+        "A private method that cannot be serialized"
+      ],
+      "answer": 1,
+      "explain": "Magic methods run automatically on specific events (and are often marked with double underscores). They become dangerous when the code they run handles attacker-controllable data from a deserialized object."
+    },
+    {
+      "type": "mc",
+      "category": "Magic methods",
+      "q": "Which PHP magic method does unserialize() look for and invoke during the deserialization process?",
+      "choices": [
+        "__construct()",
+        "__wakeup()",
+        "__toString()",
+        "__init__()"
+      ],
+      "answer": 1,
+      "explain": "PHP's unserialize() looks for and invokes __wakeup() during deserialization. (__construct runs on instantiation; Python's analog of __construct is __init__.)"
+    },
+    {
+      "type": "tf",
+      "category": "Magic methods",
+      "q": "In Java, a Serializable class can declare its own private void readObject(ObjectInputStream in) method that acts as a magic method invoked during deserialization.",
+      "answer": true,
+      "explain": "Declared in exactly that form, readObject() acts as a magic method invoked during deserialization, letting the class control how its own fields are deserialized. These magic methods pass attacker data into code before the object is fully deserialized."
+    },
+    {
+      "type": "text",
+      "category": "Gadget chains",
+      "q": "In a gadget chain, what name is given to the dangerous final gadget where attacker-controlled data ends up and causes maximum damage?",
+      "answer": ["sink gadget", "sink", "dangerous sink gadget"],
+      "explain": "Gadgets are chained so input flows from a kick-off gadget (a magic method invoked during deserialization) through intermediate gadgets into a dangerous 'sink gadget'."
+    },
+    {
+      "type": "tf",
+      "category": "Gadget chains",
+      "q": "A gadget chain is a payload of chained methods that the attacker writes and injects into the application.",
+      "answer": false,
+      "explain": "All the gadget-chain code already exists on the website. The attacker only controls the data passed into the chain, typically via a magic method (the 'kick-off gadget') invoked during deserialization."
+    },
+    {
+      "type": "mc",
+      "category": "Gadget chains",
+      "q": "What is ysoserial used for?",
+      "choices": [
+        "Decompiling Java class files",
+        "Choosing a pre-built gadget chain for a library the target likely uses and generating a serialized object that runs a supplied command",
+        "Scanning PHP code for unserialize() calls",
+        "Signing serialized objects to pass integrity checks"
+      ],
+      "answer": 1,
+      "explain": "ysoserial is a Java deserialization tool offering pre-discovered gadget chains; you pick a chain for a library and a command, and it builds the matching serialized object. PHPGGC is the PHP equivalent."
+    },
+    {
+      "type": "mc",
+      "category": "Gadget chains",
+      "q": "Which ysoserial chain is described as the most universal for DETECTION because it triggers a DNS lookup and does not rely on any specific vulnerable library or Java version?",
+      "choices": [
+        "CommonsCollections1",
+        "URLDNS",
+        "JRMPClient",
+        "Spring1"
+      ],
+      "answer": 1,
+      "explain": "URLDNS triggers a DNS lookup for a supplied URL, works on any known Java version, and needs no specific vulnerable library, making it ideal for confirming deserialization (e.g. via Burp Collaborator)."
+    },
+    {
+      "type": "mc",
+      "category": "Gadget chains",
+      "q": "What is the JRMPClient chain useful for, and what must you supply to it?",
+      "choices": [
+        "Running arbitrary code; supply a shell command",
+        "Detecting deserialization even where DNS is firewalled, by making the server open a TCP connection; supply a raw IP address (not a hostname)",
+        "Reading files; supply a file path",
+        "Bypassing signatures; supply a private key"
+      ],
+      "answer": 1,
+      "explain": "JRMPClient makes the server attempt a TCP connection to a raw IP. Comparing response timing for a local vs a firewalled external IP reveals deserialization even in blind cases where DNS is blocked."
+    },
+    {
+      "type": "text",
+      "category": "Gadget chains",
+      "q": "What is the name of the pre-built gadget chain tool for PHP-based sites (the PHP equivalent of ysoserial)?",
+      "answer": ["PHPGGC", "PHP Generic Gadget Chains", "php generic gadget chains (phpggc)"],
+      "explain": "PHPGGC (PHP Generic Gadget Chains) provides pre-built chains for PHP sites, just as ysoserial does for Java."
+    },
+    {
+      "type": "mc",
+      "category": "Creating exploits",
+      "q": "When building your own gadget chain from source code, what is the correct starting point?",
+      "choices": [
+        "A public API endpoint that returns JSON",
+        "A class with a magic method invoked during deserialization (the kick-off gadget), then tracing the methods it invokes toward a dangerous sink",
+        "The database layer, working backwards to the UI",
+        "Any class marked transient"
+      ],
+      "answer": 1,
+      "explain": "You first find a class whose magic method runs during deserialization, check if it is directly dangerous, and if not use it as a kick-off gadget, following invoked methods while tracking controllable values until you reach a dangerous sink."
+    },
+    {
+      "type": "mc",
+      "category": "PHAR deserialization",
+      "q": "Why can PHAR deserialization exploit a site that never calls unserialize()?",
+      "choices": [
+        "PHAR files are always executed as PHP scripts on upload",
+        "A PHAR manifest contains serialized metadata that is implicitly deserialized when a filesystem operation is performed on a phar:// stream",
+        "The phar:// wrapper disables all input validation",
+        "PHP automatically deserializes every uploaded image"
+      ],
+      "answer": 1,
+      "explain": "PHAR manifest files hold serialized metadata, and any filesystem operation on a phar:// stream implicitly deserializes it, so a phar:// stream passed into a filesystem method becomes a deserialization vector."
+    },
+    {
+      "type": "mc",
+      "category": "PHAR deserialization",
+      "q": "Which filesystem function is highlighted as a likely-unprotected trigger for PHAR deserialization, compared with overtly dangerous ones like include() or fopen()?",
+      "choices": [
+        "eval()",
+        "file_exists()",
+        "system()",
+        "passthru()"
+      ],
+      "answer": 1,
+      "explain": "Sites usually guard obviously dangerous functions, but a seemingly harmless function like file_exists() may not be protected, yet still triggers implicit deserialization on a phar:// stream."
+    },
+    {
+      "type": "multi",
+      "category": "PHAR deserialization",
+      "q": "Which statements about the PHAR deserialization technique are correct?",
+      "choices": [
+        "A PHAR can be disguised as a JPG polyglot to bypass image-upload validation",
+        "The file extension is not checked when PHP reads a stream, so an image extension is fine",
+        "Both __wakeup() and __destruct() can be invoked this way to kick off a gadget chain",
+        "It requires the site to explicitly call unserialize() on the upload"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A PHAR-in-JPG polyglot can bypass validation, the extension is ignored when reading a stream, and both __wakeup() and __destruct() can fire. It specifically does NOT require an explicit unserialize() call."
+    },
+    {
+      "type": "tf",
+      "category": "Creating exploits",
+      "q": "Even if a site somehow eliminated every gadget chain, it could still be vulnerable through publicly documented memory corruption bugs reachable via deserialization.",
+      "answer": true,
+      "explain": "Methods like PHP's unserialize() are rarely hardened and expose huge attack surface. Documented memory corruption vulnerabilities can be exploited via insecure deserialization, typically leading to remote code execution."
+    }
+  ]
+}

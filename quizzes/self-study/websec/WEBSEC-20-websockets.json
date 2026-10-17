@@ -1,0 +1,486 @@
+{
+  "title": "WebSockets",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "WebSocket fundamentals",
+      "q": "Which description best fits the WebSocket protocol?",
+      "choices": [
+        "A bi-directional, full duplex communications protocol initiated over HTTP",
+        "A one-way server push protocol that runs alongside HTTP on a separate port",
+        "A stateless request/response protocol that replaces HTTP/1.1 keep-alive",
+        "A client-only polling mechanism that repeatedly sends HTTP requests"
+      ],
+      "answer": 0,
+      "explain": "WebSockets are bi-directional and full duplex, and the connection starts with an HTTP handshake. They are often used for streaming data and other asynchronous traffic."
+    },
+    {
+      "type": "tf",
+      "category": "WebSocket fundamentals",
+      "q": "WebSocket messages are transactional: each message the client sends has to be answered by exactly one server message before the next one can be sent.",
+      "answer": false,
+      "explain": "Either side can send a WebSocket message at any time, and messages are not transactional. The request/response transaction model belongs to HTTP."
+    },
+    {
+      "type": "multi",
+      "category": "WebSocket fundamentals",
+      "q": "Which of these are characteristics of WebSocket connections?",
+      "choices": [
+        "They are typically long-lived",
+        "Messages can be sent in either direction at any time",
+        "The connection normally stays open and idle until the client or server has something to send",
+        "Each message requires a new HTTP request and response",
+        "Only the client may start sending messages"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "WebSocket connections are long-lived. Either side can send at any time, and the connection sits idle until there is a message to send. A separate request/response for each message is how HTTP works."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket fundamentals",
+      "q": "In which situation are WebSockets particularly useful compared with plain HTTP?",
+      "choices": [
+        "A real-time feed of financial data that needs low latency and server-initiated messages",
+        "Downloading a large static file once",
+        "Submitting a single HTML form and showing a confirmation page",
+        "Serving cacheable images through a CDN"
+      ],
+      "answer": 0,
+      "explain": "WebSockets are especially useful when low latency or server-initiated messages are needed, such as real-time financial data feeds."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket fundamentals",
+      "q": "What is the difference between the ws:// and wss:// schemes?",
+      "choices": [
+        "wss establishes the WebSocket over an encrypted TLS connection; ws uses an unencrypted connection",
+        "wss is for server-to-client messages; ws is for client-to-server messages",
+        "ws uses WebSocket protocol version 13; wss uses an older version",
+        "wss requires a CSRF token in the handshake; ws does not"
+      ],
+      "answer": 0,
+      "explain": "wss means WebSockets over TLS, so the connection is encrypted. ws is unencrypted."
+    },
+    {
+      "type": "text",
+      "category": "WebSocket fundamentals",
+      "q": "Fill in the blank. Client-side JavaScript opens a WebSocket connection with: var ws = new ______(\"wss://normal-website.com/chat\");",
+      "answer": ["WebSocket", "websocket"],
+      "explain": "WebSocket connections are normally created in client-side JavaScript with the WebSocket constructor, e.g. new WebSocket(\"wss://normal-website.com/chat\")."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket fundamentals",
+      "q": "Once a WebSocket object `ws` is connected, which call sends a message from the browser?",
+      "choices": [
+        "ws.send(\"Peter Wiener\")",
+        "ws.post(\"Peter Wiener\")",
+        "ws.write(\"Peter Wiener\")",
+        "ws.emit(\"Peter Wiener\")"
+      ],
+      "answer": 0,
+      "explain": "The browser sends a WebSocket message with ws.send(...)."
+    },
+    {
+      "type": "tf",
+      "category": "WebSocket fundamentals",
+      "q": "WebSocket messages are limited to a fixed plain-text format, so structured data cannot be sent in them.",
+      "answer": false,
+      "explain": "In principle, WebSocket messages can carry any content or data format. Modern applications often send structured data as JSON, e.g. {\"user\":\"Hal Pline\",\"content\":\"...\"}."
+    },
+    {
+      "type": "num",
+      "category": "WebSocket handshake",
+      "q": "Which HTTP status code does a server return when it accepts a WebSocket handshake?",
+      "answer": 101,
+      "explain": "The server responds with HTTP/1.1 101 Switching Protocols, plus Connection: Upgrade, Upgrade: websocket and Sec-WebSocket-Accept."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket handshake",
+      "q": "Which headers in the handshake request and response show that the exchange is a WebSocket handshake?",
+      "choices": [
+        "Connection and Upgrade",
+        "Host and Cookie",
+        "Content-Type and Content-Length",
+        "Origin and Referer"
+      ],
+      "answer": 0,
+      "explain": "The Connection header (containing Upgrade) and the Upgrade: websocket header, in both the request and the response, mark this as a WebSocket handshake."
+    },
+    {
+      "type": "num",
+      "category": "WebSocket handshake",
+      "q": "The Sec-WebSocket-Version request header gives the protocol version the client wants to use. What value does it typically have?",
+      "answer": 13,
+      "explain": "Sec-WebSocket-Version is typically 13."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket handshake",
+      "q": "What does the Sec-WebSocket-Accept response header contain, and why?",
+      "choices": [
+        "A hash of the Sec-WebSocket-Key value concatenated with a string defined in the protocol spec, to prevent misleading responses from misconfigured servers or caching proxies",
+        "The user's session token re-encrypted with the server's key, to authenticate the connection",
+        "A CSRF token the client must include in every later WebSocket message",
+        "The list of message formats the server accepts, such as JSON or XML"
+      ],
+      "answer": 0,
+      "explain": "Sec-WebSocket-Accept is a hash of the client's Sec-WebSocket-Key concatenated with a fixed string from the specification. Its purpose is to prevent misleading responses caused by misconfigured servers or caching proxies."
+    },
+    {
+      "type": "tf",
+      "category": "WebSocket handshake",
+      "q": "The Sec-WebSocket-Key request header contains a Base64-encoded random value, which should be generated fresh for each handshake request.",
+      "answer": true,
+      "explain": "Sec-WebSocket-Key is a Base64-encoded random value that should be randomly generated in each handshake request."
+    },
+    {
+      "type": "tf",
+      "category": "WebSocket handshake",
+      "q": "The Sec-WebSocket-Key header is used for authentication and session handling.",
+      "answer": false,
+      "explain": "Sec-WebSocket-Key is a random value that prevents errors from caching proxies. It plays no part in authentication or session handling, and that is why it gives no CSRF protection."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket handshake",
+      "q": "What happens to the network connection after a successful WebSocket handshake?",
+      "choices": [
+        "It stays open and can carry WebSocket messages in either direction",
+        "It closes, and the client opens a new connection for each message",
+        "It stays open, but only the server may send on it",
+        "It is downgraded to plain HTTP once the first message is exchanged"
+      ],
+      "answer": 0,
+      "explain": "After the 101 response, the connection stays open and is used for WebSocket messages in both directions."
+    },
+    {
+      "type": "mc",
+      "category": "Manipulating WebSocket traffic",
+      "q": "Which Burp Suite tool do you use to intercept and modify WebSocket messages on the fly?",
+      "choices": [
+        "Burp Proxy",
+        "Burp Repeater",
+        "Burp Intruder",
+        "Burp Decoder"
+      ],
+      "answer": 0,
+      "explain": "With interception turned on in Burp Proxy's Intercept tab, WebSocket messages from the browser or server are shown there so you can view or modify them, then click Forward."
+    },
+    {
+      "type": "mc",
+      "category": "Manipulating WebSocket traffic",
+      "q": "While browsing through Burp's browser, how can you tell that an application function uses WebSockets?",
+      "choices": [
+        "Entries appear in the WebSockets history tab in Burp Proxy",
+        "The HTTP history shows responses with status 200 and a JSON body",
+        "Burp Repeater opens a new tab on its own",
+        "The browser's address bar changes to a ws:// URL"
+      ],
+      "answer": 0,
+      "explain": "Use the application and watch for entries in Burp Proxy's WebSockets history tab."
+    },
+    {
+      "type": "mc",
+      "category": "Manipulating WebSocket traffic",
+      "q": "Which Burp Suite tool do you use to replay individual WebSocket messages and generate new ones?",
+      "choices": [
+        "Burp Repeater",
+        "Burp Proxy's Intercept tab",
+        "Burp Comparer",
+        "Burp Sequencer"
+      ],
+      "answer": 0,
+      "explain": "Send a message from the Proxy's WebSockets history or Intercept tab to Repeater. There you can edit it, send it repeatedly, or write new messages."
+    },
+    {
+      "type": "tf",
+      "category": "Manipulating WebSocket traffic",
+      "q": "In Burp Repeater, a new WebSocket message you write can be sent in either direction, to the client or to the server.",
+      "answer": true,
+      "explain": "Repeater lets you enter a new message and send it to either the client or the server."
+    },
+    {
+      "type": "tf",
+      "category": "Manipulating WebSocket traffic",
+      "q": "The History panel in Burp Repeater only shows WebSocket messages you generated in Repeater.",
+      "answer": false,
+      "explain": "The History panel shows every message sent over that WebSocket connection, including ones the browser or server generated. To modify one and send it again, use \"Edit and resend\"."
+    },
+    {
+      "type": "multi",
+      "category": "Manipulating WebSocket traffic",
+      "q": "Which are reasons you might need to manipulate the WebSocket handshake rather than just the messages?",
+      "choices": [
+        "It can let you reach more attack surface",
+        "An attack may drop the connection, so you need to establish a new one",
+        "Tokens or other data in the original handshake request may be stale and need updating",
+        "It is the only way to decrypt traffic sent over wss://",
+        "Messages cannot be edited once the connection is established"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The material gives three reasons: reaching more attack surface, re-establishing a dropped connection, and refreshing stale tokens or data in the handshake. Messages can be edited after connection, using Proxy or Repeater."
+    },
+    {
+      "type": "mc",
+      "category": "Manipulating WebSocket traffic",
+      "q": "The pencil-icon wizard next to the WebSocket URL in Burp Repeater lets you attach to, clone, or reconnect a WebSocket. Which options show the full handshake request so you can edit it before connecting?",
+      "choices": [
+        "Cloning a connected WebSocket or reconnecting to a disconnected WebSocket",
+        "Only attaching to an existing connected WebSocket",
+        "All three options, including attaching to an existing connection",
+        "None of them; the handshake can only be edited in the Proxy Intercept tab"
+      ],
+      "answer": 0,
+      "explain": "Clone and reconnect show the full handshake request for editing. After that, \"Connect\" performs the handshake you configured. Attaching reuses a connection that is already established."
+    },
+    {
+      "type": "mc",
+      "category": "Manipulating WebSocket traffic",
+      "q": "In Burp Proxy, how do you choose whether client-to-server messages, server-to-client messages, or both are intercepted?",
+      "choices": [
+        "Through the WebSocket interception rules in the Settings dialog",
+        "Through the Sec-WebSocket-Version header in the handshake",
+        "Through Repeater's History panel",
+        "You can't; Burp always intercepts both directions"
+      ],
+      "answer": 0,
+      "explain": "Which directions get intercepted is set by the WebSocket interception rules in Burp's Settings dialog."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket vulnerabilities",
+      "q": "A chat app sends {\"message\":\"Hello Carlos\"} over a WebSocket. The server relays the text to another user, whose browser renders it as <td>Hello Carlos</td>, with no other input processing or defenses. Which message is a proof-of-concept XSS attack?",
+      "choices": [
+        "{\"message\":\"<img src=1 onerror='alert(1)'>\"}",
+        "{\"message\":\"' OR 1=1--\"}",
+        "{\"message\":\"Hello Carlos\",\"admin\":true}",
+        "{\"message\":\"../../etc/passwd\"}"
+      ],
+      "answer": 0,
+      "explain": "The message is inserted into the other user's page as HTML, so an <img> tag with an onerror handler runs JavaScript in their browser. This is XSS delivered over WebSockets."
+    },
+    {
+      "type": "multi",
+      "category": "WebSocket vulnerabilities",
+      "q": "Which vulnerabilities can come from user-supplied input sent to the server over WebSockets being processed in unsafe ways?",
+      "choices": [
+        "SQL injection",
+        "XML external entity (XXE) injection",
+        "Cross-site scripting, when attacker data is relayed to other users",
+        "None; WebSocket traffic is immune to injection because it isn't HTTP"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Practically any web vulnerability that arises with HTTP can also arise with WebSockets. Unsafe server-side processing can cause SQL injection or XXE. Attacker data relayed to other users can cause XSS or other client-side vulnerabilities."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket vulnerabilities",
+      "q": "Some blind vulnerabilities reached through WebSockets produce no visible response. Which kind of technique may be the only way to detect them?",
+      "choices": [
+        "Out-of-band (OAST) techniques",
+        "Comparing Sec-WebSocket-Accept values",
+        "Downgrading the connection from wss to ws",
+        "Replaying the handshake with a new Sec-WebSocket-Key"
+      ],
+      "answer": 0,
+      "explain": "Some blind vulnerabilities reached via WebSockets may only be detectable with out-of-band application security testing (OAST) techniques."
+    },
+    {
+      "type": "tf",
+      "category": "WebSocket vulnerabilities",
+      "q": "Most input-based vulnerabilities affecting WebSockets can be found and exploited by tampering with the contents of WebSocket messages.",
+      "answer": true,
+      "explain": "Most input-based WebSocket vulnerabilities are found by tampering with message contents. Some design flaws, though, can only be reached by manipulating the handshake."
+    },
+    {
+      "type": "multi",
+      "category": "WebSocket vulnerabilities",
+      "q": "Which design flaws can typically only be found and exploited by manipulating the WebSocket handshake?",
+      "choices": [
+        "Misplaced trust in HTTP headers such as X-Forwarded-For when making security decisions",
+        "Flaws in session handling mechanisms",
+        "Attack surface introduced by custom HTTP headers the application uses",
+        "Stored XSS in chat message contents",
+        "SQL injection in a JSON field of a WebSocket message"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Handshake-level flaws include misplaced trust in headers like X-Forwarded-For, session handling flaws, and custom-header attack surface. XSS and SQL injection in message bodies are found by tampering with the messages."
+    },
+    {
+      "type": "mc",
+      "category": "WebSocket vulnerabilities",
+      "q": "What generally determines the session context in which WebSocket messages are processed?",
+      "choices": [
+        "The session context of the handshake message",
+        "A session token included in every individual WebSocket message",
+        "The Sec-WebSocket-Accept value returned by the server",
+        "The IP address of the client sending each message"
+      ],
+      "answer": 0,
+      "explain": "Messages are generally processed in the session context set by the handshake. This makes flaws in handshake session handling significant, and it is also what cross-site WebSocket hijacking exploits."
+    },
+    {
+      "type": "text",
+      "category": "WebSocket vulnerabilities",
+      "q": "Name an HTTP header that the material gives as an example of misplaced trust when an application makes security decisions based on the WebSocket handshake.",
+      "answer": ["X-Forwarded-For", "x-forwarded-for", "XFF"],
+      "explain": "Trusting the X-Forwarded-For header (for example, to decide a client's IP address) in the handshake is a design flaw that can be exploited by manipulating the handshake."
+    },
+    {
+      "type": "multi",
+      "category": "Securing WebSockets",
+      "q": "Which are recommended guidelines for securing a WebSocket connection?",
+      "choices": [
+        "Use the wss:// protocol (WebSockets over TLS)",
+        "Hard code the URL of the WebSockets endpoint and never include user-controllable data in it",
+        "Protect the WebSocket handshake message against CSRF",
+        "Treat data received over the WebSocket as untrusted in both directions",
+        "Rely on the Sec-WebSocket-Key header to authenticate the user",
+        "Use ws:// for lower latency, since the handshake already runs over HTTP"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The guidelines are to use wss://, hard code the endpoint URL with no user-controllable data, protect the handshake against CSRF, and handle data safely on both client and server. Sec-WebSocket-Key provides no authentication."
+    },
+    {
+      "type": "tf",
+      "category": "Securing WebSockets",
+      "q": "Data that the client receives from the server over a WebSocket can be trusted and inserted into the page directly, because only client-to-server data needs validation.",
+      "answer": false,
+      "explain": "Data received over a WebSocket should be treated as untrusted in both directions. Server-to-client messages can carry attacker-controlled data, such as relayed chat messages, which can lead to XSS."
+    },
+    {
+      "type": "mc",
+      "category": "Securing WebSockets",
+      "q": "Which measure specifically prevents cross-site WebSocket hijacking?",
+      "choices": [
+        "Protecting the WebSocket handshake against CSRF, e.g. with a CSRF token or other unpredictable value",
+        "Using a longer Sec-WebSocket-Key",
+        "Sending all messages as JSON instead of plain text",
+        "Setting Sec-WebSocket-Version to the latest version"
+      ],
+      "answer": 0,
+      "explain": "CSWSH is CSRF on the handshake. The defense is to protect the handshake against CSRF so it doesn't rely solely on cookies."
+    },
+    {
+      "type": "mc",
+      "category": "Securing WebSockets",
+      "q": "Why should the WebSocket endpoint URL be hard coded rather than built from user-controllable data?",
+      "choices": [
+        "So an attacker can't control which endpoint the client connects to",
+        "Because WebSocket URLs can't contain query strings",
+        "Because the server checks the URL against Sec-WebSocket-Accept",
+        "So the connection uses ws:// instead of wss://"
+      ],
+      "answer": 0,
+      "explain": "The guideline is to hard code the endpoint URL and never incorporate user-controllable data into it. Otherwise an attacker could influence where the client's WebSocket connects."
+    },
+    {
+      "type": "mc",
+      "category": "Cross-site WebSocket hijacking",
+      "q": "What is cross-site WebSocket hijacking (CSWSH) essentially?",
+      "choices": [
+        "A cross-site request forgery (CSRF) vulnerability on the WebSocket handshake",
+        "A stored XSS vulnerability in WebSocket message contents",
+        "A man-in-the-middle attack on unencrypted ws:// traffic",
+        "Guessing another user's Sec-WebSocket-Key"
+      ],
+      "answer": 0,
+      "explain": "CSWSH (also called cross-origin WebSocket hijacking) is a CSRF vulnerability on the WebSocket handshake."
+    },
+    {
+      "type": "mc",
+      "category": "Cross-site WebSocket hijacking",
+      "q": "Under what condition does a WebSocket handshake become vulnerable to cross-site WebSocket hijacking?",
+      "choices": [
+        "It relies solely on HTTP cookies for session handling and contains no CSRF tokens or other unpredictable values",
+        "It uses ws:// instead of wss://",
+        "It uses Sec-WebSocket-Version 13",
+        "The server returns 101 Switching Protocols"
+      ],
+      "answer": 0,
+      "explain": "CSWSH arises when the handshake depends only on cookies for session handling and has no CSRF token or other unpredictable value, so a cross-site page can make it on the victim's behalf."
+    },
+    {
+      "type": "mc",
+      "category": "Cross-site WebSocket hijacking",
+      "q": "What makes cross-site WebSocket hijacking more powerful than regular CSRF?",
+      "choices": [
+        "The attacker gets two-way interaction: they can send messages and also read the server's responses",
+        "It works even when the victim is not logged in to the target application",
+        "It gives the attacker the victim's session cookie value",
+        "It lets the attacker execute code on the server directly"
+      ],
+      "answer": 0,
+      "explain": "Regular CSRF can only trigger actions. In CSWSH the attacker's page can also read messages the server sends back over the hijacked connection, so sensitive data can be captured."
+    },
+    {
+      "type": "multi",
+      "category": "Cross-site WebSocket hijacking",
+      "q": "What can a successful cross-site WebSocket hijacking attack often let an attacker do?",
+      "choices": [
+        "Perform unauthorized actions while masquerading as the victim user",
+        "Retrieve sensitive data that the victim user can access",
+        "Decrypt the victim's previously recorded wss:// traffic",
+        "Change the Sec-WebSocket-Accept value the server computes for other users"
+      ],
+      "answer": [0, 1],
+      "explain": "If the app performs sensitive actions based on client messages, the attacker can trigger them. If it returns sensitive data in server messages, the attacker can capture it."
+    },
+    {
+      "type": "mc",
+      "category": "Cross-site WebSocket hijacking",
+      "q": "In a CSWSH attack, where does the malicious WebSocket connection come from, and in whose session context does the application handle it?",
+      "choices": [
+        "From a malicious page on the attacker's own domain, visited by the victim, and handled in the victim's session",
+        "From the attacker's own browser, handled in the attacker's session",
+        "From the vulnerable application's own page, handled anonymously",
+        "From a caching proxy, handled in the proxy's session"
+      ],
+      "answer": 0,
+      "explain": "The attacker hosts a page on their own domain that opens a cross-site WebSocket connection to the vulnerable app. The victim's browser sends its cookies, so the app handles the connection in the victim's session."
+    },
+    {
+      "type": "tf",
+      "category": "Cross-site WebSocket hijacking",
+      "q": "A handshake containing a random Sec-WebSocket-Key value is protected against cross-site WebSocket hijacking, because that value is unpredictable.",
+      "answer": false,
+      "explain": "Sec-WebSocket-Key exists to prevent errors from caching proxies and is not used for authentication or session handling. A handshake whose only session token is a cookie is probably vulnerable even though it has a Sec-WebSocket-Key."
+    },
+    {
+      "type": "mc",
+      "category": "Cross-site WebSocket hijacking",
+      "q": "What is the first step in performing a cross-site WebSocket hijacking attack?",
+      "choices": [
+        "Review the application's WebSocket handshakes and determine whether they are protected against CSRF",
+        "Find an XSS vulnerability in WebSocket message contents",
+        "Obtain the victim's session cookie",
+        "Downgrade the target's wss:// connection to ws://"
+      ],
+      "answer": 0,
+      "explain": "CSWSH is CSRF on the handshake, so you start by checking whether the handshakes are protected against CSRF, looking for ones that rely only on cookies."
+    },
+    {
+      "type": "multi",
+      "category": "Cross-site WebSocket hijacking",
+      "q": "Once the attacker's page has opened a hijacked WebSocket to the vulnerable site, what might the rest of the attack involve? (It depends on the application's logic.)",
+      "choices": [
+        "Sending WebSocket messages to perform unauthorized actions on behalf of the victim",
+        "Sending WebSocket messages to retrieve sensitive data",
+        "Simply waiting for incoming messages that contain sensitive data",
+        "Reading the victim's cookies out of the handshake response"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Depending on how the app uses WebSockets, the attacker sends messages to trigger actions, sends messages to request data, or just waits for sensitive messages to arrive."
+    },
+    {
+      "type": "tf",
+      "category": "Cross-site WebSocket hijacking",
+      "q": "Cross-site WebSocket hijacking is also known as cross-origin WebSocket hijacking.",
+      "answer": true,
+      "explain": "Both names refer to the same attack: CSRF on the WebSocket handshake."
+    }
+  ]
+}

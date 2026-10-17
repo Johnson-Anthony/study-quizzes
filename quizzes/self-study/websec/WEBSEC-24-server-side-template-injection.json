@@ -1,0 +1,345 @@
+{
+  "title": "Server-side template injection",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "q": "What is server-side template injection (SSTI)?",
+      "choices": [
+        "When an attacker injects native template syntax into a template that is then executed server-side",
+        "When an attacker overwrites static files served by the template engine",
+        "When a template is rendered in the victim's browser using attacker-supplied JavaScript",
+        "When a template engine leaks its source code over an unencrypted channel"
+      ],
+      "answer": 0,
+      "explain": "SSTI occurs when an attacker is able to use native template syntax to inject a malicious payload into a template, which is then executed server-side."
+    },
+    {
+      "type": "tf",
+      "category": "Fundamentals",
+      "q": "Server-side template injection payloads are delivered and evaluated client-side, in the victim's browser.",
+      "answer": false,
+      "explain": "SSTI payloads are delivered and evaluated server-side, which potentially makes them much more dangerous than typical client-side template injection."
+    },
+    {
+      "type": "text",
+      "category": "Fundamentals",
+      "q": "Template engines generate web pages by combining fixed templates with volatile ______ (fill in the blank).",
+      "answer": ["data"],
+      "explain": "Template engines combine fixed templates with volatile data. SSTI arises when user input is treated as part of the template itself rather than as data."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "q": "Why can SSTI be more dangerous than a typical client-side template injection?",
+      "choices": [
+        "Because the payload is evaluated server-side, potentially giving control of the back-end server",
+        "Because browsers cannot filter template syntax",
+        "Because it only affects logic-less template engines",
+        "Because it always bypasses TLS encryption"
+      ],
+      "answer": 0,
+      "explain": "As the name suggests, SSTI payloads are evaluated server-side, potentially making them much more dangerous than client-side template injection."
+    },
+    {
+      "type": "mc",
+      "category": "Impact",
+      "q": "At the most severe end of the scale, what can an attacker achieve through SSTI?",
+      "choices": [
+        "Remote code execution and full control of the back-end server",
+        "Only reflected cross-site scripting",
+        "Only a denial-of-service crash of the template engine",
+        "Nothing beyond a cosmetic change to a rendered page"
+      ],
+      "answer": 0,
+      "explain": "At the severe end, an attacker can potentially achieve remote code execution, taking full control of the back-end server and using it to attack internal infrastructure."
+    },
+    {
+      "type": "tf",
+      "category": "Impact",
+      "q": "Even when full remote code execution is not possible, SSTI can still be used as the basis for other attacks such as reading sensitive data and arbitrary files.",
+      "answer": true,
+      "explain": "Even without RCE, an attacker can often use SSTI to gain read access to sensitive data and arbitrary files on the server."
+    },
+    {
+      "type": "mc",
+      "category": "Impact",
+      "q": "According to the material, how often do SSTI vulnerabilities pose no real security risk?",
+      "choices": [
+        "In certain rare circumstances",
+        "In roughly half of all cases",
+        "Almost always",
+        "Never — SSTI is always catastrophic"
+      ],
+      "answer": 0,
+      "explain": "In certain rare circumstances SSTI poses no real security risk, but most of the time the impact can be catastrophic."
+    },
+    {
+      "type": "mc",
+      "category": "How it arises",
+      "q": "SSTI vulnerabilities arise when user input is handled in what way?",
+      "choices": [
+        "Concatenated directly into templates rather than passed in as data",
+        "Passed into templates strictly as data via placeholders",
+        "Stored in a database before rendering",
+        "Escaped and HTML-encoded before rendering"
+      ],
+      "answer": 0,
+      "explain": "SSTI arises when user input is concatenated into templates rather than being passed in as data."
+    },
+    {
+      "type": "tf",
+      "category": "How it arises",
+      "q": "Static templates that simply provide placeholders into which dynamic content is rendered are generally vulnerable to SSTI.",
+      "answer": false,
+      "explain": "Static templates that use placeholders for dynamic content are generally NOT vulnerable, because user input is passed in as data rather than becoming part of the template."
+    },
+    {
+      "type": "mc",
+      "category": "How it arises",
+      "q": "Which Twig example is vulnerable to SSTI?",
+      "choices": [
+        "$twig->render(\"Dear \" . $_GET['name'])",
+        "$twig->render(\"Dear {first_name},\", array(\"first_name\" => $user.first_name))",
+        "A template that stores the name in a session variable",
+        "A template that logs the name to a file"
+      ],
+      "answer": 0,
+      "explain": "Concatenating the GET parameter into the template string (`render(\"Dear \" . $_GET['name'])`) makes part of the template itself user-controlled. Passing first_name in as array data is safe."
+    },
+    {
+      "type": "text",
+      "category": "How it arises",
+      "q": "The material compares accidental SSTI (from concatenating user input into templates) to which classic injection flaw found in poorly written prepared statements?",
+      "answer": ["SQL injection", "SQLi", "SQL"],
+      "explain": "It is described as similar to SQL injection vulnerabilities occurring in poorly written prepared statements."
+    },
+    {
+      "type": "mc",
+      "category": "How it arises",
+      "q": "Which is given as an example of SSTI being introduced intentionally rather than by accident?",
+      "choices": [
+        "Deliberately allowing privileged users such as content editors to edit or submit custom templates",
+        "Using a logic-less template engine by default",
+        "Encoding all output before rendering",
+        "Running templates inside a Docker container"
+      ],
+      "answer": 0,
+      "explain": "Some websites deliberately allow privileged users (e.g., content editors) to edit or submit custom templates by design, which is a huge risk if such an account is compromised."
+    },
+    {
+      "type": "text",
+      "category": "Detect",
+      "q": "What sequence of special characters does the material suggest injecting to fuzz a template for SSTI?",
+      "answer": ["${{<%[%'\"}}%\\"],
+      "explain": "Fuzzing with the sequence ${{<%[%'\"}}%\\ and watching for a raised exception is a simple first approach — an error suggests the injected template syntax is being interpreted."
+    },
+    {
+      "type": "mc",
+      "category": "Detect",
+      "q": "SSTI occurs in two distinct contexts, each requiring its own detection method. What are they?",
+      "choices": [
+        "Plaintext context and code context",
+        "HTTP context and HTTPS context",
+        "Client context and server context",
+        "Static context and dynamic context"
+      ],
+      "answer": 0,
+      "explain": "SSTI occurs in a plaintext context and a code context, each of which requires its own detection approach."
+    },
+    {
+      "type": "tf",
+      "category": "Detect",
+      "q": "SSTI in the plaintext context can sometimes be exploited for XSS and is in fact often mistaken for a simple XSS vulnerability.",
+      "answer": true,
+      "explain": "In the plaintext context, freely input content rendered to HTML can be exploited for XSS and is often mistaken for plain XSS — testing with a math operation helps reveal the SSTI."
+    },
+    {
+      "type": "num",
+      "category": "Detect",
+      "q": "If injecting username=${7*7} into a vulnerable plaintext-context template outputs \"Hello 49\", the math was evaluated server-side. What numeric value appears?",
+      "answer": 49,
+      "explain": "Output of \"Hello 49\" shows the mathematical operation ${7*7} was evaluated server-side — a good proof of concept for SSTI."
+    },
+    {
+      "type": "mc",
+      "category": "Detect",
+      "q": "In the code context, after confirming there is no direct XSS, what is the next step to test for SSTI?",
+      "choices": [
+        "Try to break out of the statement using template syntax, e.g. injecting }}<tag>, and see if arbitrary HTML renders",
+        "Submit the same value repeatedly to cause a timeout",
+        "Replace the whole parameter with a base64 blob",
+        "Request the page over HTTP instead of HTTPS"
+      ],
+      "answer": 0,
+      "explain": "After ruling out direct XSS, you try to break out of the statement with common templating syntax (e.g. greeting=data.username}}<tag>). Correctly rendered output plus the arbitrary HTML indicates SSTI."
+    },
+    {
+      "type": "mc",
+      "category": "Identify",
+      "q": "What is often the simplest way to identify which template engine is in use?",
+      "choices": [
+        "Submit invalid syntax so the resulting error message reveals the engine (and sometimes the version)",
+        "Read the HTTP Server response header",
+        "Check the TLS certificate's issuer",
+        "Count the number of rendered HTML tags"
+      ],
+      "answer": 0,
+      "explain": "Submitting invalid syntax is often enough, because the error message will tell you exactly which template engine (and sometimes which version) is being used."
+    },
+    {
+      "type": "mc",
+      "category": "Identify",
+      "q": "The invalid expression <%=foobar%> triggers an \"undefined local variable or method\" error. Which template engine does this identify?",
+      "choices": [
+        "ERB (Ruby-based)",
+        "Twig (PHP-based)",
+        "Jinja2 (Python-based)",
+        "Freemarker (Java-based)"
+      ],
+      "answer": 0,
+      "explain": "<%=foobar%> triggers a NameError from the Ruby-based ERB engine, identifying it."
+    },
+    {
+      "type": "text",
+      "category": "Identify",
+      "q": "The payload {{7*'7'}} returns 49 in Twig. What does it return in Jinja2?",
+      "answer": ["7777777"],
+      "explain": "{{7*'7'}} returns 49 in Twig and 7777777 in Jinja2, showing why you shouldn't jump to conclusions from a single response."
+    },
+    {
+      "type": "tf",
+      "category": "Identify",
+      "q": "The same payload can sometimes return a successful response in more than one template language, so you should not conclude the engine from a single successful response.",
+      "answer": true,
+      "explain": "For example {{7*'7'}} succeeds in both Twig (49) and Jinja2 (7777777); it is important not to jump to conclusions based on a single successful response."
+    },
+    {
+      "type": "mc",
+      "category": "Identify",
+      "q": "When error messages don't reveal the engine, what manual technique helps narrow down the template language?",
+      "choices": [
+        "Injecting arbitrary math operations in different engines' syntax and observing which are evaluated, using a process of elimination",
+        "Measuring the page's response time for each request",
+        "Scanning the server's open ports",
+        "Decoding the session cookie"
+      ],
+      "answer": 0,
+      "explain": "You manually test language-specific payloads — commonly arbitrary math operations in each engine's syntax — and use a process of elimination (aided by a decision tree) to narrow the options."
+    },
+    {
+      "type": "multi",
+      "category": "Exploit",
+      "q": "Select the activities that make up the \"Read\" phase of exploiting SSTI.",
+      "choices": [
+        "Learn the basic template syntax",
+        "Read the documentation's security implications/warnings",
+        "Look for known, documented exploits online",
+        "Deploy the template inside a Docker container",
+        "Run a port scan of the back-end server"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The Read phase covers learning the basic template syntax, reading the documentation's security section/warnings, and looking for known exploits. Docker and port scanning are not part of it."
+    },
+    {
+      "type": "mc",
+      "category": "Exploit",
+      "q": "The Mako template engine — where RCE can be as simple as an <% import os %> block calling os.popen('id') — is based on which language?",
+      "choices": [
+        "Python",
+        "Ruby",
+        "Java",
+        "PHP"
+      ],
+      "answer": 0,
+      "explain": "Mako is a Python-based template engine; knowing how to embed native code blocks can quickly lead to RCE in an unsandboxed environment."
+    },
+    {
+      "type": "mc",
+      "category": "Exploit",
+      "q": "In the Java-based Velocity engine, the exploit $class.inspect(\"java.lang.Runtime\").type.getRuntime().exec(...) works by chaining which members of the ClassTool object?",
+      "choices": [
+        "The $class.inspect() method and the $class.type property",
+        "The $class.render() method and $class.data property",
+        "The $class.eval() method and $class.os property",
+        "The $class.read() method and $class.file property"
+      ],
+      "answer": 0,
+      "explain": "In Velocity, chaining the $class.inspect() method and $class.type property yields references to arbitrary objects — used here to reach Runtime and execute shell commands."
+    },
+    {
+      "type": "text",
+      "category": "Exploit",
+      "q": "In Java-based templating languages, what injection does the material give for listing all environment variables (to help enumerate objects in scope)?",
+      "answer": ["${T(java.lang.System).getenv()}", "T(java.lang.System).getenv()"],
+      "explain": "${T(java.lang.System).getenv()} lists environment variables, helping build a shortlist of interesting objects and methods to investigate."
+    },
+    {
+      "type": "tf",
+      "category": "Exploit",
+      "q": "If remote code execution has been ruled out (for example in a sandboxed engine), there is no remaining potential for any SSTI exploit.",
+      "answer": false,
+      "explain": "Ruling out RCE doesn't rule out other high-severity exploits — e.g., file path traversal to access sensitive data, often via developer-supplied objects."
+    },
+    {
+      "type": "mc",
+      "category": "Exploit",
+      "q": "Why should you pay particular attention to developer-supplied (site-specific) objects rather than only built-in objects?",
+      "choices": [
+        "They are especially likely to contain sensitive information or exploitable methods and form a less battle-hardened attack surface",
+        "They are always documented in detail by the template engine",
+        "They cannot be reached from within a template",
+        "They are automatically sandboxed and therefore safe"
+      ],
+      "answer": 0,
+      "explain": "Non-standard developer-supplied objects are especially likely to hold sensitive data or exploitable methods, and (unlike built-ins) are almost never documented, offering a less battle-hardened attack surface."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "What is described as the best way to prevent SSTI?",
+      "choices": [
+        "Do not allow any users to modify or submit new templates",
+        "HTML-encode all template output",
+        "Use a longer secret key for the template engine",
+        "Serve all pages over HTTPS"
+      ],
+      "answer": 0,
+      "explain": "The best prevention is to not allow users to modify or submit new templates — though business requirements sometimes make this unavoidable."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "Which \"logic-less\" template engine is given as an example that reduces exposure to the most dangerous template-based attacks?",
+      "choices": [
+        "Mustache",
+        "Jinja2",
+        "Twig",
+        "Freemarker"
+      ],
+      "answer": 0,
+      "explain": "Using a logic-less template engine such as Mustache separates logic from presentation and greatly reduces exposure to the most dangerous template-based attacks."
+    },
+    {
+      "type": "tf",
+      "category": "Prevention",
+      "q": "Sandboxing untrusted template code is a reliable, foolproof defense against SSTI.",
+      "answer": false,
+      "explain": "Sandboxing untrusted code is inherently difficult and prone to bypasses; it is only one measure and not foolproof."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "As a complementary defense that accepts code execution may be inevitable, the material suggests deploying the template environment inside what?",
+      "choices": [
+        "A locked-down Docker container",
+        "A read-only file system only",
+        "A client-side iframe",
+        "A reverse proxy cache"
+      ],
+      "answer": 0,
+      "explain": "A complementary approach is to accept that arbitrary code execution may be inevitable and apply your own sandboxing, e.g., by deploying the template environment in a locked-down Docker container."
+    }
+  ]
+}

@@ -1,0 +1,351 @@
+{
+  "title": "Clickjacking (UI redressing)",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "q": "Which description best defines clickjacking?",
+      "choices": [
+        "A user is tricked into clicking actionable content on a hidden website by clicking on other content in a decoy website",
+        "An attacker forges an entire cross-site request without the user's knowledge or input",
+        "An attacker injects script into a page that runs when the page's DOM is processed",
+        "An attacker steals a user's session cookie and replays it from their own browser"
+      ],
+      "answer": 0,
+      "explain": "Clickjacking is an interface-based attack: the victim thinks they are clicking the decoy site, but the click lands on an invisible, actionable page (usually in an iframe) layered on top of it."
+    },
+    {
+      "type": "text",
+      "category": "Fundamentals",
+      "q": "Clickjacking is also known as UI ________ (one word).",
+      "answer": ["redressing", "redress"],
+      "explain": "Clickjacking is also called UI redressing, because the attacker puts a different-looking interface over the real one."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "q": "What is the key difference between clickjacking and CSRF?",
+      "choices": [
+        "Clickjacking needs the user to perform an action such as a button click; CSRF forges an entire request without the user's knowledge or input",
+        "Clickjacking forges requests from the attacker's server; CSRF requires the user to click on a hidden iframe",
+        "Clickjacking only works over HTTP; CSRF only works over HTTPS",
+        "Clickjacking targets the server's database; CSRF targets the browser's rendering engine"
+      ],
+      "answer": 0,
+      "explain": "In clickjacking the victim actually clicks something; the click is just redirected to a hidden page. In CSRF the attacker forges the whole request and the user does not take part."
+    },
+    {
+      "type": "tf",
+      "category": "Fundamentals",
+      "q": "If a target site protects a sensitive action with a session-specific, single-use CSRF token, that action is also protected against clickjacking.",
+      "answer": false,
+      "explain": "CSRF tokens do not stop clickjacking. The hidden iframe loads the real site in the victim's real session, so the token is placed into the request and sent to the server just like in a normal session. Everything happens on-domain."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "q": "Why does a CSRF token fail to stop a clickjacking attack?",
+      "choices": [
+        "The framed page is loaded from the authentic site in the victim's session, so the token is included in the request as in normal use, and all requests happen on-domain",
+        "The attacker can read the token out of the iframe using JavaScript on the decoy page",
+        "Browsers strip CSRF tokens from requests sent from inside iframes",
+        "The attacker guesses the token because it is only a short nonce"
+      ],
+      "answer": 0,
+      "explain": "The attacker never has to know the token. The real page, loaded in the iframe, includes it itself. The only difference from a normal session is that the page is hidden in an iframe."
+    },
+    {
+      "type": "mc",
+      "category": "Building the attack",
+      "q": "In a basic clickjacking proof of concept, which CSS property decides whether the target-site iframe sits above or below the decoy content?",
+      "choices": ["z-index", "opacity", "position", "width"],
+      "answer": 0,
+      "explain": "z-index sets the stacking order of the layers. In the example, the target iframe has z-index 2 and the decoy div has z-index 1, so the iframe is on top and receives the click."
+    },
+    {
+      "type": "mc",
+      "category": "Building the attack",
+      "q": "In the example attack, the target iframe has z-index:2 and the decoy div has z-index:1. Why must the iframe be the higher layer?",
+      "choices": [
+        "So the victim's click lands on the invisible target page instead of the decoy content underneath",
+        "So the decoy content is drawn over the iframe and hides it",
+        "So the browser treats the iframe as the top-level window",
+        "So the iframe's CSRF token is refreshed before the click"
+      ],
+      "answer": 0,
+      "explain": "The victim sees the decoy (the iframe is transparent), but because the iframe is stacked on top, it is the element that actually receives the click."
+    },
+    {
+      "type": "multi",
+      "category": "Building the attack",
+      "q": "Which CSS settings does a basic clickjacking overlay rely on?",
+      "choices": [
+        "Width and height values so the target action lines up exactly with the decoy",
+        "Absolute and relative position values so the overlap holds across screen sizes, browsers and platforms",
+        "A z-index that stacks the target iframe above the decoy",
+        "An opacity at or near 0.0 so the iframe content is invisible",
+        "A sandbox attribute on the decoy div so it cannot receive clicks",
+        "A frame-ancestors directive that allows the attacker's page to frame the target"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Size and position line the target action up with the decoy, z-index puts the iframe on top, and near-zero opacity hides it. sandbox is an iframe attribute (used against frame busters), and frame-ancestors is a defense set by the target server, not something the attacker controls."
+    },
+    {
+      "type": "mc",
+      "category": "Building the attack",
+      "q": "An attacker sets the target iframe's opacity to a very small value such as 0.00001 instead of simply choosing any low value. What concern explains this careful choice?",
+      "choices": [
+        "Some browsers apply threshold-based iframe transparency detection, so the attacker picks a value that keeps the iframe invisible without triggering that protection",
+        "Opacity values below 0.1 make the iframe ignore clicks in every browser",
+        "An opacity of exactly 1 is required for the CSRF token to be sent",
+        "Low opacity values disable the target site's X-Frame-Options header"
+      ],
+      "answer": 0,
+      "explain": "Browser clickjacking protection can detect transparent iframes based on a threshold (not every browser does this). The attacker picks opacity values that make the frame effectively invisible without tripping such checks."
+    },
+    {
+      "type": "tf",
+      "category": "Building the attack",
+      "q": "Absolute and relative position values are used in a clickjacking page so that the target website accurately overlaps the decoy regardless of screen size, browser type and platform.",
+      "answer": true,
+      "explain": "Combining positioning with precise width/height values keeps the hidden target action lined up with the decoy element across different environments."
+    },
+    {
+      "type": "mc",
+      "category": "Building the attack",
+      "q": "What does Burp's Clickbandit tool do?",
+      "choices": [
+        "You perform the desired actions on the frameable page in your browser, and it generates an HTML file with a suitable clickjacking overlay as a proof of concept",
+        "It scans a site's response headers and adds X-Frame-Options automatically",
+        "It removes frame busting scripts from a target page before framing it",
+        "It brute-forces CSRF tokens so that framed requests succeed"
+      ],
+      "answer": 0,
+      "explain": "Clickbandit records the actions you take on the framable page and outputs an interactive clickjacking proof of concept, so you do not have to write the HTML and CSS by hand."
+    },
+    {
+      "type": "mc",
+      "category": "Attack variants",
+      "q": "A target site lets form fields be prepopulated from GET parameters. How does an attacker use this in a clickjacking attack?",
+      "choices": [
+        "Put the attacker's chosen values in the iframe's target URL, then overlay the transparent submit button on the decoy as in a basic attack",
+        "Send a forged POST request with the values from the attacker's server",
+        "Use JavaScript on the decoy page to type into the framed form fields",
+        "Set the values in the target site's Content-Security-Policy header"
+      ],
+      "answer": 0,
+      "explain": "GET values are part of the URL, so the attacker can build a target URL that already contains the inputs they want. The victim only has to click the hidden submit button."
+    },
+    {
+      "type": "tf",
+      "category": "Attack variants",
+      "q": "In clickjacking with prefilled form input, the attacker's decoy page fills in the target form by reading and writing the framed page's fields with JavaScript.",
+      "answer": false,
+      "explain": "The values come from GET parameters in the framed URL, which the target site uses to prepopulate its own form. The attacker only controls the URL and the overlay."
+    },
+    {
+      "type": "mc",
+      "category": "Attack variants",
+      "q": "How is clickjacking combined with a DOM-based XSS attack?",
+      "choices": [
+        "After finding a DOM XSS exploit, the attacker puts it in the iframe's target URL so that the victim's click triggers the DOM XSS",
+        "The attacker injects the XSS payload into the decoy page's CSS opacity value",
+        "The clickjacking iframe is used to steal the CSRF token, which is then sent in an XSS payload",
+        "The attacker uses the sandbox attribute to run the XSS payload in the top window"
+      ],
+      "answer": 0,
+      "explain": "Clickjacking acts as the carrier: the framed URL contains the XSS exploit, and the victim's click on the hidden button or link executes it."
+    },
+    {
+      "type": "mc",
+      "category": "Attack variants",
+      "q": "Clickjacking has been used for low-impact actions such as boosting 'likes'. When is it most dangerous?",
+      "choices": [
+        "When it is used to deliver another attack, such as DOM-based XSS",
+        "When the iframe's opacity is set to exactly 1",
+        "When the target site uses X-Frame-Options: sameorigin",
+        "When the decoy and target are hosted on the same origin"
+      ],
+      "answer": 0,
+      "explain": "Clickjacking is most powerful as a carrier for another attack, for example triggering a DOM XSS exploit through the victim's click."
+    },
+    {
+      "type": "mc",
+      "category": "Attack variants",
+      "q": "An attacker wants a victim to buy an item, which means first adding it to the basket and then placing the order. What kind of attack does this need?",
+      "choices": [
+        "Multistep clickjacking, using multiple divisions or iframes that require precise placement to stay effective and stealthy",
+        "A single overlay with opacity 1 so the victim can see each step",
+        "Prefilled form input alone, since GET parameters can trigger both actions in one click",
+        "A frame buster bypass, since multistep actions are blocked only by frame busting scripts"
+      ],
+      "answer": 0,
+      "explain": "When the target action needs several user actions, the attacker builds several layered divisions or iframes, one per step. This takes considerable precision."
+    },
+    {
+      "type": "multi",
+      "category": "Frame busting",
+      "q": "Which behaviors are frame busting (frame breaking) scripts commonly designed to perform?",
+      "choices": [
+        "Check and enforce that the current application window is the main or top window",
+        "Make all frames visible",
+        "Prevent clicking on invisible frames",
+        "Intercept and flag potential clickjacking attacks to the user",
+        "Add an X-Frame-Options header to the server's responses",
+        "Issue a new CSRF token on every click"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Frame busters are client-side JavaScript that enforce top-window status, reveal frames, block clicks on invisible frames and warn the user. Response headers like X-Frame-Options are set by the server, not by frame busters."
+    },
+    {
+      "type": "tf",
+      "category": "Frame busting",
+      "q": "Frame busting scripts are a server-side clickjacking defense enforced by HTTP response headers.",
+      "answer": false,
+      "explain": "Frame busting is a client-side technique that runs as JavaScript in the browser, for example through extensions such as NoScript. The server-side defenses are X-Frame-Options and CSP."
+    },
+    {
+      "type": "multi",
+      "category": "Frame busting",
+      "q": "Why are frame busting scripts considered a weak defense against clickjacking?",
+      "choices": [
+        "They are often browser- and platform-specific",
+        "The flexibility of HTML usually lets attackers get around them",
+        "The browser's security settings may stop JavaScript from running, or the browser may not support JavaScript",
+        "An attacker can neutralize them with the HTML5 iframe sandbox attribute",
+        "They only work when the target site also uses CSRF tokens",
+        "They make the target page visible, so the attack cannot be hidden"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Frame busters depend on JavaScript running in a particular browser, and the attacker controls how the frame is embedded, for example with a sandbox attribute that blocks top-level navigation."
+    },
+    {
+      "type": "text",
+      "category": "Frame busting",
+      "q": "Which HTML5 iframe attribute can an attacker use to neutralize a target page's frame busting script?",
+      "answer": ["sandbox", "the sandbox attribute"],
+      "explain": "The sandbox attribute restricts what the framed page may do. Allowing forms/scripts but not top-level navigation stops the frame buster from working while the target site still functions."
+    },
+    {
+      "type": "mc",
+      "category": "Frame busting",
+      "q": "When using the iframe sandbox attribute to defeat a frame buster, which value must the attacker leave out?",
+      "choices": ["allow-top-navigation", "allow-forms", "allow-scripts", "sandbox has no values; the attribute alone is enough"],
+      "answer": 0,
+      "explain": "Without allow-top-navigation the framed page cannot navigate the top window, so the frame buster is neutralized. allow-forms and/or allow-scripts are included so the target site still works inside the frame."
+    },
+    {
+      "type": "mc",
+      "category": "Frame busting",
+      "q": "A target page includes a frame busting script. An attacker frames it with <iframe src=\"https://victim-website.com\" sandbox=\"allow-forms\"></iframe>. What happens?",
+      "choices": [
+        "Forms in the frame still work, but top-level navigation is disabled, so the frame buster cannot break out and the attack can proceed",
+        "The frame buster detects the sandbox and redirects the top window to the victim site",
+        "Nothing in the frame works, so the clickjacking attack fails",
+        "The browser ignores the sandbox attribute because the page has a frame buster"
+      ],
+      "answer": 0,
+      "explain": "allow-forms allows form submission inside the iframe, but because allow-top-navigation is missing, the page cannot take over the top window. That stops the frame buster while the target action still works."
+    },
+    {
+      "type": "tf",
+      "category": "Frame busting",
+      "q": "An attacker frames a page with sandbox=\"allow-forms allow-scripts allow-top-navigation\". This configuration reliably neutralizes the page's frame busting script.",
+      "answer": false,
+      "explain": "Including allow-top-navigation lets the framed page navigate the top window, which is exactly what a frame buster needs. The bypass works only when allow-top-navigation is left out."
+    },
+    {
+      "type": "mc",
+      "category": "Server-side defenses",
+      "q": "Which response header stops a page from being framed by any site at all?",
+      "choices": [
+        "X-Frame-Options: deny",
+        "X-Frame-Options: sameorigin",
+        "X-Frame-Options: allow-from https://normal-website.com",
+        "Content-Security-Policy: frame-ancestors 'self';"
+      ],
+      "answer": 0,
+      "explain": "deny forbids all framing. sameorigin and frame-ancestors 'self' allow framing by the same origin, and allow-from allows a named site."
+    },
+    {
+      "type": "mc",
+      "category": "Server-side defenses",
+      "q": "Which CSP directive is roughly equivalent to X-Frame-Options: sameorigin?",
+      "choices": ["frame-ancestors 'self'", "frame-ancestors 'none'", "frame-ancestors normal-website.com", "frame-src 'self'"],
+      "answer": 0,
+      "explain": "frame-ancestors 'self' allows framing only by the same origin, much like sameorigin. frame-ancestors 'none' corresponds to deny."
+    },
+    {
+      "type": "mc",
+      "category": "Server-side defenses",
+      "q": "Which CSP directive behaves like X-Frame-Options: deny?",
+      "choices": ["frame-ancestors 'none'", "frame-ancestors 'self'", "default-src 'none'", "script-src 'none'"],
+      "answer": 0,
+      "explain": "frame-ancestors 'none' stops any page from framing the resource, like X-Frame-Options: deny."
+    },
+    {
+      "type": "text",
+      "category": "Server-side defenses",
+      "q": "Name the Content Security Policy directive that is the recommended protection against clickjacking.",
+      "answer": ["frame-ancestors", "frame ancestors"],
+      "explain": "The recommended defense is to include frame-ancestors in the site's CSP, for example Content-Security-Policy: frame-ancestors 'self';"
+    },
+    {
+      "type": "mc",
+      "category": "Server-side defenses",
+      "q": "A site responds with Content-Security-Policy: frame-ancestors normal-website.com; Which pages may frame it?",
+      "choices": [
+        "Only pages on normal-website.com",
+        "Any page, because frame-ancestors only affects scripts",
+        "No pages at all, including normal-website.com",
+        "Only pages on the site's own origin"
+      ],
+      "answer": 0,
+      "explain": "Naming a site in frame-ancestors limits framing to that named site, much like X-Frame-Options allow-from."
+    },
+    {
+      "type": "mc",
+      "category": "Server-side defenses",
+      "q": "Which X-Frame-Options directive is not supported consistently across browsers (some major browsers ignore it)?",
+      "choices": ["allow-from", "deny", "sameorigin", "none of them; X-Frame-Options is implemented identically everywhere"],
+      "answer": 0,
+      "explain": "X-Frame-Options is implemented inconsistently, and some major browsers do not support allow-from. That is one reason to pair it with CSP frame-ancestors as layered defenses."
+    },
+    {
+      "type": "tf",
+      "category": "Server-side defenses",
+      "q": "Server-side clickjacking protections such as X-Frame-Options and CSP work no matter how the browser behaves, because the server enforces them.",
+      "answer": false,
+      "explain": "The server only defines and communicates the framing constraints. The browser must honor and enforce them, so protection depends on browser compliance."
+    },
+    {
+      "type": "tf",
+      "category": "Server-side defenses",
+      "q": "X-Frame-Options started as an unofficial response header in Internet Explorer 8 and was quickly adopted by other browsers.",
+      "answer": true,
+      "explain": "It began as a non-standard IE8 header that let site owners control whether a page could be framed, and other browsers soon adopted it."
+    },
+    {
+      "type": "mc",
+      "category": "Server-side defenses",
+      "q": "In a Content-Security-Policy header value, how are multiple policy directives separated?",
+      "choices": ["Semicolons", "Commas", "Pipes (|)", "Newlines only"],
+      "answer": 0,
+      "explain": "The header has the form Content-Security-Policy: policy, where policy is a string of directives separated by semicolons."
+    },
+    {
+      "type": "mc",
+      "category": "Server-side defenses",
+      "q": "A site uses CSRF tokens and a JavaScript frame buster but sends neither X-Frame-Options nor a CSP frame-ancestors directive. Which change best protects it against clickjacking?",
+      "choices": [
+        "Send a CSP frame-ancestors directive (with X-Frame-Options as an additional layer) to restrict who can frame the site",
+        "Make the CSRF tokens longer and rotate them more often",
+        "Add a second frame busting script to the page",
+        "Tell users to disable JavaScript"
+      ],
+      "answer": 0,
+      "explain": "CSRF tokens don't help against clickjacking, and frame busters can be bypassed (for example with sandbox). Server-driven framing limits, ideally CSP frame-ancestors combined with X-Frame-Options as layered defenses, are the recommended protection."
+    }
+  ]
+}
