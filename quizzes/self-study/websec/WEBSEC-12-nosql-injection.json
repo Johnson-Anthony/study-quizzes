@@ -1,0 +1,415 @@
+{
+  "title": "NoSQL injection",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "multi",
+      "category": "NoSQL injection basics",
+      "topic": "Impact",
+      "q": "NoSQL injection may enable an attacker to do which of the following?",
+      "choices": [
+        "Bypass authentication or protection mechanisms",
+        "Extract or edit data",
+        "Cause a denial of service",
+        "Execute code on the server",
+        "Physically damage the database hardware"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The topic lists four outcomes: bypassing authentication/protection, extracting or editing data, causing a denial of service, and executing code on the server."
+    },
+    {
+      "type": "tf",
+      "category": "NoSQL injection basics",
+      "topic": "Query languages",
+      "q": "NoSQL databases use a single universal standard query language like SQL.",
+      "answer": false,
+      "explain": "NoSQL databases use a wide range of query languages instead of a universal standard like SQL, and have fewer relational constraints."
+    },
+    {
+      "type": "mc",
+      "category": "NoSQL injection basics",
+      "topic": "Definition",
+      "q": "What is NoSQL injection?",
+      "choices": [
+        "A vulnerability where an attacker can interfere with the queries an application makes to a NoSQL database",
+        "A flaw that only affects relational SQL databases",
+        "A misconfiguration of TLS certificates on a database server",
+        "A technique for encrypting data at rest in NoSQL stores"
+      ],
+      "answer": 0,
+      "explain": "NoSQL injection is a vulnerability where an attacker is able to interfere with the queries that an application makes to a NoSQL database."
+    },
+    {
+      "type": "mc",
+      "category": "Types of NoSQL injection",
+      "topic": "Two types",
+      "q": "What are the two types of NoSQL injection?",
+      "choices": [
+        "Syntax injection and operator injection",
+        "Blind injection and error-based injection",
+        "In-band injection and out-of-band injection",
+        "Stored injection and reflected injection"
+      ],
+      "answer": 0,
+      "explain": "The two types are syntax injection (breaking the query syntax) and operator injection (using NoSQL query operators to manipulate queries)."
+    },
+    {
+      "type": "mc",
+      "category": "Types of NoSQL injection",
+      "topic": "Syntax injection",
+      "q": "Which type of NoSQL injection occurs when you can break the NoSQL query syntax to inject your own payload?",
+      "choices": [
+        "Syntax injection",
+        "Operator injection",
+        "Timing injection",
+        "Schema injection"
+      ],
+      "answer": 0,
+      "explain": "Syntax injection occurs when you can break the NoSQL query syntax, enabling you to inject your own payload; the methodology is similar to SQL injection."
+    },
+    {
+      "type": "mc",
+      "category": "Types of NoSQL injection",
+      "topic": "Operator injection",
+      "q": "Operator injection occurs when you can do what?",
+      "choices": [
+        "Use NoSQL query operators to manipulate queries",
+        "Break the string-quoting syntax of the query",
+        "Overflow a fixed-length buffer in the driver",
+        "Downgrade the database to an older version"
+      ],
+      "answer": 0,
+      "explain": "Operator injection occurs when you can use NoSQL query operators (such as $ne, $where, $in, $regex) to manipulate queries."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax injection",
+      "topic": "Detection method",
+      "q": "How can you potentially detect NoSQL syntax injection vulnerabilities?",
+      "choices": [
+        "By systematically submitting fuzz strings and special characters that trigger a database error or other detectable behavior",
+        "By scanning open ports on the database server",
+        "By checking the database's TLS certificate expiry",
+        "By measuring CPU usage of the web server"
+      ],
+      "answer": 0,
+      "explain": "You test each input by submitting fuzz strings and special characters that trigger a database error or some other detectable behavior if they aren't adequately sanitized or filtered."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax injection",
+      "topic": "Confirming conditional behavior",
+      "q": "To confirm you can influence boolean conditions, you send one request with a false condition and one with a true condition. Which pair does this?",
+      "choices": [
+        "' && 0 && 'x  and  ' && 1 && 'x",
+        "$ne  and  $eq",
+        "sleep(5000)  and  sleep(0)",
+        "{\"$where\":\"a\"}  and  {\"$where\":\"b\"}"
+      ],
+      "answer": 0,
+      "explain": "The conditional statements ' && 0 && 'x (false) and ' && 1 && 'x (true) test whether the false condition impacts query logic, indicating injection affects a server-side query."
+    },
+    {
+      "type": "text",
+      "category": "Syntax injection",
+      "topic": "Overriding conditions",
+      "q": "Which injected JavaScript condition always evaluates to true, letting the modified query return all items (for example turning the query into this.category == 'fizzy'||'1'=='1')?",
+      "answer": ["'||'1'=='1", "||'1'=='1", "'1'=='1"],
+      "explain": "Injecting '||'1'=='1 produces this.category == 'fizzy'||'1'=='1', which is always true and returns all items including hidden categories."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax injection",
+      "topic": "Null character",
+      "q": "Why might an attacker add a null character after a value, as in category=fizzy'%00?",
+      "choices": [
+        "MongoDB may ignore all characters after a null character, dropping additional conditions like this.released == 1",
+        "The null character forces MongoDB to return an error message revealing the schema",
+        "It causes the database to switch to SQL mode",
+        "It encrypts the rest of the query so the server cannot read it"
+      ],
+      "answer": 0,
+      "explain": "MongoDB may ignore all characters after a null character, so additional restrictions (e.g. this.released == 1) are removed and unreleased products are displayed too."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax injection",
+      "topic": "Single character testing",
+      "q": "After submitting ' causes a changed response, how can you confirm it broke the query syntax rather than just changing data?",
+      "choices": [
+        "Submit an escaped quote (e.g. '\\'') and check that the syntax error goes away",
+        "Submit the same ' character twice more",
+        "Switch the request to a GET request",
+        "Add a $where operator to the body"
+      ],
+      "answer": 0,
+      "explain": "Submitting a valid query string such as an escaped quote ('\\'') that does not cause a syntax error suggests the application is vulnerable to injection."
+    },
+    {
+      "type": "mc",
+      "category": "Operator injection",
+      "topic": "$ne operator",
+      "q": "In MongoDB, what does the $ne operator match?",
+      "choices": [
+        "All values that are not equal to a specified value",
+        "Documents that satisfy a JavaScript expression",
+        "All values specified in an array",
+        "Documents whose values match a regular expression"
+      ],
+      "answer": 0,
+      "explain": "$ne matches all values that are not equal to a specified value."
+    },
+    {
+      "type": "mc",
+      "category": "Operator injection",
+      "topic": "$where operator",
+      "q": "What does MongoDB's $where operator do?",
+      "choices": [
+        "Matches documents that satisfy a JavaScript expression",
+        "Matches all values not equal to a specified value",
+        "Matches all values specified in an array",
+        "Sorts documents by a given field"
+      ],
+      "answer": 0,
+      "explain": "$where matches documents that satisfy a JavaScript expression, which is why it can be abused to run limited JavaScript."
+    },
+    {
+      "type": "mc",
+      "category": "Operator injection",
+      "topic": "$in operator",
+      "q": "What does the $in operator match?",
+      "choices": [
+        "All of the values specified in an array",
+        "Values not equal to a specified value",
+        "Values matching a regular expression",
+        "Documents satisfying a JavaScript expression"
+      ],
+      "answer": 0,
+      "explain": "$in matches all of the values specified in an array, e.g. {\"username\":{\"$in\":[\"admin\",\"administrator\",\"superadmin\"]}}."
+    },
+    {
+      "type": "mc",
+      "category": "Operator injection",
+      "topic": "Submitting operators in JSON",
+      "q": "In a JSON message, how do you insert a query operator to turn {\"username\":\"wiener\"} into an injection test?",
+      "choices": [
+        "As a nested object, e.g. {\"username\":{\"$ne\":\"invalid\"}}",
+        "As an appended string, e.g. {\"username\":\"wiener$ne\"}",
+        "As a URL parameter, e.g. username[$ne]=invalid",
+        "As an HTTP header, e.g. X-Operator: $ne"
+      ],
+      "answer": 0,
+      "explain": "In JSON messages you insert query operators as nested objects: {\"username\":\"wiener\"} becomes {\"username\":{\"$ne\":\"invalid\"}}."
+    },
+    {
+      "type": "mc",
+      "category": "Operator injection",
+      "topic": "Authentication bypass result",
+      "q": "If both the username and password inputs process the operator, the payload {\"username\":{\"$ne\":\"invalid\"},\"password\":{\"$ne\":\"invalid\"}} typically logs you in as whom?",
+      "choices": [
+        "The first user in the collection",
+        "The administrator by name",
+        "A randomly selected user",
+        "The most recently created user"
+      ],
+      "answer": 0,
+      "explain": "The query returns all credentials where both fields are not equal to 'invalid', so you are logged in as the first user in the collection."
+    },
+    {
+      "type": "mc",
+      "category": "Operator injection",
+      "topic": "URL-based operators",
+      "q": "For URL-based input, how can username=wiener be rewritten to inject the $ne operator?",
+      "choices": [
+        "username[$ne]=invalid",
+        "username=$ne:invalid",
+        "username={\"$ne\":\"invalid\"}",
+        "$ne[username]=invalid"
+      ],
+      "answer": 0,
+      "explain": "For URL-based inputs you insert query operators via URL parameters: username=wiener becomes username[$ne]=invalid. If that fails you can convert the request to a JSON POST."
+    },
+    {
+      "type": "mc",
+      "category": "Extracting data",
+      "topic": "JavaScript-capable operators",
+      "q": "Which MongoDB operator/function can run limited JavaScript, making data exfiltration possible?",
+      "choices": [
+        "$where (and the mapReduce() function)",
+        "$in",
+        "$ne",
+        "$sort"
+      ],
+      "answer": 0,
+      "explain": "Some operators/functions run limited JavaScript, such as MongoDB's $where operator and mapReduce() function, letting the database evaluate injected JavaScript."
+    },
+    {
+      "type": "mc",
+      "category": "Extracting data",
+      "topic": "Extracting field names via JavaScript",
+      "q": "What does the injected payload \"$where\":\"Object.keys(this)[0].match('^.{0}a.*')\" let you do?",
+      "choices": [
+        "Extract a data field name character by character",
+        "Delete the first field of every document",
+        "Rename the first field to 'a'",
+        "Count the number of documents in the collection"
+      ],
+      "answer": 0,
+      "explain": "It inspects the first data field in the user object and returns the first character of the field name, enabling extraction of the field name character by character."
+    },
+    {
+      "type": "mc",
+      "category": "Extracting data",
+      "topic": "$regex exfiltration",
+      "q": "How can the $regex operator be used even when you cannot run JavaScript, e.g. {\"username\":\"admin\",\"password\":{\"$regex\":\"^a.*\"}}?",
+      "choices": [
+        "To extract data such as a password character by character",
+        "To disable password hashing on the server",
+        "To cause a guaranteed 5-second delay",
+        "To list all collections in the database"
+      ],
+      "answer": 0,
+      "explain": "The $regex operator lets you extract data character by character; this example checks whether the password begins with 'a'."
+    },
+    {
+      "type": "mc",
+      "category": "Extracting data",
+      "topic": "Identifying field names by comparison",
+      "q": "When testing whether a 'password' field exists with payloads like admin' && this.password!=' , how do you interpret the responses?",
+      "choices": [
+        "If the field exists, the response matches that of a known existing field and differs from that of a non-existent field",
+        "If the field exists, the response is always an error",
+        "If the field exists, the response is empty",
+        "The response is identical for all fields regardless of existence"
+      ],
+      "answer": 0,
+      "explain": "You compare against a known existing field (username) and a non-existent one (foo); a matching response for 'password' indicates the field exists."
+    },
+    {
+      "type": "mc",
+      "category": "Extracting data",
+      "topic": "Why identify fields first",
+      "q": "Why might you need to identify valid field names before extracting data from MongoDB via JavaScript injection?",
+      "choices": [
+        "MongoDB handles semi-structured data that doesn't require a fixed schema",
+        "MongoDB encrypts all field names by default",
+        "MongoDB only allows queries on indexed fields",
+        "MongoDB randomizes field names on every query"
+      ],
+      "answer": 0,
+      "explain": "Because MongoDB handles semi-structured data without a fixed schema, you may need to identify valid fields (by dictionary attack or operator injection) before extracting their values."
+    },
+    {
+      "type": "mc",
+      "category": "Timing-based injection",
+      "topic": "When to use",
+      "q": "When is timing-based NoSQL injection useful?",
+      "choices": [
+        "When triggering a database error doesn't cause any difference in the application's response",
+        "When the application returns detailed error messages",
+        "When the database is a key-value store with no query language",
+        "When you already have admin credentials"
+      ],
+      "answer": 0,
+      "explain": "When an error doesn't change the response, you can still detect/exploit the vulnerability by using JavaScript injection to trigger a conditional time delay."
+    },
+    {
+      "type": "mc",
+      "category": "Timing-based injection",
+      "topic": "Timing payload",
+      "q": "Which payload causes an intentional delay to confirm injection?",
+      "choices": [
+        "{\"$where\": \"sleep(5000)\"}",
+        "{\"$ne\": 5000}",
+        "{\"$in\": [5000]}",
+        "{\"$regex\": \"5000\"}"
+      ],
+      "answer": 0,
+      "explain": "{\"$where\": \"sleep(5000)\"} causes an intentional delay of 5000 ms on successful injection; a slower response indicates success."
+    },
+    {
+      "type": "mc",
+      "category": "Timing-based injection",
+      "topic": "First step",
+      "q": "What is the first step when conducting timing-based NoSQL injection?",
+      "choices": [
+        "Load the page several times to determine a baseline loading time",
+        "Insert the timing payload immediately",
+        "Delete the target user record",
+        "Switch the request method to GET"
+      ],
+      "answer": 0,
+      "explain": "First load the page several times to establish a baseline loading time, then insert a timing-based payload and check whether the response loads more slowly."
+    },
+    {
+      "type": "multi",
+      "category": "Prevention",
+      "topic": "Guidelines",
+      "q": "Which broad guidelines help prevent NoSQL injection?",
+      "choices": [
+        "Sanitize and validate user input using an allowlist of accepted characters",
+        "Insert user input using parameterized queries instead of concatenating it directly",
+        "Apply an allowlist of accepted keys to prevent operator injection",
+        "Concatenate user input directly into queries for performance"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Recommended guidelines: allowlist input characters, use parameterized queries rather than concatenation, and allowlist accepted keys to stop operator injection."
+    },
+    {
+      "type": "mc",
+      "category": "NoSQL databases",
+      "topic": "Document stores",
+      "q": "Which NoSQL database model stores data in flexible, semi-structured documents (formats like JSON, BSON, XML) and includes MongoDB and Couchbase?",
+      "choices": [
+        "Document stores",
+        "Key-value stores",
+        "Wide-column stores",
+        "Graph databases"
+      ],
+      "answer": 0,
+      "explain": "Document stores keep data in flexible, semi-structured documents (JSON, BSON, XML); examples include MongoDB and Couchbase."
+    },
+    {
+      "type": "mc",
+      "category": "NoSQL databases",
+      "topic": "Key-value stores",
+      "q": "Which model stores each data field against a unique key string and includes Redis and Amazon DynamoDB?",
+      "choices": [
+        "Key-value stores",
+        "Document stores",
+        "Graph databases",
+        "Wide-column stores"
+      ],
+      "answer": 0,
+      "explain": "Key-value stores associate each data field with a unique key; values are retrieved by that key. Examples: Redis and Amazon DynamoDB."
+    },
+    {
+      "type": "mc",
+      "category": "NoSQL databases",
+      "topic": "Graph databases",
+      "q": "Which NoSQL model uses nodes to store data entities and edges to store relationships, with examples Neo4j and Amazon Neptune?",
+      "choices": [
+        "Graph databases",
+        "Wide-column stores",
+        "Key-value stores",
+        "Document stores"
+      ],
+      "answer": 0,
+      "explain": "Graph databases use nodes for data entities and edges for relationships between them; examples include Neo4j and Amazon Neptune."
+    },
+    {
+      "type": "mc",
+      "category": "NoSQL databases",
+      "topic": "Wide-column stores",
+      "q": "Apache Cassandra and Apache HBase are examples of which NoSQL model?",
+      "choices": [
+        "Wide-column stores, which organize related data into flexible column families",
+        "Document stores, which use JSON/BSON documents",
+        "Key-value stores, which use a unique key per value",
+        "Graph databases, which use nodes and edges"
+      ],
+      "answer": 0,
+      "explain": "Wide-column stores organize related data into flexible column families rather than traditional rows; examples include Apache Cassandra and Apache HBase."
+    }
+  ]
+}

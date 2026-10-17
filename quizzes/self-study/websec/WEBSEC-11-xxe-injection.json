@@ -1,0 +1,262 @@
+{
+  "title": "XXE Injection",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "text",
+      "category": "XML and entities",
+      "topic": "XML basics",
+      "q": "What does the abbreviation XML stand for?",
+      "answer": ["extensible markup language", "Extensible Markup Language"],
+      "explain": "XML stands for \"extensible markup language\", a language designed for storing and transporting data using a tree-like structure of tags."
+    },
+    {
+      "type": "tf",
+      "category": "XML and entities",
+      "topic": "XML vs HTML",
+      "q": "Unlike HTML, XML does not use predefined tags, so tags can be given names that describe the data.",
+      "answer": true,
+      "explain": "This flexibility is a defining feature of XML compared with HTML's fixed tag set."
+    },
+    {
+      "type": "mc",
+      "category": "XML and entities",
+      "topic": "Built-in entities",
+      "q": "In XML, what characters do the built-in entities &lt; and &gt; represent?",
+      "choices": ["< and >", "( and )", "{ and }", "[ and ]"],
+      "answer": 0,
+      "explain": "&lt; and &gt; stand for the metacharacters < and > that denote XML tags, so they must be represented as entities when they appear within data."
+    },
+    {
+      "type": "mc",
+      "category": "XML and entities",
+      "topic": "DTD location",
+      "q": "Where is the document type definition (DTD) declared in an XML document?",
+      "choices": ["In the optional DOCTYPE element at the start of the document", "In the XML declaration <?xml ... ?>", "In the root element's attributes", "In a separate JSON schema file"],
+      "answer": 0,
+      "explain": "The DTD is declared within the optional DOCTYPE element at the start of the XML document; it can be internal, external, or a hybrid."
+    },
+    {
+      "type": "text",
+      "category": "XML and entities",
+      "topic": "External entity keyword",
+      "q": "Which keyword is used in the declaration of an XML external entity to indicate its value should be loaded from a URL?",
+      "answer": ["SYSTEM", "system"],
+      "explain": "The declaration of an external entity uses the SYSTEM keyword followed by a URL from which the entity value is loaded."
+    },
+    {
+      "type": "tf",
+      "category": "XML and entities",
+      "topic": "file protocol",
+      "q": "An external entity can be loaded from a local file by using the file:// protocol in its URL.",
+      "answer": true,
+      "explain": "For example <!ENTITY ext SYSTEM \"file:///path/to/file\"> loads the entity value from a file on disk."
+    },
+    {
+      "type": "mc",
+      "category": "XML and entities",
+      "topic": "External vs custom entity",
+      "q": "What distinguishes an XML external entity from an ordinary custom entity?",
+      "choices": ["Its defined value is loaded from outside the DTD, e.g. a file path or URL", "It can only contain numeric data", "It is built in to the XML specification", "It can only be referenced inside HTML"],
+      "answer": 0,
+      "explain": "External entities are custom entities whose value is located outside the DTD where they are declared, which is what makes them interesting for attacks."
+    },
+    {
+      "type": "multi",
+      "category": "XML and entities",
+      "topic": "DTD forms",
+      "q": "Which of the following are valid forms a DTD can take according to the material?",
+      "choices": ["Fully self-contained within the document (internal DTD)", "Loaded from elsewhere (external DTD)", "A hybrid of internal and external", "Stored only inside a JSON file"],
+      "answer": [0, 1, 2],
+      "explain": "The DTD can be internal, external, or a hybrid of the two; it is not defined in JSON."
+    },
+    {
+      "type": "text",
+      "category": "XXE basics and file retrieval",
+      "topic": "Definition",
+      "q": "What does the abbreviation XXE stand for?",
+      "answer": ["XML external entity injection", "XML external entity", "xml external entity injection"],
+      "explain": "XXE is XML external entity injection, a vulnerability that lets an attacker interfere with an application's processing of XML data."
+    },
+    {
+      "type": "num",
+      "category": "XXE basics and file retrieval",
+      "topic": "File retrieval steps",
+      "q": "To retrieve an arbitrary file via XXE, how many modifications must you make to the submitted XML (define an external entity, and use it in a returned value)?",
+      "answer": 2,
+      "explain": "You introduce/edit a DOCTYPE defining an external entity for the file path, and edit a returned data value to reference that entity."
+    },
+    {
+      "type": "mc",
+      "category": "XXE basics and file retrieval",
+      "topic": "Target file",
+      "q": "Which well-known file is commonly targeted to demonstrate XXE file retrieval on a Linux server?",
+      "choices": ["/etc/passwd", "/var/log/syslog", "/home/index.html", "/tmp/session"],
+      "answer": 0,
+      "explain": "/etc/passwd is the classic well-known OS file used to prove file retrieval, as its contents appear in the response."
+    },
+    {
+      "type": "tf",
+      "category": "XXE basics and file retrieval",
+      "topic": "SSRF",
+      "q": "Besides retrieving files, XXE can be leveraged to perform server-side request forgery (SSRF) attacks.",
+      "answer": true,
+      "explain": "By defining an external entity with a URL to a back-end system, XXE can induce the server to make requests, i.e. SSRF."
+    },
+    {
+      "type": "mc",
+      "category": "XXE basics and file retrieval",
+      "topic": "SSRF two-way vs blind",
+      "q": "In an XXE-based SSRF attack, what determines whether you get two-way interaction (seeing the back-end response) versus only blind SSRF?",
+      "choices": ["Whether the defined entity is used in a data value that is returned in the response", "Whether the target uses HTTPS", "Whether the file is larger than 1MB", "Whether the parser is written in Java"],
+      "answer": 0,
+      "explain": "If the entity is used in a value returned in the response you can read the back-end response; otherwise the SSRF is blind."
+    },
+    {
+      "type": "tf",
+      "category": "XXE basics and file retrieval",
+      "topic": "Systematic testing",
+      "q": "When testing systematically for XXE, you generally need to test each data node in the XML individually to see whether your defined entity appears in the response.",
+      "answer": true,
+      "explain": "Real requests often contain many data values, any one of which might be reflected, so each node should be tested."
+    },
+    {
+      "type": "mc",
+      "category": "Hidden XXE attack surface",
+      "topic": "XInclude",
+      "q": "Why would an attacker use an XInclude attack instead of a classic XXE attack?",
+      "choices": ["They control only a single data item placed into a server-side XML document and cannot define or modify a DOCTYPE", "XInclude is faster to type", "Classic XXE only works against JSON APIs", "XInclude bypasses TLS encryption"],
+      "answer": 0,
+      "explain": "When client data is embedded into a server-side XML document (e.g. a SOAP request) you can't control the DOCTYPE, but an XInclude can be placed in any data value."
+    },
+    {
+      "type": "mc",
+      "category": "Hidden XXE attack surface",
+      "topic": "File upload",
+      "q": "Which image format uses XML and can therefore reach hidden XXE attack surface via file upload?",
+      "choices": ["SVG", "PNG", "JPEG", "GIF"],
+      "answer": 0,
+      "explain": "SVG is an XML-based image format; an image library that supports SVG can be fed a malicious SVG even when PNG/JPEG is expected."
+    },
+    {
+      "type": "tf",
+      "category": "Hidden XXE attack surface",
+      "topic": "Content type",
+      "q": "If a site expects application/x-www-form-urlencoded but tolerates and parses an XML message body, you may reach hidden XXE surface simply by reformatting the request to use XML.",
+      "answer": true,
+      "explain": "Some sites tolerate a text/xml body; if they parse it as XML, reformatting the request exposes the XXE surface."
+    },
+    {
+      "type": "multi",
+      "category": "Hidden XXE attack surface",
+      "topic": "Hidden surface types",
+      "q": "Which of the following are examples of hidden XXE attack surface described in the material?",
+      "choices": ["XInclude attacks", "XXE via file upload (e.g. SVG, DOCX)", "XXE via a modified content type", "Entities defined in a JSON request body"],
+      "answer": [0, 1, 2],
+      "explain": "The three described hidden surfaces are XInclude, file upload of XML-based formats, and reformatting requests to XML; JSON bodies do not define XML entities."
+    },
+    {
+      "type": "tf",
+      "category": "Blind XXE",
+      "topic": "Definition",
+      "q": "In a blind XXE vulnerability, the application does not return the values of defined external entities in its responses.",
+      "answer": true,
+      "explain": "Because values are not reflected, direct file retrieval is not possible and more advanced techniques are required."
+    },
+    {
+      "type": "num",
+      "category": "Blind XXE",
+      "topic": "Broad approaches",
+      "q": "How many broad ways to find and exploit blind XXE does the material describe (out-of-band interactions, and triggering error messages)?",
+      "answer": 2,
+      "explain": "Either trigger out-of-band network interactions (optionally exfiltrating data) or trigger XML parsing errors whose messages contain sensitive data."
+    },
+    {
+      "type": "mc",
+      "category": "Blind XXE",
+      "topic": "Parameter entities",
+      "q": "What character prefixes the name when declaring and referencing an XML parameter entity?",
+      "choices": ["% (percent)", "& (ampersand)", "# (hash)", "$ (dollar)"],
+      "answer": 0,
+      "explain": "Parameter entities are declared with a percent sign before the name and referenced with %name; (vs &name; for regular entities)."
+    },
+    {
+      "type": "tf",
+      "category": "Blind XXE",
+      "topic": "Parameter entity scope",
+      "q": "XML parameter entities can only be referenced elsewhere within the DTD.",
+      "answer": true,
+      "explain": "Parameter entities are a special kind of entity usable only within the DTD, which is why they help when regular entities are blocked."
+    },
+    {
+      "type": "mc",
+      "category": "Blind XXE",
+      "topic": "OOB exfiltration",
+      "q": "For out-of-band data exfiltration via blind XXE, where does the attacker host the malicious DTD?",
+      "choices": ["On a web server the attacker controls, invoked as an external DTD from the in-band payload", "Inside the server's /etc/passwd file", "In the victim's browser cache", "In the application's internal DTD"],
+      "answer": 0,
+      "explain": "The attacker serves the malicious DTD from their own server (e.g. http://web-attacker.com/malicious.dtd) and loads it via a parameter entity in the submitted payload."
+    },
+    {
+      "type": "mc",
+      "category": "Blind XXE",
+      "topic": "Error-based",
+      "q": "In error-based blind XXE, how is sensitive data disclosed?",
+      "choices": ["By triggering an XML parsing error whose message contains the data (e.g. a nonexistent filename built from the file's contents)", "By emailing the file to the attacker", "By writing the file to the server access log", "By rendering the file as an image"],
+      "answer": 0,
+      "explain": "A malicious DTD loads a nonexistent file whose name embeds the target file's contents, so the FileNotFound error message leaks the data."
+    },
+    {
+      "type": "mc",
+      "category": "Blind XXE",
+      "topic": "Internal vs external DTD",
+      "q": "Why does the error-based technique normally require an external DTD rather than a fully internal one?",
+      "choices": ["Using a parameter entity within another parameter entity's definition is permitted in external DTDs but not internal ones", "Internal DTDs cannot contain any entities at all", "External DTDs always load faster", "Internal DTDs are encrypted by the parser"],
+      "answer": 0,
+      "explain": "The XML spec forbids referencing a parameter entity inside another parameter entity's definition in an internal DTD, though many parsers allow it in external DTDs."
+    },
+    {
+      "type": "mc",
+      "category": "Blind XXE",
+      "topic": "Local DTD repurposing",
+      "q": "How does the 'repurposing a local DTD' technique work when out-of-band connections are blocked?",
+      "choices": ["It loads an existing DTD file on the server's filesystem and redefines one of its entities to trigger an error containing sensitive data", "It uploads a brand-new DTD over FTP", "It brute-forces the administrator password", "It disables the XML parser remotely"],
+      "answer": 0,
+      "explain": "A hybrid DTD invokes a local DTD file and redefines an entity it declares; redefining an external entity from the internal subset relaxes the parameter-entity restriction, enabling an error-based leak."
+    },
+    {
+      "type": "tf",
+      "category": "Blind XXE",
+      "topic": "Enumerating local DTDs",
+      "q": "You can enumerate which local DTD files exist on the server because the application returns the XML parser's error messages when you try to load them.",
+      "answer": true,
+      "explain": "Attempting to load a missing file causes an error; a present file (e.g. /usr/share/yelp/dtd/docbookx.dtd on GNOME systems) does not, letting you locate a file to repurpose."
+    },
+    {
+      "type": "mc",
+      "category": "Blind XXE",
+      "topic": "Newline workaround",
+      "q": "The material notes that newline characters (as in /etc/passwd) can break out-of-band exfiltration. What workarounds does it suggest?",
+      "choices": ["Use the FTP protocol instead of HTTP, or target a file without newlines such as /etc/hostname", "Base64-encode the entire filesystem", "Switch from HTTP to HTTPS", "Split the file using client-side JavaScript"],
+      "answer": 0,
+      "explain": "Some parsers validate URL characters, so FTP may work instead of HTTP; otherwise target a single-line file like /etc/hostname."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "topic": "Primary defense",
+      "q": "What is the easiest and most effective way to prevent XXE attacks?",
+      "choices": ["Disable the dangerous XML parser features the application does not need (external entity resolution and XInclude)", "Rename all XML files to use a .json extension", "Add a CAPTCHA to every form", "Block inbound traffic on port 80"],
+      "answer": 0,
+      "explain": "Virtually all XXE arises from unneeded parser features; disabling external entity resolution and XInclude via configuration removes the vulnerability."
+    },
+    {
+      "type": "tf",
+      "category": "Prevention",
+      "topic": "Sufficient config",
+      "q": "It is generally sufficient to disable resolution of external entities and disable support for XInclude in order to prevent XXE.",
+      "answer": true,
+      "explain": "The material states this is generally sufficient, done via parser configuration options or by overriding default behavior."
+    }
+  ]
+}

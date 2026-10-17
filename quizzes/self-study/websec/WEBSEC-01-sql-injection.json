@@ -1,0 +1,564 @@
+{
+  "title": "SQL injection",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "topic": "What SQLi is",
+      "q": "What does a SQL injection (SQLi) vulnerability allow an attacker to do?",
+      "choices": [
+        "Interfere with the queries that an application makes to its database",
+        "Inject HTML and JavaScript that runs in another user's browser",
+        "Overwrite static files served directly by the web server",
+        "Force the browser to send requests to a different origin"
+      ],
+      "answer": 0,
+      "explain": "SQLi lets an attacker interfere with the queries an application makes to its database, potentially viewing, modifying, or deleting data, and sometimes compromising the underlying server."
+    },
+    {
+      "type": "multi",
+      "category": "Fundamentals",
+      "topic": "Impact",
+      "q": "According to the material, which of the following are possible impacts of a successful SQL injection attack?",
+      "choices": [
+        "Unauthorized access to sensitive data such as passwords and credit card details",
+        "Modifying or deleting data, causing persistent changes to the application",
+        "A persistent backdoor giving long-term, unnoticed compromise",
+        "Denial-of-service against the back-end infrastructure"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "SQLi can expose sensitive data, allow data modification/deletion, escalate to server compromise or a persistent backdoor, and enable denial-of-service attacks."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "topic": "Location in query",
+      "q": "Where do most SQL injection vulnerabilities occur?",
+      "choices": [
+        "Within the WHERE clause of a SELECT query",
+        "Within the FROM clause of a DELETE query",
+        "Within the GROUP BY clause of an aggregate query",
+        "Within the HAVING clause of a SELECT query"
+      ],
+      "answer": 0,
+      "explain": "Most SQLi vulnerabilities occur within the WHERE clause of a SELECT query, though they can occur anywhere in a query (e.g., UPDATE/INSERT values, table/column names, ORDER BY)."
+    },
+    {
+      "type": "text",
+      "category": "Fundamentals",
+      "topic": "Detection",
+      "q": "What single character is submitted first when manually testing an entry point for SQLi, because it may trigger errors or anomalies?",
+      "answer": ["'", "single quote", "single-quote", "apostrophe"],
+      "explain": "Submitting the single quote character ' and looking for errors or other anomalies is the classic first manual test for SQL injection."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "topic": "Retrieving hidden data",
+      "q": "For a product page running SELECT * FROM products WHERE category = 'Gifts' AND released = 1, what does injecting the category value Gifts'-- accomplish?",
+      "choices": [
+        "It comments out AND released = 1, so unreleased products are also returned",
+        "It deletes the products table",
+        "It changes the database password",
+        "It triggers a time delay in the response"
+      ],
+      "answer": 0,
+      "explain": "-- is a SQL comment indicator. The rest of the query, including AND released = 1, becomes a comment and is removed, so all products (including unreleased ones) are returned."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "topic": "Subverting application logic",
+      "q": "In a login query SELECT * FROM users WHERE username = '...' AND password = '...', what username lets an attacker log in as the administrator with a blank password?",
+      "choices": [
+        "administrator'--",
+        "administrator' OR released=0",
+        "administrator';--password",
+        "administrator UNION SELECT NULL"
+      ],
+      "answer": 0,
+      "explain": "Submitting administrator'-- comments out the password check, leaving SELECT * FROM users WHERE username = 'administrator', which logs the attacker in as that user."
+    },
+    {
+      "type": "tf",
+      "category": "Fundamentals",
+      "topic": "OR 1=1 warning",
+      "q": "True or false: injecting OR 1=1 is always harmless because it only makes a WHERE clause return more rows.",
+      "answer": false,
+      "explain": "The material warns that data from one request is often used in multiple queries. If OR 1=1 reaches an UPDATE or DELETE statement, it can cause accidental loss of data."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "topic": "Second-order SQLi",
+      "q": "What distinguishes second-order (stored) SQL injection from first-order SQL injection?",
+      "choices": [
+        "User input is safely stored first, then later retrieved and used unsafely in a query",
+        "The input is injected directly into the current request's query with no storage",
+        "It only affects NoSQL databases",
+        "It requires the attacker to have valid database credentials"
+      ],
+      "answer": 0,
+      "explain": "In second-order SQLi, input is stored safely, but when later retrieved it is wrongly treated as trusted and incorporated into a query unsafely. First-order SQLi happens at the point the input enters the query."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "topic": "Prevention",
+      "q": "What is the primary recommended defense against most SQL injection?",
+      "choices": [
+        "Parameterized queries (prepared statements) instead of string concatenation",
+        "Escaping single quotes with a backslash in all input",
+        "Hiding database error messages from users",
+        "Restricting the length of all input fields"
+      ],
+      "answer": 0,
+      "explain": "Most SQLi is prevented by using parameterized queries (prepared statements), which stop user input from interfering with the structure of the query."
+    },
+    {
+      "type": "tf",
+      "category": "Fundamentals",
+      "topic": "Prevention limits",
+      "q": "True or false: parameterized queries can be used to safely handle untrusted input used as a table or column name or in the ORDER BY clause.",
+      "answer": false,
+      "explain": "Parameterization works for data values (e.g., WHERE values, INSERT/UPDATE values) but not for table/column names or ORDER BY. Those require approaches like whitelisting permitted values."
+    },
+    {
+      "type": "text",
+      "category": "Examining the database",
+      "topic": "Version - Microsoft/MySQL",
+      "q": "What query returns the database version on both Microsoft SQL Server and MySQL?",
+      "answer": ["SELECT @@version", "@@version", "@@VERSION"],
+      "explain": "Both Microsoft and MySQL use SELECT @@version to return version details. Identifying which version query works helps you infer the database type."
+    },
+    {
+      "type": "mc",
+      "category": "Examining the database",
+      "topic": "Version - Oracle",
+      "q": "Which query retrieves the database version on Oracle?",
+      "choices": [
+        "SELECT * FROM v$version",
+        "SELECT @@version",
+        "SELECT version()",
+        "SELECT * FROM information_schema.version"
+      ],
+      "answer": 0,
+      "explain": "On Oracle you can query SELECT * FROM v$version (the cheat sheet also lists SELECT banner FROM v$version and SELECT version FROM v$instance)."
+    },
+    {
+      "type": "text",
+      "category": "Examining the database",
+      "topic": "Version - PostgreSQL",
+      "q": "What function call returns the database version on PostgreSQL?",
+      "answer": ["SELECT version()", "version()", "SELECT version();"],
+      "explain": "PostgreSQL uses SELECT version() to return its version details."
+    },
+    {
+      "type": "mc",
+      "category": "Examining the database",
+      "topic": "Listing tables",
+      "q": "On most non-Oracle databases, which query lists the tables in the database?",
+      "choices": [
+        "SELECT * FROM information_schema.tables",
+        "SELECT * FROM all_tables",
+        "SELECT * FROM sys.master_tables",
+        "SHOW ALL TABLES FROM schema"
+      ],
+      "answer": 0,
+      "explain": "Most databases (except Oracle) expose the information schema; SELECT * FROM information_schema.tables lists the tables."
+    },
+    {
+      "type": "mc",
+      "category": "Examining the database",
+      "topic": "Listing columns",
+      "q": "How do you list the columns of a specific table named Users using the information schema?",
+      "choices": [
+        "SELECT * FROM information_schema.columns WHERE table_name = 'Users'",
+        "SELECT * FROM information_schema.tables WHERE column_name = 'Users'",
+        "SELECT columns FROM Users",
+        "DESCRIBE information_schema WHERE table = 'Users'"
+      ],
+      "answer": 0,
+      "explain": "SELECT * FROM information_schema.columns WHERE table_name = 'Users' returns the columns and their data types for that table."
+    },
+    {
+      "type": "mc",
+      "category": "Examining the database",
+      "topic": "Oracle difference",
+      "q": "Which database type does NOT provide the information schema views, requiring different queries to enumerate tables and columns?",
+      "choices": [
+        "Oracle",
+        "Microsoft SQL Server",
+        "PostgreSQL",
+        "MySQL"
+      ],
+      "answer": 0,
+      "explain": "Oracle lacks the information schema. Instead you query all_tables for tables and all_tab_columns for columns."
+    },
+    {
+      "type": "text",
+      "category": "Examining the database",
+      "topic": "Oracle tables",
+      "q": "On Oracle, which table/view do you query to list all tables (answer with the view name)?",
+      "answer": ["all_tables", "ALL_TABLES", "SELECT * FROM all_tables"],
+      "explain": "On Oracle, SELECT * FROM all_tables lists tables, and all_tab_columns lists columns for a given table."
+    },
+    {
+      "type": "multi",
+      "category": "UNION attacks",
+      "topic": "Requirements",
+      "q": "For a UNION-based injection query to work, which two requirements must be met?",
+      "choices": [
+        "The individual queries must return the same number of columns",
+        "The data types in each column must be compatible between the queries",
+        "Both queries must target the same table",
+        "The injected query must come before the original query"
+      ],
+      "answer": [0, 1],
+      "explain": "UNION requires that the combined queries return the same number of columns and that corresponding column data types are compatible."
+    },
+    {
+      "type": "mc",
+      "category": "UNION attacks",
+      "topic": "Column count",
+      "q": "What is the purpose of injecting a series of ' ORDER BY 1--, ' ORDER BY 2--, etc.?",
+      "choices": [
+        "To determine how many columns the original query returns",
+        "To sort the results so hidden data appears first",
+        "To identify which column holds string data",
+        "To trigger a time delay for blind injection"
+      ],
+      "answer": 0,
+      "explain": "Incrementing the ORDER BY column index until an error occurs reveals the number of columns, since ORDER BY can reference columns by index without knowing their names."
+    },
+    {
+      "type": "mc",
+      "category": "UNION attacks",
+      "topic": "Why NULL",
+      "q": "Why are NULL values used in payloads like ' UNION SELECT NULL,NULL-- when probing column count?",
+      "choices": [
+        "NULL is convertible to every common data type, maximizing the chance of success",
+        "NULL always produces a visible row in the HTML response",
+        "NULL bypasses web application firewalls",
+        "NULL forces the database to reveal its version"
+      ],
+      "answer": 0,
+      "explain": "Because column data types must be compatible, NULL is used since it is convertible to every common data type, maximizing the chance the payload succeeds when the column count is right."
+    },
+    {
+      "type": "mc",
+      "category": "UNION attacks",
+      "topic": "Oracle FROM dual",
+      "q": "Why must an Oracle UNION payload look like ' UNION SELECT NULL FROM DUAL--?",
+      "choices": [
+        "On Oracle every SELECT must use FROM with a valid table, and dual is a built-in table",
+        "dual is the only table that contains user passwords",
+        "Oracle does not support the UNION keyword without it",
+        "dual converts NULL values into strings automatically"
+      ],
+      "answer": 0,
+      "explain": "On Oracle, every SELECT must include FROM and a valid table; the built-in dual table satisfies this requirement."
+    },
+    {
+      "type": "tf",
+      "category": "UNION attacks",
+      "topic": "MySQL comment",
+      "q": "True or false: on MySQL, the double-dash comment sequence -- must be followed by a space.",
+      "answer": true,
+      "explain": "On MySQL the double-dash must be followed by a space; alternatively the hash character # can be used to start a comment."
+    },
+    {
+      "type": "mc",
+      "category": "UNION attacks",
+      "topic": "Finding a string column",
+      "q": "With a four-column query, what does submitting ' UNION SELECT 'a',NULL,NULL,NULL-- (then rotating the 'a') test?",
+      "choices": [
+        "Which columns can hold string data",
+        "How many rows the table contains",
+        "Whether the database is Oracle",
+        "Whether batched queries are supported"
+      ],
+      "answer": 0,
+      "explain": "Placing a string value into each column in turn tests which column accepts string data; if a column is incompatible it raises a conversion error, otherwise the injected string appears in the response."
+    },
+    {
+      "type": "mc",
+      "category": "UNION attacks",
+      "topic": "Retrieving data",
+      "q": "Given a two-string-column query, which input retrieves usernames and passwords from a users table?",
+      "choices": [
+        "' UNION SELECT username, password FROM users--",
+        "' ORDER BY username, password--",
+        "' AND username='administrator'--",
+        "'; WAITFOR DELAY '0:0:10'--"
+      ],
+      "answer": 0,
+      "explain": "Once you know the column count and which columns hold strings, ' UNION SELECT username, password FROM users-- appends the credentials to the result set."
+    },
+    {
+      "type": "mc",
+      "category": "UNION attacks",
+      "topic": "Single column",
+      "q": "If the query returns only a single usable column, how can you still retrieve both username and password together?",
+      "choices": [
+        "Concatenate the values with a separator, e.g. username || '~' || password on Oracle",
+        "Submit two separate UNION SELECT statements joined by AND",
+        "Use ORDER BY to merge the two columns",
+        "It is impossible to retrieve two values from one column"
+      ],
+      "answer": 0,
+      "explain": "You concatenate the values into one column with a separator you can distinguish, e.g. ' UNION SELECT username || '~' || password FROM users-- on Oracle, where || is the concatenation operator."
+    },
+    {
+      "type": "mc",
+      "category": "Blind SQL injection",
+      "topic": "Definition",
+      "q": "What makes a SQL injection vulnerability 'blind'?",
+      "choices": [
+        "The HTTP responses contain neither the query results nor database error details",
+        "The application uses an encrypted database connection",
+        "The injection point is in a cookie rather than the query string",
+        "The attacker cannot see the login page"
+      ],
+      "answer": 0,
+      "explain": "Blind SQLi occurs when the app is injectable but its responses do not return the query results or database error details, so techniques like UNION attacks do not directly work."
+    },
+    {
+      "type": "mc",
+      "category": "Blind SQL injection",
+      "topic": "Conditional responses",
+      "q": "Using a tracking cookie that produces a 'Welcome back' message only when the query returns rows, how do AND '1'='1 vs AND '1'='2 help an attacker?",
+      "choices": [
+        "They let the attacker infer whether any injected condition is true from the presence of the message",
+        "They reveal the database version in the response body",
+        "They cause the application to crash and dump memory",
+        "They disable the tracking cookie entirely"
+      ],
+      "answer": 0,
+      "explain": "A true condition returns rows (message shown); a false one does not. By choosing conditions, the attacker can infer the answer to any single condition and extract data one piece at a time."
+    },
+    {
+      "type": "mc",
+      "category": "Blind SQL injection",
+      "topic": "Character extraction",
+      "q": "What is the role of the SUBSTRING function in blind extraction such as SUBSTRING((SELECT Password ...),1,1) > 'm'?",
+      "choices": [
+        "It isolates one character of the value so it can be tested against conditions",
+        "It concatenates the username and password",
+        "It triggers a divide-by-zero error",
+        "It performs a DNS lookup"
+      ],
+      "answer": 0,
+      "explain": "SUBSTRING extracts a single character (here the first) so the attacker can test it against comparisons like > 'm' or = 's', retrieving the value one character at a time. It is called SUBSTR on some databases."
+    },
+    {
+      "type": "mc",
+      "category": "Blind SQL injection",
+      "topic": "Conditional errors",
+      "q": "In the payload ...(SELECT CASE WHEN (1=1) THEN 1/0 ELSE 'a' END)='a, what makes it useful for blind injection?",
+      "choices": [
+        "A true condition forces a divide-by-zero error that changes the application's response",
+        "It returns the password directly in the HTTP body",
+        "It always triggers a 10-second delay",
+        "It lists the information schema tables"
+      ],
+      "answer": 0,
+      "explain": "The CASE expression evaluates to 1/0 (a divide-by-zero error) only when the condition is true. If the error changes the response, the attacker infers the condition's truth even when boolean responses are identical."
+    },
+    {
+      "type": "mc",
+      "category": "Blind SQL injection",
+      "topic": "Verbose errors / CAST",
+      "q": "How can the CAST() function turn a blind vulnerability into a visible one?",
+      "choices": [
+        "Casting a retrieved string to an incompatible type like int produces an error message containing the data",
+        "It encrypts the data so it is safe to display",
+        "It forces the query to run asynchronously",
+        "It bypasses the WHERE clause entirely"
+      ],
+      "answer": 0,
+      "explain": "Casting string data to an incompatible type (e.g. int) can yield a verbose error such as 'invalid input syntax for type integer: \"Example data\"', leaking the value in the error message."
+    },
+    {
+      "type": "mc",
+      "category": "Blind SQL injection",
+      "topic": "Time delays",
+      "q": "On Microsoft SQL Server, how does '; IF (1=1) WAITFOR DELAY '0:0:10'-- enable blind extraction?",
+      "choices": [
+        "A true condition delays the HTTP response, so timing reveals the condition's truth",
+        "The delay dumps the query results into the response after 10 seconds",
+        "It opens an out-of-band DNS channel",
+        "It comments out the password check"
+      ],
+      "answer": 0,
+      "explain": "Because queries are processed synchronously, conditionally triggering WAITFOR DELAY delays the response. The attacker infers the condition's truth from the time taken to respond."
+    },
+    {
+      "type": "mc",
+      "category": "Blind SQL injection",
+      "topic": "OAST / out-of-band",
+      "q": "When conditional responses, errors, and time delays all fail (e.g. the query runs asynchronously), which technique is often still effective?",
+      "choices": [
+        "Out-of-band (OAST) interactions, typically triggering a DNS lookup to a server you control",
+        "Submitting more NULL values in a UNION",
+        "Using ORDER BY to find the column count",
+        "Casting the response to a varchar"
+      ],
+      "answer": 0,
+      "explain": "OAST techniques trigger out-of-band network interactions, typically DNS, to a controlled server. They work even for asynchronous queries and can directly exfiltrate data within the interaction."
+    },
+    {
+      "type": "mc",
+      "category": "Blind SQL injection",
+      "topic": "Why DNS",
+      "q": "Why is DNS typically the most effective protocol for out-of-band SQLi exploitation?",
+      "choices": [
+        "Many production networks allow free egress of DNS queries since they are essential",
+        "DNS responses are always encrypted end-to-end",
+        "DNS is the only protocol databases can speak",
+        "DNS requests cannot be logged by any firewall"
+      ],
+      "answer": 0,
+      "explain": "DNS is favored because many production networks permit free egress of DNS queries, as DNS is essential to normal operation. Burp Collaborator provides a server to detect these lookups."
+    },
+    {
+      "type": "tf",
+      "category": "Blind SQL injection",
+      "topic": "Prevention",
+      "q": "True or false: although exploiting blind SQLi needs more sophisticated techniques, the measures to prevent it are the same as for regular SQLi (parameterized queries).",
+      "answer": true,
+      "explain": "The prevention is identical: careful use of parameterized queries ensures user input cannot alter the structure of the intended SQL query."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax and bypasses",
+      "topic": "Concatenation",
+      "q": "Which string concatenation syntax is used on Microsoft SQL Server?",
+      "choices": [
+        "'foo'+'bar'",
+        "'foo'||'bar'",
+        "CONCAT('foo','bar') only",
+        "'foo' 'bar' (space-separated)"
+      ],
+      "answer": 0,
+      "explain": "Microsoft uses + for concatenation. Oracle and PostgreSQL use ||; MySQL uses a space between strings or CONCAT()."
+    },
+    {
+      "type": "text",
+      "category": "Syntax and bypasses",
+      "topic": "Concatenation - Oracle",
+      "q": "What two-character operator performs string concatenation on Oracle and PostgreSQL?",
+      "answer": ["||", "double pipe", "double-pipe"],
+      "explain": "Oracle and PostgreSQL concatenate strings with the double-pipe operator ||, e.g. 'foo'||'bar'."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax and bypasses",
+      "topic": "Comments",
+      "q": "Which comment style is available on MySQL in addition to '-- ' (dash-dash-space)?",
+      "choices": [
+        "#comment",
+        "//comment",
+        "<!--comment-->",
+        ";;comment"
+      ],
+      "answer": 0,
+      "explain": "MySQL supports #comment, -- comment (note the required space), and /*comment*/."
+    },
+    {
+      "type": "tf",
+      "category": "Syntax and bypasses",
+      "topic": "Case variation",
+      "q": "True or false: because SQL keywords are case-insensitive, writing SeLeCT can bypass a filter that blocks only the exact keyword SELECT.",
+      "answer": true,
+      "explain": "SQL keywords are not case-sensitive, so varying the case (e.g. SeLeCT) can defeat a filter that matches only a specific casing of the keyword."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax and bypasses",
+      "topic": "Inline comments",
+      "q": "How can inline comments like SELECT/**/username/**/FROM/**/users help bypass a filter?",
+      "choices": [
+        "They replace whitespace, so a filter looking for a keyword surrounded by spaces does not match",
+        "They encrypt the keywords so the WAF cannot read them",
+        "They force the query to run as a stored procedure",
+        "They convert the query into a batched query"
+      ],
+      "answer": 0,
+      "explain": "Inline /**/ comments can stand in for whitespace, defeating filters that look for a keyword surrounded by spaces."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax and bypasses",
+      "topic": "Versioned comments",
+      "q": "On MySQL, how is a versioned comment such as /*!SELECT*/ treated by the database?",
+      "choices": [
+        "The database executes the contents, so /*!SELECT*/ runs as SELECT",
+        "The database ignores the contents entirely as a normal comment",
+        "The database raises a syntax error",
+        "The database logs but does not run the contents"
+      ],
+      "answer": 0,
+      "explain": "MySQL runs the contents of a /*! ... */ versioned comment, so /*!SELECT*/ executes as SELECT while hiding the keyword from a filter."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax and bypasses",
+      "topic": "Time delay functions",
+      "q": "Which expression causes an unconditional 10-second time delay on PostgreSQL?",
+      "choices": [
+        "SELECT pg_sleep(10)",
+        "WAITFOR DELAY '0:0:10'",
+        "SELECT SLEEP(10)",
+        "dbms_pipe.receive_message(('a'),10)"
+      ],
+      "answer": 0,
+      "explain": "PostgreSQL uses SELECT pg_sleep(10). Microsoft uses WAITFOR DELAY '0:0:10', MySQL uses SELECT SLEEP(10), and Oracle uses dbms_pipe.receive_message(('a'),10)."
+    },
+    {
+      "type": "text",
+      "category": "Syntax and bypasses",
+      "topic": "Time delay - MySQL",
+      "q": "Which function produces an unconditional time delay on MySQL (name the function)?",
+      "answer": ["SLEEP", "SLEEP(10)", "SELECT SLEEP(10)", "sleep"],
+      "explain": "MySQL uses SELECT SLEEP(10) to cause a 10-second delay."
+    },
+    {
+      "type": "tf",
+      "category": "Syntax and bypasses",
+      "topic": "Batched queries - Oracle",
+      "q": "True or false: Oracle supports batched (stacked) queries for SQL injection.",
+      "answer": false,
+      "explain": "The cheat sheet states Oracle does not support batched queries. Microsoft and PostgreSQL do; MySQL typically cannot use them for SQLi except via certain PHP/Python APIs."
+    },
+    {
+      "type": "mc",
+      "category": "Syntax and bypasses",
+      "topic": "Batched queries use",
+      "q": "Batched (stacked) queries are described as primarily useful in which scenario?",
+      "choices": [
+        "Blind vulnerabilities, where a second query triggers a DNS lookup, conditional error, or time delay",
+        "UNION attacks, where results from both queries are displayed",
+        "Login bypass, where the comment removes the password check",
+        "Retrieving the database version in a visible response"
+      ],
+      "answer": 0,
+      "explain": "In batched queries the results of subsequent queries are not returned, so they are mainly useful for blind vulnerabilities, e.g. a second query that triggers a DNS lookup, conditional error, or time delay."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "topic": "Injection contexts",
+      "q": "The XML payload <storeId>999 &#x53;ELECT * FROM information_schema.tables</storeId> bypasses a keyword filter by doing what?",
+      "choices": [
+        "Using an XML escape sequence to encode the 'S' in SELECT, which is decoded server-side",
+        "Compressing the payload so the WAF skips it",
+        "Running the query inside the browser before sending",
+        "Converting the query to a batched statement"
+      ],
+      "answer": 0,
+      "explain": "&#x53; is an XML/HTML entity for 'S'. Weak filters searching for the literal keyword SELECT miss it, but the server decodes the entity before passing the string to the SQL interpreter."
+    }
+  ]
+}

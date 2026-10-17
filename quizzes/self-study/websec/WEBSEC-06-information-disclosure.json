@@ -1,0 +1,492 @@
+{
+  "title": "WEBSEC 06: Information disclosure",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "text",
+      "category": "Fundamentals",
+      "q": "Information disclosure is also known by what other name?",
+      "answer": ["information leakage", "info leakage", "leakage", "data leakage"],
+      "explain": "Information disclosure, also called information leakage, is when a website unintentionally reveals sensitive information to its users."
+    },
+    {
+      "type": "multi",
+      "category": "Fundamentals",
+      "q": "Which of the following are examples of information disclosure?",
+      "choices": [
+        "Hidden directory names revealed through a robots.txt file or a directory listing",
+        "Database table or column names mentioned in an error message",
+        "API keys or database credentials hard-coded in source code",
+        "Small differences in application behavior that hint whether a username exists",
+        "Returning the same generic error message for every failed login",
+        "Serving every page over HTTPS"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "All of the first four appear in the material's list of examples. A generic error message is a recommended fix, and HTTPS has nothing to do with what the application itself reveals."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "q": "Why can leaking purely technical information, such as framework names or directory structure, still be serious?",
+      "choices": [
+        "It always lets an attacker read other users' data directly",
+        "It can open up more attack surface and provide the missing piece for a complex, high-severity attack",
+        "It automatically breaks the site's TLS encryption",
+        "Technical details are legally treated the same as credit card numbers"
+      ],
+      "answer": 1,
+      "explain": "Technical details often have little direct impact on their own, but they can point to more attack surface or complete a chain toward a more serious exploit."
+    },
+    {
+      "type": "tf",
+      "category": "Fundamentals",
+      "q": "Information disclosure usually happens while users are just browsing the site normally, and an attacker rarely has to do anything unusual to trigger it.",
+      "answer": false,
+      "explain": "It occasionally happens during normal browsing, but more commonly the attacker has to interact with the site in unexpected or malicious ways and then study the responses closely."
+    },
+    {
+      "type": "mc",
+      "category": "Causes",
+      "q": "Developer comments left in HTML markup and visible in production fall into which category of cause?",
+      "choices": [
+        "Insecure configuration of the website and related technologies",
+        "Flawed design and behavior of the application",
+        "Failure to remove internal content from public content",
+        "Weak cryptography"
+      ],
+      "answer": 2,
+      "explain": "Forgotten developer comments are the material's example of internal content that was never removed from public content."
+    },
+    {
+      "type": "mc",
+      "category": "Causes",
+      "q": "A website shows overly verbose error messages because its default settings were never changed. Which category of cause is this?",
+      "choices": [
+        "Insecure configuration of the website and related technologies",
+        "Failure to remove internal content from public content",
+        "Flawed design and behavior of the application",
+        "Insecure deserialization"
+      ],
+      "answer": 0,
+      "explain": "Default configurations, and debugging or diagnostic features that were never turned off, both count as insecure configuration."
+    },
+    {
+      "type": "mc",
+      "category": "Causes",
+      "q": "A login form returns different responses depending on which error happened, which lets an attacker work out valid usernames. Which category of cause is this?",
+      "choices": [
+        "Failure to remove internal content from public content",
+        "Flawed design and behavior of the application",
+        "Insecure configuration of the website and related technologies",
+        "Version control exposure"
+      ],
+      "answer": 1,
+      "explain": "Returning distinct responses for different error states is a design flaw, and it allows enumeration of sensitive data such as valid credentials."
+    },
+    {
+      "type": "mc",
+      "category": "Causes",
+      "q": "According to the material, why is insecure configuration especially common?",
+      "choices": [
+        "Web servers cannot be configured securely",
+        "Third-party technologies are widely used, and the people deploying them often don't fully understand their many configuration options",
+        "Browsers ignore server configuration",
+        "Configuration files are always publicly readable"
+      ],
+      "answer": 1,
+      "explain": "Third-party technologies are everywhere, and their huge range of configuration options is not always well understood by the people setting them up."
+    },
+    {
+      "type": "tf",
+      "category": "Impact and severity",
+      "q": "Information disclosure is usually a high-severity issue on its own.",
+      "answer": false,
+      "explain": "It is high-severity on its own only in specific circumstances. Technical disclosure in particular matters mainly when you can show how an attacker could use it to do harm."
+    },
+    {
+      "type": "mc",
+      "category": "Impact and severity",
+      "q": "A site reveals which framework version it uses. When does this become significant?",
+      "choices": [
+        "Always, because any version information is critical",
+        "Only when the version is the latest release",
+        "When the version is old and has a known vulnerability, so a publicly documented exploit might work",
+        "Never, because version numbers are public anyway"
+      ],
+      "answer": 2,
+      "explain": "Knowing the version of a fully patched framework is of limited use. It matters when that version has a known, publicly documented vulnerability."
+    },
+    {
+      "type": "mc",
+      "category": "Impact and severity",
+      "q": "When you find potentially sensitive information being leaked, what should you mainly focus on?",
+      "choices": [
+        "The fact that any disclosure exists at all",
+        "The impact and exploitability of the leaked information",
+        "How many bytes were leaked",
+        "Whether the information is shown in the page body or in a header"
+      ],
+      "answer": 1,
+      "explain": "Minor technical details can be found on many sites. Focus on what the information lets an attacker do, unless the information is so sensitive that it deserves attention in its own right."
+    },
+    {
+      "type": "mc",
+      "category": "Impact and severity",
+      "q": "Which of these is an example of information disclosure with a severe direct impact?",
+      "choices": [
+        "Revealing which third-party framework a site uses",
+        "Revealing the directory structure",
+        "An online shop leaking its customers' credit card details",
+        "A fully patched server version shown in a header"
+      ],
+      "answer": 2,
+      "explain": "Leaking highly sensitive user data such as credit card details is serious in itself. Framework names or directory structure usually have little direct impact."
+    },
+    {
+      "type": "multi",
+      "category": "Prevention",
+      "q": "Which of the following are best practices for preventing information disclosure?",
+      "choices": [
+        "Make sure everyone involved in building the site knows what information counts as sensitive",
+        "Audit code for information disclosure as part of QA or build processes",
+        "Use generic error messages as much as possible",
+        "Make sure debugging and diagnostic features are disabled in production",
+        "Learn the configuration of third-party technologies and disable features you don't need",
+        "List sensitive directories in robots.txt so they stay hidden",
+        "Show detailed stack traces so users can report bugs more easily"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "The first five are the recommended practices. Listing sensitive paths in robots.txt actually reveals them, and detailed stack traces are a classic source of leaks."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "Which disclosure-related task does the material describe as relatively easy to automate in a build process?",
+      "choices": [
+        "Stripping developer comments",
+        "Rewriting business logic",
+        "Judging the severity of every possible leak",
+        "Training developers"
+      ],
+      "answer": 0,
+      "explain": "Some audit tasks, such as stripping developer comments, can be automated as part of QA or the build."
+    },
+    {
+      "type": "tf",
+      "category": "Prevention",
+      "q": "Preventing information disclosure completely is tricky because it can happen in a huge variety of ways.",
+      "answer": true,
+      "explain": "Because it can happen in so many ways, the goal is to reduce the risk through general best practices."
+    },
+    {
+      "type": "mc",
+      "category": "Testing techniques",
+      "q": "What does avoiding \"tunnel vision\" mean when testing for information disclosure?",
+      "choices": [
+        "Testing only one page at a time",
+        "Not focusing too narrowly on one vulnerability, so you notice useful sensitive data wherever it shows up",
+        "Using only automated scanners",
+        "Ignoring error messages"
+      ],
+      "answer": 1,
+      "explain": "Sensitive data can leak anywhere and is often found while testing for something else. A key skill is recognizing interesting information whenever you come across it."
+    },
+    {
+      "type": "mc",
+      "category": "Testing techniques",
+      "q": "While fuzzing a parameter, which subtle clue besides the response content can reveal how the application behaves?",
+      "choices": [
+        "A slight difference in the time taken to process the request",
+        "The color scheme of the page",
+        "The client's IP address",
+        "The browser's user agent"
+      ],
+      "answer": 0,
+      "explain": "Responses can hint at behavior indirectly, for example through small timing differences."
+    },
+    {
+      "type": "tf",
+      "category": "Testing techniques",
+      "q": "Even when an error message's content discloses nothing, the fact that one error case occurred instead of another can be useful information.",
+      "answer": true,
+      "explain": "Which error case was reached reveals something about the application's internal logic."
+    },
+    {
+      "type": "multi",
+      "category": "Testing techniques",
+      "q": "Which benefits of automating fuzzing with a tool like Burp Intruder does the material list?",
+      "choices": [
+        "Adding payload positions to parameters and using pre-built wordlists of fuzz strings",
+        "Spotting differences in responses by comparing status codes, response times, lengths, and so on",
+        "Using grep match rules to flag keywords such as error, invalid, SELECT, or SQL",
+        "Using grep extraction rules to pull out and compare interesting items in responses",
+        "Automatically patching the vulnerabilities it finds"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Intruder helps send and compare many inputs. It does not fix anything."
+    },
+    {
+      "type": "mc",
+      "category": "Testing techniques",
+      "q": "What is Logger++?",
+      "choices": [
+        "A built-in Burp Scanner check",
+        "A BApp Store extension that logs requests and responses from all Burp tools and supports advanced filters for highlighting interesting entries",
+        "A server-side logging library",
+        "A browser developer tools panel"
+      ],
+      "answer": 1,
+      "explain": "Logger++ is an extension from the BApp Store, one of many that can help spot sensitive data leaked by a site."
+    },
+    {
+      "type": "mc",
+      "category": "Testing techniques",
+      "q": "Which Burp edition includes Burp Scanner, which can automatically flag things like private keys, email addresses, credit card numbers, backup files, and directory listings?",
+      "choices": [
+        "Burp Suite Community Edition",
+        "Burp Suite Professional",
+        "Any edition with Logger++ installed",
+        "None. It is a separate browser plugin"
+      ],
+      "answer": 1,
+      "explain": "Burp Scanner is a Burp Suite Professional feature. It offers live scanning while you browse and scheduled automated crawl-and-audit scans."
+    },
+    {
+      "type": "mc",
+      "category": "Testing techniques",
+      "q": "How do you open Burp's engagement tools?",
+      "choices": [
+        "From the Intruder tab only",
+        "Right-click an HTTP message, a Proxy entry, or a site map item and choose \"Engagement tools\"",
+        "By installing them from the BApp Store",
+        "From a command-line flag at startup"
+      ],
+      "answer": 1,
+      "explain": "The engagement tools are in the context menu of HTTP messages, Proxy entries, and site map items."
+    },
+    {
+      "type": "mc",
+      "category": "Testing techniques",
+      "q": "Which Burp engagement tool helps find directories and files that are not linked from the site's visible content?",
+      "choices": [
+        "Search",
+        "Find comments",
+        "Discover content",
+        "Logger++"
+      ],
+      "answer": 2,
+      "explain": "Discover content finds content and functionality that won't necessarily appear in the site map on its own."
+    },
+    {
+      "type": "mc",
+      "category": "Testing techniques",
+      "q": "Which advanced options does the engagement tools' Search feature offer for fine-tuning results?",
+      "choices": [
+        "Regex search and negative search",
+        "Only exact case-sensitive matching",
+        "Search by HTTP status code only",
+        "Searching the server's file system"
+      ],
+      "answer": 0,
+      "explain": "Regex and negative search let you quickly find where specific keywords appear, or where they are missing."
+    },
+    {
+      "type": "mc",
+      "category": "Testing techniques",
+      "q": "What does the \"Find comments\" engagement tool do?",
+      "choices": [
+        "Adds comments to the site's source code",
+        "Extracts developer comments from the selected item, with tabs showing the request/response in which each one was found",
+        "Finds user comments posted on blog pages",
+        "Removes comments from responses"
+      ],
+      "answer": 1,
+      "explain": "It pulls out developer comments quickly and links each one back to the HTTP exchange where it appeared."
+    },
+    {
+      "type": "mc",
+      "category": "Testing techniques",
+      "q": "In \"engineering informative responses\", what is one common approach the material describes?",
+      "choices": [
+        "Waiting for the site to crash on its own",
+        "Making the application logic attempt an invalid action on a specific item of data, for example by submitting an invalid parameter value",
+        "Asking the site's administrators for logs",
+        "Clearing your browser cache"
+      ],
+      "answer": 1,
+      "explain": "Watching how error messages change with your input, for example after an invalid parameter value, can produce stack traces or debug output, and sometimes reveals the desired data in the response."
+    },
+    {
+      "type": "multi",
+      "category": "Common sources",
+      "q": "Which two files do many websites provide to help web crawlers navigate the site?",
+      "choices": [
+        "/robots.txt",
+        "/sitemap.xml",
+        "/.htaccess",
+        "/index.php~"
+      ],
+      "answer": [0, 1],
+      "explain": "robots.txt and sitemap.xml often list directories that crawlers should skip, which can point to sensitive locations."
+    },
+    {
+      "type": "mc",
+      "category": "Common sources",
+      "q": "Why might /robots.txt not show up in Burp's site map automatically?",
+      "choices": [
+        "Burp blocks it by default",
+        "Such files usually aren't linked from within the website, so you may need to request them manually",
+        "It is only served over FTP",
+        "Browsers refuse to load it"
+      ],
+      "answer": 1,
+      "explain": "Because crawler files are rarely linked from the site's pages, it is worth browsing to them directly."
+    },
+    {
+      "type": "mc",
+      "category": "Common sources",
+      "q": "When can a web server automatically list a directory's contents?",
+      "choices": [
+        "When the directory has no index page and the server is configured to list contents",
+        "Only when the directory is empty",
+        "Whenever HTTPS is disabled",
+        "Only for the root directory"
+      ],
+      "answer": 0,
+      "explain": "Servers can be configured to auto-list directories that have no index page. This exposes resources such as temporary files and crash dumps."
+    },
+    {
+      "type": "tf",
+      "category": "Common sources",
+      "q": "A directory listing is always a security vulnerability in itself.",
+      "answer": false,
+      "explain": "It is not necessarily a vulnerability on its own. It becomes a clear issue when the site also lacks proper access control, so leaking where sensitive resources are matters."
+    },
+    {
+      "type": "mc",
+      "category": "Common sources",
+      "q": "HTML developer comments are not visible on the rendered page. How can they still be viewed?",
+      "choices": [
+        "Only with server access",
+        "Easily, using Burp or even the browser's built-in developer tools",
+        "Only by decompiling the browser",
+        "They cannot be viewed once deployed"
+      ],
+      "answer": 1,
+      "explain": "Comments are part of the markup sent to the client, so anyone can read them with Burp or the browser's developer tools."
+    },
+    {
+      "type": "mc",
+      "category": "Common sources",
+      "q": "A verbose error message names the template engine, database type, or server along with its version number. Why is that useful to an attacker?",
+      "choices": [
+        "It lets them look up documented exploits, common misconfigurations, or dangerous defaults for that exact version",
+        "It reveals the administrator's password",
+        "It disables the site's error handling",
+        "It is not useful"
+      ],
+      "answer": 0,
+      "explain": "Knowing the exact technology and version makes it easy to research known exploits and default-setting weaknesses. If the framework is open source, its public source code is also available to study."
+    },
+    {
+      "type": "mc",
+      "category": "Common sources",
+      "q": "Observing differences between error messages is a key part of which techniques mentioned in the material?",
+      "choices": [
+        "SQL injection and username enumeration",
+        "Clickjacking and CSRF",
+        "TLS downgrade attacks",
+        "Physical access attacks"
+      ],
+      "answer": 0,
+      "explain": "Differences in error messages reveal behind-the-scenes behavior, which is central to techniques like SQL injection and username enumeration."
+    },
+    {
+      "type": "multi",
+      "category": "Common sources",
+      "q": "Which kinds of information does the material say debug messages can contain?",
+      "choices": [
+        "Values of key session variables that can be manipulated through user input",
+        "Hostnames and credentials for back-end components",
+        "File and directory names on the server",
+        "Keys used to encrypt data sent via the client",
+        "Passwords saved in the visitor's browser"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "These four come from the server side. The visitor's browser-saved passwords are not part of the application's debug output."
+    },
+    {
+      "type": "mc",
+      "category": "Common sources",
+      "q": "A site loads account data with GET /user/personal-info?user=carlos. The page itself is protected, but the code that fetches the email address doesn't check that the user parameter matches the logged-in user. What is the result?",
+      "choices": [
+        "Nothing, because the full page is protected",
+        "Changing the user parameter can show other users' email addresses on the attacker's own account page",
+        "The server crashes",
+        "Only the attacker's own email address can ever be shown"
+      ],
+      "answer": 1,
+      "explain": "Weak logic for loading individual data items can leak other users' data. This connects to access control and IDOR vulnerabilities."
+    },
+    {
+      "type": "mc",
+      "category": "Common sources",
+      "q": "Why does requesting a referenced .php file usually not reveal its source code?",
+      "choices": [
+        "PHP files are encrypted",
+        "The server executes code in files with that extension instead of sending the file as text",
+        "Browsers block .php downloads",
+        "PHP source is always stored offsite"
+      ],
+      "answer": 1,
+      "explain": "Servers execute files with handled extensions. A temporary backup copy with a different name or extension may not be executed, and its contents may be returned instead."
+    },
+    {
+      "type": "text",
+      "category": "Common sources",
+      "q": "Which character do text editors often append to a filename to mark a temporary backup file?",
+      "answer": ["~", "tilde", "a tilde"],
+      "explain": "Backup files are often marked with a trailing tilde (~) or a different file extension."
+    },
+    {
+      "type": "mc",
+      "category": "Common sources",
+      "q": "Which vulnerability does the material name as one that becomes much easier to find and exploit once source code is available?",
+      "choices": [
+        "Insecure deserialization",
+        "Clickjacking",
+        "Open redirect",
+        "DNS rebinding"
+      ],
+      "answer": 0,
+      "explain": "Access to source code can expose vulnerabilities like insecure deserialization that would otherwise be almost impossible to find."
+    },
+    {
+      "type": "mc",
+      "category": "Common sources",
+      "q": "If the HTTP TRACE method is enabled, what does the server do, and how can that cause information disclosure?",
+      "choices": [
+        "It returns the server's source code",
+        "It echoes the exact request it received, which can reveal things like internal authentication headers added by reverse proxies",
+        "It lists all users",
+        "It deletes the requested resource"
+      ],
+      "answer": 1,
+      "explain": "TRACE is a diagnostic method. The echoed request can include headers that intermediaries added, such as the names of internal authentication headers."
+    },
+    {
+      "type": "text",
+      "category": "Common sources",
+      "q": "By default, what folder does a Git project store its version control data in?",
+      "answer": [".git", "/.git", ".git/"],
+      "explain": "If a site exposes its .git directory in production, it may be reachable just by browsing to /.git."
+    },
+    {
+      "type": "tf",
+      "category": "Common sources",
+      "q": "Downloading an exposed .git directory always gives you the website's full source code.",
+      "answer": false,
+      "explain": "It might not include the full source. Opening it with a local Git install shows the history and logs, and the diffs reveal snippets of code that may contain hard-coded sensitive data."
+    }
+  ]
+}

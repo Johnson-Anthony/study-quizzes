@@ -1,0 +1,1145 @@
+{
+  "title": "BGP, TCP/UDP and TLS",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "num",
+      "category": "Subnets and IP Routing",
+      "q": "How many IPv4 addresses are in the subnet 128.32.131/24?",
+      "answer": 256,
+      "explain": "The prefix fixes 24 of the 32 bits, leaving 32 - 24 = 8 free bits, so there are 2^8 = 256 addresses."
+    },
+    {
+      "type": "num",
+      "category": "Subnets and IP Routing",
+      "q": "How many IPv4 addresses are in the subnet 128.32/16?",
+      "answer": 65536,
+      "explain": "32 - 16 = 16 bits are not in the prefix, so there are 2^16 = 65,536 addresses."
+    },
+    {
+      "type": "mc",
+      "category": "Subnets and IP Routing",
+      "q": "A client wants to send a packet to a machine whose IP address is in the same subnet (same prefix) as its own. What does it do?",
+      "choices": [
+        "Sends the packet to the gateway, which forwards it toward the destination",
+        "Uses ARP to translate the IP address into a MAC address, then sends the packet directly to that MAC address",
+        "Asks its AS to look up a BGP route to the destination",
+        "Sends the packet to 255.255.255.255 so the destination picks it up"
+      ],
+      "answer": 1,
+      "explain": "Same subnet means same local network: the client resolves the MAC address with ARP and delivers the packet directly. The gateway is only needed for destinations outside the subnet."
+    },
+    {
+      "type": "mc",
+      "category": "Subnets and IP Routing",
+      "q": "A client wants to send a packet to an IP address outside its own subnet. Where does the packet go first?",
+      "choices": [
+        "Directly to the destination machine's MAC address",
+        "To the localhost address 127.0.0.1",
+        "To the gateway, which is responsible for forwarding it toward the destination",
+        "To every machine on the local network via broadcast"
+      ],
+      "answer": 2,
+      "explain": "For a destination on a different local network, the client hands the packet to the gateway. From there it travels across the Internet's Autonomous Systems."
+    },
+    {
+      "type": "multi",
+      "category": "Subnets and IP Routing",
+      "q": "When a client gets its configuration from DHCP, which of these is it told?",
+      "choices": [
+        "Its own IP address",
+        "The address of the gateway",
+        "The size of the subnet it is on",
+        "The ASN of its Internet service provider",
+        "The initial TCP sequence number to use"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "DHCP gives the client its IP address, the gateway's address, and the subnet size. The subnet size is what lets the client decide whether a destination is local."
+    },
+    {
+      "type": "tf",
+      "category": "Subnets and IP Routing",
+      "q": "Inside an Autonomous System, packets must be routed using BGP.",
+      "answer": false,
+      "explain": "Within an AS, packets can be routed by any mechanism the AS wants, usually tuned to minimize its own cost. BGP decides routing between ASs."
+    },
+    {
+      "type": "mc",
+      "category": "Subnets and IP Routing",
+      "q": "What is the IPv4 address 255.255.255.255 used for?",
+      "choices": [
+        "Localhost: connections to your own system",
+        "The default gateway of every network",
+        "Broadcast: sending to all computers within the local network",
+        "A reserved address only root can receive on"
+      ],
+      "answer": 2,
+      "explain": "255.255.255.255 is the IPv4 broadcast address. Localhost is 127.0.0/24 in IPv4 and ::1 in IPv6."
+    },
+    {
+      "type": "text",
+      "category": "Subnets and IP Routing",
+      "q": "What is the IPv6 localhost address?",
+      "answer": ["::1"],
+      "explain": "::1 is the IPv6 localhost address. The IPv4 equivalent is the 127.0.0/24 block. Both are used to make 'network' connections to your own machine."
+    },
+    {
+      "type": "mc",
+      "category": "Subnets and IP Routing",
+      "q": "An AS receives a packet whose final destination is not inside the AS. What does it do?",
+      "choices": [
+        "Drops the packet, since it is not responsible for that destination",
+        "Forwards the packet to another AS that is closer to the final destination",
+        "Returns the packet to the sender's gateway",
+        "Broadcasts the packet to all of its neighboring ASs"
+      ],
+      "answer": 1,
+      "explain": "If the destination is inside the AS, the AS delivers the packet directly. Otherwise it forwards the packet to an AS closer to the destination."
+    },
+    {
+      "type": "text",
+      "category": "Subnets and IP Routing",
+      "q": "Each Autonomous System on the Internet is identified by a unique number. What is that number called? (Give the acronym or the full name.)",
+      "answer": ["ASN", "Autonomous System Number", "AS number"],
+      "explain": "ASs (Autonomous Systems) are identified by ASNs (Autonomous System Numbers). An AS is one or more local networks managed by one organization, such as an ISP, university or business."
+    },
+    {
+      "type": "mc",
+      "category": "BGP",
+      "q": "What does BGP (Border Gateway Protocol) determine?",
+      "choices": [
+        "How packets are routed between Autonomous Systems",
+        "How a client maps an IP address to a MAC address",
+        "Which IP address a client is assigned on a local network",
+        "How packets are routed between machines in the same subnet"
+      ],
+      "answer": 0,
+      "explain": "BGP handles inter-AS routing on the Internet. ARP maps IPs to MACs, and DHCP assigns addresses."
+    },
+    {
+      "type": "mc",
+      "category": "BGP",
+      "q": "How do routes spread across the Internet under BGP?",
+      "choices": [
+        "A central registry publishes cryptographically signed routing tables that every AS downloads",
+        "Each AS advertises the networks it is responsible for to its neighbors, which re-advertise that they can carry packets there and include the AS path",
+        "Each AS floods packets to all other ASs until the destination accepts them",
+        "Gateways send ARP requests across the Internet to find the destination"
+      ],
+      "answer": 1,
+      "explain": "Each AS advertises its networks to its neighbors. The neighbors then advertise reachability along with the AS path, and this repeats until the Internet forms a graph with many paths between ASs."
+    },
+    {
+      "type": "mc",
+      "category": "BGP",
+      "q": "In the simplified model, if an AS receives two BGP advertisements for the same network, which does it generally choose?",
+      "choices": [
+        "The one received first",
+        "The one with the shortest path",
+        "The one from the AS with the lowest ASN",
+        "It splits traffic evenly between them"
+      ],
+      "answer": 1,
+      "explain": "Given a choice, an AS generally picks the shortest path. Real BGP path selection is more complicated than this."
+    },
+    {
+      "type": "mc",
+      "category": "BGP",
+      "q": "What is the biggest security problem with BGP?",
+      "choices": [
+        "Its advertisements are encrypted, so ASs cannot inspect them",
+        "It operates on trust, so an AS can falsely claim responsibility for a network and have that network's traffic redirected to it",
+        "It only supports IPv6",
+        "It requires a three-way handshake that off-path attackers can spoof"
+      ],
+      "answer": 1,
+      "explain": "BGP assumes all ASs are honest. A lying AS can advertise a network it doesn't own and attract its traffic. With further tricks, it can act as a full man-in-the-middle."
+    },
+    {
+      "type": "mc",
+      "category": "BGP",
+      "q": "IPv4 and lower layers include checksums or CRCs to detect corrupted packets. Why don't these stop a malicious AS from modifying packets?",
+      "choices": [
+        "Checksums are only checked by the gateway, not the destination",
+        "Checksums are not cryptographic, so the AS can modify the packet and compute a new valid checksum",
+        "Checksums are stripped off at each AS boundary",
+        "Checksums only cover the header, never the data"
+      ],
+      "answer": 1,
+      "explain": "A checksum detects accidental corruption but uses no secret key. Anyone who changes a packet can recompute a matching checksum."
+    },
+    {
+      "type": "multi",
+      "category": "BGP",
+      "q": "A malicious AS falsely advertises that it is responsible for a victim's network. Which outcomes are possible?",
+      "choices": [
+        "Traffic destined for the victim network is redirected to the lying AS",
+        "The lying AS can read the contents of unencrypted packets it receives",
+        "The lying AS can act as a man-in-the-middle, passing traffic on to the real destination after inspecting it",
+        "The lying AS can read and undetectably modify data inside a properly established TLS connection"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Lying in BGP redirects traffic and can enable a full MITM. TLS at a higher layer still provides confidentiality and integrity, so the AS cannot read TLS-protected data or modify it without detection."
+    },
+    {
+      "type": "mc",
+      "category": "BGP",
+      "q": "What is the practical defense against malicious ASs?",
+      "choices": [
+        "Every AS verifies a cryptographic signature on each BGP advertisement",
+        "Use larger IP checksums so modifications are detected",
+        "Accept malicious ASs as a fact of life and rely on higher layers: TCP to resend lost or corrupted packets, and TLS for confidentiality and integrity",
+        "Route all traffic through a single trusted AS"
+      ],
+      "answer": 2,
+      "explain": "Each AS operates fairly independently, so there's little anyone can do at the routing layer. Instead, TCP retransmits dropped or corrupted packets, and TLS cryptographically protects the contents."
+    },
+    {
+      "type": "num",
+      "category": "BGP",
+      "q": "At which numbered network layer does inter-network IP routing with BGP operate?",
+      "answer": 3,
+      "explain": "BGP is part of layer 3 (inter-network). Its job is to send messages globally by connecting many local networks."
+    },
+    {
+      "type": "tf",
+      "category": "BGP",
+      "q": "Because IP is best-effort, its packets can arrive out of order or corrupted, or never arrive at all.",
+      "answer": true,
+      "explain": "IP delivers packets whole, but they may arrive in any order, be corrupted, or be dropped. TCP adds reliability and ordering on top."
+    },
+    {
+      "type": "num",
+      "category": "Ports, UDP, and TCP vs UDP",
+      "q": "How many bits long is a TCP or UDP port number?",
+      "answer": 16,
+      "explain": "Both the TCP and UDP headers contain 16-bit source and destination port numbers."
+    },
+    {
+      "type": "mc",
+      "category": "Ports, UDP, and TCP vs UDP",
+      "q": "What uniquely identifies one process on one machine on the network?",
+      "choices": [
+        "The port number alone",
+        "The IP address alone",
+        "The IP address together with the port number",
+        "The MAC address"
+      ],
+      "answer": 2,
+      "explain": "Port numbers are unique only within one machine, and an IP address identifies a machine but not a process on it. Together they identify one process on one machine."
+    },
+    {
+      "type": "mc",
+      "category": "Ports, UDP, and TCP vs UDP",
+      "q": "Ports below 1024 are 'reserved'. What does that mean?",
+      "choices": [
+        "Only a program running as root can receive packets on them, but anyone can send packets to them",
+        "Only a program running as root can send packets to them",
+        "They can only be used with TCP, never UDP",
+        "They are reserved for clients' outgoing connections"
+      ],
+      "answer": 0,
+      "explain": "The restriction is on receiving, not sending. Only root can bind and receive on ports below 1024, but anyone can send packets to them."
+    },
+    {
+      "type": "num",
+      "category": "Ports, UDP, and TCP vs UDP",
+      "q": "On which well-known port do web servers receive HTTPS (secure) requests?",
+      "answer": 443,
+      "explain": "HTTPS uses port 443. Plain HTTP uses port 80."
+    },
+    {
+      "type": "mc",
+      "category": "Ports, UDP, and TCP vs UDP",
+      "q": "Why do servers use well-known port numbers while client port numbers can be assigned arbitrarily?",
+      "choices": [
+        "Client ports are encrypted, but server ports are not",
+        "Clients need to know which port to send requests to, while a client's port only has to be unique on its own machine so replies reach the right application",
+        "Well-known ports are faster to route through BGP",
+        "Arbitrary ports are only allowed for UDP"
+      ],
+      "answer": 1,
+      "explain": "A server's port must be predictable so clients know where to send requests. A client's port only has to be unique on that machine so incoming packets can be sorted to the right application."
+    },
+    {
+      "type": "multi",
+      "category": "Ports, UDP, and TCP vs UDP",
+      "q": "Which fields are in the UDP header?",
+      "choices": [
+        "16-bit source port",
+        "16-bit destination port",
+        "A non-cryptographic checksum",
+        "32-bit sequence number",
+        "32-bit acknowledgment number"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The UDP header has source and destination ports and a checksum. Sequence and ACK numbers are TCP-only, because they support reliable in-order delivery."
+    },
+    {
+      "type": "tf",
+      "category": "Ports, UDP, and TCP vs UDP",
+      "q": "The UDP checksum prevents an attacker from undetectably modifying a datagram.",
+      "answer": false,
+      "explain": "The checksum is non-cryptographic. It catches accidental corruption, but an attacker can recompute it after modifying the datagram."
+    },
+    {
+      "type": "tf",
+      "category": "Ports, UDP, and TCP vs UDP",
+      "q": "Two different machines can each have a process using port 5000 at the same time.",
+      "answer": true,
+      "explain": "Port numbers are unique per machine, not globally. The IP address plus the port identifies the process."
+    },
+    {
+      "type": "mc",
+      "category": "Ports, UDP, and TCP vs UDP",
+      "q": "Which property does TCP provide that UDP does not?",
+      "choices": [
+        "Port numbers for communication between processes",
+        "A checksum to detect corrupted packets",
+        "Reliable, in-order delivery",
+        "Confidentiality of the data"
+      ],
+      "answer": 2,
+      "explain": "Both protocols have ports and checksums. Only TCP guarantees reliable, in-order delivery, and neither provides confidentiality (that's TLS's job)."
+    },
+    {
+      "type": "mc",
+      "category": "Ports, UDP, and TCP vs UDP",
+      "q": "Why does DNS normally use UDP instead of TCP?",
+      "choices": [
+        "DNS needs extremely short response times, and UDP avoids TCP's handshake and retransmission waits",
+        "UDP encrypts DNS responses",
+        "UDP guarantees DNS responses arrive in order",
+        "DNS servers cannot listen on reserved ports with TCP"
+      ],
+      "answer": 0,
+      "explain": "UDP is chosen when speed matters. DNS needs very fast responses, so the TCP handshake would be costly."
+    },
+    {
+      "type": "multi",
+      "category": "Ports, UDP, and TCP vs UDP",
+      "q": "Which of these make TCP slower than UDP?",
+      "choices": [
+        "A three-way handshake is needed at the start of each connection",
+        "TCP waits for dropped packets to be resent before continuing",
+        "TCP encrypts every packet",
+        "TCP must look up the destination process by MAC address"
+      ],
+      "answer": [0, 1],
+      "explain": "The handshake and the waiting for retransmissions cost time. TCP does not encrypt anything; that's done by TLS on top of it."
+    },
+    {
+      "type": "mc",
+      "category": "Ports, UDP, and TCP vs UDP",
+      "q": "Why do video games and voice applications often prefer UDP?",
+      "choices": [
+        "UDP provides stronger integrity guarantees",
+        "It is better to just miss a packet than to stall everything waiting for a retransmission",
+        "UDP packets cannot be dropped",
+        "UDP supports longer messages than TCP"
+      ],
+      "answer": 1,
+      "explain": "For real-time applications, late data is useless. Skipping a lost packet beats freezing while TCP waits for it."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Mechanics",
+      "q": "What does the sequence number field of a TCP packet hold?",
+      "choices": [
+        "The total number of packets sent so far on the connection",
+        "The index of the first byte of data in this packet, within the sender's bytestream",
+        "The index of the next byte the sender expects to receive",
+        "A random value chosen fresh for every packet"
+      ],
+      "answer": 1,
+      "explain": "The sequence number is the index of the packet's first data byte in the sender's bytestream. The receiver uses it to put out-of-order packets back in order."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Mechanics",
+      "q": "What does the acknowledgment (ACK) number of a TCP packet hold?",
+      "choices": [
+        "The sequence number of the packet being acknowledged",
+        "The index of the last byte received from the other side, plus 1 (the next byte expected)",
+        "The number of packets received so far",
+        "The index of the first byte in this packet"
+      ],
+      "answer": 1,
+      "explain": "The ACK number is the last byte received plus 1, i.e. the next byte expected. It indexes the other side's bytestream."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Mechanics",
+      "q": "In a TCP packet sent from the server to the client, the ACK number is an index into which bytestream?",
+      "choices": [
+        "The server-to-client bytestream",
+        "The client-to-server bytestream",
+        "Both streams share one index space",
+        "Neither; ACK numbers count packets, not bytes"
+      ],
+      "answer": 1,
+      "explain": "The sequence number indexes the sender's stream and the ACK number indexes the recipient's stream. The server is acknowledging bytes the client sent, so the ACK number indexes the client-to-server stream."
+    },
+    {
+      "type": "num",
+      "category": "TCP Mechanics",
+      "q": "The client sends a TCP packet with sequence number 2000 that carries 100 bytes of data, and the server receives it. What ACK number does the server send back?",
+      "answer": 2100,
+      "explain": "The packet holds bytes 2000 through 2099. The ACK number is the last byte received plus 1: 2099 + 1 = 2100."
+    },
+    {
+      "type": "num",
+      "category": "TCP Mechanics",
+      "q": "In a TCP handshake, the client's initial sequence number is 1000 and the server's is 7000. What ACK number does the server put in its SYN-ACK?",
+      "answer": 1001,
+      "explain": "The SYN-ACK acknowledges the client's SYN, so its ACK number is the client's ISN + 1 = 1001. Its own sequence number is the server's ISN, 7000."
+    },
+    {
+      "type": "num",
+      "category": "TCP Mechanics",
+      "q": "In a TCP handshake, the client's initial sequence number is 1000 and the server's is 7000. What ACK number does the client put in the final ACK packet?",
+      "answer": 7001,
+      "explain": "The client acknowledges the server's SYN-ACK, so its ACK number is the server's ISN + 1 = 7001."
+    },
+    {
+      "type": "num",
+      "category": "TCP Mechanics",
+      "q": "In a TCP handshake, the client's initial sequence number is 1000 and the server's is 7000. What sequence number does the client put in the final ACK packet?",
+      "answer": 1001,
+      "explain": "In the third packet, the client's sequence number is its ISN + 1 = 1001."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Mechanics",
+      "q": "What is the order of packets in the TCP three-way handshake?",
+      "choices": [
+        "SYN, then SYN-ACK, then ACK",
+        "SYN, then ACK, then SYN-ACK",
+        "SYN-ACK, then SYN, then ACK",
+        "ACK, then SYN, then FIN"
+      ],
+      "answer": 0,
+      "explain": "The client sends SYN with its random ISN. The server answers SYN-ACK with its own ISN and ACK = client ISN + 1. The client finishes with ACK, setting seq = client ISN + 1 and ACK = server ISN + 1."
+    },
+    {
+      "type": "multi",
+      "category": "TCP Mechanics",
+      "q": "Which values are in the 5-tuple that uniquely identifies a TCP connection?",
+      "choices": [
+        "Client IP address",
+        "Client port",
+        "Server IP address",
+        "Server port",
+        "Protocol (TCP)",
+        "Initial sequence number",
+        "Client MAC address"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "A TCP connection is identified by (Client IP, Client Port, Server IP, Server Port, Protocol). Sequence numbers and MAC addresses are not part of it."
+    },
+    {
+      "type": "tf",
+      "category": "TCP Mechanics",
+      "q": "A TCP connection uses a single set of sequence numbers shared by both directions.",
+      "answer": false,
+      "explain": "A TCP connection is two bytestreams, client-to-server and server-to-client, and each one has its own sequence numbers."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Mechanics",
+      "q": "A TCP data packet arrives, but the acknowledgment for it is dropped on the way back. What happens?",
+      "choices": [
+        "The connection is reset with RST",
+        "The recipient notices the missing ACK and re-sends it on its own",
+        "The sender times out and re-sends the packet; the recipient discards the duplicate and re-sends the acknowledgment",
+        "The data is lost permanently"
+      ],
+      "answer": 2,
+      "explain": "The sender never sees an ACK, so it retransmits after a timeout. The recipient sees a duplicate, throws it away, and acknowledges it again."
+    },
+    {
+      "type": "tf",
+      "category": "TCP Mechanics",
+      "q": "TCP acknowledgments must be sent as separate packets that carry no data.",
+      "answer": false,
+      "explain": "Sending separate ACK packets would be wasteful, so a TCP packet can carry both data and an acknowledgment of earlier packets."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Mechanics",
+      "q": "One side of a TCP connection sends a FIN and the other replies with a FIN-ACK. What state is the connection in now?",
+      "choices": [
+        "Fully closed; neither side can send or receive",
+        "Half closed; the side that sent FIN will send no more data but still accepts and acknowledges data",
+        "Reset; both sides discard buffered data",
+        "Unchanged; FIN only flushes buffers"
+      ],
+      "answer": 1,
+      "explain": "FIN means 'I'm done sending.' The connection is half closed until the other side sends its own FIN and gets a FIN-ACK back."
+    },
+    {
+      "type": "multi",
+      "category": "TCP Mechanics",
+      "q": "Which statements about TCP RST packets are true?",
+      "choices": [
+        "A RST means the sender will neither send nor accept any more data on the connection",
+        "RST packets are not acknowledged",
+        "A RST must carry a proper sequence number to be accepted",
+        "A RST usually means something went wrong, such as a program crashing",
+        "A RST is answered with a RST-ACK",
+        "A RST leaves the connection half closed"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "RST aborts the connection in both directions at once and is never acknowledged, unlike FIN. It needs a proper sequence number to be accepted, and it usually signals an error or an abrupt termination."
+    },
+    {
+      "type": "num",
+      "category": "TCP Mechanics",
+      "q": "How many bits long are the TCP sequence number and ACK number fields?",
+      "answer": 32,
+      "explain": "Both fields are 32 bits, so a random ISN is hard for an off-path attacker to guess."
+    },
+    {
+      "type": "tf",
+      "category": "TCP Mechanics",
+      "q": "TCP lets applications treat a connection as an arbitrary-length bytestream and splits long messages into packets itself.",
+      "answer": true,
+      "explain": "TCP hides fixed-size packets from the programmer. It breaks messages into packets, retransmits lost ones, and reorders out-of-order ones."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Attacks and Defenses",
+      "q": "What is TCP packet injection?",
+      "choices": [
+        "Sending so many SYN packets that the server runs out of memory",
+        "Spoofing a malicious packet whose header makes it look like it came from one of the parties in a TCP connection",
+        "Replaying an old TLS handshake",
+        "Falsely advertising a network in BGP"
+      ],
+      "answer": 1,
+      "explain": "In packet injection, the attacker fills in the IPs, ports and sequence numbers so the forged packet is accepted as part of the connection."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Attacks and Defenses",
+      "q": "What does RST injection do, and what has it been used for?",
+      "choices": [
+        "It injects data into a connection; it is used to spread malware",
+        "It spoofs a packet with the RST flag to abruptly end a connection; it has been used for censorship, e.g. ending BitTorrent uploads",
+        "It resets the sequence numbers to 0; it is used to speed up handshakes",
+        "It forces a renegotiation of TLS keys; it is used to downgrade encryption"
+      ],
+      "answer": 1,
+      "explain": "A spoofed RST tears down the connection. Comcast, for example, used RST injection to cut off BitTorrent uploads."
+    },
+    {
+      "type": "multi",
+      "category": "TCP Attacks and Defenses",
+      "q": "What must an off-path attacker know or guess to inject a packet into a TCP connection?",
+      "choices": [
+        "The client's IP address and port",
+        "The server's IP address and port",
+        "A sequence number close enough to what the recipient expects",
+        "The contents of earlier packets on the connection",
+        "The client's MAC address"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The forged packet has to match the connection's IPs and ports, and its sequence number must be near the expected value or it's rejected. The server's IP and port are usually well-known, and whether the client's are known depends on the threat model."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Attacks and Defenses",
+      "q": "About how likely is an off-path attacker to guess a random TCP sequence number in one try?",
+      "choices": [
+        "1 in 2^16",
+        "1 in 32",
+        "1 in 2^32 (about 1 in 4 billion)",
+        "1 in 2^64"
+      ],
+      "answer": 2,
+      "explain": "The sequence number is 32 bits, so a single random guess succeeds with probability 1/2^32."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Attacks and Defenses",
+      "q": "Which kind of network attacker can read messages but cannot modify or block them?",
+      "choices": [
+        "Off-path attacker",
+        "On-path attacker",
+        "In-path (man-in-the-middle) attacker"
+      ],
+      "answer": 1,
+      "fixed": true,
+      "explain": "An off-path attacker can't read or modify. An on-path attacker can read but not modify. An in-path (MITM) attacker can read, modify and block."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Attacks and Defenses",
+      "q": "Why can an on-path attacker inject packets into a TCP connection without guessing anything?",
+      "choices": [
+        "On-path attackers can modify packets in flight",
+        "They can read the sequence numbers, IP addresses and ports used in the connection",
+        "TCP does not check sequence numbers on packets from on-path attackers",
+        "They know the server's private key"
+      ],
+      "answer": 1,
+      "explain": "Everything the forged header needs is visible to them on the wire. All they have to do is get their packet there before the real one."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Attacks and Defenses",
+      "q": "Alice just sent Bob a packet with sequence number X. Bob replied with sequence number Y and ACK X + 1. Mallory, an on-path attacker, wants to inject data that looks like Alice's next packet. Which numbers should she use (as in the example)?",
+      "choices": [
+        "Sequence Y + 1, ACK X + 1",
+        "Sequence X, ACK Y",
+        "Sequence X + 1, ACK Y + 1",
+        "Sequence X + 1, ACK Y"
+      ],
+      "answer": 2,
+      "explain": "Mallory continues Alice's stream with seq X + 1, acknowledges Bob's packet with ACK Y + 1, and uses Alice's IP and port. She then races Alice's real next packet."
+    },
+    {
+      "type": "tf",
+      "category": "TCP Attacks and Defenses",
+      "q": "In the on-path injection race, Bob can tell which packet truly came from Alice by checking the TCP checksum.",
+      "answer": false,
+      "explain": "TCP alone provides no integrity. Mallory computes a valid checksum for her own packet, so Bob cannot tell the two apart."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Attacks and Defenses",
+      "q": "Compared with an on-path attacker, what extra advantage does an in-path (man-in-the-middle) attacker have when injecting into TCP?",
+      "choices": [
+        "It can guess sequence numbers faster",
+        "It doesn't have to race; it can block the real party's message and send its own",
+        "It can break TLS encryption",
+        "It needs no knowledge of IP addresses or ports"
+      ],
+      "answer": 1,
+      "explain": "A MITM can do everything an on-path attacker can, and it can also modify or block messages. It just drops the legitimate packet and substitutes its own."
+    },
+    {
+      "type": "tf",
+      "category": "TCP Attacks and Defenses",
+      "q": "Random initial sequence numbers stop on-path attackers from injecting packets into a TCP connection.",
+      "answer": false,
+      "explain": "Random ISNs only defeat off-path attackers, who have to guess. On-path and MITM attackers simply read the sequence numbers, so TLS is needed against them."
+    },
+    {
+      "type": "mc",
+      "category": "TCP Attacks and Defenses",
+      "q": "What is the main defense against TCP data injection by on-path and man-in-the-middle attackers?",
+      "choices": [
+        "Bigger TCP checksums",
+        "Random initial sequence numbers",
+        "TLS: cryptography at a higher layer that adds confidentiality and integrity",
+        "Using UDP instead of TCP"
+      ],
+      "answer": 2,
+      "explain": "TCP itself has no confidentiality or integrity. TLS adds them on top of TCP, so injected data fails integrity checks."
+    },
+    {
+      "type": "mc",
+      "category": "TLS Handshake",
+      "q": "TLS is called a 'layer 6.5' protocol. What does it run directly on top of, and what does it rely on that layer for?",
+      "choices": [
+        "UDP, for speed",
+        "IP, for routing between ASs",
+        "TCP, for reliable, in-order delivery of messages",
+        "BGP, for authenticating servers"
+      ],
+      "answer": 2,
+      "explain": "TLS runs over TCP, which handles reliability and ordering. TLS adds the security, so the application sees what is effectively a TCP connection with security guarantees."
+    },
+    {
+      "type": "multi",
+      "category": "TLS Handshake",
+      "q": "What does the ClientHello message contain?",
+      "choices": [
+        "A random number R_B",
+        "A list of encryption protocols the client supports",
+        "Optionally, the name of the server the client wants to reach",
+        "The client's certificate signed by a CA",
+        "The premaster secret encrypted with the server's public key"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "ClientHello carries R_B, the client's supported encryption protocols, and optionally the server name. The premaster secret comes later in the handshake."
+    },
+    {
+      "type": "multi",
+      "category": "TLS Handshake",
+      "q": "What does the ServerHello message contain?",
+      "choices": [
+        "A random number R_S",
+        "The encryption protocol the server selected",
+        "The server's certificate",
+        "The server's private key",
+        "The four symmetric session keys"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "ServerHello carries R_S, the chosen protocol, and the certificate, which holds the server's public key signed by a CA. The private key is never sent."
+    },
+    {
+      "type": "mc",
+      "category": "TLS Handshake",
+      "q": "What does a server's TLS certificate contain?",
+      "choices": [
+        "The server's private key, encrypted by the CA",
+        "A copy of the server's public key, signed by a certificate authority",
+        "The premaster secret for the connection",
+        "The client's public key, signed by the server"
+      ],
+      "answer": 1,
+      "explain": "The CA's signature on the certificate lets a client that trusts the CA confirm that the public key really belongs to the server."
+    },
+    {
+      "type": "mc",
+      "category": "TLS Handshake",
+      "q": "The client doesn't directly trust the CA that signed the server's certificate. What can it do?",
+      "choices": [
+        "Abort, because only directly trusted CAs can be used",
+        "Verify a chain of certificates in a PKI up to a trusted root",
+        "Ask the server to sign its own certificate",
+        "Use the certificate anyway, since R_S prevents impersonation"
+      ],
+      "answer": 1,
+      "explain": "The client follows the certificate chain until it reaches a root it trusts. Either way, it ends up with a trusted copy of the server's public key."
+    },
+    {
+      "type": "tf",
+      "category": "TLS Handshake",
+      "q": "After ClientHello and a ServerHello with a valid certificate, the client can be sure it's talking to the genuine server.",
+      "answer": false,
+      "explain": "Certificates are public. An attacker can open its own TLS connection to the real server, copy the certificate, and present it. Proof comes later, when the server uses its private key."
+    },
+    {
+      "type": "mc",
+      "category": "TLS Handshake",
+      "q": "An impostor presents a copy of the real server's certificate. Why does the handshake still fail for the impostor?",
+      "choices": [
+        "The certificate has the real server's IP address, which the impostor cannot spoof",
+        "The impostor lacks the server's private key, so it can't decrypt the RSA-encrypted premaster secret or sign a Diffie-Hellman share, and so can't derive the keys or produce valid MACs",
+        "R_B is encrypted with the CA's key and only the real server can read it",
+        "The client rejects any certificate it has seen before"
+      ],
+      "answer": 1,
+      "explain": "The certificate is only a trusted copy of the public key. Proving identity requires the matching private key, which only the legitimate server has."
+    },
+    {
+      "type": "mc",
+      "category": "TLS Handshake",
+      "q": "How is the premaster secret (PS) set up in RSA-based TLS?",
+      "choices": [
+        "The server generates PS and signs it with its private key",
+        "The client generates a random PS, encrypts it with the server's public key, and sends it; the server decrypts it with its private key",
+        "PS is computed as R_B XOR R_S",
+        "The CA generates PS and gives it to both sides"
+      ],
+      "answer": 1,
+      "explain": "Eavesdroppers can't decrypt PS, and only the legitimate server, which holds the private key, can recover it. So only the client and the real server know PS."
+    },
+    {
+      "type": "mc",
+      "category": "TLS Handshake",
+      "q": "How does Diffie-Hellman (DHE) TLS differ from classic Diffie-Hellman?",
+      "choices": [
+        "The client encrypts g^b mod p with the server's public key",
+        "The server signs its half, g^a mod p, with its private key",
+        "Both sides send their secret exponents a and b",
+        "The CA chooses the exponents"
+      ],
+      "answer": 1,
+      "explain": "The signature proves the server's half came from the legitimate server. Without it, a MITM could swap in its own Diffie-Hellman values."
+    },
+    {
+      "type": "mc",
+      "category": "TLS Handshake",
+      "q": "In DHE-based TLS, the server sends g^a mod p (signed) and the client sends g^b mod p. What is the premaster secret?",
+      "choices": [
+        "g^(a+b) mod p",
+        "g^(ab) mod p",
+        "(g^a mod p) XOR (g^b mod p)",
+        "a times b"
+      ],
+      "answer": 1,
+      "explain": "Each side raises the other's public value to its own secret exponent, and both get g^(ab) mod p. An eavesdropper sees only g^a and g^b and can't compute it."
+    },
+    {
+      "type": "num",
+      "category": "TLS Handshake",
+      "q": "How many symmetric keys do the client and server derive from the premaster secret and the random values?",
+      "answer": 4,
+      "explain": "They derive C_B and I_B (client encryption and integrity keys) and C_S and I_S (server encryption and integrity keys)."
+    },
+    {
+      "type": "multi",
+      "category": "TLS Handshake",
+      "q": "Which values are used to derive the TLS symmetric keys?",
+      "choices": [
+        "The premaster secret (PS)",
+        "The client's random number R_B",
+        "The server's random number R_S",
+        "The server's private key",
+        "The CA's public key"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Both sides combine PS with R_B and R_S to get the four keys. Because R_B and R_S are fresh each time, every connection gets its own keys."
+    },
+    {
+      "type": "mc",
+      "category": "TLS Handshake",
+      "q": "Why do the client and server exchange MACs over all handshake messages at the end of the handshake?",
+      "choices": [
+        "To compress the handshake",
+        "The handshake was sent in plaintext over TCP, which on-path and MITM attackers can spoof, so the MACs show that no one tampered with it",
+        "To give the CA a record of the connection",
+        "To encrypt the premaster secret a second time"
+      ],
+      "answer": 1,
+      "explain": "Until this step everything was sent in plaintext. MACing the whole transcript with the new integrity keys detects any tampering, such as a modified list of encryption protocols."
+    },
+    {
+      "type": "mc",
+      "category": "TLS Handshake",
+      "q": "Which key does the client use to MAC its handshake-verification message, and how does the server check it?",
+      "choices": [
+        "I_S; the server checks it with its private key",
+        "I_B; the server knows I_B too, since both sides derive all four keys",
+        "C_B; the server decrypts it with C_S",
+        "The CA's key; the server checks it with the certificate"
+      ],
+      "answer": 1,
+      "explain": "Each side MACs with its own integrity key (client I_B, server I_S). Both sides know both integrity keys, so each can verify the other's MAC."
+    },
+    {
+      "type": "multi",
+      "category": "TLS Handshake",
+      "q": "Which guarantees hold at the end of a proper TLS handshake?",
+      "choices": [
+        "The client is talking to the legitimate server",
+        "No one has tampered with the handshake",
+        "Client and server share symmetric keys, unique to this connection, that no one else knows",
+        "The server has verified the client's identity with a certificate",
+        "Packets can no longer be dropped by the network"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Server authentication comes from the certificate plus the private-key step (RSA decryption or the DH signature). Integrity of the handshake comes from the final MACs. Fresh shared keys come from PS, R_B and R_S. The handshake authenticates the server, not the client, and TLS cannot stop packets being dropped."
+    },
+    {
+      "type": "mc",
+      "category": "TLS Handshake",
+      "q": "After the handshake, how is each application message protected?",
+      "choices": [
+        "Encrypted with the server's public key",
+        "Encrypted and MAC'd with the sender's own encryption and integrity keys (C_B/I_B for the client, C_S/I_S for the server)",
+        "Only MAC'd, never encrypted",
+        "Signed with the CA's private key"
+      ],
+      "answer": 1,
+      "explain": "Encryption gives confidentiality and the MAC gives integrity. Together they make TLS secure end to end."
+    },
+    {
+      "type": "tf",
+      "category": "TLS Handshake",
+      "q": "If an attacker steals a TLS server's private key, they can impersonate that server.",
+      "answer": true,
+      "explain": "TLS's guarantees assume only the server knows its private key. With the key, an attacker can decrypt the RSA premaster secret or sign DH shares as the server."
+    },
+    {
+      "type": "mc",
+      "category": "Forward Secrecy and Replay",
+      "q": "What is forward secrecy?",
+      "choices": [
+        "Future connections stay secure after a key is stolen",
+        "Stealing a server's long-term private key later does not let an attacker decrypt previously recorded sessions",
+        "Messages are encrypted before they are sent",
+        "Certificates are checked before the handshake ends"
+      ],
+      "answer": 1,
+      "explain": "Forward secrecy protects past sessions. Compromising the long-term key later reveals nothing about earlier sessions' keys."
+    },
+    {
+      "type": "mc",
+      "category": "Forward Secrecy and Replay",
+      "q": "An attacker records many TLS sessions that used RSA key exchange. A year later, they steal the server's private key. What can they do?",
+      "choices": [
+        "Nothing, because the session keys were deleted",
+        "Decrypt the premaster secrets sent in the old sessions, derive their keys, and read the recorded traffic",
+        "Only impersonate the server in future sessions",
+        "Only read the certificates"
+      ],
+      "answer": 1,
+      "explain": "In RSA key exchange, PS travels encrypted under the server's public key. With the private key, every recorded PS can be decrypted. R_B and R_S were sent in plaintext, so the attacker can then derive all the keys."
+    },
+    {
+      "type": "tf",
+      "category": "Forward Secrecy and Replay",
+      "q": "With DHE key exchange, an attacker who steals the server's private key can recover the premaster secrets of past recorded connections.",
+      "answer": false,
+      "explain": "The private key only signed the DH share. The secret exponents a and b can't be found from g^a and g^b, so past premaster secrets stay hidden."
+    },
+    {
+      "type": "mc",
+      "category": "Forward Secrecy and Replay",
+      "q": "Why does DHE/ECDHE key exchange give forward secrecy?",
+      "choices": [
+        "The server's private key is changed after every connection",
+        "The secrets that produce PS (a and b) cannot be recovered from the values sent on the connection (g^a, g^b mod p); the private key is only used to sign",
+        "PS is encrypted twice",
+        "The CA keeps a copy of PS"
+      ],
+      "answer": 1,
+      "explain": "PS is never sent, not even encrypted. It is computed from short-lived secrets that are never transmitted, so stealing the long-term key doesn't reveal it."
+    },
+    {
+      "type": "multi",
+      "category": "Forward Secrecy and Replay",
+      "q": "Which TLS key exchange methods provide forward secrecy?",
+      "choices": [
+        "Diffie-Hellman (DHE)",
+        "Elliptic Curve Diffie-Hellman (ECDHE)",
+        "RSA key exchange (PS encrypted with the server's public key)"
+      ],
+      "answer": [0, 1],
+      "explain": "DHE and ECDHE give forward secrecy and RSA key exchange doesn't. That's why RSA key exchange is not allowed starting with TLS 1.3."
+    },
+    {
+      "type": "mc",
+      "category": "Forward Secrecy and Replay",
+      "q": "Starting with which TLS version is RSA key exchange no longer allowed?",
+      "choices": [
+        "TLS 1.0",
+        "TLS 1.1",
+        "TLS 1.2",
+        "TLS 1.3"
+      ],
+      "answer": 3,
+      "fixed": true,
+      "explain": "TLS 1.3 removed RSA key exchange because it lacks forward secrecy."
+    },
+    {
+      "type": "mc",
+      "category": "Forward Secrecy and Replay",
+      "q": "A server running DHE-based TLS has its private key stolen today. Which statement is true?",
+      "choices": [
+        "The attacker can decrypt all previously recorded sessions",
+        "The attacker can impersonate the server in new connections, but cannot decrypt previously recorded sessions",
+        "The attacker can do nothing, since DHE doesn't use the private key",
+        "The attacker can only read the certificates of past sessions"
+      ],
+      "answer": 1,
+      "explain": "Forward secrecy protects only the past. Going forward, the attacker can sign DH shares as the server and impersonate it."
+    },
+    {
+      "type": "mc",
+      "category": "Forward Secrecy and Replay",
+      "q": "What is a replay attack?",
+      "choices": [
+        "Guessing a TCP sequence number by brute force",
+        "Recording old messages and sending them again, hoping they're accepted as valid even though the attacker doesn't know what they decrypt to",
+        "Stealing a server's private key and decrypting past traffic",
+        "Lying about route ownership in BGP"
+      ],
+      "answer": 1,
+      "explain": "The attacker doesn't need to read the messages. If the protocol accepts the replayed ciphertext and MACs, the attacker can spoof a connection."
+    },
+    {
+      "type": "mc",
+      "category": "Forward Secrecy and Replay",
+      "q": "Suppose R_B and R_S were always 0 in RSA-based TLS. Why would replaying an old connection work?",
+      "choices": [
+        "The server would skip checking the certificate",
+        "Replaying the same encrypted PS would make the server derive the same symmetric keys, so the old messages' MACs would still be valid",
+        "The attacker could decrypt PS without the private key",
+        "TCP would reject the replayed packets"
+      ],
+      "answer": 1,
+      "explain": "The keys come from PS, R_B and R_S. If all three repeat, the keys repeat, and the recorded messages verify again. Fresh random R_B and R_S give each connection different keys."
+    },
+    {
+      "type": "tf",
+      "category": "Forward Secrecy and Replay",
+      "q": "Fresh random values R_B and R_S in each handshake make every connection derive a different set of symmetric keys, which defeats replaying a whole old connection.",
+      "answer": true,
+      "explain": "With new R_B and R_S, a replayed PS produces different keys, so the old messages' MACs fail."
+    },
+    {
+      "type": "mc",
+      "category": "Forward Secrecy and Replay",
+      "q": "In practice, what stops an attacker from replaying a TLS message within the same connection?",
+      "choices": [
+        "R_B and R_S",
+        "The certificate's expiration date",
+        "A counter or timestamp included in the messages",
+        "The TCP checksum"
+      ],
+      "answer": 2,
+      "explain": "R_B and R_S only stop replays across connections. Within a connection, a counter or timestamp makes a repeated message detectable."
+    },
+    {
+      "type": "mc",
+      "category": "TLS Overview and End-to-End Security",
+      "q": "What does end-to-end encryption guarantee?",
+      "choices": [
+        "Packets always take the shortest path",
+        "Even if some part of the communication chain is compromised (such as a malicious AS), only the sender and receiver can read or modify the data",
+        "Every router on the path verifies the data",
+        "Packets cannot be dropped"
+      ],
+      "answer": 1,
+      "explain": "Only the endpoints hold the keys, so intermediate networks like ASs can't read the data or change it without being detected."
+    },
+    {
+      "type": "multi",
+      "category": "TLS Overview and End-to-End Security",
+      "q": "An in-path (MITM) attacker sits between a client and server that have completed a proper TLS handshake. What can the attacker still do?",
+      "choices": [
+        "Block or drop messages",
+        "Read the plaintext of application messages",
+        "Modify application data without detection",
+        "Replay an earlier message on the same connection and have it accepted"
+      ],
+      "answer": [0],
+      "explain": "TLS gives confidentiality (encryption), integrity (MACs), and replay protection (counters or timestamps). It can't stop an attacker who sits in the path from blocking traffic."
+    },
+    {
+      "type": "mc",
+      "category": "TLS Overview and End-to-End Security",
+      "q": "What is SSL?",
+      "choices": [
+        "A newer replacement for TLS",
+        "The old, deprecated version of TLS",
+        "A routing protocol between ASs",
+        "A UDP-based version of TLS"
+      ],
+      "answer": 1,
+      "explain": "SSL is TLS's deprecated predecessor."
+    },
+    {
+      "type": "multi",
+      "category": "TLS Overview and End-to-End Security",
+      "q": "Which of these use TLS?",
+      "choices": [
+        "HTTPS (HTTP over TLS)",
+        "SMTP email, by using the STARTTLS command",
+        "VPN connections that encrypt the user's traffic",
+        "ARP lookups on the local network",
+        "DHCP address assignment"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "HTTPS, SMTP with STARTTLS, and VPNs are layer-7 applications that use TLS. ARP and DHCP are local-network configuration protocols that don't run over TCP, so they don't use TLS."
+    },
+    {
+      "type": "tf",
+      "category": "TLS Overview and End-to-End Security",
+      "q": "From the application's point of view, a TLS connection behaves like a TCP connection with extra security guarantees.",
+      "answer": true,
+      "explain": "TLS relies on TCP for reliable, in-order delivery and adds confidentiality, integrity and server authentication."
+    },
+    {
+      "type": "mc",
+      "category": "Certificates and TLS in Practice",
+      "q": "'Trust does not scale.' How does TLS deal with this?",
+      "choices": [
+        "Each user personally checks every website's public key",
+        "Trust is delegated to Certificate Authorities, which vouch that a public key speaks for a given site",
+        "Servers send their private keys to trusted browsers",
+        "BGP advertisements carry each site's public key"
+      ],
+      "answer": 1,
+      "explain": "You can't make trust decisions about everyone, so trust is delegated to CAs. That delegation is what makes TLS work at all."
+    },
+    {
+      "type": "mc",
+      "category": "Certificates and TLS in Practice",
+      "q": "Without extra measures, what is the main weakness of delegating trust to many CAs?",
+      "choices": [
+        "CAs cannot sign certificates fast enough",
+        "Every trusted CA can speak for every site, so any one CA that issues a bad certificate can enable impersonation of any site",
+        "Certificates can't be checked offline",
+        "CAs learn every session's premaster secret"
+      ],
+      "answer": 1,
+      "explain": "Trust in the CA system is only as strong as the weakest trusted CA, since any of them can vouch for any site. Pinning, certificate transparency and revocation reduce this risk."
+    },
+    {
+      "type": "mc",
+      "category": "Certificates and TLS in Practice",
+      "q": "What does a 'pinned' CA list, like Chrome's, do?",
+      "choices": [
+        "Restricts certain websites so only some CAs are allowed to speak for them",
+        "Caches every certificate the browser has seen",
+        "Lists revoked certificates",
+        "Makes all certificates public in a hash chain"
+      ],
+      "answer": 0,
+      "explain": "Pinning limits which CAs can vouch for particular sites, so a different CA can't successfully issue a certificate for them."
+    },
+    {
+      "type": "mc",
+      "category": "Certificates and TLS in Practice",
+      "q": "What is certificate transparency?",
+      "choices": [
+        "Certificates are sent unencrypted",
+        "Anyone can see all certificates a CA has issued, recorded in a hash chain, so a victim can find out if a certificate was issued for its site",
+        "A browser shows the certificate to the user before connecting",
+        "CAs publish their private keys"
+      ],
+      "answer": 1,
+      "explain": "Certificate transparency is a public, append-only (hash-chain) log of the certificates a CA issues. It lets mis-issued certificates be detected."
+    },
+    {
+      "type": "tf",
+      "category": "Certificates and TLS in Practice",
+      "q": "Certificate transparency prevents a CA from ever issuing a certificate incorrectly.",
+      "answer": false,
+      "explain": "A CA can still mis-issue a certificate. Certificate transparency only means the impersonated victim can find out it happened."
+    },
+    {
+      "type": "mc",
+      "category": "Certificates and TLS in Practice",
+      "q": "How does revoking a certificate work?",
+      "choices": [
+        "The CA deletes the server's private key",
+        "The certificate goes on a published list of no-longer-accepted certificates that browsers download regularly, or an online service answers whether it's revoked",
+        "The server stops sending its certificate",
+        "BGP routes to the server are withdrawn"
+      ],
+      "answer": 1,
+      "explain": "Certificates expire on their own, and revocation ends them early. Browsers learn about revocations from a downloaded list or from an online check."
+    },
+    {
+      "type": "mc",
+      "category": "Certificates and TLS in Practice",
+      "q": "Today, what is the biggest cost of running TLS?",
+      "choices": [
+        "The computation for signatures and key exchange",
+        "Bulk AES encryption of the traffic",
+        "Managing the private keys",
+        "The extra TCP handshake"
+      ],
+      "answer": 2,
+      "explain": "The computing cost is trivial: one core can do tens of thousands of signatures or key exchanges per second, and AES is hardware-accelerated. What remains is managing keys."
+    },
+    {
+      "type": "tf",
+      "category": "Certificates and TLS in Practice",
+      "q": "Once the TLS handshake is done, bulk encryption is computationally expensive on modern processors.",
+      "answer": false,
+      "explain": "Most processors have built-in routines that accelerate AES, so bulk encryption costs almost nothing."
+    },
+    {
+      "type": "mc",
+      "category": "Certificates and TLS in Practice",
+      "q": "How does LetsEncrypt check that you control the server you want a certificate for?",
+      "choices": [
+        "It phones the domain owner",
+        "It tells you to put a particular file in a particular location on your server",
+        "It checks your BGP advertisements",
+        "It asks you to email it your private key"
+      ],
+      "answer": 1,
+      "explain": "A small program on your server generates keys and sends the public key to LetsEncrypt. Serving the requested file at the requested location proves you control the server. This automation makes certificates free and easy to get."
+    }
+  ]
+}
