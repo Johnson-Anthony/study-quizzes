@@ -1,0 +1,648 @@
+{
+  "title": "CS161 14: Cookies, CSRF, XSS and UI Attacks",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Cookie attributes and policy",
+      "q": "HTTP is a *stateless* protocol. Why does that make cookies necessary?",
+      "choices": [
+        "Each request and response is independent, so cookies let the browser carry state (login, preferences, cart) across many requests",
+        "Stateless protocols can't carry headers, so cookies are needed to add them",
+        "Stateless means unencrypted, so cookies supply the encryption keys",
+        "Servers can't respond to a request unless a cookie is attached"
+      ],
+      "answer": 0,
+      "explain": "HTTP handles every request and response independently. Staying logged in, keeping dark mode on, or keeping items in a shopping cart all need state that lasts across requests. So the server tells the browser to store cookies, and the browser automatically attaches the relevant ones to later requests."
+    },
+    {
+      "type": "text",
+      "category": "Cookie attributes and policy",
+      "q": "What HTTP response header does a server send to tell the browser to store a new cookie?",
+      "answer": ["Set-Cookie", "Set-Cookie header"],
+      "explain": "The server includes a `Set-Cookie` header in its response. The browser stores the cookie and attaches it to future requests that match it."
+    },
+    {
+      "type": "mc",
+      "category": "Cookie attributes and policy",
+      "q": "Which cookie attribute stops JavaScript from accessing or modifying the cookie?",
+      "choices": ["`Secure`", "`HttpOnly`", "`Domain`", "`expires`"],
+      "answer": 1,
+      "explain": "`HttpOnly` hides the cookie from JavaScript. `Secure` limits it to HTTPS, `Domain`/`Path` decide which URLs it's sent to, and `expires` tells the browser when to forget it."
+    },
+    {
+      "type": "mc",
+      "category": "Cookie attributes and policy",
+      "q": "What does the `Secure` cookie attribute do?",
+      "choices": [
+        "Encrypts the cookie value while it is stored on disk",
+        "Prevents JavaScript from reading the cookie",
+        "Tells the browser to send the cookie only over secure HTTPS connections",
+        "Restricts the cookie to the exact origin that set it"
+      ],
+      "answer": 2,
+      "explain": "`Secure` means the cookie is only sent over HTTPS. Blocking JavaScript access is what `HttpOnly` does."
+    },
+    {
+      "type": "multi",
+      "category": "Cookie attributes and policy",
+      "q": "A cookie has `Domain=example.com` and `Path=/some/path`. Which of these URLs will the browser attach it to?",
+      "choices": [
+        "`http://foo.example.com/some/path/index.html`",
+        "`http://example.com/some/path/a/b.html`",
+        "`http://example.com/other/some/path`",
+        "`http://example.org/some/path/index.html`",
+        "`http://example.com/index.html`"
+      ],
+      "answer": [0, 1],
+      "explain": "The cookie is sent when its `Domain` is a domain-suffix of the URL's domain (the URL domain *ends in* `example.com`) and its `Path` is a prefix of the URL's path (the URL path *begins with* `/some/path`). `/other/some/path` contains the path but doesn't start with it, `example.org` doesn't end in `example.com`, and `/index.html` doesn't start with `/some/path`."
+    },
+    {
+      "type": "multi",
+      "category": "Cookie attributes and policy",
+      "q": "A page served from `eecs.berkeley.edu` tries to set cookies with each of these `Domain` values. Which ones will the browser accept?",
+      "choices": [
+        "`eecs.berkeley.edu`",
+        "`berkeley.edu`",
+        "`.edu`",
+        "`math.berkeley.edu`",
+        "`stanford.edu`"
+      ],
+      "answer": [0, 1],
+      "explain": "A server may only set a cookie for a domain that its own domain ends in, so `eecs.berkeley.edu` and `berkeley.edu` are allowed. `math.berkeley.edu` and `stanford.edu` aren't suffixes of `eecs.berkeley.edu`. Top-level domains like `.edu` are always rejected because the cookie would then go to every site under them."
+    },
+    {
+      "type": "tf",
+      "category": "Cookie attributes and policy",
+      "q": "A server at `shop.example.co.uk` may set a cookie with `Domain=co.uk`, because `shop.example.co.uk` ends in `co.uk`.",
+      "answer": false,
+      "explain": "Browsers keep a list of top-level domains, including two-level ones like `.co.uk`, and refuse cookies set for them. Otherwise one site could set a cookie that gets sent to every `.co.uk` website."
+    },
+    {
+      "type": "tf",
+      "category": "Cookie attributes and policy",
+      "q": "The cookie policy limits which `Path` a server may set, the same way it limits `Domain`.",
+      "answer": false,
+      "explain": "A server can set `Path` to anything it likes. Only `Domain` is restricted, and it must be a suffix of the server's own domain and not a top-level domain."
+    },
+    {
+      "type": "mc",
+      "category": "Cookie attributes and policy",
+      "q": "Why does the browser stop `evil.com` from setting a cookie with `Domain=bank.com`?",
+      "choices": [
+        "That cookie would be sent to `bank.com`, letting the attacker change how the real bank site behaves",
+        "It would let `evil.com` read all of `bank.com`'s existing cookies",
+        "It would reveal the user's bank password to `evil.com`",
+        "It would break HTTPS for `bank.com`"
+      ],
+      "answer": 0,
+      "explain": "Cookies with `Domain=bank.com` are attached to requests to the bank, so a planted cookie would let an attacker affect the legitimate site. To prevent this, a cookie's domain must be a suffix of the domain of the server that sets it, or the browser rejects it."
+    },
+    {
+      "type": "tf",
+      "category": "Cookie attributes and policy",
+      "q": "Two pages with different origins can never read or write the same cookie.",
+      "answer": false,
+      "explain": "Cookie policy follows different rules from the same-origin policy. A cookie set for `berkeley.edu` can be read and written by both `eecs.berkeley.edu` and `auth.berkeley.edu`, even though they are different origins."
+    },
+    {
+      "type": "mc",
+      "category": "Cookie attributes and policy",
+      "q": "An attacker controls `eecs.berkeley.edu`. Because cookie policy differs from the same-origin policy, what can the attacker do?",
+      "choices": [
+        "Set a cookie for `berkeley.edu`, which the browser will then send with requests to `auth.berkeley.edu`",
+        "Run JavaScript with the origin of `auth.berkeley.edu`",
+        "Set cookies that are sent to every `.edu` site",
+        "Nothing. The same-origin policy keeps the two subdomains' cookies separate"
+      ],
+      "answer": 0,
+      "explain": "A page at `eecs.berkeley.edu` may set cookies for `berkeley.edu`, and the browser sends those to every `*.berkeley.edu` host, including `auth.berkeley.edu`. Running script as `auth.berkeley.edu` would need something like XSS, and `.edu` cookies are rejected because `.edu` is a top-level domain."
+    },
+    {
+      "type": "mc",
+      "category": "Cookie attributes and policy",
+      "q": "Two cookies have the same name and host but different `Path` values, and both match a request. What does the server receive?",
+      "choices": [
+        "Only the cookie with the longer path",
+        "Only the cookie that was set most recently",
+        "Both cookies, in an unspecified order",
+        "Neither, because the browser drops conflicting cookies"
+      ],
+      "answer": 2,
+      "explain": "Internally the browser stores cookies as name/path/value tuples, but it presents them to the server (and to JavaScript) as an unordered set of name/value pairs. So both cookies are sent, in no guaranteed order. Since `Path` isn't restricted, this has caused problems."
+    },
+    {
+      "type": "mc",
+      "category": "Session management",
+      "q": "After a user logs in with a valid username and password, how does a server usually keep them logged in on later requests?",
+      "choices": [
+        "It sends a new session token as a cookie. The browser attaches it to later requests, and the server looks up which user it belongs to",
+        "The browser re-sends the username and password with every request",
+        "The server remembers the user's IP address",
+        "The server stores the user's password in a cookie"
+      ],
+      "answer": 0,
+      "explain": "The server creates a session token, sends it in a cookie, and keeps a mapping from session tokens to users. Each later request carries the token cookie, so the server can tell who sent it and tailor the response."
+    },
+    {
+      "type": "mc",
+      "category": "Session management",
+      "q": "Why must session tokens be random and unpredictable?",
+      "choices": [
+        "So they compress well in HTTP headers",
+        "So an attacker can't guess someone else's token and take over their account",
+        "So the browser can tell them apart from other cookies",
+        "So they never need to expire"
+      ],
+      "answer": 1,
+      "explain": "Whoever presents a valid session token is treated as that user. If tokens could be guessed, an attacker could produce another user's token and get into their account."
+    },
+    {
+      "type": "mc",
+      "category": "Session management",
+      "q": "Many servers set both `HttpOnly` and `Secure` on session token cookies. Which threat does each flag protect against?",
+      "choices": [
+        "`HttpOnly`: injected scripts (XSS) reading the token. `Secure`: network attackers seeing the token",
+        "`HttpOnly`: network attackers seeing the token. `Secure`: injected scripts (XSS) reading the token",
+        "Both flags only protect against CSRF",
+        "Both flags keep the token from being sent to subdomains"
+      ],
+      "answer": 0,
+      "explain": "`HttpOnly` stops JavaScript, including attacker-injected JavaScript, from reading the cookie. `Secure` sends the cookie only over HTTPS, so a network attacker can't read it from a plain HTTP connection."
+    },
+    {
+      "type": "tf",
+      "category": "Session management",
+      "q": "\"Session token\" and \"cookie\" are two names for the same thing.",
+      "answer": false,
+      "explain": "A session token is the value that links a request to a logged-in user. A cookie is how the browser stores that value and sends it to the server. Cookies also hold other state, like preferences or cart contents, so a session token is just one use of a cookie."
+    },
+    {
+      "type": "mc",
+      "category": "Session management",
+      "q": "What does the server have to store so it can recognize session tokens?",
+      "choices": [
+        "A mapping from session tokens to users",
+        "Each user's browser history",
+        "A copy of every cookie each browser holds",
+        "Nothing, because the token contains the user's password"
+      ],
+      "answer": 0,
+      "explain": "When a request comes in with a session token cookie, the server looks up the matching user in its token-to-user mapping."
+    },
+    {
+      "type": "mc",
+      "category": "CSRF",
+      "q": "What happens in a cross-site request forgery (CSRF) attack?",
+      "choices": [
+        "The attacker steals the victim's session token and replays it from their own machine",
+        "The attacker gets the victim's browser to make an unintended request, and the browser automatically attaches the victim's session cookie",
+        "The attacker injects JavaScript into a trusted website",
+        "The attacker draws a fake button over a legitimate page"
+      ],
+      "answer": 1,
+      "explain": "In CSRF the attacker never has to see the token. The victim's own browser sends the forged request with the session cookie attached, so the server accepts it as coming from the victim. Injecting JavaScript is XSS, and drawing fake buttons is clickjacking."
+    },
+    {
+      "type": "mc",
+      "category": "CSRF",
+      "q": "An attacker emails the victim HTML containing `<img src=\"https://bank.com/transfer?amount=100&recipient=mallory\" />`. The bank performs transfers on GET requests. Why does this send Mallory $100?",
+      "choices": [
+        "The browser makes a GET request to load the \"image\" and automatically attaches the victim's bank session cookie",
+        "The image contains embedded JavaScript that reads the bank's cookies",
+        "The email client forwards the victim's password to the bank",
+        "The bank trusts every request that comes from an email"
+      ],
+      "answer": 0,
+      "explain": "To load the image, the browser sends a GET to the transfer URL. Because the request goes to `bank.com`, the browser attaches the bank's session cookie, and the bank processes the transfer as if the victim asked for it. This is one reason GET endpoints shouldn't change server state."
+    },
+    {
+      "type": "tf",
+      "category": "CSRF",
+      "q": "A bank that only changes state with POST requests, never GET, is safe from CSRF.",
+      "answer": false,
+      "explain": "The attacker's page can include a form with `action` set to `https://bank.com/transfer`, fields for the amount and recipient, and a script that calls `submit()` automatically. When the victim visits that page, their browser sends the POST with the session cookie attached."
+    },
+    {
+      "type": "mc",
+      "category": "CSRF",
+      "q": "How does a CSRF token defend against CSRF?",
+      "choices": [
+        "The server puts a random token in each form it serves, often in a hidden field, and rejects submissions where the token is missing or invalid",
+        "The browser encrypts the session cookie with the token",
+        "The token replaces the session cookie, so no cookie is sent",
+        "The token is placed in the `Referer` header"
+      ],
+      "answer": 0,
+      "explain": "A form the attacker builds can't contain a valid token for the victim's session, so the server rejects it even though the browser attached the session cookie."
+    },
+    {
+      "type": "multi",
+      "category": "CSRF",
+      "q": "Which of these are part of implementing CSRF tokens correctly?",
+      "choices": [
+        "Generate a new token every time a user requests a form",
+        "Make tokens random and unpredictable",
+        "Keep a server-side mapping from CSRF tokens to session tokens",
+        "Use one fixed token for all users so it's easy to check",
+        "Have the browser put the token in the `Referer` header"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The attacker can't forge a fresh, unpredictable token that is tied to the victim's session. Keeping the token-to-session mapping can take a lot of server state on a busy site. A token shared by all users could just be copied by the attacker."
+    },
+    {
+      "type": "mc",
+      "category": "CSRF",
+      "q": "An attacker requests the bank's form page to get a valid CSRF token and puts it in their malicious form. Why does the attack still fail?",
+      "choices": [
+        "CSRF tokens expire after one second",
+        "The token is tied to the attacker's request, not the victim's session, so it doesn't match the victim's session token",
+        "The browser removes CSRF tokens from cross-site forms",
+        "The bank encrypts the token with the victim's password"
+      ],
+      "answer": 1,
+      "explain": "The server checks that the CSRF token matches the session token on the request. The victim never requested that form, so the token the attacker got doesn't map to the victim's session."
+    },
+    {
+      "type": "mc",
+      "category": "CSRF",
+      "q": "A server defends against CSRF by checking the `Referer` header. What is the problem with requests whose `Referer` is blank?",
+      "choices": [
+        "Accepting them may leave the site open to CSRF, but rejecting them may break the site for legitimate users whose `Referer` was removed",
+        "There is no problem, because a blank `Referer` always means an attack",
+        "A blank `Referer` means the session token is also missing",
+        "The server can't parse the rest of the request"
+      ],
+      "answer": 0,
+      "explain": "Browsers, operating systems or network monitors may remove the `Referer` header for privacy, and some users turn it off. That's a trade-off between security and functionality, so `Referer` checking is usually only defense in depth alongside CSRF tokens."
+    },
+    {
+      "type": "tf",
+      "category": "CSRF",
+      "q": "The `Referer` header can be removed by the browser, the operating system or network monitoring for privacy reasons, so `Referer` validation is usually used only as defense in depth alongside CSRF tokens.",
+      "answer": true,
+      "explain": "You can't count on every request having a `Referer`, so it backs up CSRF tokens instead of replacing them. For example, `Referer` can reveal the Google search that led someone to a site."
+    },
+    {
+      "type": "text",
+      "category": "CSRF",
+      "q": "What HTTP request header (with a famous misspelling) tells the server which URL a request was made from?",
+      "answer": ["Referer", "Referrer", "Referer header", "Referrer header"],
+      "explain": "The `Referer` header, a decades-old misspelling of \"referrer\", gives the URL the request came from. A form submitted from the real bank site has a `bank.com` Referer, while one auto-submitted by an attacker's page has `evil.com`."
+    },
+    {
+      "type": "mc",
+      "category": "CSRF",
+      "q": "How does the `SameSite` cookie flag defend against CSRF, and why is it usually only defense in depth?",
+      "choices": [
+        "The cookie is sent only when its domain exactly matches the domain of the request's origin. Not every browser implements it",
+        "The cookie is sent only over HTTPS. Some servers don't support HTTPS",
+        "JavaScript can't read the cookie. Attackers can still use XSS",
+        "The cookie expires when the tab closes. Users rarely close tabs"
+      ],
+      "answer": 0,
+      "explain": "With the flag set, a request from `evil.com` to `bank.com` doesn't include `bank.com`'s cookies, because the origin domain and the cookie domain differ. The browser enforces it, but not all browsers implement it."
+    },
+    {
+      "type": "mc",
+      "category": "XSS",
+      "q": "Why are cross-site scripting (XSS) attacks so powerful?",
+      "choices": [
+        "The attacker's JavaScript runs in the victim's browser with the origin of the legitimate site, which gets around the same-origin policy",
+        "They let the attacker read the server's database directly",
+        "They break HTTPS encryption",
+        "They run code on the web server itself"
+      ],
+      "answer": 0,
+      "explain": "Normally an attacker's scripts only run with the attacker's own origin (e.g. `https://evil.com`). Once injected into `https://google.com`, they run as `https://google.com`, so they can do anything the user can do there and send the user's secrets for that site to the attacker."
+    },
+    {
+      "type": "mc",
+      "category": "XSS",
+      "q": "An attacker writes a social-media post containing `<script>alert(\"XSS attack!\")</script>`. The site saves the post and serves it to everyone who views the attacker's posts. What attack is this?",
+      "choices": ["Stored XSS", "Reflected XSS", "CSRF", "Clickjacking"],
+      "answer": 0,
+      "explain": "The malicious JavaScript is saved on the server and sent to every user who loads the page. That makes it stored XSS."
+    },
+    {
+      "type": "mc",
+      "category": "XSS",
+      "q": "A search page shows `You searched for: <query>` and echoes the `q` parameter without checking it. An attacker sends a victim the link `https://www.google.com/search?q=<script>alert(\"XSS attack!\")</script>`. What attack is this?",
+      "choices": ["Stored XSS", "CSRF", "Reflected XSS", "SQL injection"],
+      "answer": 2,
+      "explain": "The server takes input from the victim's own HTTP request and puts it into the response, so the script comes back to the victim and runs. That makes it reflected XSS. Nothing is stored on the server."
+    },
+    {
+      "type": "mc",
+      "category": "XSS",
+      "q": "What is the main difference between stored and reflected XSS?",
+      "choices": [
+        "Stored XSS saves the payload on the server, which serves it to anyone who loads the page. Reflected XSS has the server echo attacker input from the victim's own request",
+        "Stored XSS runs on the server. Reflected XSS runs in the browser",
+        "Stored XSS requires the victim to click an attacker's link. Reflected XSS doesn't",
+        "Reflected XSS can only show pop-ups. Stored XSS can steal data"
+      ],
+      "answer": 0,
+      "explain": "Both kinds run in the victim's browser with the vulnerable site's origin. They differ in how the script gets to the victim. In stored XSS it is saved on the server (e.g. a post). In reflected XSS it is echoed back from a request, usually through a crafted URL the victim loads."
+    },
+    {
+      "type": "mc",
+      "category": "XSS",
+      "q": "A filter rejects any input that contains `<script>` tags. Why isn't that enough to stop XSS?",
+      "choices": [
+        "Other HTML can run JavaScript without a `<script>` tag, e.g. `<img src=1 onerror=\"...\">`",
+        "Browsers ignore `<script>` tags in user content anyway",
+        "Attackers can only put `<script>` tags in cookies",
+        "Filtering input breaks HTTPS"
+      ],
+      "answer": 0,
+      "explain": "Event handlers like `onerror` on an image whose `src` fails to load run JavaScript without any `<script>` tag. Writing a detector that catches every XSS payload is very hard."
+    },
+    {
+      "type": "mc",
+      "category": "XSS",
+      "q": "A sanitizer removes every `<script>` and `</script>` it finds in one pass. An attacker submits `<scr<script>ipt>alert(1)</scr<script>ipt>`. What's left after sanitizing?",
+      "choices": [
+        "`alert(1)`",
+        "`<script>alert(1)</script>`",
+        "`<scr ipt>alert(1)</scr ipt>`",
+        "An empty string"
+      ],
+      "answer": 1,
+      "explain": "Removing the inner `<script>` from `<scr<script>ipt>` leaves `<script>`, and removing it from `</scr<script>ipt>` leaves `</script>`. The removal rebuilds the very payload it was meant to block. Like SQL escaping, home-made sanitizing is easy to get wrong, so it's better to use the standard sanitizations that are known to be robust."
+    },
+    {
+      "type": "mc",
+      "category": "XSS",
+      "q": "One way to escape input is HTML encoding. How is the less-than sign `<` encoded so the page displays it instead of treating it as markup?",
+      "choices": ["`&gt;`", "`&lt;`", "`%3C`", "`&amp;`"],
+      "answer": 1,
+      "explain": "`<` is encoded as `&lt;` and `>` as `&gt;`. The browser displays the characters but doesn't read them as tags, so injected markup does nothing."
+    },
+    {
+      "type": "mc",
+      "category": "XSS",
+      "q": "Who defines a Content Security Policy (CSP), and who enforces it?",
+      "choices": [
+        "The web server defines it in a `Content-Security-Policy` response header, and the browser enforces it",
+        "The browser defines it, and the web server enforces it",
+        "The user sets it in browser settings, and the operating system enforces it",
+        "A certificate authority defines it, and the web server enforces it"
+      ],
+      "answer": 0,
+      "explain": "The server attaches a `Content-Security-Policy` header to its HTTP response, and the browser checks every script against that header."
+    },
+    {
+      "type": "tf",
+      "category": "XSS",
+      "q": "With CSP enabled, inline scripts embedded directly in the page's HTML still run, as long as the site's own server sent them.",
+      "answer": false,
+      "explain": "Once CSP is on, no scripts embedded directly in the HTML run at all. The only scripts that run are external ones loaded by a `script` tag from domains the policy allows. That stops attackers from injecting inline scripts or making the page load scripts from their own domain."
+    },
+    {
+      "type": "multi",
+      "category": "XSS",
+      "q": "`cs161.org` sends a CSP that allows scripts only from `*.cs161.org` and `*.google.com`. Which of these scripts will the browser run?",
+      "choices": [
+        "An external script loaded from `https://static.cs161.org/app.js`",
+        "An external script loaded from `https://apis.google.com/lib.js`",
+        "An inline `<script>` block an attacker injected into a comment",
+        "An external script loaded from `https://evil.com/x.js`",
+        "An inline `<script>` block the site's own developers wrote into the page"
+      ],
+      "answer": [0, 1],
+      "explain": "Only external scripts from allowed domains run. Under CSP, every inline script is blocked, including the site's own, and `evil.com` isn't on the allowed list."
+    },
+    {
+      "type": "mc",
+      "category": "Clickjacking and phishing",
+      "q": "What is the goal of a clickjacking (UI) attack?",
+      "choices": [
+        "To \"steal\" a click so the user loads or triggers something the attacker controls",
+        "To read cookies that belong to a different origin",
+        "To flood a server with automated requests",
+        "To guess the user's session token"
+      ],
+      "answer": 0,
+      "explain": "Clickjacking uses visual tricks to get a user to click attacker-supplied input without meaning to. The attacker often uses that click to get the victim onto an attacker's page or link, for example to set up CSRF or reflected XSS."
+    },
+    {
+      "type": "multi",
+      "category": "Clickjacking and phishing",
+      "q": "A download page has several \"Download\" buttons, but only one is real. The others take the user to attacker-controlled sites. How could the fake buttons have gotten onto the page?",
+      "choices": [
+        "Through another web exploit, such as stored XSS",
+        "As a paid advertisement",
+        "Through the `Secure` cookie attribute",
+        "Through the site's Content Security Policy header"
+      ],
+      "answer": [0, 1],
+      "explain": "Fake download buttons can be injected with another exploit like stored XSS, or simply bought as ads. Users who click the wrong one end up on the attacker's site."
+    },
+    {
+      "type": "multi",
+      "category": "Clickjacking and phishing",
+      "q": "Which of these are clickjacking techniques an attacker with enough control over a page could use?",
+      "choices": [
+        "A form that shows a $5 payment but actually submits $50",
+        "Drawing a fake cursor so the real cursor ends up clicking a malicious link",
+        "Drawing an entire fake browser, including a fake address bar",
+        "Putting a random CSRF token in a hidden form field",
+        "Setting a cookie for a top-level domain"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "All three trick the user about what they're clicking or submitting. A hidden CSRF token is a defense, not an attack, and browsers reject cookies for top-level domains."
+    },
+    {
+      "type": "mc",
+      "category": "Clickjacking and phishing",
+      "q": "A site moves its submit button back and forth between the left and right sides of the screen. Which clickjacking defense is this, and what is its downside?",
+      "choices": [
+        "Confirmation pop-ups. Users click them without reading",
+        "UI randomization. A page that looks different every time can be hard to use",
+        "Delaying the click. It slows users down",
+        "Content Security Policy. Not every browser supports it"
+      ],
+      "answer": 1,
+      "explain": "If the real button moves around, the attacker doesn't know where to draw a fake one over it. The cost is usability, because the page keeps changing."
+    },
+    {
+      "type": "mc",
+      "category": "Clickjacking and phishing",
+      "q": "Which defense works best against an attacker who draws a fake cursor on the page?",
+      "choices": [
+        "Drawing the user's attention to their real click, e.g. highlighting the real cursor or freezing the screen except the area around it",
+        "Setting `HttpOnly` on session cookies",
+        "Checking the `Referer` header",
+        "Adding a CAPTCHA to the login page"
+      ],
+      "answer": 0,
+      "explain": "Highlighting the real cursor or freezing everything except the area around it makes the user look at where they're actually pointing, so a fake cursor is less likely to fool them. Clicks outside the relevant part of the screen can also be ignored."
+    },
+    {
+      "type": "tf",
+      "category": "Clickjacking and phishing",
+      "q": "Confirmation pop-ups reliably stop clickjacking, since the user has to confirm every dangerous action.",
+      "answer": false,
+      "explain": "Users often click through pop-ups without reading them, especially when they come up often. Human factors matter here."
+    },
+    {
+      "type": "mc",
+      "category": "Clickjacking and phishing",
+      "q": "What does the \"delay the click\" defense do?",
+      "choices": [
+        "Makes the user hover over a button for a while before the click counts, so they look at what they're clicking",
+        "Waits until the page has fully loaded before showing any buttons",
+        "Sends every click to the server to be approved first",
+        "Makes the user solve a CAPTCHA before each click"
+      ],
+      "answer": 0,
+      "explain": "Making the user hover for some time before the click is allowed means they spend a moment looking at their target before they click."
+    },
+    {
+      "type": "mc",
+      "category": "Clickjacking and phishing",
+      "q": "In web phishing, what human weakness does the attacker exploit?",
+      "choices": [
+        "Users can't easily tell a real website from a fake one that copies its UI",
+        "Users reuse session tokens across sites",
+        "Users turn off the same-origin policy",
+        "Users forget to install a Content Security Policy"
+      ],
+      "answer": 0,
+      "explain": "Phishing tricks the victim into handing over personal information. Attackers set up fake websites that look like the real one, counting on the user not being able to tell them apart."
+    },
+    {
+      "type": "multi",
+      "category": "Clickjacking and phishing",
+      "q": "Which of these make a phishing site more convincing?",
+      "choices": [
+        "Getting a valid certificate so the browser shows the lock icon",
+        "Using a homograph URL that looks like the real one, often with non-ASCII characters",
+        "A browser-in-browser attack that draws an entire fake browser with JavaScript",
+        "Setting `HttpOnly` on the phishing site's cookies",
+        "Requiring a CSRF token on the fake login form"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A valid certificate gives a false sense of security, a homograph URL looks almost the same as the real one, and browser-in-browser fakes the whole browser window. Cookie flags and CSRF tokens do nothing to make a fake site look real."
+    },
+    {
+      "type": "text",
+      "category": "Clickjacking and phishing",
+      "q": "What is the name of the phishing technique that builds a malicious URL that looks like the legitimate one, often by using non-ASCII characters?",
+      "answer": ["homograph attack", "homograph", "homograph attacks", "IDN homograph attack", "homograph URL"],
+      "explain": "In a homograph attack, characters that look alike (often non-ASCII) make a malicious domain look like the real one."
+    },
+    {
+      "type": "tf",
+      "category": "Clickjacking and phishing",
+      "q": "If the browser shows the lock icon, the site can't be a phishing site.",
+      "answer": false,
+      "explain": "Phishers can get valid certificates for their own domains, so the lock icon appears and gives users a false sense of security."
+    },
+    {
+      "type": "mc",
+      "category": "CAPTCHAs",
+      "q": "What basic question is a CAPTCHA designed to answer?",
+      "choices": [
+        "Is this a human?",
+        "Did this request come from the same origin?",
+        "Is this user's password correct?",
+        "Is this connection encrypted?"
+      ],
+      "answer": 0,
+      "explain": "Sites are built for people, not robots. A CAPTCHA is a test meant to tell whether a human is on the other end."
+    },
+    {
+      "type": "mc",
+      "category": "CAPTCHAs",
+      "q": "What kind of problem should a CAPTCHA be based on?",
+      "choices": [
+        "Problems that are hard for both humans and computers",
+        "Problems that are easy for humans but hard for computers",
+        "Problems that are easy for computers but hard for humans",
+        "Cryptographic problems such as factoring large numbers"
+      ],
+      "answer": 1,
+      "explain": "A CAPTCHA only works if real users pass it easily and automated programs don't."
+    },
+    {
+      "type": "multi",
+      "category": "CAPTCHAs",
+      "q": "Which of these attacks could a CAPTCHA help defend against?",
+      "choices": [
+        "Uploading lots of bogus images so the server runs an expensive text-recognition algorithm on each one (denial of service)",
+        "Brute-forcing a user's password by sending login requests with every possible password",
+        "A network attacker reading a session cookie sent over plain HTTP",
+        "A stored XSS payload in a social-media post"
+      ],
+      "answer": [0, 1],
+      "explain": "Both of these rely on automating a huge number of requests, which is what CAPTCHAs are meant to slow down. Sniffing cookies on the network and stored XSS don't depend on a bot getting through a human check."
+    },
+    {
+      "type": "mc",
+      "category": "CAPTCHAs",
+      "q": "What area have CAPTCHA problems traditionally come from?",
+      "choices": [
+        "Machine vision, e.g. distorted letters or \"select all images with boats\"",
+        "Natural-language translation",
+        "Number theory",
+        "Network routing"
+      ],
+      "answer": 0,
+      "explain": "Machine vision used to be hard for computers. Older CAPTCHAs used distorted letters or words, and Google's reCAPTCHA asks users to identify objects in images."
+    },
+    {
+      "type": "mc",
+      "category": "CAPTCHAs",
+      "q": "Why are CAPTCHAs caught in an arms race?",
+      "choices": [
+        "As solving algorithms improve, CAPTCHAs have to get harder, until humans themselves struggle to solve them quickly",
+        "Browsers keep dropping support for CAPTCHA images",
+        "Attackers keep finding XSS bugs in CAPTCHA widgets",
+        "CAPTCHAs need a new certificate every year"
+      ],
+      "answer": 0,
+      "explain": "Every improvement in solving algorithms weakens the defense. That's why CAPTCHAs have gotten so much harder over the last decade, and it's getting hard for humans to solve them quickly."
+    },
+    {
+      "type": "mc",
+      "category": "CAPTCHAs",
+      "q": "Why are modern CAPTCHAs like Google reCAPTCHA self-defeating for the sites that use them?",
+      "choices": [
+        "Humans who solve them provide training data for AI systems, which makes automated solving better",
+        "They leak the site's session tokens",
+        "They turn off the same-origin policy",
+        "They are too easy for humans"
+      ],
+      "answer": 0,
+      "explain": "The original CAPTCHA paper (\"How Lazy Cryptographers do AI\") wanted attackers to have to solve hard machine-vision problems. When human answers become AI training data, the sites using CAPTCHAs end up helping build the solvers that defeat them."
+    },
+    {
+      "type": "mc",
+      "category": "CAPTCHAs",
+      "q": "For accessibility, a site adds an audio CAPTCHA where the user transcribes a spoken phrase. What security problem can this create?",
+      "choices": [
+        "None, because audio CAPTCHAs are always harder for computers",
+        "It adds a new attack vector: attackers can target the audio version, which may be easier to solve than the image one",
+        "It exposes the user's microphone to the site",
+        "It turns off the image CAPTCHA for everyone"
+      ],
+      "answer": 1,
+      "explain": "An attacker can pick whichever alternative is weakest, so a CAPTCHA is only as strong as its easiest version."
+    },
+    {
+      "type": "mc",
+      "category": "CAPTCHAs",
+      "q": "CAPTCHA-solving services pay humans to solve CAPTCHAs for as little as about $0.10 each. What does that mean for CAPTCHAs as a defense?",
+      "choices": [
+        "If getting past the CAPTCHA is worth $0.10 or more to an attacker, CAPTCHAs don't work",
+        "CAPTCHAs still stop every attack, because humans are slow",
+        "CAPTCHAs only fail against nation-state attackers",
+        "Making CAPTCHAs harder fully fixes the problem"
+      ],
+      "answer": 0,
+      "explain": "A CAPTCHA no longer asks \"Is this a human or a bot?\" so much as \"Is this a human, or a bot willing to spend a fraction of a penny?\" Paying humans gets around it whenever the target is worth more than that."
+    }
+  ]
+}
