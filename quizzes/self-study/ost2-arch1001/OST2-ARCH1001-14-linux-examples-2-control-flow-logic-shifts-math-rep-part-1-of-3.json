@@ -1,0 +1,396 @@
+{
+  "title": "OST2 Arch1001 14: Linux Examples 2 - Control Flow, Logic, Shifts, Math, REP (part 1 of 3)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "goto and RIP-relative addressing",
+      "q": "GotoExample.c uses a `goto` to jump to a label that prints a string. When gcc on Linux compiled it without optimization, what did the disassembly show for the goto?",
+      "choices": [
+        "No jump at all. After the prologue came a nop and an endbr64, then the lea/puts call that prints the label's string",
+        "A `jmp` instruction whose target is the label's code",
+        "A `je` instruction, because goto compiles to an always-true condition",
+        "A `call` to the label, followed by a `ret`"
+      ],
+      "answer": 0,
+      "explain": "The expected unconditional jmp never showed up. Execution goes straight from the prologue through a nop and an endbr64 to the lea that loads the string's address and the call to puts. The C construct you want to see doesn't always appear in the compiled code."
+    },
+    {
+      "type": "tf",
+      "category": "goto and RIP-relative addressing",
+      "q": "32-bit x86 code could compute an address as a displacement from the instruction pointer, just as `lea 0xea7(%rip),%rdi` does in x86-64.",
+      "answer": false,
+      "explain": "RIP-relative addressing was added with the x86-64 extensions. In 32-bit code you couldn't use the instruction pointer as the base for a displacement this way."
+    },
+    {
+      "type": "mc",
+      "category": "goto and RIP-relative addressing",
+      "q": "In GotoExample, `lea 0xea7(%rip),%rdi` runs right before `call puts`. What ends up in rdi?",
+      "choices": [
+        "The first 8 bytes of the string, read from memory at rip+0xea7",
+        "The return address for the puts call",
+        "The address rip+0xea7, where the string constant is stored, passed as puts's first argument",
+        "The string's length, computed from rip"
+      ],
+      "answer": 2,
+      "explain": "lea only computes an address and never reads memory. rip+0xea7 is the address of the string literal, and rdi holds the first argument. In gdb, `x/s $rdi` showed the 'goto ... for the win' string at that address."
+    },
+    {
+      "type": "text",
+      "category": "goto and RIP-relative addressing",
+      "q": "In the GotoExample disassembly, the source's printf of a fixed string became a call to which libc function?",
+      "answer": ["puts", "puts()"],
+      "explain": "gcc used puts here because it does the same job: it writes the string to standard output. Stepping over the call printed the text."
+    },
+    {
+      "type": "tf",
+      "category": "goto and RIP-relative addressing",
+      "q": "Stepping over the endbr64 instruction in GotoExample changed register values you could see.",
+      "answer": false,
+      "explain": "Stepping over the nop and the endbr64 left the registers as they were. The first instruction that does visible work is the rip-relative lea that puts the string address in rdi."
+    },
+    {
+      "type": "mc",
+      "category": "Signed conditional jumps",
+      "q": "IfExample: `int a = -1, b = 2; if (a == b) return 1; else if (a > b) return 2; else if (a < b) return 3; else return 0xdefea7;`. Unoptimized gcc compiles `if (a == b) return 1;` as a cmp followed by which jump?",
+      "choices": [
+        "je to a block that returns 1",
+        "jz straight to the epilogue",
+        "jg, because -1 and 2 are signed",
+        "jne, which jumps over the `mov $1,%eax` when a and b differ and falls through to return 1 when they're equal"
+      ],
+      "answer": 3,
+      "explain": "gcc flips the condition. When the test fails, it jumps over that return block. When the test passes, execution falls into the block, which sets eax and then jumps to the shared epilogue. Here -1 != 2, so the jne is taken and execution moves on to the next comparison."
+    },
+    {
+      "type": "mc",
+      "category": "Signed conditional jumps",
+      "q": "gdb shows the AT&T instruction `cmp -0x8(%rbp),%eax` followed by `jle <addr>`. When is the jump taken?",
+      "choices": [
+        "When eax < [rbp-8] (signed)",
+        "When [rbp-8] <= eax (signed)",
+        "When eax <= [rbp-8] (unsigned)",
+        "When eax <= [rbp-8] (signed)"
+      ],
+      "answer": 3,
+      "explain": "AT&T reverses Intel's operand order. `cmp -0x8(%rbp),%eax` is Intel `cmp eax, [rbp-8]`, so read jle as 'eax <= [rbp-8]'. You can't just put the <= between the operands in the order AT&T prints them. jle is a signed comparison; the unsigned equivalent is jbe."
+    },
+    {
+      "type": "num",
+      "category": "Signed conditional jumps",
+      "q": "IfExample stores a = -1 at rbp-4 and b = 2 at rbp-8. It then runs three compare-and-jump pairs in order: jne, jle, jge. Each jump skips one return block when taken. How many of the three jumps are taken?",
+      "answer": 2,
+      "explain": "jne: -1 != 2, so it's taken and return 1 is skipped. jle: -1 <= 2, so it's taken and return 2 is skipped. jge: -1 >= 2 is false, so it isn't taken. Execution falls into `mov $3,%eax`, and the function returns 3."
+    },
+    {
+      "type": "tf",
+      "category": "Signed conditional jumps",
+      "q": "In unoptimized IfExample, the final `else return 0xdefea7;` still appears in the assembly. The `return 3` block ends with an unconditional jmp that skips that dead code and goes to the epilogue.",
+      "answer": true,
+      "explain": "Unoptimized gcc leaves the unreachable code in. After eax is set to 3, a jmp goes to the epilogue address that every return path uses, skipping the dead 'defeat' block."
+    },
+    {
+      "type": "text",
+      "category": "Signed conditional jumps",
+      "q": "IfExample writes a and b to rbp-4 and rbp-8 without subtracting anything from rsp, so they sit below the stack pointer. A function that calls nothing can use this area below rsp without moving rsp. What is it called?",
+      "answer": ["red zone", "the red zone", "redzone"],
+      "explain": "It's the red zone. Since the function makes no calls, gcc doesn't allocate stack space and uses the area just below rsp. The lecture watched those two locals in gdb with `display/2wx $rbp-8`."
+    },
+    {
+      "type": "mc",
+      "category": "Unsigned conditional jumps",
+      "q": "IfExample2 has the same if/else chain as IfExample (== returns 1, > returns 2, < returns 3, otherwise 0xdefea7), but it declares `unsigned int a = -1, b = 2;`. What does it return?",
+      "choices": ["1", "2", "3", "0xdefea7"],
+      "fixed": true,
+      "answer": 1,
+      "explain": "As an unsigned value, -1 is 0xFFFFFFFF, about 4 billion. That isn't equal to 2, but it is greater than 2, so the function returns 2."
+    },
+    {
+      "type": "text",
+      "category": "Unsigned conditional jumps",
+      "q": "What 32-bit value is actually stored for `unsigned int a = -1;`? Answer in hex.",
+      "answer": ["0xFFFFFFFF", "0xffffffff", "FFFFFFFF", "ffffffff"],
+      "explain": "In two's complement, -1 is all ones: 0xFFFFFFFF. Read as unsigned, that's 4,294,967,295."
+    },
+    {
+      "type": "mc",
+      "category": "Unsigned conditional jumps",
+      "q": "In IfExample2, which conditional jump does gcc use to skip the `return 2` block for the unsigned test `a > b`?",
+      "choices": ["jle", "jge", "jbe", "jae"],
+      "answer": 2,
+      "explain": "Because the condition is flipped, the skip happens when a <= b. For unsigned values that's 'below or equal', jbe. 0xFFFFFFFF is not below or equal to 2, so jbe isn't taken and execution falls through to return 2."
+    },
+    {
+      "type": "multi",
+      "category": "Unsigned conditional jumps",
+      "q": "Which of these conditional jumps compare values as unsigned?",
+      "choices": ["ja", "jb", "jbe", "jae", "jg", "jl", "jle", "jge"],
+      "answer": [0, 1, 2, 3],
+      "explain": "Above/below (a, b, ae, be) are the unsigned conditions. Greater/less (g, l, ge, le) are the signed ones."
+    },
+    {
+      "type": "tf",
+      "category": "Unsigned conditional jumps",
+      "q": "IfExample and IfExample2 return different values because the bytes stored for a are different (-1 in one, 0xFFFFFFFF in the other).",
+      "answer": false,
+      "explain": "Both store the same 32 bits, 0xFFFFFFFF. The difference is which jump the compiler chose: signed jle/jge in IfExample, unsigned jbe in IfExample2. The declared type decides how the bits are compared, not what bits are stored."
+    },
+    {
+      "type": "mc",
+      "category": "Switch statements",
+      "q": "SwitchExample: `a = atoi(argv[1]); switch (a) { case 0: return 1; case 1: return 2; default: return 3; }`. How did unoptimized gcc lay this out?",
+      "choices": [
+        "A jump table indexed by a",
+        "Flipped jne checks that each skip over one case's block, the same as the if/else chain",
+        "`cmp $0` and a je forward to the 'return 1' block, then `cmp $1` and a je forward to the 'return 2' block, falling through to the default 'return 3' if neither matched",
+        "One cmp against the largest case value, then ja to the default"
+      ],
+      "answer": 2,
+      "explain": "Each case is a compare against its constant and a je that jumps forward to that case's block. The block sets eax and jumps to the end. The default comes right after the compares, so any value that matches no case falls into it. This differs from the flipped-jump layout of the if examples."
+    },
+    {
+      "type": "num",
+      "category": "Switch statements",
+      "q": "In SwitchExample, the code loads argv into rax and adds a constant to get the address of argv[1]. How many bytes are added on x86-64?",
+      "answer": 8,
+      "explain": "argv is an array of char* pointers, and each pointer takes 8 bytes on x86-64, so &argv[1] = argv + 8. The code then dereferences that slot to get the pointer to the argument string it passes to atoi."
+    },
+    {
+      "type": "text",
+      "category": "Switch statements",
+      "q": "The program was run with the argument 31337, and atoi converted it to the integer stored in a. What is 31337 in hex?",
+      "answer": ["0x7a69", "0x7A69", "7a69", "7A69"],
+      "explain": "31337 = 7*4096 + 10*256 + 6*16 + 9 = 0x7A69."
+    },
+    {
+      "type": "mc",
+      "category": "Switch statements",
+      "q": "With the argument 31337, what happens in SwitchExample's compiled code?",
+      "choices": [
+        "The first je (compare with 0) is taken, and the function returns 1",
+        "Neither je is taken, so execution falls into the default block and returns 3",
+        "The second je is taken, and the function returns 2",
+        "Both je's fall through to the unreachable return after the switch"
+      ],
+      "answer": 1,
+      "explain": "0x7A69 is neither 0 nor 1, so both je's fall through into the default case's `mov $3,%eax`. The code after the switch never runs."
+    },
+    {
+      "type": "tf",
+      "category": "Switch statements",
+      "q": "In SwitchExample, atoi's return value (in eax) is stored into the local variable a, and the comparisons then check each case constant against a's stack slot.",
+      "answer": true,
+      "explain": "Unoptimized code stores atoi's result in a's stack slot, and each cmp compares a case constant with that memory location."
+    },
+    {
+      "type": "mc",
+      "category": "Boolean operations",
+      "q": "BooleanBecause computes `k ^= ~(i & j) | C;`. In what order do the generated instructions perform the operations?",
+      "choices": [
+        "AND, then NOT, then OR, then XOR into k",
+        "NOT, then AND, then OR, then XOR into k",
+        "XOR, then OR, then NOT, then AND",
+        "AND, then OR, then NOT, then XOR into k"
+      ],
+      "answer": 0,
+      "explain": "The parentheses come first: i & j (and). Next, unary ~ (not) applies to that result. Then comes | C (or). Last, ^= XORs the result with k and stores it back into k."
+    },
+    {
+      "type": "text",
+      "category": "Boolean operations",
+      "q": "If i = 0x50DA and j = 0xC0FFEE, what is i & j in hex?",
+      "answer": ["0x50CA", "0x50ca", "50CA", "50ca", "0x0050CA", "0x0050ca", "0x000050CA", "0x000050ca"],
+      "explain": "Line them up as 0x0050DA & 0xC0FFEE. 0x00 & 0xC0 = 0x00, 0x50 & 0xFF = 0x50, and 0xDA & 0xEE = 0xCA, so the result is 0x50CA. In the lecture, 'soda' AND 'coffee' gave 'soca'."
+    },
+    {
+      "type": "text",
+      "category": "Boolean operations",
+      "q": "Next step: what is the 32-bit NOT of 0x000050CA?",
+      "answer": ["0xFFFFAF35", "0xffffaf35", "FFFFAF35", "ffffaf35"],
+      "explain": "Flip each nibble: 0 becomes F, 5 becomes A, C becomes 3, and A becomes 5. So 0x000050CA turns into 0xFFFFAF35."
+    },
+    {
+      "type": "tf",
+      "category": "Boolean operations",
+      "q": "OR-ing 0xFFFFAF35 with 0x0007AB00 changes the value.",
+      "answer": false,
+      "explain": "Every 1 bit in 0x0007AB00 is already set in 0xFFFFAF35 (0xFFFF covers 0x0007, and 0xAF35 covers 0xAB00), so the result is still 0xFFFFAF35. The lecture saw the same thing: after the OR, the register's value hadn't changed."
+    },
+    {
+      "type": "mc",
+      "category": "Boolean operations",
+      "q": "k is a 64-bit local at rbp-0x10. How does the unoptimized code perform the final `k ^= result`?",
+      "choices": [
+        "It XORs k's value in memory with the result in rax, stores that back into k, then loads k into rax to return it",
+        "It XORs rax with itself to zero it, then stores rax to k",
+        "It ORs k into rax and returns without updating k",
+        "It stores the result into k, replacing the old value without any XOR"
+      ],
+      "answer": 0,
+      "explain": "The XOR combines k's current value (the memory at rbp-0x10) with the computed result, the new value is written back to k, and then k is loaded into rax as the return value."
+    },
+    {
+      "type": "mc",
+      "category": "for loops",
+      "q": "ForLoopNoRet: `for (i = 0; i < 10; i++) printf(\"i = %d\\n\", i); i--;` with no return statement. After `movl $0x0,-0x4(%rbp)` (i = 0), what does unoptimized gcc's loop code do next?",
+      "choices": [
+        "Falls into the loop body, then checks the condition at the bottom",
+        "Jumps unconditionally down to the condition check at the bottom, which jumps back up to the body while the condition holds",
+        "Checks the condition at the top and jumps forward past the loop when it fails",
+        "Uses the `loop` instruction with rcx as the counter"
+      ],
+      "answer": 1,
+      "explain": "gcc puts the test after the body. Its first move is a jump down to the cmp, and the conditional jump there goes back up to the body. Each pass through the body ends with i++ and then runs into the same test."
+    },
+    {
+      "type": "mc",
+      "category": "for loops",
+      "q": "How did gcc implement the loop condition `i < 10`?",
+      "choices": [
+        "`cmpl $0xa,-0x4(%rbp)` then jl back to the body",
+        "`cmpl $0xa,-0x4(%rbp)` then jge out of the loop",
+        "`cmpl $0x9,-0x4(%rbp)` then jle back to the body",
+        "`cmpl $0x9,-0x4(%rbp)` then jg back to the body"
+      ],
+      "answer": 2,
+      "explain": "For integers, i <= 9 is the same as i < 10. In AT&T order, `cmpl $0x9,-0x4(%rbp)` compares i with 9, and jle jumps back to the body as long as i <= 9."
+    },
+    {
+      "type": "multi",
+      "category": "for loops",
+      "q": "Which of these did unoptimized gcc produce for ForLoopNoRet? (Visual Studio's version used the others.)",
+      "choices": [
+        "add $1 for i++",
+        "inc for i++",
+        "sub $1 for i--",
+        "dec for i--",
+        "mov $0x0,%eax for the implicit return value",
+        "xor %eax,%eax for the implicit return value"
+      ],
+      "answer": [0, 2, 4],
+      "explain": "gcc used add and sub, and set the zero return value with mov. Visual Studio's unoptimized output used inc, dec and xor, even though the Intel manuals generally advise against inc and dec."
+    },
+    {
+      "type": "mc",
+      "category": "for loops",
+      "q": "In the loop body, i is copied into esi and the address of the format string \"i = %d\\n\" goes into rdi, just before `call printf`. Why those registers?",
+      "choices": [
+        "The Linux x86-64 (System V) calling convention passes the 1st argument (the format string) in rdi and the 2nd (i) in rsi",
+        "printf always reads its arguments from esi and edi, whatever the calling convention",
+        "rdi holds the 2nd argument and rsi holds the 1st",
+        "They're callee-saved registers, so printf won't change them"
+      ],
+      "answer": 0,
+      "explain": "Integer and pointer arguments go in rdi, rsi, rdx, rcx, r8 and r9, in that order. The format string is printf's first argument, so it goes in rdi, and i is the second, so it goes in esi. Running `x/s $rdi` before the call shows \"i = %d\\n\"."
+    },
+    {
+      "type": "tf",
+      "category": "for loops",
+      "q": "ForLoopNoRet has no return statement, so gcc's code leaves eax holding whatever the last printf returned.",
+      "answer": false,
+      "explain": "gcc still sets a zero return value, with `mov $0x0,%eax` (not `xor %eax,%eax`) right after the i--."
+    },
+    {
+      "type": "mc",
+      "category": "TEST and bitmasks",
+      "q": "What does the `test` instruction do?",
+      "choices": [
+        "Subtracts the operands, discards the result and sets the flags",
+        "ANDs the operands and stores the result in the destination",
+        "ANDs the operands, discards the result and sets the flags",
+        "Checks the operands for equality and writes 1 or 0 to the destination"
+      ],
+      "answer": 2,
+      "explain": "test relates to and the way cmp relates to sub: it performs the AND only to set the flags and throws the result away. The 'subtracts' choice describes cmp."
+    },
+    {
+      "type": "text",
+      "category": "TEST and bitmasks",
+      "q": "BitmaskExample sets a = 0x301 and b = 0x100. What is a & b in hex?",
+      "answer": ["0x100", "0x0100", "100", "0x00000100"],
+      "explain": "0x301 = 0011 0000 0001 and 0x100 = 0001 0000 0000. Bit 8 is the only bit set in both, so the result is 0x100. That's non-zero, which C treats as true."
+    },
+    {
+      "type": "tf",
+      "category": "TEST and bitmasks",
+      "q": "je and jz are two names for the same instruction, and both jump when the zero flag is set.",
+      "answer": true,
+      "explain": "They're two mnemonics for one instruction. Read 'je' after a `test` as 'jump if the AND result was zero'."
+    },
+    {
+      "type": "mc",
+      "category": "TEST and bitmasks",
+      "q": "After `and` leaves 0x100 in eax, the code runs `test %eax,%eax` and then `je <else-branch>`. What happens?",
+      "choices": [
+        "test sets ZF because any value ANDed with itself is zero, so je is taken",
+        "test sets the carry flag, which je ignores, so execution falls through",
+        "test overwrites eax with 0, so the else value is returned",
+        "test clears ZF because 0x100 & 0x100 = 0x100 is non-zero, so je isn't taken and execution falls into the 'if true' return"
+      ],
+      "answer": 3,
+      "explain": "test eax,eax sets ZF only when eax is 0. Since 0x100 is non-zero, ZF is 0 and je (jz) isn't taken. Execution falls through, loads the 'true' return value into eax and jumps to the epilogue."
+    },
+    {
+      "type": "mc",
+      "category": "TEST and bitmasks",
+      "q": "In C, when is `if (a & b)` true?",
+      "choices": [
+        "When a & b equals 1",
+        "When a & b is non-zero",
+        "When a and b are both non-zero",
+        "When a & b equals a"
+      ],
+      "answer": 1,
+      "explain": "In C, any non-zero value counts as true. That's why the compiler only needs test and je: it jumps to the else branch only when the bitwise result is zero. 'Both non-zero' describes &&, which is different: 0x1 & 0x2 is 0 even though both values are non-zero."
+    },
+    {
+      "type": "mc",
+      "category": "Reading AT&T output in gdb",
+      "q": "Which gdb command shows the string that rdi points to? (The lecture used it to check the arguments to puts and printf.)",
+      "choices": ["x/s $rdi", "p $rdi", "x/2wx $rdi", "info registers rdi"],
+      "answer": 0,
+      "explain": "x (examine) with the /s format reads the memory at that address as a C string. `p $rdi` and `info registers` only print the pointer value, and /2wx dumps two 4-byte words in hex."
+    },
+    {
+      "type": "mc",
+      "category": "Reading AT&T output in gdb",
+      "q": "While stepping through IfExample, the lecture used `display/2wx $rbp-8`. What does it do?",
+      "choices": [
+        "Shows two 8-byte giant words at rbp-8, one time",
+        "Writes the value 2 into the word at rbp-8",
+        "Every time execution stops, shows two 4-byte words in hex starting at rbp-8, which covers b (rbp-8) and a (rbp-4)",
+        "Disassembles 2 instructions starting at rbp-8"
+      ],
+      "answer": 2,
+      "explain": "display re-evaluates its expression every time execution stops. In /2wx, 2 is the count, w means 4-byte words and x means hex. Starting at rbp-8, the first word is b and the second (at rbp-4) is a."
+    },
+    {
+      "type": "mc",
+      "category": "Reading AT&T output in gdb",
+      "q": "To skip the rest of the loop iterations in ForLoopNoRet, the lecture ran gdb's until command to the instruction just after the loop. Which form passes until a code address?",
+      "choices": [
+        "until *0x5555555551a0",
+        "until 0x5555555551a0",
+        "until &0x5555555551a0",
+        "until $0x5555555551a0"
+      ],
+      "answer": 0,
+      "explain": "Without the *, gdb reads the argument as a source location such as a line number, not an instruction address. The lecture pointed out that the star is required when you give an address."
+    },
+    {
+      "type": "mc",
+      "category": "Reading AT&T output in gdb",
+      "q": "In SwitchExample, the lecture wanted to run past the whole atoi call instead of stepping into it. Which gdb command does that one instruction at a time?",
+      "choices": ["stepi (si)", "nexti (ni)", "finish", "continue"],
+      "answer": 1,
+      "explain": "nexti executes one instruction but treats a call as a single step, so the whole called function runs. stepi would step into atoi, finish runs until the current function returns, and continue runs until the next breakpoint."
+    },
+    {
+      "type": "tf",
+      "category": "Reading AT&T output in gdb",
+      "q": "In AT&T syntax, as gdb shows it on Linux, the destination operand comes last. For example, `mov %eax,%esi` copies eax into esi.",
+      "answer": true,
+      "explain": "AT&T orders operands source then destination, the reverse of Intel. That's also why cmp operands look backward when you read signed jumps such as jle and jge."
+    }
+  ]
+}

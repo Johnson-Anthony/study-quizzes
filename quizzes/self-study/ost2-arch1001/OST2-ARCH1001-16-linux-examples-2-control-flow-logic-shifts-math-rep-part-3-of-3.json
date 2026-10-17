@@ -1,0 +1,357 @@
+{
+  "title": "Linux Examples 2 (part 3 of 3): ArrayLocalVariable2, ThereWillBe0xb100d, JourneyToTheCenterOfMemcpy with GCC",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "rep stos zero-initialization",
+      "q": "In ArrayLocalVariable2.c, `short b[64] = {0};` is compiled by GCC into: `lea -0x90(%rbp),%rdx` / `mov $0x0,%eax` / `mov $0x10,%ecx` / `mov %rdx,%rdi` / `rep stos %rax,%es:(%rdi)`. What role does rdi play in the rep stos?",
+      "choices": [
+        "The repeat count",
+        "The destination address where each store is written",
+        "The value being stored",
+        "The source address of the data being copied"
+      ],
+      "answer": 1,
+      "explain": "rep stos writes the value in rax (here 0) to the memory rdi points at, and rcx holds the number of repetitions. rdi was loaded with rbp-0x90, the start of b."
+    },
+    {
+      "type": "num",
+      "category": "rep stos zero-initialization",
+      "q": "The array `short b[64]` is zeroed with `rep stos %rax,%es:(%rdi)`, which stores 8 bytes per iteration. How many iterations does it need (in decimal), i.e. what value must ecx hold?",
+      "answer": 16,
+      "explain": "64 shorts x 2 bytes = 128 (0x80) bytes. 128 / 8 bytes per store = 16 = 0x10, which matches `mov $0x10,%ecx`."
+    },
+    {
+      "type": "tf",
+      "category": "rep stos zero-initialization",
+      "q": "In the AT&T-syntax instruction `rep stos %rax,%es:(%rdi)`, naming the 64-bit register %rax is what shows that each store is 8 bytes. Intel syntax would show it with a size keyword such as \"qword ptr\".",
+      "answer": true,
+      "explain": "AT&T syntax shows the operand size through the register (%rax = 8 bytes), so this is a repeated 8-byte store of rax to the memory at rdi."
+    },
+    {
+      "type": "mc",
+      "category": "rep stos zero-initialization",
+      "q": "What happens to rcx while `rep stos` executes?",
+      "choices": [
+        "It is decremented by 8 after each store, because each store writes 8 bytes",
+        "It holds the value being stored and never changes",
+        "It is decremented by 1 after each store, and the repetition stops when it reaches 0",
+        "It is incremented until it equals rdi"
+      ],
+      "answer": 2,
+      "explain": "rcx counts iterations, not bytes. In ArrayLocalVariable2 it starts at 0x10 and drops by 1 per store until it hits 0. rdi is the register that advances by the store size."
+    },
+    {
+      "type": "tf",
+      "category": "rep stos zero-initialization",
+      "q": "In GDB, a single `ni` runs the whole `rep stos` at once, the same way it steps over a `call`.",
+      "answer": false,
+      "explain": "ni only steps over call instructions. On a rep instruction each ni runs one iteration (rcx goes down by 1), so the 0x10-iteration rep stos takes 16 steps. To skip past it, use `until` or a breakpoint on the next instruction."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frame layout and red zone",
+      "q": "In ArrayLocalVariable2, b[0] is at rbp-0x90. At what address is b[1] stored?",
+      "choices": [
+        "rbp-0x90",
+        "rbp-0x8c",
+        "rbp-0x8e",
+        "rbp-0x88"
+      ],
+      "answer": 2,
+      "explain": "Elements of a short array are 2 bytes apart, so b[1] = rbp-0x90+2 = rbp-0x8e. That matches `mov %ax,-0x8e(%rbp)` and `movzwl -0x8e(%rbp),%eax`."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frame layout and red zone",
+      "q": "Where does the local variable `int a` live in ArrayLocalVariable2's frame?",
+      "choices": [
+        "rbp-0x4",
+        "rbp-0x18",
+        "rbp-0x8e",
+        "rbp-0x90"
+      ],
+      "answer": 0,
+      "explain": "`movl $0x5eaf00d,-0x4(%rbp)` stores 0x5eaf00d into a, right below the saved rbp. The stack diagram shows a in the upper half of the 8-byte slot at rbp-8, with padding below it before the array."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frame layout and red zone",
+      "q": "After ArrayLocalVariable2's prolog, rbp = 0x7fffffffdf40. What is rsp after `sub $0x18,%rsp`?",
+      "choices": [
+        "0x7fffffffdf58",
+        "0x7fffffffdf28",
+        "0x7fffffffdeb0",
+        "0x7fffffffdf3c"
+      ],
+      "answer": 1,
+      "explain": "0x7fffffffdf40 - 0x18 = 0x7fffffffdf28. In the stack diagram that slot holds b[60]-b[63]. 0x...deb0 is b[0] (rbp-0x90), and 0x...df3c is a (rbp-4)."
+    },
+    {
+      "type": "num",
+      "category": "Stack frame layout and red zone",
+      "q": "In ArrayLocalVariable2, rsp = rbp-0x18 and b occupies rbp-0x90 through rbp-0x11. How many bytes of b lie below rsp (in decimal)?",
+      "answer": 120,
+      "explain": "The bytes from rbp-0x90 up to rbp-0x19 are below rsp: 0x90 - 0x18 = 0x78 = 120 bytes. Only 8 bytes of the array (b[60]-b[63]) are at or above rsp. The rest is in the red zone."
+    },
+    {
+      "type": "tf",
+      "category": "Stack frame layout and red zone",
+      "q": "In ArrayLocalVariable2, main moves rsp down far enough to cover all 0x90 bytes of its locals.",
+      "answer": false,
+      "explain": "main subtracts only 0x18 from rsp, but its locals reach down to rbp-0x90. So rsp points near the top of the array, and most of the array sits below rsp in the red zone."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frame layout and red zone",
+      "q": "In the JourneyToTheCenterOfMemcpy build with a 0x200-byte char array, the code stores 0xFF to -0x210(%rbp) and also computes the address -0x420(%rbp). The C source sets `a.var1 = 0xFF` and then copies a into b. Which conclusion is correct?",
+      "choices": [
+        "b starts at rbp-0x210 and a starts at rbp-0x420",
+        "a starts at rbp-0x210 and b starts at rbp-0x420",
+        "a and b both start at rbp-0x210",
+        "It can't be worked out, because the 0xFF store says nothing about which struct is which"
+      ],
+      "answer": 1,
+      "explain": "The 0xFF store is a.var1 = 0xFF, and var1 is the first field. So the struct at rbp-0x210 is a, and the other one, at rbp-0x420, is b."
+    },
+    {
+      "type": "mc",
+      "category": "Truncation and zero extension",
+      "q": "In ArrayLocalVariable2, `a = 0x5eaf00d; b[1] = (short)a;`. What value ends up in b[1]?",
+      "choices": [
+        "0x05ea",
+        "0x5eaf00d",
+        "0x000d",
+        "0xf00d"
+      ],
+      "answer": 3,
+      "explain": "Casting a 32-bit int to a 16-bit short keeps only the low 16 bits: 0x5eaf00d -> 0xf00d. The stack diagram shows b[1]=0xf00d."
+    },
+    {
+      "type": "mc",
+      "category": "Truncation and zero extension",
+      "q": "Which instruction in ArrayLocalVariable2 actually performs the truncation of a to a short?",
+      "choices": [
+        "mov -0x4(%rbp),%eax",
+        "mov %ax,-0x8e(%rbp)",
+        "movzwl -0x8e(%rbp),%eax",
+        "movl $0x5eaf00d,-0x4(%rbp)"
+      ],
+      "answer": 1,
+      "explain": "All 32 bits of a are loaded into eax. The store then uses only the 16-bit register ax, so only the low 2 bytes (0xf00d) are written to b[1]."
+    },
+    {
+      "type": "mc",
+      "category": "Truncation and zero extension",
+      "q": "What does `movzwl -0x8e(%rbp),%eax` do?",
+      "choices": [
+        "Reads a 32-bit value from memory and truncates it to 16 bits",
+        "Reads a 16-bit word from memory and sign-extends it into eax",
+        "Reads a 16-bit word from memory and zero-extends it into the 32-bit eax",
+        "Writes ax to memory and then zeroes eax"
+      ],
+      "answer": 2,
+      "explain": "movz = move with zero extension. The 'w' suffix means the source is a word (16 bits) and the 'l' suffix means the destination is a long (32 bits). The upper 16 bits of eax become 0."
+    },
+    {
+      "type": "tf",
+      "category": "Truncation and zero extension",
+      "q": "main returns a short, but GCC still loads b[1] with movzwl so the upper bits of eax are cleared and don't hold leftover garbage.",
+      "answer": true,
+      "explain": "The return value goes in eax. Zero-extending the 16-bit b[1] into the full 32-bit eax makes sure the upper bits are clean."
+    },
+    {
+      "type": "text",
+      "category": "Truncation and zero extension",
+      "q": "What hex value is in eax when main in ArrayLocalVariable2 returns?",
+      "answer": ["0xf00d", "0xF00D", "f00d", "F00D", "0x0000f00d", "0x0000F00D", "0000f00d"],
+      "explain": "b[1] holds 0xf00d, and `movzwl -0x8e(%rbp),%eax` zero-extends it, so eax = 0x0000f00d."
+    },
+    {
+      "type": "tf",
+      "category": "GCC vs Visual Studio",
+      "q": "Compiled with GCC on Linux, ThereWillBe0xb100d.c uses rep stos to fill its stack space with 0xCC bytes, just as the Visual Studio build did.",
+      "answer": false,
+      "explain": "The 0xCC fill was a Visual Studio runtime-debugging feature. The GCC build just stores the values into the array as written, with no rep stos."
+    },
+    {
+      "type": "mc",
+      "category": "GCC vs Visual Studio",
+      "q": "Why did the Visual Studio build of ThereWillBe0xb100d.c contain a rep stos that the GCC build does not?",
+      "choices": [
+        "GCC cannot generate rep stos instructions",
+        "Visual Studio's runtime debugging checks fill stack memory with 0xCC bytes, and GCC doesn't do that",
+        "On Linux the kernel zero-fills each stack frame, so GCC has no need for it",
+        "GCC moves arrays like that one onto the heap"
+      ],
+      "answer": 1,
+      "explain": "Filling the frame with 0xCC was specific to Visual Studio's runtime debugging. GCC can certainly emit rep stos: ArrayLocalVariable2 uses it to zero-initialize an array."
+    },
+    {
+      "type": "mc",
+      "category": "GCC vs Visual Studio",
+      "q": "JourneyToTheCenterOfMemcpy.c copies a small struct (an int plus a 4-byte char array) from a to b with memcpy. What did GCC generate with optimizations OFF?",
+      "choices": [
+        "A call to __memcpy_chk",
+        "A call to memcpy, which then used a couple of mov instructions internally",
+        "No call to memcpy at all: the copy was inlined as a couple of mov instructions",
+        "A rep movs"
+      ],
+      "answer": 2,
+      "explain": "Even unoptimized, GCC inlined the small fixed-size copy into a few movs in main. Visual Studio, by contrast, always called a memcpy function, and that function used a couple of movs for small sizes."
+    },
+    {
+      "type": "tf",
+      "category": "GCC vs Visual Studio",
+      "q": "In the Visual Studio version of the memcpy example, the compiler always emitted a call to a memcpy function, and that function used just a couple of mov instructions for small sizes.",
+      "answer": true,
+      "explain": "That is the contrast with GCC, which skipped the function call completely and inlined small fixed-size copies straight into the caller."
+    },
+    {
+      "type": "mc",
+      "category": "Inlined memcpy and rep movs",
+      "q": "In JourneyToTheCenterOfMemcpy with GCC, the struct's char array was first enlarged to 0x20 bytes. What did GCC produce for the copy?",
+      "choices": [
+        "A call into the library memcpy",
+        "A rep movs",
+        "Still an inline series of mov instructions, enough to cover the 0x20 bytes",
+        "A rep stos"
+      ],
+      "answer": 2,
+      "explain": "At 0x20 the compiler still just emitted mov instructions. A rep movs only showed up after the array was made much bigger (0x200)."
+    },
+    {
+      "type": "mc",
+      "category": "Inlined memcpy and rep movs",
+      "q": "With the char array at 0x200 bytes, GCC inlined the a-to-b copy as rep movs. Which register setup is correct?",
+      "choices": [
+        "rcx = repeat count, rdi = source (a), rsi = destination (b)",
+        "rdx = byte count, rsi = source (a), rdi = destination (b)",
+        "rax = repeat count, rsi = source (a), rdi = destination (b)",
+        "rcx = repeat count, rsi = source (a), rdi = destination (b)"
+      ],
+      "answer": 3,
+      "explain": "rep movs copies from [rsi] (source index) to [rdi] (destination index), repeating rcx times. Here rsi = &a, rdi = &b, and rcx = 0x40."
+    },
+    {
+      "type": "num",
+      "category": "Inlined memcpy and rep movs",
+      "q": "For the 0x200-byte inline copy, GCC loaded 0x40 into ecx before rep movs. If the repeated move covers 0x200 bytes, how many bytes does each iteration move?",
+      "answer": 8,
+      "explain": "0x200 / 0x40 = 8. Each iteration moves 8 bytes, the same 8-byte stride that ArrayLocalVariable2 used to zero 0x80 bytes in 0x10 iterations."
+    },
+    {
+      "type": "mc",
+      "category": "Inlined memcpy and rep movs",
+      "q": "rep movs advances rsi and rdi on every iteration. When it finishes, where do rsi and rdi point?",
+      "choices": [
+        "Back at the start of the source and destination buffers",
+        "rsi is unchanged and rdi points past the end of the destination",
+        "Just past the end of the source and destination buffers",
+        "Both point at the last byte written in the destination"
+      ],
+      "answer": 2,
+      "explain": "Both registers move forward by the element size on each iteration. Once the count runs out, each one points just past the end of the region it walked through."
+    },
+    {
+      "type": "mc",
+      "category": "Inlined memcpy and rep movs",
+      "q": "The inline rep movs repeats 0x40 times. Which GDB command was used to get past it in one go instead of stepping through every iteration?",
+      "choices": [
+        "ni",
+        "si",
+        "until, given the location of the next instruction",
+        "info registers"
+      ],
+      "answer": 2,
+      "explain": "Like si, ni runs a rep instruction one iteration at a time. `until <location after it>` lets the whole repetition finish."
+    },
+    {
+      "type": "tf",
+      "category": "Inlined memcpy and rep movs",
+      "q": "Whenever the copy size was a compile-time constant (sizeof the struct), GCC inlined the copy as mov instructions or a rep movs instead of calling the memcpy library function.",
+      "answer": true,
+      "explain": "Because the compiler knew exactly how many bytes were being copied, it could pick the copy code itself. Changing the struct size never forced a library call. Only hiding the size from the compiler did."
+    },
+    {
+      "type": "mc",
+      "category": "memcpy library heuristics",
+      "q": "How did Xeno finally force GCC to emit a real call into the memcpy library function?",
+      "choices": [
+        "By turning off all optimizations",
+        "By making the struct larger than 0x1000 bytes",
+        "By declaring the structs as globals instead of locals",
+        "By hiding the copy size from the compiler: it was read at runtime from a command-line argument parsed with strtol"
+      ],
+      "answer": 3,
+      "explain": "Since the size isn't known at compile time, the compiler can't inline the copy, so it hands the work to the library's memcpy. Taking a copy length from user input like this is a very bad idea in real code. It was done only to study the library."
+    },
+    {
+      "type": "mc",
+      "category": "memcpy library heuristics",
+      "q": "With optimizations on, the call became __memcpy_chk. What is __memcpy_chk?",
+      "choices": [
+        "A fortified memcpy that also gets the destination's size and checks for a buffer overflow before copying",
+        "A memcpy that fails if the source and destination overlap",
+        "A debug memcpy that fills the destination with 0xCC first",
+        "A memcpy that stops at the first zero byte"
+      ],
+      "answer": 0,
+      "explain": "It's the fortified version. Along with dest (rdi), src (rsi) and length (rdx), the compiler passes the destination object's known size (rcx) so the function can catch over-copying."
+    },
+    {
+      "type": "mc",
+      "category": "memcpy library heuristics",
+      "q": "On entry to __memcpy_chk, rcx = 0x24 and rdx = 0x20, and the code then does a compare followed by `jb` to the failure path. What do these two values mean?",
+      "choices": [
+        "rcx is the requested copy length, and rdx is the destination's size",
+        "rcx is the destination's size hard-coded by the compiler (sizeof the struct = 4 + 0x20 = 0x24), and rdx is the requested copy length from strtol",
+        "rcx is the number of 8-byte iterations, and rdx is the leftover byte count",
+        "rcx is the source address, and rdx is the destination address"
+      ],
+      "answer": 1,
+      "explain": "The struct holds a 4-byte int plus a 0x20-byte char array, so it is 0x24 bytes. The compiler knows that and passes it in rcx. rdx is the runtime length (0x20) that came back from strtol."
+    },
+    {
+      "type": "tf",
+      "category": "memcpy library heuristics",
+      "q": "__memcpy_chk jumps to its failure path when the destination size in rcx is below the requested length in rdx, because that copy would overflow the buffer (for example, smash the stack).",
+      "answer": true,
+      "explain": "Copying more than the destination can hold is an error. With rcx = 0x24 and rdx = 0x20 the check passes and execution falls through into the normal copy code."
+    },
+    {
+      "type": "mc",
+      "category": "memcpy library heuristics",
+      "q": "Inside memcpy, a copy length of exactly 0x40 reaches `cmp $0x40,%rdx` followed by `ja`. What happens?",
+      "choices": [
+        "The jump is taken, because ja means above or equal",
+        "Execution goes to the __memcpy_chk failure path",
+        "The jump is not taken, because ja needs rdx to be strictly above 0x40, so execution falls through to the vector-move code",
+        "The jump is taken, because ja compares signed values"
+      ],
+      "answer": 2,
+      "explain": "ja (jump if above) is an unsigned, strictly-greater test, and 0x40 is not above 0x40. Xeno had to raise the length to 0x44 to take that branch. In the same way, a length of exactly 0x20 does not take the earlier `jb` against 0x20."
+    },
+    {
+      "type": "mc",
+      "category": "memcpy library heuristics",
+      "q": "What overall size heuristic showed up in the Linux memcpy?",
+      "choices": [
+        "rep movs is used for every size",
+        "rep movs is used for small copies and vector moves for large copies",
+        "Every copy is done one byte at a time in a loop",
+        "Smaller copies use vectorized move instructions, and rep movs is kept for very large sizes"
+      ],
+      "answer": 3,
+      "explain": "The code branches on size thresholds (0x20, 0x40, 0x1000, ...). Smaller sizes go to vectorized move code, which is likely faster for them. The rep movs only shows up on the path for very large copies."
+    },
+    {
+      "type": "tf",
+      "category": "memcpy library heuristics",
+      "q": "For a 0x1004-byte copy, the library's normal code path reached rep movs without any help from the debugger.",
+      "answer": false,
+      "explain": "After the 0x1000 check, the code compared rdx with a rip-relative value in memory that was 0, so the `ja` was always taken and skipped the rep movs. Xeno changed that memory to 0x8000 in GDB so the jump wouldn't be taken. A later compare of rdi (dest) with rsi (source) then jumped, since dest was below source, and landed on a rep movs."
+    }
+  ]
+}

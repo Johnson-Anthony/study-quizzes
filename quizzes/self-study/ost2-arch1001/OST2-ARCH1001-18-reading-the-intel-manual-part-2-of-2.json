@@ -1,0 +1,540 @@
+{
+  "title": "Reading the Intel Manual (part 2 of 2): ADD, Jcc, CALL, RET, JMP, CBW/CWDE/CDQE",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "ADD forms and immediates",
+      "q": "In 64-bit mode, what is the largest immediate that the ADD r/m64, imm form can encode?",
+      "choices": [
+        "An 8-bit immediate only",
+        "A 32-bit immediate, sign-extended to 64 bits",
+        "A full 64-bit immediate",
+        "A 16-bit immediate, zero-extended to 64 bits"
+      ],
+      "answer": 1,
+      "explain": "The table says ADD r/m64, imm32. That is not a typo. ADD can only encode a 32-bit immediate, which is sign-extended to 64 bits before the add."
+    },
+    {
+      "type": "tf",
+      "category": "ADD forms and immediates",
+      "q": "An ADD instruction can encode a full 64-bit constant directly as its immediate operand.",
+      "answer": false,
+      "explain": "ADD can never be encoded with a 64-bit immediate. The largest is imm32, sign-extended to 64 bits."
+    },
+    {
+      "type": "mc",
+      "category": "ADD forms and immediates",
+      "q": "You need to add the constant 0x1122334455667788 to RBX. Which approach works on x86-64?",
+      "choices": [
+        "MOV the constant into another 64-bit register, then ADD that register to RBX",
+        "Use ADD r/m64, imm64 with the constant as the immediate",
+        "Encode the constant as a sign-extended imm8",
+        "There is no way to add a 64-bit constant on x86-64"
+      ],
+      "answer": 0,
+      "explain": "MOV can load a 64-bit constant into a register. You can then use a register-to-register ADD, such as ADD r/m64, r64."
+    },
+    {
+      "type": "mc",
+      "category": "ADD forms and immediates",
+      "q": "How do the ADD AL, imm8 / AX, imm16 / EAX, imm32 / RAX, imm32 forms differ from the ADD r/m, imm forms?",
+      "choices": [
+        "The destination register is fixed by the opcode instead of being picked by an r/m operand",
+        "They can only add to memory",
+        "They zero-extend the immediate instead of sign-extending it",
+        "They are only valid in 16-bit mode"
+      ],
+      "answer": 0,
+      "explain": "These forms always use AL/AX/EAX/RAX, so they are less flexible. Their low opcode numbers suggest they date back to the original 8086."
+    },
+    {
+      "type": "mc",
+      "category": "ADD forms and immediates",
+      "q": "An ADD r/m32, imm8 instruction has the immediate byte 0x80. What 32-bit value actually gets added?",
+      "choices": [
+        "0x00000080",
+        "0xFFFFFF80",
+        "0x80000000",
+        "0x00008080"
+      ],
+      "answer": 1,
+      "explain": "The imm8 is sign-extended. Its most significant bit is 1, so that bit is copied into all the upper bits: 0xFFFFFF80 (-128)."
+    },
+    {
+      "type": "mc",
+      "category": "ADD forms and immediates",
+      "q": "An ADD r/m64, imm8 instruction with RAX as the destination has the immediate byte 0xF0. What does it do to RAX?",
+      "choices": [
+        "Adds 240",
+        "Adds -16, so it effectively subtracts 16",
+        "Adds 0xF000000000000000",
+        "It is an invalid encoding"
+      ],
+      "answer": 1,
+      "explain": "0xF0 sign-extended to 64 bits is 0xFFFFFFFFFFFFFFF0, which is -16 in two's complement."
+    },
+    {
+      "type": "multi",
+      "category": "ADD forms and immediates",
+      "q": "Which of these operand combinations can ADD encode?",
+      "choices": [
+        "register += immediate",
+        "r/m (register or memory) += register",
+        "register += r/m (register or memory)",
+        "memory += memory",
+        "r/m64 += 64-bit immediate"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "ADD's destination can be a register or memory, and its source can be an immediate, register, or memory. The two operands can't both be memory, and there is no imm64 form."
+    },
+    {
+      "type": "mc",
+      "category": "ADD forms and immediates",
+      "q": "Some ADD r/m8 rows in the opcode table are marked with * and a REX prefix. Why do these rows exist?",
+      "choices": [
+        "The REX prefix lets the r/m8 operand reach the extra 8-bit registers added in 64-bit mode",
+        "They mark deprecated encodings",
+        "They mark forms that zero-extend the immediate",
+        "They mark forms that only run on some vendors' CPUs"
+      ],
+      "answer": 0,
+      "explain": "It is the same ADD, with a REX prefix so it can use the newer 8-bit register versions that 64-bit mode added."
+    },
+    {
+      "type": "tf",
+      "category": "ADD forms and immediates",
+      "q": "ADD's long opcode table boils down to a few operand patterns, each repeated for every operand size: immediate into the accumulator, immediate into r/m, sign-extended imm8 into r/m, register into r/m, and r/m into register.",
+      "answer": true,
+      "explain": "The table looks daunting, but it is really five variations of one instruction, each listed once per available size."
+    },
+    {
+      "type": "tf",
+      "category": "ADD and flags",
+      "q": "ADD evaluates its result for both signed and unsigned interpretations of the operands at the same time.",
+      "answer": true,
+      "explain": "The CPU doesn't know whether the operands are signed. It sets the flags for both readings, and the code that follows checks the ones that fit its data type."
+    },
+    {
+      "type": "mc",
+      "category": "ADD and flags",
+      "q": "After an ADD, which flag shows that the result was too big for the destination when the operands are treated as UNSIGNED?",
+      "choices": ["CF (carry flag)", "OF (overflow flag)", "SF (sign flag)", "ZF (zero flag)"],
+      "answer": 0,
+      "explain": "The Intel manual says ADD sets OF and CF to indicate overflow in the signed or unsigned result, respectively. So CF is for unsigned and OF is for signed. The spoken paraphrase in the lecture swaps the two."
+    },
+    {
+      "type": "mc",
+      "category": "ADD and flags",
+      "q": "After an ADD, which flag shows that the result overflowed when the operands are treated as SIGNED?",
+      "choices": ["CF (carry flag)", "OF (overflow flag)", "SF (sign flag)", "PF (parity flag)"],
+      "answer": 1,
+      "explain": "OF reports signed overflow. CF reports unsigned carry out of the most significant bit."
+    },
+    {
+      "type": "mc",
+      "category": "ADD and flags",
+      "q": "After an ADD, what does SF (the sign flag) hold?",
+      "choices": [
+        "The most significant bit of the result",
+        "1 if the result is zero",
+        "1 if there was a carry out of the top bit",
+        "Bit 0 of the result"
+      ],
+      "answer": 0,
+      "explain": "SF gives the sign of the result read as a signed number. It is set when the result's most significant bit is 1."
+    },
+    {
+      "type": "multi",
+      "category": "ADD and flags",
+      "q": "AL = 0x7F. After `add al, 1`, which flags are set?",
+      "choices": ["CF", "OF", "SF", "ZF"],
+      "answer": [1, 2],
+      "explain": "The result is 0x80. Unsigned, 127 + 1 = 128 fits in 8 bits, so CF = 0. Signed, 127 + 1 overflows to -128, so OF = 1. The top bit is 1, so SF = 1. The result isn't zero, so ZF = 0."
+    },
+    {
+      "type": "multi",
+      "category": "ADD and flags",
+      "q": "AL = 0xFF. After `add al, 1`, which flags are set?",
+      "choices": ["CF", "OF", "SF", "ZF"],
+      "answer": [0, 3],
+      "explain": "The result is 0x00 with a carry out. Unsigned, 255 + 1 doesn't fit, so CF = 1. Signed, -1 + 1 = 0 doesn't overflow, so OF = 0. The result is zero, so ZF = 1 and SF = 0."
+    },
+    {
+      "type": "mc",
+      "category": "Conditional jumps (Jcc)",
+      "q": "In the Jcc table, JE and JZ both have opcode 0x74. What does that tell you?",
+      "choices": [
+        "They are the same instruction under two mnemonics, and the disassembler picks which name to show",
+        "JZ is the 64-bit version of JE",
+        "JE compares two operands while JZ tests one",
+        "One is the short form and the other is the near form"
+      ],
+      "answer": 0,
+      "explain": "Both jump if ZF = 1. Different mnemonics can share one encoding, and the disassembler decides which one to print."
+    },
+    {
+      "type": "mc",
+      "category": "Conditional jumps (Jcc)",
+      "q": "JA and JNBE share opcode 0x77. When do they jump?",
+      "choices": [
+        "When CF = 0 and ZF = 0",
+        "When CF = 1 or ZF = 1",
+        "When SF = OF",
+        "When ZF = 1"
+      ],
+      "answer": 0,
+      "explain": "\"Above\" and \"not below or equal\" are the same unsigned condition: no carry and not zero."
+    },
+    {
+      "type": "tf",
+      "category": "Conditional jumps (Jcc)",
+      "q": "JE jumps when the zero flag is set.",
+      "answer": true,
+      "explain": "JE and JZ (opcode 0x74) both check ZF = 1."
+    },
+    {
+      "type": "mc",
+      "category": "Conditional jumps (Jcc)",
+      "q": "In 64-bit mode, what displacement does a near Jcc use?",
+      "choices": [
+        "A 16-bit relative displacement",
+        "A 32-bit relative displacement",
+        "A 64-bit relative displacement",
+        "An absolute address in an r/m64 operand"
+      ],
+      "answer": 1,
+      "explain": "The manual marks the rel16 form as not supported in 64-bit mode. In 64-bit code a near Jcc is always rel32. The short form uses rel8."
+    },
+    {
+      "type": "mc",
+      "category": "Conditional jumps (Jcc)",
+      "q": "A short jump uses a signed 8-bit displacement. What range can it reach, relative to the next instruction?",
+      "choices": [
+        "-128 to +127 bytes",
+        "-127 to +128 bytes",
+        "0 to +255 bytes",
+        "-32768 to +32767 bytes"
+      ],
+      "answer": 0,
+      "explain": "A signed 8-bit value covers -128..+127, so a short jump reaches 127 bytes forward or 128 bytes back."
+    },
+    {
+      "type": "mc",
+      "category": "Conditional jumps (Jcc)",
+      "q": "About how far can a rel32 jump reach?",
+      "choices": [
+        "About 2 GB forward or backward (signed 32-bit)",
+        "Up to 4 GB, forward only",
+        "About 32 KB forward or backward",
+        "Anywhere in the 64-bit address space"
+      ],
+      "answer": 0,
+      "explain": "rel32 is a signed 32-bit number, which covers roughly plus or minus 2 billion bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Conditional jumps (Jcc)",
+      "q": "When a Jcc is taken, how is the target address computed?",
+      "choices": [
+        "The sign-extended displacement is added to the instruction pointer, which points at the next instruction",
+        "The displacement is loaded straight into the instruction pointer",
+        "The zero-extended displacement is added to RSP",
+        "The target is popped off the stack"
+      ],
+      "answer": 0,
+      "explain": "The manual's pseudocode is tempEIP = EIP + SignExtend(DEST). In other words, add the relative displacement to the instruction pointer."
+    },
+    {
+      "type": "tf",
+      "category": "Conditional jumps (Jcc)",
+      "q": "The manual's Jcc pseudocode is written in terms of EIP, but in 64-bit mode the displacement is added to RIP.",
+      "answer": true,
+      "explain": "The Jcc pseudocode is a bit out of date and has no 64-bit-mode case. Either way, the relative displacement is added to the instruction pointer."
+    },
+    {
+      "type": "tf",
+      "category": "Conditional jumps (Jcc)",
+      "q": "Every Jcc form uses a relative displacement. There is no absolute indirect Jcc.",
+      "answer": true,
+      "explain": "All Jcc forms are relative. CALL and JMP also have an absolute indirect r/m form."
+    },
+    {
+      "type": "mc",
+      "category": "CALL and RET",
+      "q": "A near CALL rel32's displacement is measured from which address?",
+      "choices": [
+        "The address of the instruction after the CALL",
+        "The address of the CALL instruction itself",
+        "The start of the current function",
+        "The current value of RSP"
+      ],
+      "answer": 0,
+      "explain": "The manual calls it a displacement relative to the next instruction. The target is the next instruction's address plus the rel32, sign-extended to 64 bits."
+    },
+    {
+      "type": "mc",
+      "category": "CALL and RET",
+      "q": "A 5-byte CALL rel32 sits at address 0x401000, and its rel32 is 0x00000100. Where does it go?",
+      "choices": ["0x401100", "0x401105", "0x401005", "0x400F05"],
+      "answer": 1,
+      "explain": "The next instruction is at 0x401000 + 5 = 0x401005. Adding 0x100 gives 0x401105."
+    },
+    {
+      "type": "mc",
+      "category": "CALL and RET",
+      "q": "A 5-byte CALL rel32 sits at address 0x401000, and its rel32 is 0xFFFFFFF0. Where does it go?",
+      "choices": ["0x400FF0", "0x400FF5", "0x401FF5", "0x4010F5"],
+      "answer": 1,
+      "explain": "0xFFFFFFF0 is -16 as a signed value. The next instruction is at 0x401005, and 0x401005 - 0x10 = 0x400FF5."
+    },
+    {
+      "type": "mc",
+      "category": "CALL and RET",
+      "q": "The manual describes CALL r/m64 as \"call near, absolute indirect\". What does that mean?",
+      "choices": [
+        "The value read from the register or memory operand is the exact target address. It is indirect because the address comes through that operand, not from the instruction bytes.",
+        "The target is a displacement added to RIP",
+        "The target is a segment:offset pair",
+        "The target is a 64-bit address hard-coded in the instruction"
+      ],
+      "answer": 0,
+      "explain": "\"Absolute\" means the computed value is the address you go to. \"Indirect\" means you get it through a register, or through memory addressed as base + index*scale + displacement."
+    },
+    {
+      "type": "multi",
+      "category": "CALL and RET",
+      "q": "Which near CALL forms are valid in 64-bit mode?",
+      "choices": ["call rel32", "call rel16", "call r/m64", "call r/m32", "call r/m16"],
+      "answer": [0, 2],
+      "explain": "In 64-bit mode, rel16 is not supported and r/m16 and r/m32 are not valid. That leaves the relative rel32 form and the absolute indirect r/m64 form."
+    },
+    {
+      "type": "multi",
+      "category": "CALL and RET",
+      "q": "What does a near CALL do?",
+      "choices": [
+        "Pushes the address of the next instruction onto the stack",
+        "Sets RIP to the target address",
+        "Pushes RFLAGS onto the stack",
+        "Saves all the general-purpose registers"
+      ],
+      "answer": [0, 1],
+      "explain": "A near CALL is a jump to the target that also pushes the return address, which is the next instruction's address."
+    },
+    {
+      "type": "mc",
+      "category": "CALL and RET",
+      "q": "Far CALL, far RET, far JMP and call gates all depend on which mechanism?",
+      "choices": [
+        "Segmentation and segment selectors",
+        "Paging",
+        "SIMD registers",
+        "The REX prefix"
+      ],
+      "answer": 0,
+      "explain": "The far forms work through segment selectors, and gates belong to the same mechanism. Operating systems use them. Ordinary user-space code rarely does."
+    },
+    {
+      "type": "mc",
+      "category": "CALL and RET",
+      "q": "What happens to the extra bytes in a near RET imm16?",
+      "choices": [
+        "After the return address is popped, imm16 is added to RSP. The bytes are discarded, not loaded into any register.",
+        "They are popped into RAX",
+        "They are pushed onto the stack",
+        "imm16 is subtracted from RSP"
+      ],
+      "answer": 0,
+      "explain": "The manual says \"pop imm16 bytes\", but nothing is popped into a register. The stack pointer just moves past those bytes."
+    },
+    {
+      "type": "num",
+      "category": "CALL and RET",
+      "q": "In 64-bit mode, how many bytes does RSP go up by when a near `ret 0x10` runs?",
+      "answer": 24,
+      "explain": "Popping the 8-byte return address adds 8, and the imm16 adds 0x10 = 16. 8 + 16 = 24."
+    },
+    {
+      "type": "multi",
+      "category": "CALL and RET",
+      "q": "CALL's operation pseudocode in the manual runs about 10 pages. Which of these does it have to handle?",
+      "choices": [
+        "16-bit vs 32-bit relative displacements",
+        "Privilege level changes, such as going from user space to kernel space",
+        "Control-flow Enforcement Technology",
+        "Running in 16-bit, 32-bit or 64-bit mode",
+        "Floating-point rounding modes"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Control flow is complicated. The pseudocode covers displacement sizes, privilege changes, CET, and processor modes. Floating-point rounding has nothing to do with it."
+    },
+    {
+      "type": "multi",
+      "category": "JMP",
+      "q": "Which JMP forms can you actually use in 64-bit mode?",
+      "choices": ["jmp rel8 (short)", "jmp rel16", "jmp rel32", "jmp r/m16", "jmp r/m32", "jmp r/m64"],
+      "answer": [0, 2, 5],
+      "explain": "rel16, r/m16 and r/m32 are not valid in 64-bit mode. That leaves three: short rel8, near rel32, and near absolute indirect r/m64."
+    },
+    {
+      "type": "mc",
+      "category": "JMP",
+      "q": "A 2-byte short JMP sits at address 0x1000, and its rel8 is 0xFE. Where does it go?",
+      "choices": [
+        "0x0FFE",
+        "0x1000, back to itself, which makes an infinite loop",
+        "0x1002",
+        "0x10FE"
+      ],
+      "answer": 1,
+      "explain": "0xFE sign-extended is -2. The next instruction is at 0x1002, and 0x1002 - 2 = 0x1000."
+    },
+    {
+      "type": "tf",
+      "category": "JMP",
+      "q": "In a relative JMP (rel8 or rel32), the displacement is part of the instruction's own bytes.",
+      "answer": true,
+      "explain": "Relative displacements are constants built into the instruction. The indirect form gets its address from a register or memory instead."
+    },
+    {
+      "type": "mc",
+      "category": "JMP",
+      "q": "What kind of jump do you get from opcode FF with an r/m64 operand?",
+      "choices": [
+        "A near absolute indirect jump: RIP is set to the address computed from the register or memory operand",
+        "A short relative jump",
+        "A far jump through a segment selector",
+        "A conditional jump"
+      ],
+      "answer": 0,
+      "explain": "FF with a particular r/m encoding gives JMP r/m64. The address is calculated from the operand, and RIP is set to it."
+    },
+    {
+      "type": "mc",
+      "category": "JMP",
+      "q": "What is the key difference between a near JMP and a near CALL?",
+      "choices": [
+        "CALL pushes the return address before changing RIP. JMP only changes RIP.",
+        "JMP can be indirect but CALL cannot",
+        "CALL only supports relative displacements",
+        "JMP pushes RFLAGS"
+      ],
+      "answer": 0,
+      "explain": "Both have relative and absolute indirect forms. CALL also pushes the next instruction's address so that RET can come back to it."
+    },
+    {
+      "type": "mc",
+      "category": "JMP",
+      "q": "How is a JMP rel8 displacement extended before it is added to RIP?",
+      "choices": [
+        "Sign-extended to 64 bits",
+        "Zero-extended to 64 bits",
+        "Shifted left by one bit",
+        "It isn't added. It is used as an absolute address."
+      ],
+      "answer": 0,
+      "explain": "Sign extension keeps the value signed, which is why a short jump can go up to 127 bytes forward or 128 bytes back."
+    },
+    {
+      "type": "mc",
+      "category": "Sign extension (CBW/CWDE/CDQE and friends)",
+      "q": "What does CBW do?",
+      "choices": [
+        "Converts a byte to a word by sign extension (8 to 16 bits)",
+        "Zero-extends a byte to a word",
+        "Converts binary to BCD",
+        "Swaps the two bytes of a word"
+      ],
+      "answer": 0,
+      "explain": "CBW stands for Convert Byte to Word. It copies the byte's top bit into all the new upper bits."
+    },
+    {
+      "type": "mc",
+      "category": "Sign extension (CBW/CWDE/CDQE and friends)",
+      "q": "What does CWDE do?",
+      "choices": [
+        "Sign-extends a word to a doubleword (16 to 32 bits)",
+        "Sign-extends a byte to a word (8 to 16 bits)",
+        "Sign-extends a doubleword to a quadword (32 to 64 bits)",
+        "Zero-extends a word to a doubleword"
+      ],
+      "answer": 0,
+      "explain": "The family goes CBW (8 to 16), CWDE (16 to 32), CDQE (32 to 64). Each one is just a sign extension."
+    },
+    {
+      "type": "mc",
+      "category": "Sign extension (CBW/CWDE/CDQE and friends)",
+      "q": "What does CDQE do?",
+      "choices": [
+        "Sign-extends a doubleword to a quadword (32 to 64 bits)",
+        "Sign-extends a word to a doubleword (16 to 32 bits)",
+        "Zero-extends 32 bits to 64 bits",
+        "Sign-extends 64 bits into a 128-bit register pair"
+      ],
+      "answer": 0,
+      "explain": "CDQE stands for Convert Doubleword to Quadword, Extended. It sign-extends 32 bits to 64."
+    },
+    {
+      "type": "mc",
+      "category": "Sign extension (CBW/CWDE/CDQE and friends)",
+      "q": "The byte 0x9C is converted to a word with CBW. What is the result?",
+      "choices": ["0x009C", "0xFF9C", "0x9C00", "0x9C9C"],
+      "answer": 1,
+      "explain": "0x9C is 1001 1100 in binary. Its top bit is 1, so the new upper byte is filled with 1s: 0xFF9C."
+    },
+    {
+      "type": "mc",
+      "category": "Sign extension (CBW/CWDE/CDQE and friends)",
+      "q": "EAX = 0x80000000. What is the 64-bit result after CDQE?",
+      "choices": [
+        "0x0000000080000000",
+        "0xFFFFFFFF80000000",
+        "0x8000000000000000",
+        "0x80000000FFFFFFFF"
+      ],
+      "answer": 1,
+      "explain": "Bit 31 is 1, so it is copied into bits 63..32."
+    },
+    {
+      "type": "mc",
+      "category": "Sign extension (CBW/CWDE/CDQE and friends)",
+      "q": "The other sign-extension variants put their result in a register pair: DX:AX, EDX:EAX or RDX:RAX. Which instructions are they most likely used with?",
+      "choices": [
+        "Divide instructions, which implicitly use those concatenated register pairs",
+        "String instructions",
+        "PUSH and POP",
+        "Conditional jumps"
+      ],
+      "answer": 0,
+      "explain": "Some DIV forms always use a concatenated pair such as RDX:RAX as the dividend. These variants put a correctly sign-extended value into that pair."
+    },
+    {
+      "type": "text",
+      "category": "Sign extension (CBW/CWDE/CDQE and friends)",
+      "q": "The 64-to-128-bit sign-extension variant writes its result to which register pair? Use the high:low format.",
+      "answer": ["RDX:RAX", "rdx:rax", "Rdx:Rax"],
+      "explain": "RAX is sign-extended into RDX:RAX, a 128-bit value made of RDX (high half) and RAX (low half)."
+    },
+    {
+      "type": "mc",
+      "category": "Sign extension (CBW/CWDE/CDQE and friends)",
+      "q": "For a SIGNED 64-bit division, why would code sign-extend RAX into RDX:RAX instead of just zeroing RDX?",
+      "choices": [
+        "The divide treats RDX:RAX as one 128-bit dividend. For a negative value, the upper 64 bits must be all 1s to stand for the same signed number.",
+        "To save RDX's old value for later",
+        "Because RDX holds the divisor",
+        "Because zeroing a register is slower than sign-extending one"
+      ],
+      "answer": 0,
+      "explain": "Zeroing RDX turns a negative RAX into a huge positive 128-bit number. Sign extension keeps the value the same. Try this by changing an unsigned long long division to signed long long and looking at the assembly."
+    },
+    {
+      "type": "tf",
+      "category": "Sign extension (CBW/CWDE/CDQE and friends)",
+      "q": "If RAX = 0xFFFFFFFFFFFFFFFB (-5) is sign-extended into RDX:RAX, RDX becomes 0xFFFFFFFFFFFFFFFF.",
+      "answer": true,
+      "explain": "RAX's top bit is 1, so every bit of RDX is set to 1. The 128-bit value RDX:RAX still equals -5."
+    }
+  ]
+}

@@ -1,0 +1,435 @@
+{
+  "title": "OST2 Arch1001 11 - REPeatable Instructions (rep stos, rep movs)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "REP STOS",
+      "q": "Once its registers are set up, which C library routine does a single rep stos instruction do the same job as?",
+      "choices": ["memset", "memcpy", "strlen", "memcmp"],
+      "answer": 0,
+      "explain": "rep stos writes the same value into consecutive memory locations RCX times. That makes it a 'memset in a box'. rep movs is the memcpy counterpart."
+    },
+    {
+      "type": "mc",
+      "category": "REP STOS",
+      "q": "In 64-bit mode, how does the REP prefix decide how many times to repeat STOS?",
+      "choices": [
+        "It uses RCX as a counter. RCX goes down by 1 after each store, and execution moves to the next instruction when RCX reaches 0",
+        "It uses RCX as a byte count and subtracts the store size (1/2/4/8) after each store",
+        "It repeats until the value at [RDI] equals AL/AX/EAX/RAX",
+        "It uses RDX as a counter and increments it until it equals RCX"
+      ],
+      "answer": 0,
+      "explain": "Every rep operation uses *cx (CX, ECX or RCX, depending on the mode) to count iterations. It goes down by exactly 1 per iteration whether 1, 2, 4 or 8 bytes were stored, so RCX counts stores, not bytes."
+    },
+    {
+      "type": "multi",
+      "category": "REP STOS",
+      "q": "Which setup must happen before a rep stos in 64-bit code?",
+      "choices": [
+        "Set RDI to the start of the destination",
+        "Set AL/AX/EAX/RAX to the value to store",
+        "Set RCX to the number of times to store",
+        "Set RSI to the start of the source",
+        "Set RDX to the number of bytes per store"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "rep stos needs three things: a destination (RDI), a value (AL/AX/EAX/RAX) and a count (RCX). RSI is the source register for rep movs, not stos. The store size comes from the operand size (byte/word/dword/qword ptr), not from a register."
+    },
+    {
+      "type": "tf",
+      "category": "REP STOS",
+      "q": "Each time rep stos stores a value, it advances RDI by the size of the store (1, 2, 4, or 8 bytes), so the repeated stores fill consecutive memory locations.",
+      "answer": true,
+      "explain": "Because RDI advances on its own after each store, one instruction can fill a whole buffer. Normally RDI goes up. The direction flag can make it go down instead."
+    },
+    {
+      "type": "tf",
+      "category": "REP STOS",
+      "q": "You can put the REP prefix on any x86 instruction to make it repeat RCX times.",
+      "answer": false,
+      "explain": "Only a small subset of instructions support the REP prefix, such as STOS and MOVS."
+    },
+    {
+      "type": "mc",
+      "category": "REP STOS",
+      "q": "A function compiled by Visual Studio that uses rep stos usually starts with push rdi and ends with pop rdi. Why?",
+      "choices": [
+        "rep stos always writes through RDI, and RDI is callee-saved in the Microsoft x64 convention, so the function must restore it for its caller",
+        "rep stos reads its fill value from the top of the stack, so RDI has to be pushed there first",
+        "RDI is caller-saved, so the callee has to push it before using it",
+        "push rdi reserves the memory that rep stos will fill"
+      ],
+      "answer": 0,
+      "explain": "STOS has no choice of destination register: it always writes through RDI. Visual Studio treats RDI (and RSI) as callee-saved, so any function that uses rep stos must save and restore RDI. Choice 3 gets the convention backwards: a callee must preserve the callee-saved registers, not the caller-saved ones."
+    },
+    {
+      "type": "text",
+      "category": "REP STOS",
+      "q": "Fill in the blank: rep stos stands for 'Repeat Store ______'.",
+      "answer": ["String", "string"],
+      "explain": "STOS means STOre String. With the REP prefix, rep stos means REPeat STOre String."
+    },
+    {
+      "type": "text",
+      "category": "REP STOS",
+      "q": "Which 8-bit register holds the value written by rep stos byte ptr [rdi]?",
+      "answer": ["al", "AL"],
+      "explain": "The byte form stores AL. The word, dword and qword forms store AX, EAX and RAX."
+    },
+    {
+      "type": "num",
+      "category": "Zero-initialization (ArrayLocalVariable2.c)",
+      "q": "ArrayLocalVariable2.c declares short b[64] = {0}; and Visual Studio x64 compiles it to: push rdi; sub rsp,90h; lea rax,[rsp+10h]; mov rdi,rax; xor eax,eax; mov ecx,80h; rep stos byte ptr [rdi]. How many times (decimal) does the store repeat?",
+      "answer": 128,
+      "tolerance": 0,
+      "explain": "ecx = 0x80 = 128. b holds 64 shorts at 2 bytes each, which is 128 bytes. The byte form stores 1 byte per iteration, so 128 iterations zero the whole array."
+    },
+    {
+      "type": "num",
+      "category": "Zero-initialization (ArrayLocalVariable2.c)",
+      "q": "Suppose the compiler zeroed the same short b[64] with rep stos qword ptr [rdi] (8 bytes per store). What count (decimal) would RCX need?",
+      "answer": 16,
+      "tolerance": 0,
+      "explain": "128 bytes divided by 8 bytes per store is 16. RCX counts stores, not bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Zero-initialization (ArrayLocalVariable2.c)",
+      "q": "short b[64] = {0}; compiles to: lea rax,[rsp+10h]; mov rdi,rax; xor eax,eax; mov ecx,80h; rep stos byte ptr [rdi]. What does xor eax,eax do here?",
+      "choices": [
+        "It sets AL to 0, the value rep stos writes into each byte of b",
+        "It clears the counter so rep stos starts from zero",
+        "It clears the direction flag so RDI increments",
+        "It computes the address of b[0]"
+      ],
+      "answer": 0,
+      "explain": "XORing a register with itself sets it to zero. This is the byte form, so AL (the low byte of RAX) is the fill value. The count is in ECX, and the destination came from lea rax,[rsp+10h] / mov rdi,rax."
+    },
+    {
+      "type": "mc",
+      "category": "Zero-initialization (ArrayLocalVariable2.c)",
+      "q": "short b[64] = {0}; compiles to: sub rsp,90h; lea rax,[rsp+10h]; mov rdi,rax; xor eax,eax; mov ecx,80h; rep stos byte ptr [rdi]. With the direction flag clear, what are RCX and RDI after the rep stos finishes?",
+      "choices": [
+        "RCX = 0, RDI = rsp+90h",
+        "RCX = 80h, RDI = rsp+10h",
+        "RCX = 0, RDI = rsp+10h",
+        "RCX = 80h, RDI = rsp+90h"
+      ],
+      "answer": 0,
+      "explain": "RCX counts down to 0, which is what stops the repeat. RDI moves forward 1 byte per iteration: rsp+10h + 80h = rsp+90h. That is just past the end of b, which ends at the top of the 90h-byte allocation."
+    },
+    {
+      "type": "mc",
+      "category": "Zero-initialization (ArrayLocalVariable2.c)",
+      "q": "In ArrayLocalVariable2.c, a = 0x5eaf00d; b[1] = (short)a; compiles to movzx ecx,word ptr [rsp] followed by mov word ptr [rsp+rax+10h],cx. What 16-bit value ends up in b[1]?",
+      "choices": ["0xF00D", "0x5EAF", "0x05EA", "0xAF00"],
+      "answer": 0,
+      "explain": "Casting to short keeps the low 16 bits: 0x05EAF00D becomes 0xF00D. x86 is little-endian, so word ptr [rsp] reads exactly the two low bytes of a."
+    },
+    {
+      "type": "mc",
+      "category": "Zero-initialization (ArrayLocalVariable2.c)",
+      "q": "Before it writes to b[1] (b is short b[64]), the code runs mov eax,2; imul rax,rax,1. What do the 2 and the 1 represent?",
+      "choices": [
+        "2 = sizeof(short) and 1 = the array index; their product is how many bytes b[1] sits past b[0]",
+        "2 = the array index and 1 = sizeof(char)",
+        "2 = the number of elements to copy and 1 = the direction (forward)",
+        "2 = sizeof(int) and 1 = the array index"
+      ],
+      "answer": 0,
+      "explain": "An array element's address is base + index * element size. b holds shorts (2 bytes) and the index is 1, so the offset is 2. The final address is rsp+10h (b[0]) + 2."
+    },
+    {
+      "type": "tf",
+      "category": "Zero-initialization (ArrayLocalVariable2.c)",
+      "q": "When C code calls memset(), the compiler may emit a rep stos in its place instead of an actual call.",
+      "answer": true,
+      "explain": "rep stos does the same job as memset, and the compiler sometimes turns a memset() call into a rep stos. An initializer like = {0} can also become one, as ArrayLocalVariable2.c shows."
+    },
+    {
+      "type": "num",
+      "category": "Runtime stack checks (ThereWillBe0xb100d.c)",
+      "q": "ThereWillBe0xb100d.c is: char buf[40]; buf[39] = 42; return 0xb100d; In a Debug build, main starts with: push rdi; sub rsp,60h; mov rdi,rsp; mov ecx,18h; mov eax,0CCCCCCCCh; rep stos dword ptr [rdi]. How many bytes (decimal) does the rep stos write?",
+      "answer": 96,
+      "tolerance": 0,
+      "explain": "ECX = 0x18 = 24 dword stores, and 24 x 4 bytes = 96 = 0x60 bytes. They start at RDI = RSP, so they cover exactly the 60h bytes reserved by sub rsp,60h. The whole local frame gets filled with 0xCC bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime stack checks (ThereWillBe0xb100d.c)",
+      "q": "In the Debug build of char buf[40]; buf[39] = 42; return 0xb100d;, main contains mov ecx,18h; mov eax,0CCCCCCCCh; rep stos dword ptr [rdi] and later calls _RTC_CheckStackVars. The C source never initializes buf. Where does this rep stos come from?",
+      "choices": [
+        "Code the compiler generates for the Stack Frames runtime check (/RTCs), which is on by default in Debug builds",
+        "The C standard requires local arrays to be filled with 0xCC",
+        "A stack-cookie security check that the compiler always adds to release builds",
+        "An inlined memset() call that the programmer forgot about"
+      ],
+      "answer": 0,
+      "explain": "The Basic Runtime Checks option includes Stack Frames (/RTCs), which is part of /RTC1. It makes the compiler pad stack buffers with 0xCC and check the padding when the function returns. Turning the option off removes this code."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime stack checks (ThereWillBe0xb100d.c)",
+      "q": "In a Debug build, why does main fill its stack frame with 0xCC bytes and then call _RTC_CheckStackVars before it returns?",
+      "choices": [
+        "The bytes around buf hold a known pattern. If the check finds that pattern overwritten, the code wrote past the buffer (a stack buffer overflow)",
+        "It encrypts the stack frame so that other functions can't read buf",
+        "It zero-initializes buf, as the C standard requires",
+        "It aligns RSP to 16 bytes before the function returns"
+      ],
+      "answer": 0,
+      "explain": "The runtime check pads the buffer on both sides with 0xCC bytes, then confirms at the end that none of them changed. Changing the code to buf[41] = 42 triggers the check."
+    },
+    {
+      "type": "tf",
+      "category": "Runtime stack checks (ThereWillBe0xb100d.c)",
+      "q": "The Stack Frames runtime check is a security mitigation meant to protect production code from exploitation.",
+      "answer": false,
+      "explain": "It is a debugging aid that tells programmers they wrote out of bounds. You would not normally expect to see it in production code."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime stack checks (ThereWillBe0xb100d.c)",
+      "q": "In the Debug build, buf[39] = 42 (buf is char buf[40]) compiles to mov eax,1; imul rax,rax,27h; mov byte ptr [rsp+rax+28h],2Ah. At what address is buf[0]?",
+      "choices": ["rsp+28h", "rsp", "rsp+27h", "rsp+4Fh"],
+      "answer": 0,
+      "explain": "0x27 = 39 is the index (times sizeof(char) = 1), and rsp+28h is the start of buf. buf runs from rsp+28h to rsp+4Fh (40 = 0x28 bytes), so rsp+4Fh is buf[39]."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime stack checks (ThereWillBe0xb100d.c)",
+      "q": "The Debug build ends with: mov eax,0B100Dh; mov edi,eax; mov rcx,rsp; lea rdx,[...]; call _RTC_CheckStackVars; mov eax,edi; add rsp,60h; pop rdi; ret. Why does the return value go into EDI before the call and back into EAX afterward?",
+      "choices": [
+        "RAX is caller-saved, so the called function can overwrite it. RDI is callee-saved, so the value survives the call",
+        "_RTC_CheckStackVars takes the return value as its first argument, in EDI",
+        "EAX can't hold values larger than 16 bits during a call",
+        "RDI must be nonzero to show that rep stos worked"
+      ],
+      "answer": 0,
+      "explain": "Any call can overwrite caller-saved registers like RAX, which also carries the called function's own return value. Keeping the value in callee-saved RDI protects it. This is also why main pushes and pops RDI. The first argument goes in RCX (mov rcx,rsp), not EDI."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime stack checks (ThereWillBe0xb100d.c)",
+      "q": "With runtime checks turned off, char buf[40]; buf[39] = 42; return 0xb100d; compiles to: sub rsp,38h; mov eax,1; imul rax,rax,27h; mov byte ptr [rsp+rax],2Ah; mov eax,0B100Dh; add rsp,38h; ret. Which statement is true?",
+      "choices": [
+        "There is no push/pop rdi, because nothing in the function uses RDI anymore",
+        "buf is still filled with 0xCC, just by a different instruction",
+        "imul rax,rax,27h computes sizeof(buf)",
+        "2Ah is the array index being written"
+      ],
+      "answer": 0,
+      "explain": "Without the stack-frame check there is no rep stos (which needed RDI) and no call that needs a value kept in RDI, so the function never touches callee-saved RDI. 27h = 39 is the index and 2Ah = 42 is the value stored. sizeof(buf) is 40 = 28h."
+    },
+    {
+      "type": "multi",
+      "category": "REP MOVS",
+      "q": "Which setup must happen before a rep movs in 64-bit code?",
+      "choices": [
+        "Set RSI to the start of the source",
+        "Set RDI to the start of the destination",
+        "Set RCX to the number of times to copy",
+        "Set RAX to the value to store",
+        "Set RDX to the source and R8 to the length"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "rep movs copies from [RSI] to [RDI], RCX times. RAX holds the value for stos, not movs. In the MS x64 calling convention RDX and R8 carry memcpy's arguments, but memcpy has to move them into RSI and RCX before the rep movs."
+    },
+    {
+      "type": "tf",
+      "category": "REP MOVS",
+      "q": "Unlike MOV, MOVS can copy data from memory to memory, but only from [RSI] to [RDI].",
+      "answer": true,
+      "explain": "MOV can't have memory as both operands. MOVS is a separate instruction whose two memory operands are fixed: the source is [RSI] and the destination is [RDI]. It's rep MOVS, not rep MOV, even though people often say 'rep move'."
+    },
+    {
+      "type": "tf",
+      "category": "REP MOVS",
+      "q": "MOVS can only run with the REP prefix in front of it.",
+      "answer": false,
+      "explain": "MOVS is a standalone instruction that copies one element. REP is an optional prefix that repeats it RCX times."
+    },
+    {
+      "type": "mc",
+      "category": "REP MOVS",
+      "q": "During rep movs byte ptr [rdi],byte ptr [rsi] with the direction flag clear, what happens to the registers after each byte is copied?",
+      "choices": [
+        "RSI and RDI each go up by 1, and RCX goes down by 1",
+        "RDI goes up by 1, and RSI and RCX stay the same",
+        "RSI and RDI each go up by 1, and RCX stays the same until the end",
+        "RSI and RDI each go down by 1, and RCX goes up by 1"
+      ],
+      "answer": 0,
+      "explain": "Both pointers move forward by the element size (1 here), so the copy walks forward through both buffers. The RCX counter drops by 1 per iteration until it reaches 0."
+    },
+    {
+      "type": "mc",
+      "category": "REP MOVS",
+      "q": "What does the direction flag (DF) in RFLAGS do to rep movs?",
+      "choices": [
+        "It decides whether RSI and RDI go up or down, so the copy can run toward lower addresses",
+        "It selects whether 1, 2, 4, or 8 bytes are copied per iteration",
+        "It decides whether RCX counts up or down",
+        "It records whether the last comparison was signed or unsigned"
+      ],
+      "answer": 0,
+      "explain": "DF is a control flag. When it is set, RSI and RDI go down and the copy runs backwards. If an attacker could set DF, code that expects a forward copy would copy backwards and corrupt memory."
+    },
+    {
+      "type": "tf",
+      "category": "REP MOVS",
+      "q": "DF is a status flag that arithmetic instructions like CMP and SUB set or clear automatically, just like ZF and SF.",
+      "answer": false,
+      "explain": "The EFLAGS diagram marks DF with C, meaning a control flag that steers string instructions. ZF, SF, CF, OF and the like are marked S, for status flags."
+    },
+    {
+      "type": "mc",
+      "category": "REP MOVS",
+      "q": "In MSVC's memcpy, the block that contains rep movs starts with push rdi; push rsi and ends with pop rsi; pop rdi before ret. Why?",
+      "choices": [
+        "rep movs can only use RSI and RDI, and Visual Studio treats both as callee-saved, so memcpy has to restore them",
+        "rep movs copies through the stack, so the pointers have to be pushed first",
+        "RSI and RDI are caller-saved, so memcpy pushes them on behalf of its caller",
+        "The pushes reserve stack space for the bytes being copied"
+      ],
+      "answer": 0,
+      "explain": "The instruction always uses RSI and RDI; you can't pick other registers. The Microsoft x64 convention makes RSI and RDI callee-saved, so any function that uses them has to save and restore them."
+    },
+    {
+      "type": "tf",
+      "category": "REP MOVS",
+      "q": "Under the System V convention used by GCC and similar compilers, RSI and RDI are caller-saved. Under Visual Studio they are callee-saved.",
+      "answer": true,
+      "explain": "The register table highlights exactly this difference. On System V a function can overwrite RSI and RDI without restoring them. On Visual Studio it has to preserve them, which is why rep stos and rep movs code there pushes and pops them."
+    },
+    {
+      "type": "text",
+      "category": "REP MOVS",
+      "q": "In 64-bit mode, which register holds the source pointer for rep movs?",
+      "answer": ["rsi", "RSI"],
+      "explain": "rep movs copies from [RSI] to [RDI] and uses RCX as the count. Each register is fixed by the instruction."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering memcpy (JourneyToTheCenterOfMemcpy.c)",
+      "q": "JourneyToTheCenterOfMemcpy.c calls memcpy(&b, &a, sizeof(mystruct_t)). The call compiles to mov r8d,8; lea rdx,[a]; lea rcx,[b]; call memcpy. Under the Microsoft x64 calling convention, what does each register hold?",
+      "choices": [
+        "RCX = &b (destination), RDX = &a (source), R8 = 8 (length)",
+        "RCX = &a (source), RDX = &b (destination), R8 = 8 (length)",
+        "RCX = 8 (length), RDX = &a (source), R8 = &b (destination)",
+        "RCX = &b (destination), RDX = 8 (length), R8 = &a (source)"
+      ],
+      "answer": 0,
+      "explain": "The signature is memcpy(dst, src, len), and arguments 1, 2 and 3 go in RCX, RDX and R8. memcpy immediately copies RCX into R11 (dst) and RDX into R10 (src)."
+    },
+    {
+      "type": "num",
+      "category": "Reverse engineering memcpy (JourneyToTheCenterOfMemcpy.c)",
+      "q": "mystruct_t is #pragma pack(1) struct { int var1; char var2[4]; }. To make memcpy take the path to rep movs, var2 is enlarged to char var2[0x80]. What is sizeof(mystruct_t) now, in decimal?",
+      "answer": 132,
+      "tolerance": 0,
+      "explain": "A 4-byte int plus 0x80 (128) chars is 132 = 0x84 bytes, and pack(1) means no padding. That length is over 0x80, which gets it past memcpy's earlier size checks."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering memcpy (JourneyToTheCenterOfMemcpy.c)",
+      "q": "memcpy begins with cmp r8,10h then jbe X, where R8 is the length. Which pseudocode matches?",
+      "choices": [
+        "if (len <= 0x10) goto X, as an unsigned comparison",
+        "if (len < 0x10) goto X, as a signed comparison",
+        "if (len > 0x10) goto X",
+        "if (len == 0x10) goto X"
+      ],
+      "answer": 0,
+      "explain": "JBE means jump if below or equal. 'Below' and 'above' are the unsigned conditions ('less' and 'greater' are the signed ones), which fits an unsigned length."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering memcpy (JourneyToTheCenterOfMemcpy.c)",
+      "q": "For an 8-byte length, memcpy's small-copy path runs mov rcx,qword ptr [rdx] and then mov qword ptr [rax],rcx. Why two instructions instead of one memory-to-memory MOV?",
+      "choices": [
+        "MOV can't use memory as both source and destination, so the 8 bytes go through a register",
+        "MOV can only move 4 bytes at a time",
+        "The first instruction checks for overlap and the second does the copy",
+        "The data has to be byte-swapped in RCX before it's stored"
+      ],
+      "answer": 0,
+      "explain": "MOV can take memory as its source or its destination, but not both. Copying 8 bytes takes a load into RCX and then a store from RCX. Only string instructions like MOVS copy memory to memory."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering memcpy (JourneyToTheCenterOfMemcpy.c)",
+      "q": "With a length of 0x24, memcpy reaches sub rdx,rcx then jae L, where RDX = source and RCX = destination. When does it jump to L?",
+      "choices": [
+        "When source >= destination (unsigned)",
+        "When source < destination",
+        "When the length is >= 0x20",
+        "Always, because SUB doesn't set flags"
+      ],
+      "answer": 0,
+      "explain": "SUB sets the flags the same way CMP does, but it also keeps the difference in RDX. JAE ('above or equal', unsigned) jumps when src - dst needed no borrow, which means src >= dst."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering memcpy (JourneyToTheCenterOfMemcpy.c)",
+      "q": "If src < dst, memcpy then runs lea rax,[r8+r10] (len + src), cmp rcx,rax, jb OVERLAP. Which situation goes to OVERLAP?",
+      "choices": [
+        "src < dst < src + len: the destination starts inside the source buffer",
+        "dst + len runs past the end of the address space",
+        "The source and destination are exactly the same address",
+        "The length is less than 0x80"
+      ],
+      "answer": 0,
+      "explain": "RAX = src + len is the end of the source buffer. The outer check already established src < dst, so jumping when dst < src + len means the destination starts inside the source buffer. A plain forward copy would then overwrite source bytes before reading them, so this case gets its own handling."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering memcpy (JourneyToTheCenterOfMemcpy.c)",
+      "q": "Assume the buffers don't overlap and the memory bit that memcpy tests is set. Which lengths send the memcpy from the walkthrough to rep movs?",
+      "choices": ["Length >= 0x80", "Length <= 0x10", "0x10 < length <= 0x20", "0x20 < length < 0x80"],
+      "answer": 0,
+      "explain": "Lengths up to 0x10 take a jump-table path with plain MOVs, and lengths up to 0x20 take a MOVUPS/XMM path. Lengths below 0x80 take another MOVUPS path. Only lengths of 0x80 or more (plus the bit check) reach rep movs, which is why the struct had to grow to 0x84 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering memcpy (JourneyToTheCenterOfMemcpy.c)",
+      "q": "Just before the rep movs path, memcpy runs test byte ptr [addr],2 then je L. How should this be read?",
+      "choices": [
+        "if ((*(char *)addr & 2) == 0) goto L",
+        "if (*(char *)addr == 2) goto L",
+        "if ((*(char *)addr & 2) != 0) goto L",
+        "if (*(char *)addr < 2) goto L"
+      ],
+      "answer": 0,
+      "explain": "TEST does an AND, throws the result away and keeps the flags. JE (the same as JZ) jumps when the AND result is zero, meaning bit 1 (value 2) is clear. In the walkthrough the byte was 2, so the jump wasn't taken and execution went on to rep movs."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering memcpy (JourneyToTheCenterOfMemcpy.c)",
+      "q": "This memcpy's rep movs copies one byte at a time (rep movs byte ptr). Why not 8 bytes at a time?",
+      "choices": [
+        "This path handles any length of 0x80 or more (0x81, 0x83, ...), and only byte-sized copies work for every length",
+        "rep movs can only copy single bytes",
+        "RCX can't hold a count larger than 0xFF",
+        "Byte copies are needed because the source and destination overlap"
+      ],
+      "answer": 0,
+      "explain": "Copying 8 bytes per iteration can't exactly cover a length that isn't a multiple of 8. To stay generic, this path sets RCX = length and copies byte by byte. rep movs itself has 1, 2, 4 and 8-byte forms."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering memcpy (JourneyToTheCenterOfMemcpy.c)",
+      "q": "Right before the rep movs, memcpy runs mov rax,r11, where R11 holds the original destination pointer. Why?",
+      "choices": [
+        "memcpy returns the original destination pointer, and RAX holds the return value",
+        "rep movs uses RAX as its counter",
+        "rep movs reads the destination address from RAX",
+        "It saves the destination so it can be compared with the source afterward"
+      ],
+      "answer": 0,
+      "explain": "memcpy is defined to return its dst argument, and the copy moves RDI forward, so the original value goes into RAX first. Then mov rdi,rcx (dst), mov rcx,r8 (len) and mov rsi,r10 (src) complete the three setup steps for rep movs."
+    }
+  ]
+}

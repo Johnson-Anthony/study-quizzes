@@ -1,0 +1,465 @@
+{
+  "title": "OST2 Arch1001 20: Binary Bomb Lab and Conclusion (part 1 of 2)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Analysis strategy",
+      "q": "You have a binary and want to find the input it expects. Running objdump on it produces a large amount of assembly. What approach does the walkthrough recommend for software that is not known to be malware?",
+      "choices": [
+        "Read the entire disassembly top to bottom before running anything",
+        "Use dynamic analysis (run it under a debugger) whenever possible, combined with targeted static reading",
+        "Brute-force inputs until one stops the explosion",
+        "Only use the strings tool, since all answers appear there in plain text"
+      ],
+      "answer": 1,
+      "explain": "Pure static analysis doesn't scale well: most real programs are far bigger than the bomb. When it is safe, run the code under a debugger and watch it, and read only the static code you need. In practice you end up using both."
+    },
+    {
+      "type": "mc",
+      "category": "Analysis strategy",
+      "q": "In which situation might you choose NOT to do dynamic analysis of a binary?",
+      "choices": [
+        "When the binary has symbols",
+        "When the binary is legitimate software you are auditing for vulnerabilities",
+        "When the binary is malware, because running it could infect your own system",
+        "When the binary reads input from a file"
+      ],
+      "answer": 2,
+      "explain": "Dynamic analysis means executing the code. With malware, that risks infecting yourself. For anything not known to be malicious, dynamic analysis is preferred whenever possible."
+    },
+    {
+      "type": "tf",
+      "category": "Analysis strategy",
+      "q": "Trying every possible input string until the bomb stops exploding is a good way to solve a phase.",
+      "answer": false,
+      "explain": "The space of possible strings is effectively infinite. The right approach is to look at the code, find the condition that avoids explode_bomb, and work out the input that satisfies it."
+    },
+    {
+      "type": "mc",
+      "category": "Analysis strategy",
+      "q": "What does running the `strings` utility on an unknown binary give you, and why is it a good first step?",
+      "choices": [
+        "The printable character sequences embedded in the file, such as messages, which can hint at what the program does",
+        "A full disassembly of every function",
+        "The values of every argument passed to each function at run time",
+        "A list of the exact inputs the program will accept"
+      ],
+      "answer": 0,
+      "explain": "strings dumps readable text found in the binary. For the bomb this showed the welcome banner plus messages like \"That's number 2. Keep going!\" and \"Halfway there!\", which tell you how the program progresses. It is a cheap first look."
+    },
+    {
+      "type": "mc",
+      "category": "Analysis strategy",
+      "q": "The hints say to \"stay focused on your goal.\" What does that mean for solving a phase?",
+      "choices": [
+        "Understand every instruction in the phase before stepping through it",
+        "Identify the exit condition for the level (the path that avoids explode_bomb) and walk backwards from it to the input that satisfies it",
+        "Rewrite the phase in C before trying any input",
+        "Patch out every call to explode_bomb"
+      ],
+      "answer": 1,
+      "explain": "You usually don't need to understand all of the code. Find which control-flow path avoids the explosion, then reason backwards about what values (and therefore what input) take that path."
+    },
+    {
+      "type": "mc",
+      "category": "Analysis strategy",
+      "q": "phase_1 calls a helper named strings_not_equal. Instead of reading that helper's assembly, what did the walkthrough do?",
+      "choices": [
+        "Set a watchpoint on every byte of the input",
+        "Rewrote it as a C function",
+        "Treated it as a black box: stepped over the call and looked at the return value in rax",
+        "Skipped it with a jump command"
+      ],
+      "answer": 2,
+      "explain": "phase_1 is short. All that matters is the return value tested right after the call. Stepping over the call with ni and checking eax shows the return value directly, which is faster than reverse engineering the comparison loop."
+    },
+    {
+      "type": "mc",
+      "category": "Analysis strategy",
+      "q": "While analyzing a phase, you find a call to an unfamiliar standard library function. According to the hints, what is your best resource?",
+      "choices": [
+        "The Intel instruction manual",
+        "The standard C library documentation for that function",
+        "The program's printed output",
+        "The binary's symbol table"
+      ],
+      "answer": 1,
+      "explain": "\"Standard C library documentation is your friend!\" The docs tell you what the arguments mean and what the function returns, so you can treat it as a known black box."
+    },
+    {
+      "type": "mc",
+      "category": "GDB usage",
+      "q": "In GDB, what is the difference between `si` and `ni`?",
+      "choices": [
+        "si steps one source line; ni steps one assembly instruction",
+        "si steps one instruction and goes into called functions; ni steps one instruction but steps over calls",
+        "si sets a breakpoint; ni removes it",
+        "They are identical aliases"
+      ],
+      "answer": 1,
+      "explain": "stepi (si) executes one machine instruction and follows a call into the callee. nexti (ni) also executes one instruction, but runs a call to completion and stops at the next instruction in the current function."
+    },
+    {
+      "type": "mc",
+      "category": "GDB usage",
+      "q": "Which GDB command shows 10 bytes of memory, in hexadecimal, starting at the address held in rdi?",
+      "choices": [
+        "p/x $rdi",
+        "x/10xg $rdi",
+        "x/10xb $rdi",
+        "x/s $rdi"
+      ],
+      "answer": 2,
+      "explain": "x examines memory: /10 is the count, x is hex format, b is byte-sized units. p/x $rdi prints the register value itself, not the memory it points to. x/10xg would show ten 8-byte giant words. x/s shows a string."
+    },
+    {
+      "type": "mc",
+      "category": "GDB usage",
+      "q": "You suspect rsi points to a C string. Which GDB command shows it as human-readable text?",
+      "choices": [
+        "x/s $rsi",
+        "p $rsi",
+        "x/i $rsi",
+        "info registers rsi"
+      ],
+      "answer": 0,
+      "explain": "x/s reads memory at that address as a null-terminated string. p $rsi and info registers rsi only show the pointer value. x/i would decode the bytes as instructions."
+    },
+    {
+      "type": "mc",
+      "category": "GDB usage",
+      "q": "You want to restart the bomb in GDB and keep control before it reaches any phase. Why use `start` instead of `run`?",
+      "choices": [
+        "start runs faster",
+        "start runs the program and stops at a temporary breakpoint at main; run just runs, and without breakpoints the program can carry on to an explosion",
+        "run ignores command-line arguments; start does not",
+        "start disables explode_bomb"
+      ],
+      "answer": 1,
+      "explain": "start is like setting a temporary breakpoint on main and then running. With run and no breakpoints, the bomb runs freely, and if you give it wrong input it blows up before you can step through anything."
+    },
+    {
+      "type": "mc",
+      "category": "GDB usage",
+      "q": "In `gdb bomb -q -x commands`, what does `-x commands` do?",
+      "choices": [
+        "Marks the file as executable",
+        "Executes the GDB commands in the file named `commands` at startup (display settings, breakpoints, start, etc.)",
+        "Passes `commands` to the bomb as its first argument",
+        "Exports the disassembly to a file named `commands`"
+      ],
+      "answer": 1,
+      "explain": "-x runs GDB commands from a file. This lets you set up displays (next 10 instructions, registers, stack), breakpoints and `start` automatically on every launch. -q (quiet) suppresses the startup banner."
+    },
+    {
+      "type": "mc",
+      "category": "GDB usage",
+      "q": "Your phase 1 answer is in a.txt. Inside GDB, how do you start the bomb so it reads answers from that file?",
+      "choices": [
+        "start a.txt",
+        "start < bomb a.txt",
+        "file a.txt",
+        "source a.txt"
+      ],
+      "answer": 0,
+      "explain": "Arguments after start/run go to the program being debugged, so the bomb gets a.txt as argv[1] and fopen()s it. `file` would load a.txt as the executable to debug. `source` would run it as GDB commands."
+    },
+    {
+      "type": "mc",
+      "category": "GDB usage",
+      "q": "After solving phase 1, why add a breakpoint on phase_2 (with `start a.txt`) to your GDB command file?",
+      "choices": [
+        "So GDB skips phase_2 entirely",
+        "So every restart replays the solved phases from the file and stops at the entry of the phase you're working on",
+        "Because GDB can't step into a function without a breakpoint on it",
+        "So phase_2 receives the contents of a.txt as its argument"
+      ],
+      "answer": 1,
+      "explain": "Earlier answers come from the file, and the breakpoint drops you straight into the next unsolved phase. You don't have to retype answers or step through solved code on every restart."
+    },
+    {
+      "type": "mc",
+      "category": "GDB usage",
+      "q": "You use `ni` on the instruction that calls read_line, but GDB doesn't return to its prompt. Why?",
+      "choices": [
+        "GDB crashed",
+        "The call hasn't returned yet: read_line is blocked waiting for you to type a line on stdin",
+        "ni doesn't work on call instructions",
+        "The bomb already exploded"
+      ],
+      "answer": 1,
+      "explain": "ni runs the whole call until it returns. read_line is waiting for input, so the program sits there until you type something and press Enter. Then GDB stops at the next instruction."
+    },
+    {
+      "type": "mc",
+      "category": "GDB usage",
+      "q": "Your GDB setup shows only the next 10 instructions. Which command shows the whole function you're stopped in?",
+      "choices": [
+        "disassemble",
+        "info frame",
+        "backtrace",
+        "list"
+      ],
+      "answer": 0,
+      "explain": "With no argument, disassemble prints the full disassembly of the current function (e.g. main), with a marker at the current instruction. You can also give it a function name, e.g. disassemble phase_1."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "Under the System V x86-64 calling convention (Linux), which register holds the first integer or pointer argument to a function?",
+      "choices": [
+        "rax",
+        "rcx",
+        "rsi",
+        "rdi"
+      ],
+      "answer": 3,
+      "explain": "System V passes the first arguments in rdi, rsi, rdx, rcx, r8, r9, in that order. (rcx is the first argument on Microsoft x64, not System V.)"
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "Under System V x86-64, which register holds the second argument?",
+      "choices": [
+        "rdx",
+        "rsi",
+        "rbx",
+        "rdi"
+      ],
+      "answer": 1,
+      "explain": "The order is rdi, rsi, rdx, rcx, r8, r9, so the second argument is in rsi. In phase_1, rsi held the pointer to the bomb's built-in comparison string."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "After stepping over `call strings_not_equal`, which register do you check for its return value?",
+      "choices": [
+        "rdi",
+        "rsp",
+        "rax (eax for a 32-bit int)",
+        "rip"
+      ],
+      "answer": 2,
+      "explain": "Integer return values come back in rax. Since the result is an int, the code tests eax, the low 32 bits of rax."
+    },
+    {
+      "type": "tf",
+      "category": "Calling convention",
+      "q": "Since rdi pointed to your input string right before `call phase_1`, you can be certain phase_1 takes your input as an argument.",
+      "answer": false,
+      "explain": "phase_1 might take no arguments, and rdi could hold a leftover value: a red herring. Treat it as a hypothesis to test, e.g. by seeing whether the function actually uses rdi."
+    },
+    {
+      "type": "text",
+      "category": "Calling convention",
+      "q": "Examining memory at rdi shows the bytes 69 6e 70 75 74 00. Read as ASCII, what string do they spell?",
+      "answer": ["input", "\"input\""],
+      "explain": "0x69='i', 0x6e='n', 0x70='p', 0x75='u', 0x74='t', and 0x00 is the null terminator. Viewing the memory as characters (x/c) or as a string (x/s) would have shown this right away."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention",
+      "q": "Before the call to strings_not_equal, why is it reasonable to examine both rdi and rsi as strings?",
+      "choices": [
+        "The name suggests it compares two strings, which C passes as two pointers: the first two arguments, in rdi and rsi",
+        "rdi and rsi are always string pointers on x86-64",
+        "The 'si' and 'di' in the register names stand for 'string input' and 'data input'",
+        "strings_not_equal is a GDB built-in that reads those registers"
+      ],
+      "answer": 0,
+      "explain": "Use the function name to guess its signature (two char* arguments), then use the calling convention to know where those arguments live. Checking with x/s $rdi showed your input, and x/s $rsi showed the expected string."
+    },
+    {
+      "type": "mc",
+      "category": "Flags and conditional jumps",
+      "q": "What does `test eax, eax` do?",
+      "choices": [
+        "Compares eax to 1 and stores the result in eax",
+        "Computes eax AND eax, discards the result, and sets flags; ZF=1 exactly when eax is 0",
+        "Subtracts eax from itself, setting eax to 0",
+        "Tests whether eax holds a valid pointer"
+      ],
+      "answer": 1,
+      "explain": "test works like AND but only updates the flags. A value ANDed with itself is zero only if the value is zero, so test reg, reg is the standard zero check."
+    },
+    {
+      "type": "mc",
+      "category": "Flags and conditional jumps",
+      "q": "`jne` (jump if not equal) is the same instruction as which other mnemonic?",
+      "choices": [
+        "jnz (jump if not zero)",
+        "jg (jump if greater)",
+        "jb (jump if below)",
+        "jmp (unconditional jump)"
+      ],
+      "answer": 0,
+      "explain": "jne and jnz are two names for the same opcode. Both jump when ZF=0."
+    },
+    {
+      "type": "num",
+      "category": "Flags and conditional jumps",
+      "q": "strings_not_equal returns eax = 0, and then `test eax, eax` runs. What is the value of the zero flag (ZF)? (Enter 0 or 1)",
+      "answer": 1,
+      "explain": "0 AND 0 = 0, so the result is zero and ZF is set to 1. A following jne/jnz is therefore not taken."
+    },
+    {
+      "type": "mc",
+      "category": "Flags and conditional jumps",
+      "q": "phase_1 does: `call strings_not_equal`, then `test eax, eax`, then `jne <address of a call to explode_bomb>`. What must strings_not_equal return for the bomb NOT to explode?",
+      "choices": [
+        "Any nonzero value",
+        "Exactly 1",
+        "0",
+        "A negative value"
+      ],
+      "answer": 2,
+      "explain": "jne is taken when ZF=0, which happens when eax is nonzero, and that path calls explode_bomb. You want the jump not taken, which needs eax = 0. Then execution falls through to the add/ret that returns safely."
+    },
+    {
+      "type": "mc",
+      "category": "Flags and conditional jumps",
+      "q": "With a wrong input, eax was 1 after strings_not_equal returned. What happens next in phase_1?",
+      "choices": [
+        "ZF=1, so the jump is not taken and phase_1 returns",
+        "ZF=0, so the jne is taken to the call to explode_bomb",
+        "The test instruction raises an exception",
+        "eax is reset to 0 and the comparison is retried"
+      ],
+      "answer": 1,
+      "explain": "1 AND 1 = 1 is nonzero, so ZF=0. jne/jnz jumps when ZF=0, which sends execution to the explode_bomb call."
+    },
+    {
+      "type": "mc",
+      "category": "Flags and conditional jumps",
+      "q": "strings_not_equal returned 1 for a wrong input and 0 for the right one. Why does that make sense given its name?",
+      "choices": [
+        "It returns 'true' (nonzero) when the strings differ and 'false' (0) when they match",
+        "It returns the length of the matching prefix",
+        "It returns 0 on error and 1 on success",
+        "It returns the number of identical characters"
+      ],
+      "answer": 0,
+      "explain": "The function answers the question \"are the strings not equal?\" Yes is nonzero, no is 0. So a 0 return means your input matched the expected string, which is the non-exploding path."
+    },
+    {
+      "type": "mc",
+      "category": "Bomb program structure",
+      "q": "Skimming main's disassembly, which repeating pattern shows how the bomb is organized?",
+      "choices": [
+        "fopen, phase_N, fclose, repeated for each phase",
+        "read_line, then phase_N (called with the line), then phase_defused, repeated for six phases",
+        "explode_bomb, then phase_N, repeated until the input is correct",
+        "puts, then exit, after each phase"
+      ],
+      "answer": 1,
+      "explain": "main reads a line, passes it to phase_1, calls phase_defused, prints a message, and repeats this through phase_6. Each phase is a separate check on one line of input."
+    },
+    {
+      "type": "mc",
+      "category": "Bomb program structure",
+      "q": "What does the call to fopen near the start of main tell you about the bomb?",
+      "choices": [
+        "It writes a log of explosions to disk",
+        "If given a filename argument, it opens that file and reads phase answers from it line by line, instead of from typed input",
+        "It loads its expected answers from a configuration file",
+        "It opens its own executable to check for tampering"
+      ],
+      "answer": 1,
+      "explain": "The bomb takes an optional solutions file (e.g. ./bomb a.txt). Lines are read from the file first, so solved phases don't need to be retyped."
+    },
+    {
+      "type": "tf",
+      "category": "Bomb program structure",
+      "q": "If the solutions file only holds the phase 1 answer, the bomb defuses phase 1 from the file and then waits for you to type the phase 2 input.",
+      "answer": true,
+      "explain": "In the walkthrough, a.txt held only the phase 1 answer. Phase 1 was defused from the file, then the bomb prompted for phase 2 input interactively."
+    },
+    {
+      "type": "mc",
+      "category": "Bomb program structure",
+      "q": "When rdi was examined at the call to phase_1, GDB labeled the address with the symbol input_strings. What does this suggest?",
+      "choices": [
+        "The phase's expected answer is stored at input_strings",
+        "read_line stored the typed line in a global buffer named input_strings, and main passed a pointer into it to phase_1",
+        "input_strings is a register alias for rdi",
+        "The bomb encrypts the input before storing it"
+      ],
+      "answer": 1,
+      "explain": "GDB shows the nearest symbol for an address. That address is in the global input_strings buffer, where read_line put your line, which strongly suggests your input is being passed to the phase."
+    },
+    {
+      "type": "mc",
+      "category": "Bomb program structure",
+      "q": "In a phase's disassembly, what is the significance of each `call explode_bomb`?",
+      "choices": [
+        "It's the success path you want to reach",
+        "It marks a failure path. You need a control-flow path through the phase that never reaches it",
+        "It's a debugging helper you can ignore",
+        "It only runs if you're in a debugger"
+      ],
+      "answer": 1,
+      "explain": "Reaching explode_bomb means wrong input. The conditional jumps that lead to it are your exit conditions. Figure out what values avoid them, then work backwards to the input."
+    },
+    {
+      "type": "mc",
+      "category": "Symbols and stripped binaries",
+      "q": "On Linux, what does running `strip ./bomb` do?",
+      "choices": [
+        "Removes the symbol information (function and variable names like phase_1, explode_bomb), leaving the code itself unchanged",
+        "Removes all calls to explode_bomb",
+        "Compresses the binary to make it harder to disassemble",
+        "Deletes the strings so the strings tool shows nothing"
+      ],
+      "answer": 0,
+      "explain": "strip removes the symbol table and debug information. The program behaves the same, but the debugger and disassembler can no longer show helpful names, so you must work out each function's purpose from its code."
+    },
+    {
+      "type": "mc",
+      "category": "Symbols and stripped binaries",
+      "q": "On Windows, how do you make the bomb symbol-less (the counterpart of `strip ./bomb`)?",
+      "choices": [
+        "Delete bomb.pdb, the separate symbol file",
+        "Delete bomb.exe.manifest",
+        "Run the bomb as administrator",
+        "Rename bomb.exe to bomb.bin"
+      ],
+      "answer": 0,
+      "explain": "Windows toolchains put debug symbols in a separate .pdb (program database) file rather than in the executable. Without it, WinDbg can't resolve function names."
+    },
+    {
+      "type": "mc",
+      "category": "Symbols and stripped binaries",
+      "q": "Why is it realistic practice to analyze a binary with its symbols removed?",
+      "choices": [
+        "Stripped binaries run faster under a debugger",
+        "Real-world targets such as malware won't ship with symbols, so you must infer each function's role from its behavior",
+        "Symbols make the calling convention unpredictable",
+        "Debuggers can't set breakpoints when symbols are present"
+      ],
+      "answer": 1,
+      "explain": "Malware authors don't hand you names like strings_not_equal. Without symbols, you set breakpoints by address and infer function roles from their code and the library calls they make."
+    },
+    {
+      "type": "tf",
+      "category": "Symbols and stripped binaries",
+      "q": "Stripping the bomb's symbols changes its machine instructions, so the phase answers are different afterwards.",
+      "answer": false,
+      "explain": "strip removes only symbol and debug metadata. The code and data (including the expected strings) are unchanged, so the answers are the same. They're just harder to find."
+    },
+    {
+      "type": "multi",
+      "category": "Symbols and stripped binaries",
+      "q": "Which of these does the material call professional reverse-engineering \"multi-tools\" (as opposed to a standalone debugger like gdb or WinDbg)?",
+      "choices": [
+        "IDA",
+        "Ghidra",
+        "radare2",
+        "strings",
+        "objdump"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "IDA, Ghidra and radare2 combine disassembly, analysis and often debugging in one tool. gdb fits Linux-focused work and WinDbg fits Windows. strings and objdump are single-purpose command-line utilities."
+    }
+  ]
+}

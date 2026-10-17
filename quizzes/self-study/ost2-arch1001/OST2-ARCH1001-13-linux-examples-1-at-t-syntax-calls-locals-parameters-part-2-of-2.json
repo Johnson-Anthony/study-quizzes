@@ -1,0 +1,405 @@
+{
+  "title": "Linux Examples 1 - AT&T Syntax, Calls, Locals, Parameters (part 2 of 2)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "AT&T syntax and GNU mnemonics",
+      "q": "What does the AT&T-syntax instruction `mov %edi,-0x14(%rbp)` do?",
+      "choices": [
+        "Stores the 32-bit value in edi to memory at address rbp - 0x14",
+        "Loads the 32-bit value at memory address rbp - 0x14 into edi",
+        "Stores the 64-bit value in rdi to memory at address rbp - 0x14",
+        "Puts the address rbp - 0x14 into edi"
+      ],
+      "answer": 0,
+      "explain": "AT&T order is source, destination. `-0x14(%rbp)` is the memory at rbp - 0x14, and %edi is a 32-bit register, so 4 bytes are stored."
+    },
+    {
+      "type": "multi",
+      "category": "AT&T syntax and GNU mnemonics",
+      "q": "Which of these are true of AT&T syntax as GDB and the GNU assembler show it?",
+      "choices": [
+        "Register names have a % prefix",
+        "Immediate constants have a $ prefix, as in `mov $0x11,%edi`",
+        "The destination operand is written last",
+        "Memory operands go in square brackets, like [rbp-0x14]",
+        "Hex constants take an h suffix, like 11h"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "AT&T uses %reg, $imm and source-then-destination order. Memory operands are written disp(base,index,scale), e.g. -0x14(%rbp), not in brackets. Hex is written 0x11."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T syntax and GNU mnemonics",
+      "q": "In AT&T syntax, which address does the memory operand `0x8(%rbx,%rcx,4)` refer to?",
+      "choices": [
+        "rbx + rcx*4 + 0x8",
+        "rcx + rbx*4 + 0x8",
+        "(rbx + rcx) * 4 + 0x8",
+        "rbx + rcx + 4 + 0x8"
+      ],
+      "answer": 0,
+      "explain": "The AT&T form is disp(base,index,scale), meaning base + index*scale + disp. It is the same base + index*scale + displacement addressing that Intel syntax writes as [rbx+rcx*4+0x8]."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T syntax and GNU mnemonics",
+      "q": "GCC's disassembly contains `movabs $0x...,%rax`, which loads a full 64-bit constant. What is `movabs`?",
+      "choices": [
+        "The GNU assembler's mnemonic for a mov of a 64-bit immediate into a register. You won't find it under that name in the Intel manual.",
+        "An instruction that takes the absolute value of the immediate before storing it",
+        "A privileged mov that only the kernel can execute",
+        "A mov that only works with addresses relative to rbp"
+      ],
+      "answer": 0,
+      "explain": "GNU as (gas) has its own mnemonics. movabs is just its name for moving an immediate (here a 64-bit constant) into a register. It is still a plain MOV."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T syntax and GNU mnemonics",
+      "q": "What does the GNU/AT&T mnemonic `cwtl` (\"convert word to long\") do?",
+      "choices": [
+        "Sign-extends the 16-bit AX into the 32-bit EAX",
+        "Zero-extends the 16-bit AX into the 32-bit EAX",
+        "Sign-extends the 32-bit EAX into the 64-bit RAX",
+        "Converts the 16-bit integer in AX to floating point"
+      ],
+      "answer": 0,
+      "explain": "In AT&T naming, a word is 16 bits and a long is 32 bits. In these mnemonics \"convert\" means sign extension, so cwtl copies AX into EAX and fills the upper 16 bits with AX's sign bit. It is one of the sign-extension instructions that gas spells differently from the Intel manual."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T syntax and GNU mnemonics",
+      "q": "In `movzwl -0x30(%rbp),%eax`, what do the letters z, w and l mean?",
+      "choices": [
+        "Zero-extend a 16-bit word source into a 32-bit long destination",
+        "Zero the destination, then write a 32-bit word and a 64-bit long",
+        "Sign-extend a 16-bit word into a 64-bit long",
+        "Zero-extend a 32-bit word into a 64-bit long"
+      ],
+      "answer": 0,
+      "explain": "movz = move with zero extension (Intel MOVZX). The suffixes give the sizes: w = 16-bit word source, l = 32-bit long destination."
+    },
+    {
+      "type": "mc",
+      "category": "Struct locals on the stack",
+      "q": "StructLocalVariable.c: a struct's 16-bit field `a` is written to rbp-0x30, and the code shows that `b[1]` (an element of an int array field) is at rbp-0x28. What is the most reasonable conclusion about the 2 bytes at rbp-0x2e..rbp-0x2d?",
+      "choices": [
+        "b[0] starts at rbp-0x2c, so those 2 bytes are struct padding. The struct is not packed.",
+        "b[0] starts at rbp-0x2e, so the struct is packed with no padding",
+        "Those bytes are the upper half of field a, which is really 32 bits",
+        "They are stack-alignment padding that GCC put outside the struct"
+      ],
+      "answer": 0,
+      "explain": "The ints are 4 bytes each, so b[1] at -0x28 puts b[0] at -0x2c. That leaves a 2-byte gap after the 2-byte field a at -0x30. Fields must stay in order inside a struct, so the gap is struct padding that aligns b. It would not be there under #pragma pack."
+    },
+    {
+      "type": "num",
+      "category": "Struct locals on the stack",
+      "q": "In the same example, `b[1]` is at rbp-0x28 and `b[4]` is stored at rbp-0x1c. How many bytes is each element of b?",
+      "answer": 4,
+      "explain": "0x28 - 0x1c = 0xc = 12 bytes across 3 elements (index 1 to 4), so each element is 4 bytes, the size of an int."
+    },
+    {
+      "type": "num",
+      "category": "Struct locals on the stack",
+      "q": "The lowest stack access in the function is rbp-0x30. How many GDB \"words\" (x/...xw) do you need to display everything from rbp-0x30 up to rbp?",
+      "answer": 12,
+      "explain": "In GDB a \"word\" (w) is 4 bytes and a \"giant word\" (g) is 8 bytes. 0x30 = 48 bytes, and 48 / 4 = 12 words."
+    },
+    {
+      "type": "mc",
+      "category": "Struct locals on the stack",
+      "q": "For `b[1] = a;` (a is a signed 16-bit field holding 0xbabe, b is an int array), GCC emits `movzwl` from a into eax, then `cwtl`, then stores eax. What value ends up in eax and in b[1]?",
+      "choices": [
+        "0xffffbabe",
+        "0x0000babe",
+        "0xbabe0000",
+        "0xbabebabe"
+      ],
+      "answer": 0,
+      "explain": "movzwl gives eax = 0x0000babe. cwtl then sign-extends AX into EAX. 0xbabe has its top bit set, so the upper 16 bits become all 1s: 0xffffbabe. The net effect is a signed short to int sign extension, just done in a different way than in the array example."
+    },
+    {
+      "type": "tf",
+      "category": "Struct locals on the stack",
+      "q": "From the memory dump alone you can always tell whether leftover uninitialized bytes after a struct's last field are struct padding or GCC stack-alignment padding.",
+      "answer": false,
+      "explain": "The instructor could not tell what the 8 bytes after field c were. The way to find out is to change the code and see how the layout changes. Earlier gaps could only be explained because a known field (b[1]) pinned down where the neighboring fields had to be."
+    },
+    {
+      "type": "mc",
+      "category": "System V parameter passing",
+      "q": "Under the System V x86-64 ABI used by GCC on Linux, which registers carry the first six integer/pointer parameters, from left to right?",
+      "choices": [
+        "RDI, RSI, RDX, RCX, R8, R9",
+        "RCX, RDX, R8, R9, then the stack",
+        "RDI, RSI, RCX, RDX, R8, R9",
+        "RAX, RBX, RCX, RDX, RSI, RDI"
+      ],
+      "answer": 0,
+      "explain": "System V passes six parameters in registers (RDI, RSI, RDX, RCX, R8, R9) before using the stack. The Microsoft x64 convention passes only four (RCX, RDX, R8, R9)."
+    },
+    {
+      "type": "text",
+      "category": "System V parameter passing",
+      "q": "For `func(0x11, 0x22, 0x33, 0x44, 0x55)` on Linux, which register carries the fifth argument, 0x55? (register name)",
+      "answer": ["r8", "R8", "%r8", "r8d", "R8D", "%r8d"],
+      "explain": "In order: a=RDI, b=RSI, c=RDX, d=RCX, e=R8. main loads it with `mov $0x55,%r8d`."
+    },
+    {
+      "type": "tf",
+      "category": "System V parameter passing",
+      "q": "Since TooManyParameters.c's original func has five parameters, the fifth one has to go on the stack under System V, as it would on Windows x64.",
+      "answer": false,
+      "explain": "System V has six register slots, so all five fit in registers (RDI, RSI, RDX, RCX, R8). The code had to be edited to seven parameters before one (g) was passed on the stack."
+    },
+    {
+      "type": "mc",
+      "category": "System V parameter passing",
+      "q": "SpecialMaths.c's `main(int argc, char **argv)` begins with `mov %edi,-0x14(%rbp)` and `mov %rsi,-0x20(%rbp)`. What is being saved?",
+      "choices": [
+        "argc (32-bit int, first parameter, from edi) and argv (64-bit pointer, second parameter, from rsi)",
+        "argv (from edi) and argc (from rsi)",
+        "The return address and the saved rbp",
+        "argv[0] and argv[1]"
+      ],
+      "answer": 0,
+      "explain": "main is an ordinary function that receives parameters by the calling convention: argc in RDI (only edi, since it's an int) and argv in RSI (a full 8-byte pointer)."
+    },
+    {
+      "type": "mc",
+      "category": "System V parameter passing",
+      "q": "Just before `callq atoi@plt`, SpecialMaths executes `mov %rax,%rdi`. Why?",
+      "choices": [
+        "atoi's only argument, the char* argv[1], has to be in RDI, the first-parameter register",
+        "RDI holds atoi's return value",
+        "It saves rax so atoi can't overwrite it",
+        "RDI must hold the return address for the call"
+      ],
+      "answer": 0,
+      "explain": "The first argument to any System V call goes in RDI. rax held the argv[1] string pointer, so it is moved into rdi. atoi returns its result in eax."
+    },
+    {
+      "type": "mc",
+      "category": "GCC parameter storage and the red zone",
+      "q": "In unoptimized GCC code, func immediately copies rdi, rsi, rdx, rcx, r8 to rbp-0x18, -0x20, -0x28, -0x30, -0x38. What is this for?",
+      "choices": [
+        "It keeps copies of the register-passed parameters so a debugger can still find them after the registers are overwritten, like the Microsoft shadow store",
+        "The System V ABI requires the caller to read the parameters back from these slots",
+        "x86-64 can't do arithmetic directly on RDI/RSI/RDX/RCX/R8",
+        "It sets up the parameters for the next function func calls"
+      ],
+      "answer": 0,
+      "explain": "Registers get overwritten as a function runs, so GCC saves the incoming parameters to the stack for debugging. The slots sit at the bottom (lowest addresses) of the callee's own frame, in the red zone. The instructor knew of no standard name for this GCC area."
+    },
+    {
+      "type": "mc",
+      "category": "GCC parameter storage and the red zone",
+      "q": "Using that pattern (rdi to -0x18, rsi to -0x20, rdx to -0x28, rcx to -0x30, r8 to -0x38), which parameter of `func(a, b, c, d, e)` is at rbp-0x30?",
+      "choices": ["d", "c", "e", "b"],
+      "answer": 0,
+      "fixed": true,
+      "explain": "The 4th parameter, d, arrives in RCX, and RCX is saved to rbp-0x30. Later parameters are saved at lower addresses."
+    },
+    {
+      "type": "tf",
+      "category": "GCC parameter storage and the red zone",
+      "q": "Pass1Parameter's func writes to rbp-0x14 and rbp-0x4 without ever subtracting from rsp. This is fine because func is a leaf function and can use the red zone below rsp.",
+      "answer": true,
+      "explain": "After push %rbp; mov %rsp,%rbp, rsp equals rbp, so everything at rbp-something is below rsp. A leaf function calls nothing, so nothing will overwrite that area, and GCC skips the sub/add of rsp."
+    },
+    {
+      "type": "mc",
+      "category": "GCC parameter storage and the red zone",
+      "q": "Unlike the earlier funcs, SpecialMaths' main does `sub $0x20,%rsp`. What best explains this?",
+      "choices": [
+        "main keeps data on the stack (argc, argv, a) and calls atoi, so it isn't a leaf function. It can't leave that data in the red zone below rsp, so it moves rsp down to allocate a real frame.",
+        "System V requires sub rsp in any function with more than one parameter",
+        "It reserves a 0x20-byte shadow store that atoi is required to use",
+        "atoi's return value must be written exactly at rsp"
+      ],
+      "answer": 0,
+      "explain": "Leaf functions can work in the red zone. A function that makes calls can't count on the area below rsp, so it allocates its frame explicitly. In this example the red zone isn't touched at all."
+    },
+    {
+      "type": "mc",
+      "category": "GCC parameter storage and the red zone",
+      "q": "You view the stack in GDB as 8-byte giant words starting at rbp-0x38. The 4-byte int i is stored at rbp-0x4. Where does its value show up?",
+      "choices": [
+        "In the most significant (upper) 4 bytes of the giant word at rbp-0x8",
+        "In the least significant (lower) 4 bytes of the giant word at rbp-0x8",
+        "Split across the giant words at rbp-0x8 and rbp",
+        "Nowhere, because GDB can't show 4-byte values in giant-word mode"
+      ],
+      "answer": 0,
+      "explain": "x86 is little-endian, so higher addresses hold more significant bytes. rbp-0x4 is the upper half of the 8-byte slot at rbp-0x8, which is why the slides show values like `00000011`undef`."
+    },
+    {
+      "type": "num",
+      "category": "GCC parameter storage and the red zone",
+      "q": "In the five-parameter func the lowest access is rbp-0x38. How many GDB giant words (x/...xg) cover rbp-0x38 up to rbp?",
+      "answer": 7,
+      "explain": "A giant word is 8 bytes. 0x38 = 56 bytes, and 56 / 8 = 7."
+    },
+    {
+      "type": "mc",
+      "category": "Stack-passed parameters",
+      "q": "After func gets a seventh parameter g (called with 0x77), how does main pass g?",
+      "choices": [
+        "It pushes 0x77 onto the stack before the call, so g sits above func's return address",
+        "It puts 0x77 in R10, the seventh parameter register",
+        "It writes 0x77 into the red zone below rsp after the call",
+        "It passes 0x77 in RAX"
+      ],
+      "answer": 0,
+      "explain": "System V has only six register slots. Any further parameters are pushed by the caller (here `push $0x77`) before the call, so they end up above the return address that call pushes."
+    },
+    {
+      "type": "mc",
+      "category": "Stack-passed parameters",
+      "q": "Inside func (rbp = 0x7fffffffdf38), g is read from `0x10(%rbp)`, address 0x7fffffffdf48. Why is it at rbp+0x10?",
+      "choices": [
+        "rbp points at the saved rbp, rbp+0x8 is the return address, and g was pushed just before the call, so it sits at rbp+0x10",
+        "GCC always puts the seventh parameter 16 bytes above wherever rsp happens to be",
+        "rbp+0x8 holds f and rbp+0x10 holds g",
+        "rbp+0x10 is the start of the red zone"
+      ],
+      "answer": 0,
+      "explain": "Going up from rbp: saved rbp at +0, return address at +0x8, then the caller's pushed argument at +0x10. This is the old 32-bit pattern of rbp+something for parameters, and only the stack-passed one uses it."
+    },
+    {
+      "type": "mc",
+      "category": "Stack-passed parameters",
+      "q": "System V pushes the remaining parameters so that the left-most one is at the lowest address. If func had an eighth parameter h after g, where would func (with the normal push rbp / mov rsp,rbp prologue) find h?",
+      "choices": [
+        "0x18(%rbp)",
+        "0x8(%rbp)",
+        "0x10(%rbp), with g moved to 0x18(%rbp)",
+        "-0x48(%rbp)"
+      ],
+      "answer": 0,
+      "explain": "g, the left-most stack parameter, stays at the lowest address, 0x10(%rbp). h is the next 8-byte slot up at 0x18(%rbp). 0x8(%rbp) is the return address."
+    },
+    {
+      "type": "num",
+      "category": "Stack-passed parameters",
+      "q": "TooManyParameters.c computes `int i = a+b-c+d-e;` with a..e = 0x11, 0x22, 0x33, 0x44, 0x55. What is i as a signed decimal number?",
+      "answer": -17,
+      "explain": "17 + 34 - 51 + 68 - 85 = -17. As a 32-bit value that is 0xffffffef, which is what the stack diagram shows for i."
+    },
+    {
+      "type": "tf",
+      "category": "Stack-passed parameters",
+      "q": "In 32-bit code, rbp-something usually meant locals and rbp+something meant parameters. In this x86-64 GCC code most parameters are instead at rbp-something, because they arrive in registers and are saved into the callee's own frame.",
+      "answer": true,
+      "explain": "Only parameters beyond the sixth are pushed by the caller and read at rbp+0x10 and up. Register-passed parameters are saved below rbp, in the area at the bottom of the frame."
+    },
+    {
+      "type": "mc",
+      "category": "argv, atoi and LEA in SpecialMaths",
+      "q": "What does this sequence compute?\n`mov -0x20(%rbp),%rax`\n`add $0x8,%rax`\n`mov (%rax),%rax`",
+      "choices": [
+        "argv[1]: the pointer to the second command-line string",
+        "&argv[1]: the address of the argv slot, without dereferencing",
+        "argv[8]",
+        "The integer value of the command-line argument"
+      ],
+      "answer": 0,
+      "explain": "argv (a char**) is loaded from rbp-0x20. Adding 8 (one 8-byte pointer) gives &argv[1], and `mov (%rax),%rax` dereferences that to get argv[1], the char* passed to atoi."
+    },
+    {
+      "type": "mc",
+      "category": "argv, atoi and LEA in SpecialMaths",
+      "q": "With argc in rax, what does `lea (%rax,%rax,1),%edx` put in edx?",
+      "choices": [
+        "rax + rax*1, which is 2*argc, computed without a multiply",
+        "The value loaded from memory at address rax + rax",
+        "argc + 1",
+        "rax * 1, which is just argc"
+      ],
+      "answer": 0,
+      "explain": "LEA only computes the address expression base + index*scale + disp and never touches memory. Here base = index = argc and scale = 1, so the result is argc + argc = 2*argc."
+    },
+    {
+      "type": "mc",
+      "category": "argv, atoi and LEA in SpecialMaths",
+      "q": "Visual Studio computed `2*argc + a` with a single LEA, using a as the base, argc as the index and a scale of 2. If a is in rdx and argc is in rax, which AT&T instruction does that?",
+      "choices": [
+        "lea (%rdx,%rax,2),%eax",
+        "lea (%rax,%rdx,2),%eax",
+        "lea 2(%rdx,%rax),%eax",
+        "lea (%rax,%rax,1),%eax"
+      ],
+      "answer": 0,
+      "explain": "base + index*scale = rdx + rax*2 = a + 2*argc. Swapping base and index gives argc + 2*a. `2(%rdx,%rax)` is a + argc + 2. GCC's own version computed only 2*argc with the LEA and then did a separate add."
+    },
+    {
+      "type": "num",
+      "category": "argv, atoi and LEA in SpecialMaths",
+      "q": "SpecialMaths.c returns `2*argc + atoi(argv[1])`. What does main return when run as `./a.out 40`?",
+      "answer": 44,
+      "explain": "argc counts the program name too, so argc = 2. atoi(\"40\") = 40, and 2*2 + 40 = 44."
+    },
+    {
+      "type": "mc",
+      "category": "argv, atoi and LEA in SpecialMaths",
+      "q": "By convention, what does argv[0] hold for a normal program?",
+      "choices": [
+        "The name (here the full path) of the executable being run",
+        "The first argument typed after the program name",
+        "The number of arguments",
+        "A NULL pointer"
+      ],
+      "answer": 0,
+      "explain": "argv[0] is the program name. The demo showed the full path to a.out. User-supplied arguments start at argv[1]."
+    },
+    {
+      "type": "mc",
+      "category": "The LEAVE instruction",
+      "q": "Which AT&T-syntax sequence is LEAVE equivalent to?",
+      "choices": [
+        "mov %rbp,%rsp ; pop %rbp",
+        "mov %rsp,%rbp ; pop %rbp",
+        "pop %rbp ; mov %rbp,%rsp",
+        "mov %rbp,%rsp ; pop %rbp ; ret"
+      ],
+      "answer": 0,
+      "explain": "LEAVE is Intel `mov rsp, rbp` then `pop rbp`. In AT&T order the first one is `mov %rbp,%rsp`. It moves rsp back up to the frame base, then restores the caller's rbp. It does not return; a ret still follows."
+    },
+    {
+      "type": "mc",
+      "category": "The LEAVE instruction",
+      "q": "In SpecialMaths, right before `leaveq`, rbp = 0x7fffffffdf50 (where the saved rbp value 0x0 is stored) and rsp = 0x7fffffffdf30. What are rsp and rbp after leaveq?",
+      "choices": [
+        "rsp = 0x7fffffffdf58, rbp = 0x0",
+        "rsp = 0x7fffffffdf50, rbp = 0x7fffffffdf50",
+        "rsp = 0x7fffffffdf30, rbp = 0x0",
+        "rsp = 0x7fffffffdf60, rbp = 0x7fffffffdf58"
+      ],
+      "answer": 0,
+      "explain": "mov %rbp,%rsp sets rsp = 0xdf50. pop %rbp loads the saved value 0x0 into rbp and adds 8 to rsp, giving 0xdf58. rsp now points at the return address for ret."
+    },
+    {
+      "type": "mc",
+      "category": "The LEAVE instruction",
+      "q": "Pass1Parameter's func ends with just `pop %rbp` and `retq`, with no leave or mov. Why is that enough?",
+      "choices": [
+        "func never moved rsp (it used the red zone), so rsp already equals rbp and pop %rbp alone restores the caller's frame",
+        "pop %rbp also resets rsp to rbp automatically",
+        "LEAVE can't be used in functions that take parameters",
+        "retq restores rsp from rbp"
+      ],
+      "answer": 0,
+      "explain": "LEAVE's mov %rbp,%rsp undoes any rsp adjustment made for the frame. func made none, so only the pop is needed. SpecialMaths' main did sub $0x20,%rsp, so GCC used leave there."
+    },
+    {
+      "type": "tf",
+      "category": "The LEAVE instruction",
+      "q": "LEAVE tears down the current stack frame and also returns to the caller, so no ret is needed after it.",
+      "answer": false,
+      "explain": "LEAVE only restores rsp and rbp (mov rsp, rbp; pop rbp). A separate ret then pops the return address. GCC emits it as `leaveq` followed by `retq`."
+    }
+  ]
+}

@@ -1,0 +1,352 @@
+{
+  "title": "Binary Bomb Lab in WinDbg, Bomb Lab Strategy, and Conclusion (part 2 of 2)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "WinDbg commands",
+      "q": "In WinDbg, which command displays the memory at an address as an ASCII string (for example, to see what a pointer in rcx points to)?",
+      "choices": ["da", "du", "dd", "dq"],
+      "answer": 0,
+      "explain": "da = display ASCII. Running da rcx showed the text that had been typed into the bomb, and da on the rdx pointer showed the string the program expected. du shows Unicode strings, dd shows dwords, dq shows qwords."
+    },
+    {
+      "type": "mc",
+      "category": "WinDbg commands",
+      "q": "You are stopped on `call phase_1` and want to go into the function instead of running over it. Which WinDbg command do you use?",
+      "choices": ["t", "p", "g", "bp"],
+      "answer": 0,
+      "explain": "t (trace) steps into a call. p steps over it, g resumes free execution, and bp sets a breakpoint. Typing gdb-style commands out of habit is an easy mistake to make here."
+    },
+    {
+      "type": "text",
+      "category": "WinDbg commands",
+      "q": "Which one-letter WinDbg command lets the program run freely until it hits a breakpoint, finishes, or crashes?",
+      "answer": ["g", "go"],
+      "explain": "g = go. It was used to get past the initial system breakpoint and to run between breakpoints."
+    },
+    {
+      "type": "tf",
+      "category": "WinDbg commands",
+      "q": "Right after you open bomb.exe through File > Open Executable, the bomb has not printed anything yet, because WinDbg has stopped at the initial system breakpoint before main runs.",
+      "answer": true,
+      "explain": "The debugger breaks at the standard system breakpoint when the process starts. Nothing is printed until you continue with g."
+    },
+    {
+      "type": "mc",
+      "category": "WinDbg commands",
+      "q": "You step over (p) a call to read_line, and the WinDbg command window shows \"Busy\" and stops accepting commands. What is going on?",
+      "choices": [
+        "The program is blocked inside read_line waiting for console input, so you have to type a line into the program's window",
+        "WinDbg has crashed and has to be restarted",
+        "The bomb has detected the debugger and is stalling on purpose",
+        "WinDbg is downloading symbols for read_line"
+      ],
+      "answer": 0,
+      "explain": "Stepping over read_line runs the whole function, and the function waits for input. Once you type a line in the program's console, the step finishes and the debugger accepts commands again."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention and return values",
+      "q": "Just before `call strings_not_equal`, the code loads rcx and rdx. Under the Microsoft x64 calling convention, what do these registers hold?",
+      "choices": [
+        "rcx = first argument, rdx = second argument",
+        "rcx = second argument, rdx = first argument",
+        "rcx = return address, rdx = first argument",
+        "rcx = loop counter, rdx = return value"
+      ],
+      "answer": 0,
+      "explain": "On Windows x64 the first four integer or pointer arguments go in rcx, rdx, r8, and r9, in that order."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention and return values",
+      "q": "You step over `call strings_not_equal`. Which register holds its result?",
+      "choices": ["rax (eax)", "rcx", "rdx", "rsp"],
+      "answer": 0,
+      "explain": "Integer return values come back in rax. The very next instruction, test eax, eax, checks that value."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention and return values",
+      "q": "Before `call strings_not_equal`, both rcx and rdx look like addresses rather than small constants. What is the most useful next step?",
+      "choices": [
+        "Dump each one as an ASCII string (da rcx, then da on the rdx value) to see which strings are being compared",
+        "Step into strings_not_equal and read every instruction",
+        "Patch out the call to explode_bomb",
+        "Restart the program with a different input"
+      ],
+      "answer": 0,
+      "explain": "A function named strings_not_equal that takes two pointer-looking arguments is probably comparing two strings. Dumping them showed your own input in rcx and the expected string in rdx."
+    },
+    {
+      "type": "mc",
+      "category": "Calling convention and return values",
+      "q": "To read the arguments of `call strings_not_equal` without going into the function, where should execution be stopped?",
+      "choices": [
+        "On the call instruction itself, after rcx and rdx have been loaded but before the call runs",
+        "On the first instruction of phase_1",
+        "On the instruction right after the call returns",
+        "On the first instruction of main"
+      ],
+      "answer": 0,
+      "explain": "At the call, the argument registers have their final values. After the call returns, rcx and rdx are volatile and may have been overwritten, and only rax (the return value) is meaningful. Run to Cursor on the call line is a quick way to stop there."
+    },
+    {
+      "type": "tf",
+      "category": "Calling convention and return values",
+      "q": "With the wrong input, strings_not_equal returned 1. With the matching input, it returned 0.",
+      "answer": true,
+      "explain": "As the name says, it returns nonzero when the strings differ and 0 when they are equal."
+    },
+    {
+      "type": "mc",
+      "category": "test and conditional jumps",
+      "q": "phase_1 does `test eax, eax` and then `je` to an address just past `call explode_bomb`. Which eax value skips the explosion?",
+      "choices": ["0", "1", "Any nonzero value", "0xFFFFFFFF only"],
+      "answer": 0,
+      "explain": "test ANDs eax with itself. The result is zero only when eax is 0, which sets ZF=1, so je is taken and jumps over the call to explode_bomb."
+    },
+    {
+      "type": "tf",
+      "category": "test and conditional jumps",
+      "q": "`test eax, eax` writes the result of the AND back into eax.",
+      "answer": false,
+      "explain": "test performs an AND only to set the flags (such as ZF) and throws the result away. eax is not changed."
+    },
+    {
+      "type": "mc",
+      "category": "test and conditional jumps",
+      "q": "Which flag condition makes `je` (also called `jz`) take its jump?",
+      "choices": ["ZF = 1", "ZF = 0", "CF = 1", "SF = 1"],
+      "answer": 0,
+      "explain": "je/jz jumps when the zero flag is set. After test eax, eax, that happens exactly when eax == 0."
+    },
+    {
+      "type": "mc",
+      "category": "test and conditional jumps",
+      "q": "strings_not_equal returns rax = 1. What happens at the `test eax, eax` / `je` / `call explode_bomb` sequence?",
+      "choices": [
+        "ZF is cleared, je is not taken, execution falls through into call explode_bomb, and the bomb goes off",
+        "ZF is set, je is taken, and the bomb is skipped",
+        "The test instruction faults because eax is nonzero",
+        "je is taken because any nonzero value counts as equal"
+      ],
+      "answer": 0,
+      "explain": "1 AND 1 = 1, which is not zero, so ZF=0. The conditional jump falls through to the next instruction, the call to explode_bomb."
+    },
+    {
+      "type": "multi",
+      "category": "Debug-build cruft",
+      "q": "In the debug-built bomb, which of these are compiler or build artifacts that you can skip, as opposed to the bomb's own logic?",
+      "choices": [
+        "A rep stos sequence that fills a stack buffer with 0xCC bytes",
+        "A call to __CheckForDebuggerJustMyCode",
+        "The call to strings_not_equal",
+        "The test eax, eax / je pair guarding the call to explode_bomb",
+        "An extra jmp you land on right after stepping into a function"
+      ],
+      "answer": [0, 1, 4],
+      "explain": "Stack buffer initialization, the Just My Code debugger check, and the jump thunk all come from how the binary was compiled. The string comparison and the check around explode_bomb are the actual phase logic."
+    },
+    {
+      "type": "mc",
+      "category": "Debug-build cruft",
+      "q": "Debug builds often run `rep stos` near the start of a function to fill newly allocated stack space with a recognizable byte. Which byte is used?",
+      "choices": ["0xCC", "0x00", "0x90", "0xFF"],
+      "answer": 0,
+      "explain": "The buffer is filled with 0xCC bytes, which is also the int3 breakpoint opcode. It helps catch uninitialized memory and has nothing to do with the bomb's checks."
+    },
+    {
+      "type": "tf",
+      "category": "Debug-build cruft",
+      "q": "main starts with `push rbp` / `push rdi` and ends with the matching `pop rdi` / `pop rbp`. This balanced pattern means the function is saving registers and restoring them before it returns.",
+      "answer": true,
+      "explain": "When pushes at the start are mirrored by pops in reverse order at the end, the function is preserving register values across its body. This is standard prologue and epilogue code, not puzzle logic."
+    },
+    {
+      "type": "mc",
+      "category": "Debug-build cruft",
+      "q": "You step into phase_1 with t and the first instruction is a jmp, not the real function body. What is the best explanation?",
+      "choices": [
+        "It is a jump stub produced by how the binary was compiled and linked. Follow it and move on",
+        "It is the bomb's anti-debugging check",
+        "It means the input has already failed",
+        "It is the code that compares your input"
+      ],
+      "answer": 0,
+      "explain": "The extra jump comes from the build configuration. Stepping once more takes you to the real start of phase_1."
+    },
+    {
+      "type": "mc",
+      "category": "Debug symbols and expert mode",
+      "q": "What does bomb.pdb give you when it sits next to bomb.exe?",
+      "choices": [
+        "Debug symbol information, such as function names like main, phase_1, and explode_bomb",
+        "The source code solutions to every phase",
+        "The executable's import table",
+        "A list of the inputs the bomb expects"
+      ],
+      "answer": 0,
+      "explain": "The PDB holds debug symbols. That is why commands like bp main work and why the disassembly shows readable names like strings_not_equal."
+    },
+    {
+      "type": "multi",
+      "category": "Debug symbols and expert mode",
+      "q": "To attempt the bomb in \"expert mode\" without debug information, which actions remove the symbols?",
+      "choices": [
+        "Run the strip command on the bomb binary (Linux/Unix)",
+        "Delete bomb.pdb (Windows)",
+        "Run .reload in WinDbg",
+        "Pass a solutions file as a command-line argument"
+      ],
+      "answer": [0, 1],
+      "explain": "strip removes symbols from ELF binaries. On Windows the symbols live in the separate .pdb file, so deleting it removes them. .reload only reloads symbols."
+    },
+    {
+      "type": "tf",
+      "category": "Debug symbols and expert mode",
+      "q": "Real-world targets such as malware usually come with debug symbols, so working without symbols is an unrealistic edge case.",
+      "answer": false,
+      "explain": "Unless the authors make a serious mistake, real targets usually ship without debug information. Some vendors, such as Microsoft for Windows, publish symbols, but that is the exception. Working without symbols is much harder and much closer to real reverse engineering."
+    },
+    {
+      "type": "mc",
+      "category": "Debug symbols and expert mode",
+      "q": "Why does `bp main` work easily on this bomb but might not on a typical real-world binary?",
+      "choices": [
+        "Symbols were provided here, and most real programs don't ship them, so function names like main may not be resolvable",
+        "WinDbg only supports bp on programs compiled by Microsoft",
+        "Real programs have no main function at all",
+        "bp only works on debug builds that contain rep stos code"
+      ],
+      "answer": 0,
+      "explain": "Breaking by function name depends on symbol information. Without it you have to locate code by address or by other analysis."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering strategy",
+      "q": "What is the right goal to keep in mind while working on each bomb phase?",
+      "choices": [
+        "Get the program to run without exploding by finding the conditions that avoid the calls to explode_bomb",
+        "Understand every assembly instruction in the binary",
+        "Reconstruct the full original C source code",
+        "Run every function in the program at least once"
+      ],
+      "answer": 0,
+      "explain": "It is easy to get lost in the weeds by analyzing instruction after instruction. The goal is to defuse each phase, so focus on the exit conditions."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering strategy",
+      "q": "In the bomb lab, what does \"working backwards\" from the exit conditions mean?",
+      "choices": [
+        "Start at the calls to explode_bomb, work out which checks lead to or skip them, then find inputs that force control flow down the safe path",
+        "Read the disassembly from the last instruction of the binary to the first",
+        "Step backwards in time in the debugger to undo an explosion",
+        "Solve phase 6 first and phase 1 last"
+      ],
+      "answer": 0,
+      "explain": "Find the explosion paths, see what conditions guard them, and pick inputs that satisfy those conditions."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering strategy",
+      "q": "Which pattern best describes the recommended way to move between overview and detail during reverse engineering?",
+      "choices": [
+        "Scan broadly to see what's there, go deep on one area, come back up to the big picture, and repeat",
+        "Go deep on the first function you find and never leave it until it is fully understood",
+        "Only ever skim, and never examine individual instructions",
+        "Read every function in address order exactly once"
+      ],
+      "answer": 0,
+      "explain": "Alternating a broad view with focused dives, and coming back up when you've gone too deep, keeps the analysis tied to the goal."
+    },
+    {
+      "type": "tf",
+      "category": "Reverse engineering strategy",
+      "q": "When you are not analyzing known malware, you should use a debugger (dynamic analysis) whenever possible and treat reading the disassembly (static analysis) as a supplement.",
+      "answer": true,
+      "explain": "Watching real register and memory values, like da on rcx and rdx at the call, often answers questions much faster than reading the code alone."
+    },
+    {
+      "type": "mc",
+      "category": "Reverse engineering strategy",
+      "q": "You run into a call to a standard C library function you don't know, such as sscanf. What should you do?",
+      "choices": [
+        "Look up public documentation, such as the man page or Microsoft's documentation, to learn its arguments and return value",
+        "Step into it and reverse engineer its whole implementation",
+        "Ignore it, since library calls never affect control flow",
+        "Delete the PDB and try again"
+      ],
+      "answer": 0,
+      "explain": "Documentation is your friend. Publicly available information about standard functions saves you from reversing them yourself."
+    },
+    {
+      "type": "tf",
+      "category": "Reverse engineering strategy",
+      "q": "Finishing an introductory x86-64 assembly course is enough to master assembly-level reverse engineering without further training or practice.",
+      "answer": false,
+      "explain": "Real mastery takes a lot more training and regular practice. Adding more tools and skills makes you a better engineer."
+    },
+    {
+      "type": "mc",
+      "category": "Bomb lab mechanics",
+      "q": "In the bomb's main, phase_1 is followed immediately by phase_defused, then printf, read_line, and phase_2. What does this layout suggest?",
+      "choices": [
+        "phase_1 checks the input. If it returns normally, the phase is defused and the program goes on to read input for phase 2",
+        "phase_defused is the function that checks the phase 1 input",
+        "phase_2 runs before phase_1",
+        "read_line is where the explosion happens"
+      ],
+      "answer": 0,
+      "explain": "Because phase_defused comes right after phase_1, getting out of phase_1 without exploding means you passed it. That makes phase_1 the function to step into."
+    },
+    {
+      "type": "mc",
+      "category": "Bomb lab mechanics",
+      "q": "What input string defuses phase 1, as seen with da on the second argument to strings_not_equal?",
+      "choices": [
+        "I am just a renegade hockey mom",
+        "Welcome to my fiendish little bomb",
+        "Phase 1 defused. How about the next one?",
+        "BOOM!!! The bomb has blown up."
+      ],
+      "answer": 0,
+      "explain": "rdx pointed to \"I am just a renegade hockey mom\". With that input, strings_not_equal returned 0 and je jumped over explode_bomb. The other choices are messages the bomb prints."
+    },
+    {
+      "type": "mc",
+      "category": "Bomb lab mechanics",
+      "q": "You pass a solutions file as bomb.exe's first command-line argument, with one solution per line, but it doesn't defuse phase 1. What fixed this problem?",
+      "choices": [
+        "Adding a newline after the last solution line",
+        "Putting all solutions on a single line separated by commas",
+        "Saving the file with a .sol extension",
+        "Passing the file as the second command-line argument"
+      ],
+      "answer": 0,
+      "explain": "Each solution has to end with a newline, including the last one, so the file needs a line break after the final answer."
+    },
+    {
+      "type": "tf",
+      "category": "Bomb lab mechanics",
+      "q": "A solutions file can hold only the phases you have solved so far. The bomb uses them one per phase, then waits for interactive input at the next unsolved phase.",
+      "answer": true,
+      "explain": "With only the phase 1 answer in the file, the bomb printed that phase 1 was defused and then waited for phase 2 input. You can set a breakpoint on the next phase and keep going from there."
+    },
+    {
+      "type": "mc",
+      "category": "Bomb lab mechanics",
+      "q": "What is the main benefit of feeding solved answers from a file while you work through the bomb in a debugger?",
+      "choices": [
+        "You don't have to retype earlier answers on every restart, and you can break on the phase you're currently working on",
+        "It turns off explode_bomb for every phase",
+        "It loads debug symbols automatically",
+        "It lets the bomb skip directly to phase 6"
+      ],
+      "answer": 0,
+      "explain": "Each restart replays the solved phases automatically, so all your effort goes into the current phase, for example with a breakpoint on phase_2."
+    }
+  ]
+}

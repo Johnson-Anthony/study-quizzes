@@ -1,0 +1,340 @@
+{
+  "title": "OST2 Arch1001 15: Linux Examples 2 - Shifts, Signed Division, CMOVcc, Reciprocal Multiplication (part 2 of 3)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "num",
+      "category": "Shift basics",
+      "q": "ShiftExample1 stores 5 in a local variable, shifts it left by 4, and then shifts the result right by 3. What decimal value is returned?",
+      "answer": 10,
+      "explain": "5 << 4 = 80 (0x50), and 80 >> 3 = 10 (0xa). Shifting left 4 and then right 3 is a net left shift by 1, which is multiplying by 2^1."
+    },
+    {
+      "type": "text",
+      "category": "Shift basics",
+      "q": "In ShiftExample1, eax holds 5 and then `shl eax, 4` runs. What does eax hold now? Give the answer in hex.",
+      "answer": ["0x50", "50", "50h", "0x00000050", "0X50", "50H"],
+      "explain": "Shifting left by 4 multiplies by 16: 5 * 16 = 80 = 0x50. In hex, a 4-bit left shift moves the value up one hex digit."
+    },
+    {
+      "type": "mc",
+      "category": "Shift basics",
+      "q": "For a value small enough that no bits fall off the top, what is the net effect of shifting left by 4 and then right by 3?",
+      "choices": ["Multiply by 2", "Divide by 2", "Multiply by 8", "Multiply by 128"],
+      "answer": 0,
+      "explain": "The net shift is 4 - 3 = 1 bit to the left, which multiplies by 2^1 = 2."
+    },
+    {
+      "type": "tf",
+      "category": "Shift basics",
+      "q": "Shift arithmetic left (SAL) and shift logical left (SHL) do the same thing, so a left shift of a signed value can be compiled to SHL.",
+      "answer": true,
+      "explain": "Both fill the vacated low bits with zeros, so there is no real difference. The signed and unsigned versions of the examples both use a plain left shift (or an equivalent multiply). Only right shifts differ (SHR vs SAR)."
+    },
+    {
+      "type": "mc",
+      "category": "Shift basics",
+      "q": "In ShiftExample1, after the shifts the result is moved into eax just before the function exits. Why eax?",
+      "choices": [
+        "eax/rax holds a function's return value",
+        "Shift instructions can only write their result to eax",
+        "eax holds the base pointer for the stack frame",
+        "eax is the only register gdb can display"
+      ],
+      "answer": 0,
+      "explain": "The result is placed in eax (the low 32 bits of rax) because that is where an int return value goes."
+    },
+    {
+      "type": "mc",
+      "category": "Unsigned shifts and optimized code",
+      "q": "For `unsigned int` a, b, c with `b = a * 8; c = b / 16;`, GCC emits a left shift by 3 and a right shift by 4. What kind of right shift does it use, and why?",
+      "choices": [
+        "A logical shift (SHR), because the values are unsigned, so there is no sign bit to preserve",
+        "An arithmetic shift (SAR), because division always has to preserve the sign bit",
+        "A logical shift (SHR), because SAR only works on 64-bit registers",
+        "A rotate right, because the bits shifted out must come back in at the top"
+      ],
+      "answer": 0,
+      "explain": "Unsigned values have no sign bit, so a logical shift right, which fills with zeros, gives the correct quotient. The compiler doesn't need to worry about clobbering a sign bit."
+    },
+    {
+      "type": "num",
+      "category": "Unsigned shifts and optimized code",
+      "q": "ShiftExample2Unsigned gets the input 31337 (0x7a69) from argv[1]. It computes b = a * 8 and then c = b / 16. What decimal value does it return?",
+      "answer": 15668,
+      "explain": "31337 * 8 = 250696 (0x3d348). Dividing by 16 (a right shift by 4) gives 15668 (0x3d34). That is 31337 / 2 with the remainder dropped."
+    },
+    {
+      "type": "text",
+      "category": "Unsigned shifts and optimized code",
+      "q": "eax holds 0x7a69 (31337). What is in eax after `shl $0x3, %eax`? Give the answer in hex.",
+      "answer": ["0x3d348", "3d348", "0x3D348", "3D348", "0x0003d348", "0x0003D348", "3d348h", "3D348h"],
+      "explain": "A left shift by 3 multiplies by 8: 0x7a69 * 8 = 0x3d348 (250696)."
+    },
+    {
+      "type": "mc",
+      "category": "Unsigned shifts and optimized code",
+      "q": "In the -O1 build, main starts with `mov 0x8(%rsi),%rdi`. What does this instruction do?",
+      "choices": [
+        "rsi holds argv. It reads the pointer at argv+8, which is argv[1], into rdi so it can be passed as the first argument",
+        "It copies argc + 8 into rdi",
+        "It reads 8 bytes of the argv[1] string itself into rdi",
+        "It moves the return address into rdi"
+      ],
+      "answer": 0,
+      "explain": "argv is main's second argument, so it arrives in rsi. Pointers are 8 bytes, so adding 8 moves from argv[0] to argv[1]. Dereferencing that gives the char* to the argument string, which goes into rdi as the first argument to the conversion call."
+    },
+    {
+      "type": "mc",
+      "category": "Unsigned shifts and optimized code",
+      "q": "With optimization on, GCC calls strtol instead of atoi. Before the call it runs `mov $0xa,%edx` and `mov $0x0,%esi`. What do these two values supply?",
+      "choices": [
+        "A base of 10 for the conversion, and NULL for the end-pointer argument",
+        "A string length of 10, and a starting offset of 0",
+        "The number 10 to multiply by, and an initial sum of 0",
+        "A stack size of 10, and a frame pointer of 0"
+      ],
+      "answer": 0,
+      "explain": "atoi(str) behaves the same as strtol(str, NULL, 10). The string pointer is in rdi, NULL in esi/rsi, and base 10 (0xa) in edx/rdx, so the optimizer swapped in the equivalent strtol call."
+    },
+    {
+      "type": "multi",
+      "category": "Unsigned shifts and optimized code",
+      "q": "Which of the following were visible in the -O1 GCC builds of the shift examples?",
+      "choices": [
+        "No push rbp / pop rbp frame-pointer setup",
+        "`sub $0x8,%rsp` at the start, undone by `add $0x8,%rsp` at the end",
+        "A call to strtol in place of atoi",
+        "A DIV instruction to perform the division by 16",
+        "The whole computation replaced by a hard-coded constant return value"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Optimization removed the stack-frame setup with rbp, which isn't strictly needed. It allocated 8 bytes of stack and added them back before returning, and it called strtol(str, NULL, 10). Division by 16 was done with a right shift, not DIV. It couldn't fold the result into a constant because the input comes from argv at runtime."
+    },
+    {
+      "type": "mc",
+      "category": "Unsigned shifts and optimized code",
+      "q": "Even with optimization turned on, why can't the compiler shrink this function down to `return <constant>`?",
+      "choices": [
+        "The input comes from argv[1] at runtime, so the compiler can't know the value ahead of time",
+        "Shift instructions can never be optimized away",
+        "Optimization never changes arithmetic",
+        "strtol has to be called twice to get the value"
+      ],
+      "answer": 0,
+      "explain": "If the operands were compile-time constants, the compiler could compute the answer itself and just return it. A command-line argument is only known at runtime."
+    },
+    {
+      "type": "mc",
+      "category": "Signed division by shifting",
+      "q": "When a, b, c are signed `int`, dividing by 16 takes extra instructions (an add of 0xf plus a conditional move) before the `sar $4`. What problem do they fix?",
+      "choices": [
+        "For negative values, SAR rounds toward negative infinity, but C integer division truncates toward zero. Adding 15 first to a negative dividend makes the shift round toward zero",
+        "SAR can't shift by more than 3 bits, so the extra instructions do the rest",
+        "Signed values must be converted to unsigned before any shift",
+        "The extra instructions detect division by zero"
+      ],
+      "answer": 0,
+      "explain": "Example: -8 / 16 is 0 in C, but sar(-8, 4) = -1. Adding 15 first gives 7, and 7 >> 4 = 0. For non-negative values the plain shift is already correct, so the adjustment is thrown away."
+    },
+    {
+      "type": "num",
+      "category": "Signed division by shifting",
+      "q": "In ShiftExample3Signed, b = -8 (the input was -1). What does a plain `sar $4` of -8 produce, without the +0xf adjustment?",
+      "answer": -1,
+      "explain": "-8 is 0xfffffff8. An arithmetic shift right by 4 fills with 1s, giving 0xffffffff = -1. That is floor(-0.5). C's -8 / 16 is 0, so the plain shift would give the wrong answer."
+    },
+    {
+      "type": "num",
+      "category": "Signed division by shifting",
+      "q": "The signed program (b = a * 8; c = b / 16; with GCC's lea / lea / test / cmovns / sar sequence) is run with the input -1. What value does it return?",
+      "answer": 0,
+      "explain": "b = -8. eax = -8 + 15 = 7. test sets SF because -8 is negative, so cmovns does not move, and eax stays 7. sar 7 by 4 gives 0, which matches C's truncating -8 / 16 = 0."
+    },
+    {
+      "type": "num",
+      "category": "Signed division by shifting",
+      "q": "The same signed program is run with the input -3. What value does it return?",
+      "answer": -1,
+      "explain": "b = -24. C computes -24 / 16 = -1.5 and truncates it to -1. In the assembly, eax = -24 + 15 = -9. SF is set, so there is no cmov, and sar(-9, 4) = -1. A plain sar(-24, 4) would have given -2."
+    },
+    {
+      "type": "num",
+      "category": "Signed division by shifting",
+      "q": "The signed program is run with the input -32. b = a * 8 is 0xffffff00. Adding 0xf gives 0xffffff0f, and the cmovns does not fire. What decimal value does `sar $0x4,%eax` return?",
+      "answer": -16,
+      "explain": "sar 0xffffff0f by 4 gives 0xfffffff0 = -16. -256 divides exactly by 16, so the shift just drops the 0xf that was added: -256 / 16 = -16."
+    },
+    {
+      "type": "tf",
+      "category": "Signed division by shifting",
+      "q": "For a negative dividend that is an exact multiple of 16 (such as -256), adding 15 before the arithmetic right shift by 4 doesn't change the result.",
+      "answer": true,
+      "explain": "The added 15 only affects the low 4 bits, which the shift throws away, and no rounding is needed for an exact multiple. The adjustment matters only when the negative dividend has a remainder."
+    },
+    {
+      "type": "tf",
+      "category": "Signed division by shifting",
+      "q": "When the dividend is non-negative (input 31337, for example), the GCC sequence throws away the +0xf it computed and shifts the original value instead.",
+      "answer": true,
+      "explain": "edx = 0x3d348 and eax = 0x3d357. test edx,edx leaves SF = 0, so cmovns copies edx back over eax (0x3d348). sar by 4 then gives 0x3d34, the same as a plain shift."
+    },
+    {
+      "type": "mc",
+      "category": "Signed division by shifting",
+      "q": "In GCC's signed build, `b = a * 8` became `lea 0x0(,%rax,8),%edx`. How does this compute the multiply?",
+      "choices": [
+        "It uses the address calculation base + index*scale + displacement with index = rax, scale = 8 and no base, so edx = rax * 8 without touching memory",
+        "It loads the 4 bytes at memory address rax*8 into edx",
+        "It's a disguised IMUL that also sets the overflow flag",
+        "It shifts rax left by 8 bits"
+      ],
+      "answer": 0,
+      "explain": "LEA only computes the effective address and stores it, with no memory access. With a scale of 8 it multiplies by 8, so it does the same job as `shl $3` or an IMUL. The next instruction, `lea 0xf(%rdx),%eax`, uses the same trick to compute edx + 15."
+    },
+    {
+      "type": "mc",
+      "category": "Signed division by shifting",
+      "q": "The Visual Studio /O2 build of the signed example was `shl eax,3; cdq; and edx,0Fh; add eax,edx; sar eax,4`. Which of these instructions is in the VS build but NOT in the GCC -O1 build?",
+      "choices": ["cdq", "cmovns", "lea", "test"],
+      "answer": 0,
+      "explain": "VS used CDQ plus AND/ADD to make the adjustment for negative values. GCC used LEA to add 0xf and TEST + CMOVNS to keep the adjusted value only when the input is negative. Both end with an arithmetic right shift by 4."
+    },
+    {
+      "type": "mc",
+      "category": "Signed division by shifting",
+      "q": "Why does the signed version divide with SAR, while the unsigned version uses SHR?",
+      "choices": [
+        "SAR fills the vacated high bits with copies of the sign bit, so negative numbers stay negative. SHR fills with zeros, which would turn a negative value into a large positive one",
+        "SAR is faster than SHR",
+        "SHR can't shift 32-bit registers",
+        "SAR fills with zeros and SHR fills with ones"
+      ],
+      "answer": 0,
+      "explain": "An arithmetic right shift preserves the sign of a two's-complement value. A logical right shift always brings in zeros, which is correct only for unsigned values."
+    },
+    {
+      "type": "mc",
+      "category": "CMOVcc and TEST",
+      "q": "What does `cmovns %edx,%eax` do (AT&T syntax)?",
+      "choices": [
+        "If the sign flag is NOT set, copy edx into eax. Otherwise eax is unchanged",
+        "If the sign flag IS set, copy edx into eax",
+        "Always copy eax into edx, then clear the sign flag",
+        "Jump to the address in edx if the result was non-negative"
+      ],
+      "answer": 0,
+      "explain": "CMOVcc works like Jcc: the cc is a condition code (e, ne, g, le, nbe, s, ns, ...). NS means 'not sign', so SF = 0. In AT&T syntax the source comes first and the destination last, so edx is copied into eax only when the condition holds."
+    },
+    {
+      "type": "tf",
+      "category": "CMOVcc and TEST",
+      "q": "If a CMOVcc's condition is not met, the destination register keeps its previous value.",
+      "answer": true,
+      "explain": "If the condition holds, the move happens. If not, nothing happens. With input -32, SF was set, so cmovns was skipped and eax kept the value with 0xf added."
+    },
+    {
+      "type": "mc",
+      "category": "CMOVcc and TEST",
+      "q": "What does `test %edx,%edx` accomplish right before `cmovns`?",
+      "choices": [
+        "It ANDs edx with itself and sets flags without storing the result, so SF ends up equal to edx's most significant bit (set exactly when edx is negative)",
+        "It subtracts edx from itself, so it always sets the zero flag and clears the sign flag",
+        "It zeroes edx",
+        "It compares edx against 0xf"
+      ],
+      "answer": 0,
+      "explain": "TEST is a bitwise AND that only updates the flags. x AND x = x, so the flags describe edx itself. The sign flag reflects the top bit, which is how the code checks whether the multiplied value is negative."
+    },
+    {
+      "type": "mc",
+      "category": "CMOVcc and TEST",
+      "q": "Which flag does the NS condition code in CMOVNS check?",
+      "choices": ["Sign flag (SF) clear", "Zero flag (ZF) clear", "Carry flag (CF) clear", "Overflow flag (OF) clear"],
+      "answer": 0,
+      "explain": "S = sign flag set, NS = sign flag not set. The condition codes are the same ones the Jcc family uses (JS/JNS, for example)."
+    },
+    {
+      "type": "tf",
+      "category": "CMOVcc and TEST",
+      "q": "With the input -32, the multiplied value in edx is 0xffffff00, so `test %edx,%edx` sets the sign flag and the following `cmovns` performs its move.",
+      "answer": false,
+      "explain": "The test does set SF, because the top bit of 0xffffff00 is 1. But cmovns moves only when SF is NOT set, so the move is skipped and eax keeps 0xffffff0f."
+    },
+    {
+      "type": "mc",
+      "category": "Reciprocal multiplication",
+      "q": "In MulDivExample, the C code divides an unsigned value by a constant, yet GCC emits no DIV instruction. It loads a large constant, does a MUL, keeps the high half, and shifts right. Why?",
+      "choices": [
+        "Divide instructions are expensive. Multiplying by a precomputed fixed-point reciprocal of the divisor and then shifting is faster and gives the same result",
+        "x86-64 has no instruction for dividing 64-bit values",
+        "DIV can only divide by powers of two",
+        "The program is obfuscated on purpose by the programmer"
+      ],
+      "answer": 0,
+      "explain": "This is reciprocal multiplication. Dividing by d is the same as multiplying by 1/d, and the compiler precomputes a binary-fraction approximation of 1/d as an integer constant, then uses shifts to scale it back."
+    },
+    {
+      "type": "mc",
+      "category": "Reciprocal multiplication",
+      "q": "The divide-by-constant code uses the one-operand form `mul %rdx`. Where does the result go?",
+      "choices": [
+        "rax is multiplied by the operand, and the 128-bit product goes into rdx:rax, with the high 64 bits in rdx and the low 64 bits in rax",
+        "rdx is multiplied by itself, and the result goes back into rdx",
+        "rax is multiplied by rdx, and only the low 64 bits are kept, in rax",
+        "The 128-bit product goes into rax:rdx, with the high bits in rax"
+      ],
+      "answer": 0,
+      "explain": "Unsigned MUL has only the single-operand form. It implicitly multiplies rax by the given operand and writes the full double-width product to rdx (high) and rax (low)."
+    },
+    {
+      "type": "tf",
+      "category": "Reciprocal multiplication",
+      "q": "In MulDivExample, GCC used IMUL (the signed multiply) for the multiplication of unsigned values. It used the two-operand form, which multiplies two registers and stores the result back into the destination, truncated to the register size.",
+      "answer": true,
+      "explain": "GCC prefers IMUL even for unsigned multiplication. The two-operand form keeps only as many bits as fit in the destination. The low bits of a product are the same whether the operands are treated as signed or unsigned."
+    },
+    {
+      "type": "num",
+      "category": "Reciprocal multiplication",
+      "q": "After the MUL, the code moves rdx into rax and then runs `shr $0x21,%rax`. How many bits does that shift move, in decimal?",
+      "answer": 33,
+      "explain": "0x21 = 2*16 + 1 = 33."
+    },
+    {
+      "type": "num",
+      "category": "Reciprocal multiplication",
+      "q": "Keeping only the high 64 bits (rdx) of the 128-bit product and then shifting right by 0x21: counted from the full 128-bit product, how many bits to the right is that in total?",
+      "answer": 97,
+      "explain": "Taking just rdx throws away the low 64 bits, which is the same as shifting the product right by 64. Shifting right by another 33 makes 64 + 33 = 97. The magic constant is effectively 1/divisor scaled up by 2^97."
+    },
+    {
+      "type": "text",
+      "category": "Reciprocal multiplication",
+      "q": "Decimal 0.1 cannot be written exactly in binary. Give the first 9 bits after the binary point (digits only, e.g. 101010101).",
+      "answer": ["000110011", "0.000110011", ".000110011"],
+      "explain": "The binary place values are 0.5, 0.25, 0.125, 0.0625, 0.03125, ... 0.1 contains no 0.5, 0.25 or 0.125, but it does contain 0.0625 and then 0.03125. Continuing gives 0.000110011..., with 0011 repeating."
+    },
+    {
+      "type": "num",
+      "category": "Reciprocal multiplication",
+      "q": "When writing decimal 0.1 in binary, what is the place value of the first 1 bit after the binary point? Give a decimal number.",
+      "answer": 0.0625,
+      "tolerance": 0.00001,
+      "explain": "0.5 (2^-1), 0.25 (2^-2) and 0.125 (2^-3) are all larger than 0.1, so those bits are 0. 0.0625 (2^-4) fits, so the 4th bit is the first 1."
+    },
+    {
+      "type": "mc",
+      "category": "Reciprocal multiplication",
+      "q": "You're reverse engineering and find a huge, odd-looking constant, a multiply, and a shift where the source probably had a division. What is the most reasonable reading?",
+      "choices": [
+        "It is most likely the compiler optimizing a division by a constant. Step through it, check the result, and move on",
+        "A human probably wrote it by hand and it needs full manual analysis",
+        "It is certainly malware obfuscation",
+        "It is a corrupted instruction stream"
+      ],
+      "answer": 0,
+      "explain": "This pattern is typical compiler output. You rarely need to work out the reciprocal yourself. Recognize the pattern, watch the result in a debugger, and continue. Obfuscation is possible, but obfuscated code would normally be generated by a program, not hand-written."
+    }
+  ]
+}
