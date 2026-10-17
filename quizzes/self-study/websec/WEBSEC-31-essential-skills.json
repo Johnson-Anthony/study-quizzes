@@ -1,0 +1,357 @@
+{
+  "title": "Essential skills",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Essential skills overview",
+      "q": "According to the overview, what should you keep in mind about each Web Security Academy lab?",
+      "choices": [
+        "It demonstrates just one possible variation of a given vulnerability",
+        "It covers every known variation of a vulnerability",
+        "It reflects exactly how the bug appears on every live site",
+        "It is guaranteed to be unpatched on real targets"
+      ],
+      "answer": 0,
+      "explain": "Each lab shows one variation, so in practice you must recognize subtly different occurrences of the same underlying bug and adapt your techniques."
+    },
+    {
+      "type": "tf",
+      "category": "Essential skills overview",
+      "q": "Simply copying lab solutions and running them against real sites will work indefinitely because real sites are never audited or patched.",
+      "answer": false,
+      "explain": "Real sites are often already audited and patched by other testers, so you must adapt techniques to overcome those additional obstacles."
+    },
+    {
+      "type": "mc",
+      "category": "Essential skills overview",
+      "q": "What is the purpose of the mystery lab feature introduced for identifying unknown vulnerabilities?",
+      "choices": [
+        "To let you practice identifying vulnerabilities without prior knowledge of them",
+        "To automatically exploit vulnerabilities for you",
+        "To give you the exact vulnerability name before you start",
+        "To scan an entire site with Burp Scanner automatically"
+      ],
+      "answer": 0,
+      "explain": "In real testing you don't know the exact vulnerability in advance; the mystery lab hides the title and description so you practice recon and analysis."
+    },
+    {
+      "type": "mc",
+      "category": "Context and decoding discrepancies",
+      "q": "Why does a decoding discrepancy between a filter and the back-end enable filter bypass?",
+      "choices": [
+        "The filter checks the input with different decoding than the back-end eventually applies, so an encoding the filter leaves alone gets decoded later",
+        "The filter and back-end always decode identically, so no payload can slip through",
+        "The back-end refuses to decode anything the filter has already seen",
+        "Encodings are stripped only by the browser and never by servers"
+      ],
+      "answer": 0,
+      "explain": "It is vital that the decoding done when checking input matches the decoding done when the data is used. Any discrepancy lets an attacker apply an encoding the filter won't catch but that is removed later."
+    },
+    {
+      "type": "mc",
+      "category": "Context and decoding discrepancies",
+      "q": "The exact sequence of decoding steps applied to your input depends on what?",
+      "choices": [
+        "The context in which the data appears",
+        "The length of the payload",
+        "The time of day the request is sent",
+        "Whether the request uses GET or POST only"
+      ],
+      "answer": 0,
+      "explain": "For example, a query parameter is typically URL decoded server-side, while the text content of an HTML element may be HTML decoded client-side."
+    },
+    {
+      "type": "text",
+      "category": "URL encoding",
+      "q": "What is the URL-encoded representation of the double-quote character (\") using percent encoding? (Answer with the %XX form.)",
+      "answer": ["%22"],
+      "explain": "Servers treat %22, %3C, and %3E in a query parameter as synonymous with \", <, and > respectively, because URL-based input is URL decoded server-side."
+    },
+    {
+      "type": "mc",
+      "category": "URL encoding",
+      "q": "In the double URL encoding example, the standard PoC %3Cimg... was double-encoded. What does the % character itself become when double-encoded?",
+      "choices": [
+        "%25",
+        "%00",
+        "%2F",
+        "%3C"
+      ],
+      "answer": 0,
+      "explain": "Double URL encoding replaces each % with %25, e.g. %3C becomes %253C. A WAF that decodes only once sees harmless-looking text, but a back-end that double-decodes reconstructs the payload."
+    },
+    {
+      "type": "tf",
+      "category": "URL encoding",
+      "q": "In a URL query string, the space character is often represented by a plus (+) rather than %20.",
+      "answer": true,
+      "explain": "Although space can be encoded as %20, it is often represented by a plus instead, as in search=Fish+%26+Chips."
+    },
+    {
+      "type": "mc",
+      "category": "URL encoding",
+      "q": "Why do browsers automatically URL encode a character like & inside a search query value?",
+      "choices": [
+        "So the ampersand is not mistaken for the delimiter that separates query parameters",
+        "To make the URL longer and harder to read",
+        "Because servers reject any request containing a literal ampersand",
+        "To HTML encode the value before it reaches the server"
+      ],
+      "answer": 0,
+      "explain": "Reserved characters like & carry special meaning (& separates parameters). Encoding it as %26 prevents parser ambiguity when the value legitimately contains that character."
+    },
+    {
+      "type": "mc",
+      "category": "HTML encoding",
+      "q": "An HTML character reference is prefixed with an ampersand and terminated with what character?",
+      "choices": [
+        "A semicolon (;)",
+        "A colon (:)",
+        "A backslash (\\)",
+        "A percent sign (%)"
+      ],
+      "answer": 0,
+      "explain": "References are formed by substituting a character with &name;, &#decimal;, or &#xhex;. For example &colon;, &#58;, and &#x3a; all represent a colon."
+    },
+    {
+      "type": "multi",
+      "category": "HTML encoding",
+      "q": "Which of the following are valid HTML character references for the colon character?",
+      "choices": [
+        "&colon;",
+        "&#58;",
+        "&#x3a;",
+        "\\u003a",
+        "\\x3a"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "HTML supports named (&colon;), decimal (&#58;), and hex (&#x3a;) references. \\u003a is a unicode escape and \\x3a is a hex escape - those are string-context escapes, not HTML references."
+    },
+    {
+      "type": "mc",
+      "category": "HTML encoding",
+      "q": "When injecting an HTML-encoded payload like <img src=x onerror=\"&#x61;lert(1)\">, where does the decoding that reconstructs alert happen?",
+      "choices": [
+        "Client-side, when the browser parses and renders the page",
+        "Server-side, inside the WAF before the request is blocked",
+        "In the database during query execution",
+        "It is never decoded; the literal text executes"
+      ],
+      "answer": 0,
+      "explain": "Browsers automatically decode references in locations like element text or attribute values, so this obfuscates the payload from server-side defenses while still executing client-side."
+    },
+    {
+      "type": "tf",
+      "category": "HTML encoding",
+      "q": "When using decimal or hex HTML encoding, you can optionally include an arbitrary number of leading zeros in the code points, which some WAFs fail to account for.",
+      "answer": true,
+      "explain": "Prefixing code points with leading zeros (e.g. javascript&#00000000000058;alert(1)) can evade filters that don't handle them."
+    },
+    {
+      "type": "mc",
+      "category": "XML encoding",
+      "q": "How does obfuscation via XML encoding differ from HTML encoding in terms of who decodes the payload?",
+      "choices": [
+        "With XML encoding the payload is decoded by the server itself, rather than client-side by a browser",
+        "With XML encoding the payload is decoded by the browser, unlike HTML which is server-side",
+        "Neither is ever decoded; both are passed through literally",
+        "Both are always decoded only by the database engine"
+      ],
+      "answer": 0,
+      "explain": "XML uses the same numeric escape sequences as HTML, but your payload is decoded server-side, which is useful for bypassing WAFs that detect SQL injection keywords in XML-based input."
+    },
+    {
+      "type": "text",
+      "category": "XML encoding",
+      "q": "In the XML injection example, the keyword SELECT was obfuscated by replacing its first letter S with which hex character reference? (Give the full &#...; reference.)",
+      "answer": ["&#x53;", "&#x53"],
+      "explain": "999 &#x53;ELECT * FROM information_schema.tables uses &#x53; (hex code point 0x53 = capital S) so the SELECT keyword is only reconstructed after the server decodes the XML."
+    },
+    {
+      "type": "mc",
+      "category": "Unicode, hex, and octal escaping",
+      "q": "A unicode escape sequence like \\u003a represents a colon. Which prefix and form does an ES6-style unicode escape using curly braces take for the same character?",
+      "choices": [
+        "\\u{3a}",
+        "&#x3a;",
+        "\\x3a",
+        "0x3a"
+      ],
+      "answer": 0,
+      "explain": "ES6 supports \\u{3a} with curly braces, in addition to the four-digit \\u003a form. ES6-style escapes also allow optional leading zeros."
+    },
+    {
+      "type": "mc",
+      "category": "Unicode, hex, and octal escaping",
+      "q": "In eval(\"\\u0061lert(1)\"), why does escaping the character work as obfuscation?",
+      "choices": [
+        "The input stays encoded server-side and is decoded by the browser's JavaScript engine when the string is parsed",
+        "The server decodes it immediately and blocks the request",
+        "Unicode escapes are never decoded by JavaScript engines",
+        "eval() refuses to run any string containing a backslash"
+      ],
+      "answer": 0,
+      "explain": "Most languages, including the browser's JS engine, decode unicode escapes when parsing strings. Injecting into a string context (like an eval sink) keeps the payload hidden from server-side checks until the browser decodes it."
+    },
+    {
+      "type": "tf",
+      "category": "Unicode, hex, and octal escaping",
+      "q": "Inside a JavaScript string you can escape any character with unicode, but outside a string, escaping characters such as opening and closing parentheses causes a syntax error.",
+      "answer": true,
+      "explain": "The note warns that escaping some characters outside a string context, including parentheses, results in a syntax error."
+    },
+    {
+      "type": "text",
+      "category": "Unicode, hex, and octal escaping",
+      "q": "Which escape prefix represents a character by its hexadecimal code point in a JavaScript string context, as in \"\\x61lert\"? (Give the two-character prefix.)",
+      "answer": ["\\x", "x"],
+      "explain": "Hex escapes use the \\x prefix (e.g. \\x61 for lowercase a) and are decoded client-side as long as the input is evaluated as a string."
+    },
+    {
+      "type": "mc",
+      "category": "Unicode, hex, and octal escaping",
+      "q": "Octal escaping represents the lowercase letter a as which sequence?",
+      "choices": [
+        "\\141",
+        "\\x61",
+        "\\u0061",
+        "0x61"
+      ],
+      "answer": 0,
+      "explain": "Octal escapes use a base-8 system prefixed with a standalone backslash, so a is \\141 (as in eval(\"\\141lert(1)\"))."
+    },
+    {
+      "type": "mc",
+      "category": "Unicode, hex, and octal escaping",
+      "q": "In the multiple-encodings example javascript:&bsol;u0061lert(1), what does the browser do first, and what does &bsol; decode to?",
+      "choices": [
+        "It HTML decodes &bsol; into a backslash, turning u0061 into the unicode escape \\u0061",
+        "It URL decodes &bsol; into a percent sign",
+        "It octal decodes &bsol; into the letter a directly",
+        "It leaves &bsol; untouched and executes u0061 literally"
+      ],
+      "answer": 0,
+      "explain": "&bsol; HTML-decodes to a backslash, producing \\u0061, which then decodes to 'a', ultimately forming javascript:alert(1). Combining encodings requires understanding which decoding runs and in what order."
+    },
+    {
+      "type": "mc",
+      "category": "SQL CHAR() obfuscation",
+      "q": "The SQL CHAR() function accepts a single decimal or hex code point and returns the matching character. Which two calls both return the capital letter S?",
+      "choices": [
+        "CHAR(83) and CHAR(0x53)",
+        "CHAR(83) and CHAR(53)",
+        "CHAR(0x83) and CHAR(53)",
+        "CHAR(S) and CHAR(0xS)"
+      ],
+      "answer": 0,
+      "explain": "Both CHAR(83) and CHAR(0x53) return S; hex codes must be prefixed with 0x. Concatenating CHAR() values can reconstruct a blacklisted keyword like SELECT."
+    },
+    {
+      "type": "tf",
+      "category": "SQL CHAR() obfuscation",
+      "q": "Using CHAR() to build a keyword such as SELECT is strictly a form of character encoding.",
+      "answer": false,
+      "explain": "The material notes CHAR() is not strictly a form of encoding, but it can still obfuscate SQL injection by dynamically constructing blacklisted keywords from code points."
+    },
+    {
+      "type": "text",
+      "category": "SQL CHAR() obfuscation",
+      "q": "Besides CHAR(), what hex prefix can sometimes be used to obfuscate a SQL keyword so that 0x53454c454354 decodes to SELECT? (Give the prefix.)",
+      "answer": ["0x"],
+      "explain": "SQL statements can sometimes be obfuscated with the 0x prefix; 0x53454c454354 decodes to the SELECT keyword."
+    },
+    {
+      "type": "mc",
+      "category": "Burp Scanner during manual testing",
+      "q": "Which Burp context-menu option audits only a single request using Burp Scanner's default configuration?",
+      "choices": [
+        "Do active scan",
+        "Send to Repeater",
+        "Send to Intruder",
+        "Do passive crawl"
+      ],
+      "answer": 0,
+      "explain": "Right-click a request and select Do active scan to have Burp Scanner audit just that request, flagging in seconds things that might otherwise take hours."
+    },
+    {
+      "type": "mc",
+      "category": "Burp Scanner during manual testing",
+      "q": "What is the main benefit of using Burp Scanner alongside manual testing, as described?",
+      "choices": [
+        "It handles repetitive aspects so you can focus on things that can't be easily automated, like working out how to exploit or chain findings",
+        "It replaces the need for any manual testing entirely",
+        "It guarantees it will catch every last vulnerability",
+        "It only works if you scan the whole target with a general crawl first"
+      ],
+      "answer": 0,
+      "explain": "Scanning supplements your knowledge and intuition, reduces overlooked issues, and frees your time for exploitation and chaining, which can't be easily automated."
+    },
+    {
+      "type": "mc",
+      "category": "Burp Scanner during manual testing",
+      "q": "To scan a specific input within a request, you highlight the insertion point in the message editor and choose which option?",
+      "choices": [
+        "Scan selected insertion point",
+        "Do active scan",
+        "Scan defined insertion points",
+        "Send to Comparer"
+      ],
+      "answer": 0,
+      "explain": "Scan selected insertion point lets you focus on one input rather than scanning content unlikely to be useful. The Scan manual insertion point extension works similarly on any highlighted sequence."
+    },
+    {
+      "type": "mc",
+      "category": "Burp Scanner during manual testing",
+      "q": "For the parameter user=048857-carlos, how does Burp Scanner treat the value by default, and why is that a problem for a non-standard structure?",
+      "choices": [
+        "It treats the whole thing as a single value, placing payloads at the end or replacing it entirely, missing the two distinct parts",
+        "It automatically splits on the hyphen and scans each part",
+        "It refuses to scan hyphenated values",
+        "It only scans the numeric portion 048857"
+      ],
+      "answer": 0,
+      "explain": "Burp parses common formats like JSON correctly, but here it sees one value. You can highlight just carlos and Scan selected insertion point, or use Intruder to define insertion points for 048857 and carlos and Scan defined insertion points."
+    },
+    {
+      "type": "tf",
+      "category": "Burp Scanner during manual testing",
+      "q": "Defining custom insertion points lets you scan inputs that Burp Scanner normally doesn't use, such as custom header values.",
+      "answer": true,
+      "explain": "Because you can define insertion points in arbitrary positions, you can target substrings or inputs like custom headers that Burp Scanner wouldn't otherwise test."
+    },
+    {
+      "type": "mc",
+      "category": "Recon and the mystery lab",
+      "q": "In the mystery lab challenge, why is the title and description hidden?",
+      "choices": [
+        "So you work out how to solve each challenge with no context, as you would during real-world recon",
+        "So the labs load faster",
+        "So you can only use automated scanning",
+        "So the vulnerability type is revealed only after you finish"
+      ],
+      "answer": 0,
+      "explain": "Hiding the vulnerability type forces you to practice recon and analysis without prior knowledge, mirroring real testing."
+    },
+    {
+      "type": "text",
+      "category": "Recon and the mystery lab",
+      "q": "In some mystery labs you are given your own account. What are the credentials provided (in the form username:password)?",
+      "answer": ["wiener:peter"],
+      "explain": "The credentials wiener:peter are provided; if you can enumerate usernames you may also brute-force the login using the provided username and password wordlists."
+    },
+    {
+      "type": "mc",
+      "category": "Recon and the mystery lab",
+      "q": "According to the recon section, why does discovering vulnerabilities matter so much?",
+      "choices": [
+        "If you don't know how to look for and discover vulnerabilities, you have nowhere to apply your exploitation skills",
+        "Exploitation is unnecessary once a vulnerability is found",
+        "Recon replaces the need to understand impact",
+        "Discovery is only useful in automated scans"
+      ],
+      "answer": 0,
+      "explain": "Understanding impact and exploitation matters, but without the ability to find and discover vulnerabilities you have nowhere to apply those exploitation skills."
+    }
+  ]
+}
