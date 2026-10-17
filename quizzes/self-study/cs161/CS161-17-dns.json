@@ -1,0 +1,560 @@
+{
+  "title": "DNS",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Name servers and hierarchy",
+      "q": "Why does DNS spread its records across many name servers instead of keeping every domain-to-IP mapping on one global server?",
+      "choices": [
+        "One server would have to answer queries over TCP, which is too slow",
+        "No single server could store every domain and also keep up with the whole world's DNS requests",
+        "Splitting the records up hides users' queries from any single operator",
+        "Each domain owner is required to run the only copy of its records"
+      ],
+      "answer": 1,
+      "explain": "No server is big enough to hold the IP address of every domain, or fast enough to answer the requests of the entire world. So each name server is responsible for one zone of domains."
+    },
+    {
+      "type": "tf",
+      "category": "Name servers and hierarchy",
+      "q": "The name server a.edu-servers.net answers queries for .net domains, because its own name ends in .net.",
+      "answer": false,
+      "explain": "A name server's own domain name and the zone it serves are separate things. a.edu-servers.net has .net in its name, but it answers queries for the .edu zone."
+    },
+    {
+      "type": "mc",
+      "category": "Name servers and hierarchy",
+      "q": "With an empty cache, which name server does a lookup for eecs.berkeley.edu query first?",
+      "choices": [
+        "The berkeley.edu name server",
+        "The .edu name server",
+        "A root name server",
+        "Whichever name server is geographically closest to eecs.berkeley.edu"
+      ],
+      "answer": 2,
+      "explain": "DNS queries always start at the root, whose zone (written '.') includes every domain. The root refers you to .edu, .edu refers you to berkeley.edu, and the berkeley.edu server gives the answer."
+    },
+    {
+      "type": "multi",
+      "category": "Name servers and hierarchy",
+      "q": "When a parent name server refers you to a child name server, what does it have to give you so you can contact that child?",
+      "choices": [
+        "The child's zone",
+        "The child's human-readable domain name",
+        "The child's IP address",
+        "The final IP address of the domain you asked about",
+        "The source port the child will reply from"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A referral gives the child's zone, domain name and IP address. The parent doesn't know the final answer, which is why it refers you on. Name servers reply from the well-known port 53."
+    },
+    {
+      "type": "mc",
+      "category": "Name servers and hierarchy",
+      "q": "In the DNS tree, which name servers store the actual mappings from domain names to IP addresses?",
+      "choices": [
+        "The root servers",
+        "The top-level domain servers such as .com and .edu",
+        "The name servers at the bottom of the tree",
+        "Every name server stores every mapping in its zone"
+      ],
+      "answer": 2,
+      "explain": "Every name server above the bottom stores information only about its children, so it can refer you onward. The servers at the bottom of the tree hold the domain-to-IP mappings."
+    },
+    {
+      "type": "tf",
+      "category": "Name servers and hierarchy",
+      "q": "The .edu name server stores the IP addresses of eecs.berkeley.edu and math.berkeley.edu so it can answer queries for them directly.",
+      "answer": false,
+      "explain": "The .edu server stores information about the berkeley.edu name servers. It refers queries for names under berkeley.edu to them."
+    },
+    {
+      "type": "num",
+      "category": "Name servers and hierarchy",
+      "q": "How many root servers are there? (They are spread around the world for redundancy.)",
+      "answer": 13,
+      "explain": "There are 13 root servers. Their IP addresses are public and well known, and real recursive resolvers usually hardcode them."
+    },
+    {
+      "type": "mc",
+      "category": "Resolvers and caching",
+      "q": "In practice, what usually sends the queries to the root, TLD and lower name servers when your laptop looks up a domain?",
+      "choices": [
+        "Your web browser, which sends one query to each name server",
+        "A DNS recursive resolver, usually run by your ISP",
+        "The root server, which forwards your query down the tree for you",
+        "The web server of the site you're visiting"
+      ],
+      "answer": 1,
+      "explain": "Your computer hands the lookup to a recursive resolver, which is usually run by your ISP. The resolver sends the queries, processes the responses and keeps a cache of records."
+    },
+    {
+      "type": "text",
+      "category": "Resolvers and caching",
+      "q": "What is the component on your own computer called that sends a lookup to the recursive resolver and waits for the final answer?",
+      "answer": ["stub resolver", "DNS stub resolver", "a stub resolver", "the stub resolver", "stub"],
+      "explain": "The DNS stub resolver sends one query to the recursive resolver, lets it do all the work, and receives the response."
+    },
+    {
+      "type": "multi",
+      "category": "Resolvers and caching",
+      "q": "Which of these are benefits of the recursive resolver caching DNS records?",
+      "choices": [
+        "Lookups are faster because fewer packets cross the network",
+        "Less request load on the root and other high-level name servers",
+        "Cached records are cryptographically verified as authentic",
+        "Cached records stay valid forever, so a name never has to be looked up again"
+      ],
+      "answer": [0, 1],
+      "explain": "Caching lets the resolver skip the early steps of a lookup. This speeds things up and takes load off the highest-level servers. It says nothing about authenticity, since a forged record gets cached just like a real one. Records also expire when their TTL runs out."
+    },
+    {
+      "type": "num",
+      "category": "Resolvers and caching",
+      "q": "A record has a TTL of 172800. For how many hours may a resolver cache it?",
+      "answer": 48,
+      "explain": "TTL is measured in seconds: 172,800 s / 3,600 s per hour = 48 hours."
+    },
+    {
+      "type": "mc",
+      "category": "Resolvers and caching",
+      "q": "How does a recursive resolver normally know where the root servers are?",
+      "choices": [
+        "It asks the local DHCP server for them on every lookup",
+        "Their IP addresses are public and well known, and are usually hardcoded into the resolver",
+        "It asks the .com name server for them",
+        "It broadcasts a query on UDP port 53 to the local network"
+      ],
+      "answer": 1,
+      "explain": "Every lookup has to start at the root, so the root servers' addresses are published and built into resolvers. Nothing else needs to be looked up first."
+    },
+    {
+      "type": "tf",
+      "category": "Resolvers and caching",
+      "q": "Because of caching, most lookups by a recursive resolver don't need to contact a root server.",
+      "answer": true,
+      "explain": "The resolver caches as many answers as it can, for example the .edu NS and A records with their 48-hour TTL. Most queries can then skip the root and high-level servers."
+    },
+    {
+      "type": "mc",
+      "category": "Message format and records",
+      "q": "Which transport protocol does DNS normally use, and why?",
+      "choices": [
+        "TCP, because DNS answers must arrive reliably",
+        "UDP, because it is lightweight and fast with no handshake, which matters because nearly every website visit starts with a DNS lookup",
+        "TLS, because DNS records are sensitive",
+        "UDP, because UDP encrypts the ID field"
+      ],
+      "answer": 1,
+      "explain": "DNS is designed to be lightweight and fast, so it uses best-effort UDP packets with no TCP handshake. Nothing is encrypted; DNS travels in plaintext."
+    },
+    {
+      "type": "num",
+      "category": "Message format and records",
+      "q": "How many bits long is the DNS identification (ID) field?",
+      "answer": 16,
+      "explain": "The ID field is 16 bits, chosen at random for each query."
+    },
+    {
+      "type": "mc",
+      "category": "Message format and records",
+      "q": "What is the DNS ID field for?",
+      "choices": [
+        "It identifies which name server sent the response",
+        "It lets the query sender match a response to its query, since UDP keeps no connection state",
+        "It authenticates the response using a secret shared with the name server",
+        "It counts how many records the response contains"
+      ],
+      "answer": 1,
+      "explain": "The sender fills the ID with random bits, and the response must echo the same bits. UDP is stateless, so this is how the sender tells which query a response belongs to. Anyone who can see the packet can read the ID."
+    },
+    {
+      "type": "mc",
+      "category": "Message format and records",
+      "q": "A resolver receives a reply with the NXDOMAIN flag set. What does that mean?",
+      "choices": [
+        "The query succeeded",
+        "The queried name does not exist",
+        "The name server refused to answer for security reasons",
+        "The response was cut short and must be retried"
+      ],
+      "answer": 1,
+      "explain": "NXDOMAIN means the query asked about a name that doesn't exist. A successful query is flagged NOERROR."
+    },
+    {
+      "type": "multi",
+      "category": "Message format and records",
+      "q": "Which of these are categories of resource records in a DNS message?",
+      "choices": [
+        "Question",
+        "Answer",
+        "Authority",
+        "Additional",
+        "Header",
+        "Referral"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Every resource record is in one of four sections: question, answer, authority or additional. The header holds the ID, flags and record counts, but it isn't a category of record."
+    },
+    {
+      "type": "mc",
+      "category": "Message format and records",
+      "q": "What does an NS type record map?",
+      "choices": [
+        "A domain to an IPv4 address",
+        "A zone to the domain name of a name server for that zone",
+        "A domain to an IPv6 address",
+        "An IP address back to a domain name"
+      ],
+      "answer": 1,
+      "explain": "In an NS record the key is a zone (such as edu.) and the value is a name server's domain (such as a.edu-servers.net). An A record maps a domain to an IPv4 address."
+    },
+    {
+      "type": "text",
+      "category": "Message format and records",
+      "q": "An A record maps a domain to an IPv4 address. Which record type maps a domain to an IPv6 address?",
+      "answer": ["AAAA", "AAAA record", "type AAAA"],
+      "explain": "AAAA records hold IPv6 addresses. Plain A records hold IPv4 addresses."
+    },
+    {
+      "type": "mc",
+      "category": "Message format and records",
+      "q": "Formally, a DNS record's key is the 3-tuple <Name, Class, Type>. What does the record's value contain?",
+      "choices": [
+        "<TTL, Value>",
+        "<ID, Flags>",
+        "<Source port, Destination port>",
+        "<Zone, Domain>"
+      ],
+      "answer": 0,
+      "explain": "The value is <TTL, Value>: how many seconds the record may be cached, and the actual data, such as an IP address. Class is almost always IN, for Internet."
+    },
+    {
+      "type": "mc",
+      "category": "Reading DNS responses",
+      "q": "You ask a root server for eecs.berkeley.edu. The reply contains the record 'edu. 172800 IN NS a.edu-servers.net.' Which section is it in?",
+      "choices": [
+        "Question",
+        "Answer",
+        "Authority",
+        "Additional"
+      ],
+      "fixed": true,
+      "answer": 2,
+      "explain": "The authority section holds the NS records naming the next name servers to ask. Each record gives a zone (edu.) and the domain of a server for that zone."
+    },
+    {
+      "type": "mc",
+      "category": "Reading DNS responses",
+      "q": "The same root server reply contains 'a.edu-servers.net. 172800 IN A 192.5.6.30'. Which section is it in?",
+      "choices": [
+        "Question",
+        "Answer",
+        "Authority",
+        "Additional"
+      ],
+      "fixed": true,
+      "answer": 3,
+      "explain": "The additional section maps the name server domains from the authority section to their IP addresses, so the resolver knows where to send its next query."
+    },
+    {
+      "type": "mc",
+      "category": "Reading DNS responses",
+      "q": "Why is the next name server's information split across the authority and additional sections instead of being sent as one record?",
+      "choices": [
+        "To keep each record a key-value pair: an NS record maps the zone to a domain name, and an A record maps that domain name to an IP address",
+        "So the resolver can check one section against the other to detect forgeries",
+        "Because the additional section is optional and resolvers usually ignore it",
+        "Because the authority section can hold only one record"
+      ],
+      "answer": 0,
+      "explain": "A referral needs three pieces of information: zone, domain name and IP address. Each record is a single key-value pair, so it takes an NS record (zone to domain) plus an A record (domain to IP)."
+    },
+    {
+      "type": "mc",
+      "category": "Reading DNS responses",
+      "q": "A root server replies with an empty answer section, NS records for edu. in the authority section, and 'a.edu-servers.net A 192.5.6.30' in the additional section. What does the resolver do next?",
+      "choices": [
+        "Ask 192.5.6.30 for the IP address of a.edu-servers.net",
+        "Ask 192.5.6.30 for the IP address of eecs.berkeley.edu",
+        "Ask the root server again, this time for the berkeley.edu name server",
+        "Return 192.5.6.30 to the user as the answer"
+      ],
+      "answer": 1,
+      "explain": "The additional section already says where the .edu server is. So the resolver asks that server the same question as before: what is the IP address of eecs.berkeley.edu?"
+    },
+    {
+      "type": "tf",
+      "category": "Reading DNS responses",
+      "q": "When a name server refers you to another name server instead of answering, the answer section of its reply is empty.",
+      "answer": true,
+      "explain": "The root and .edu servers both replied with ANSWER: 0 and gave referrals in the authority and additional sections. Only the berkeley.edu server's reply had ANSWER: 1."
+    },
+    {
+      "type": "text",
+      "category": "Reading DNS responses",
+      "q": "Which dig flag makes dig send a single query to the server you name, so you can follow each referral yourself instead of getting the final answer?",
+      "answer": ["+norecurse", "norecurse"],
+      "explain": "dig +norecurse eecs.berkeley.edu @198.41.0.4 sends one query to that root server and shows its referral."
+    },
+    {
+      "type": "mc",
+      "category": "Reading DNS responses",
+      "q": "What does the answer section of the berkeley.edu name server's final reply for eecs.berkeley.edu contain?",
+      "choices": [
+        "An NS record for berkeley.edu",
+        "An A record mapping eecs.berkeley.edu to its IP address",
+        "An A record mapping adns1.berkeley.edu to its IP address",
+        "An NXDOMAIN record"
+      ],
+      "answer": 1,
+      "explain": "The bottom-level server answers directly with one A record, eecs.berkeley.edu -> 23.185.0.1, in the answer section."
+    },
+    {
+      "type": "mc",
+      "category": "Bailiwick checking",
+      "q": "What does bailiwick checking enforce?",
+      "choices": [
+        "A response must carry the same ID as its query",
+        "A name server may only provide records for domains in its own zone",
+        "Only root servers may put records in the additional section",
+        "Records with very large TTLs are rejected"
+      ],
+      "answer": 1,
+      "explain": "With bailiwick checking, the resolver accepts only records inside the responding server's zone. The berkeley.edu server can give records under berkeley.edu, the .edu server records under .edu, and the root records for anything."
+    },
+    {
+      "type": "multi",
+      "category": "Bailiwick checking",
+      "q": "A resolver that does bailiwick checking gets a response from the .edu name server. Which of these records will it accept?",
+      "choices": [
+        "berkeley.edu NS adns1.berkeley.edu",
+        "adns1.berkeley.edu A 128.32.136.3",
+        "www.google.com A 6.6.6.6",
+        "stanford.edu A 171.64.1.1"
+      ],
+      "answer": [0, 1, 3],
+      "explain": "The .edu server may provide records for anything under .edu, and that includes stanford.edu. www.google.com is outside its zone, so that record is dropped."
+    },
+    {
+      "type": "tf",
+      "category": "Bailiwick checking",
+      "q": "Under bailiwick checking, a root name server may provide records for any domain.",
+      "answer": true,
+      "explain": "The root's zone is '.', which contains every domain."
+    },
+    {
+      "type": "tf",
+      "category": "Bailiwick checking",
+      "q": "Bailiwick checking stops a compromised berkeley.edu name server from returning a malicious IP address for eecs.berkeley.edu.",
+      "answer": false,
+      "explain": "eecs.berkeley.edu is in the berkeley.edu zone, so the record passes the check. DNS is insecure against a malicious name server. Bailiwick checking only keeps the damage inside that server's own zone."
+    },
+    {
+      "type": "mc",
+      "category": "Bailiwick checking",
+      "q": "Which attack is bailiwick checking mainly meant to limit?",
+      "choices": [
+        "An off-path attacker guessing the ID field",
+        "A malicious name server putting records for unrelated domains in the additional section to poison the resolver's cache",
+        "An on-path attacker reading queries in plaintext",
+        "A flood of requests that overloads the root servers"
+      ],
+      "answer": 1,
+      "explain": "Without the check, a malicious server answering for berkeley.edu could add something like 'www.google.com A 6.6.6.6' to the additional section, and the resolver would cache it."
+    },
+    {
+      "type": "multi",
+      "category": "On-path and off-path attackers",
+      "q": "Which adversaries can read a DNS query's ID field, so they don't have to guess it?",
+      "choices": [
+        "Man-in-the-middle attacker",
+        "On-path attacker",
+        "Off-path attacker"
+      ],
+      "fixed": true,
+      "answer": [0, 1],
+      "explain": "MITM and on-path attackers see the plaintext query, ID included. An off-path attacker can't see the packets, so it has to guess the ID."
+    },
+    {
+      "type": "mc",
+      "category": "On-path and off-path attackers",
+      "q": "Why is DNS completely insecure against an on-path attacker?",
+      "choices": [
+        "The attacker can read the plaintext query, ID included, and race a forged response with the correct ID ahead of the real one",
+        "The attacker can edit TTLs directly in the resolver's cache",
+        "On-path attackers can get around bailiwick checking",
+        "The attacker can decrypt DNS responses with the resolver's key"
+      ],
+      "answer": 0,
+      "explain": "DNS travels in plaintext. An on-path attacker sees everything needed to build a response that looks valid, so it only has to get that response there before the legitimate one."
+    },
+    {
+      "type": "mc",
+      "category": "On-path and off-path attackers",
+      "q": "Why would an attacker give forged DNS records a very high TTL?",
+      "choices": [
+        "So the victim caches the malicious records for a very long time",
+        "So the forged packet arrives faster",
+        "So the forged response passes bailiwick checking",
+        "So the resolver accepts a mismatched ID"
+      ],
+      "answer": 0,
+      "explain": "TTL controls how long a record may be cached. A huge TTL keeps the poisoned record in the resolver's cache, so it is used for every later lookup until it expires."
+    },
+    {
+      "type": "num",
+      "category": "On-path and off-path attackers",
+      "q": "Without source port randomization, an off-path attacker guesses the 16-bit ID at random. On each try, the chance of winning is 1 in how many?",
+      "answer": 65536,
+      "explain": "2^16 = 65,536 possible IDs, so each guess wins with probability 1/2^16."
+    },
+    {
+      "type": "mc",
+      "category": "On-path and off-path attackers",
+      "q": "Before 2008, why was DNS considered safe enough against off-path attackers?",
+      "choices": [
+        "Off-path attackers can't send UDP packets to resolvers",
+        "Each ID guess wins only 1 in 2^16 times, and once the real response is cached the attacker has to wait for it to expire, so they get only a few tries a week",
+        "Bailiwick checking rejects every response from an off-path attacker",
+        "Name servers signed their responses"
+      ],
+      "answer": 1,
+      "explain": "The low odds per guess plus caching kept the attacker to very few attempts. Kaminsky's attack in 2008 removed the caching limit."
+    },
+    {
+      "type": "tf",
+      "category": "On-path and off-path attackers",
+      "q": "If the legitimate response reaches the resolver before the forged one, the legitimate records are cached and later lookups for that name use the cache.",
+      "answer": true,
+      "explain": "This is why an ordinary spoofing attempt on a real name gets few tries: after a loss, no new query goes out until the cached record expires."
+    },
+    {
+      "type": "mc",
+      "category": "Kaminsky attack",
+      "q": "What is the key trick behind the Kaminsky attack?",
+      "choices": [
+        "Querying nonexistent domains, whose legitimate NXDOMAIN responses cache nothing, so the attacker can try again right away",
+        "Compromising one of the root servers",
+        "Flooding the resolver until its cache is empty",
+        "Setting the TTL of legitimate records to 0"
+      ],
+      "answer": 0,
+      "explain": "The real response for a nonexistent name is NXDOMAIN with no records, so a loss leaves nothing cached. The attacker doesn't have to wait for anything to expire and can race again on the next made-up name."
+    },
+    {
+      "type": "mc",
+      "category": "Kaminsky attack",
+      "q": "In a Kaminsky attack on berkeley.edu, the attacker races a forged response to a query for fake161.berkeley.edu. Where does the forgery put the record that does the real damage?",
+      "choices": [
+        "Question section: fake161.berkeley.edu",
+        "Answer section: fake161.berkeley.edu A 6.6.6.6",
+        "Additional section: berkeley.edu A 6.6.6.6",
+        "Header: an NXDOMAIN status"
+      ],
+      "answer": 2,
+      "explain": "Poisoning fake161.berkeley.edu alone is useless because nobody uses that name. The extra record for berkeley.edu, sent with a huge TTL, is what gets cached and redirects real traffic."
+    },
+    {
+      "type": "tf",
+      "category": "Kaminsky attack",
+      "q": "A resolver doing bailiwick checking rejects the record 'berkeley.edu A 6.6.6.6' when it arrives in a response to a query for fake161.berkeley.edu.",
+      "answer": false,
+      "explain": "The server responsible for fake161.berkeley.edu is a berkeley.edu server, so berkeley.edu is in its zone. The forged record passes bailiwick checking."
+    },
+    {
+      "type": "mc",
+      "category": "Kaminsky attack",
+      "q": "How can an attacker get a victim's resolver to send thousands of queries for nonexistent names?",
+      "choices": [
+        "Trick the victim into loading a web page that embeds images from fake001.berkeley.edu, fake002.berkeley.edu, and so on",
+        "Send the resolver thousands of NXDOMAIN responses",
+        "Send queries for the fake names straight to a root server",
+        "Lower the TTL of the victim's cached records"
+      ],
+      "answer": 0,
+      "explain": "To fetch each image, the browser first looks up its domain. Each made-up name triggers a fresh query, and each query gives the attacker another chance to race."
+    },
+    {
+      "type": "mc",
+      "category": "Kaminsky attack",
+      "q": "During a Kaminsky attack, the real NXDOMAIN response for fake042.berkeley.edu reaches the resolver before the forgery. What happens?",
+      "choices": [
+        "Nothing is cached, so the attacker tries again on the next nonexistent name",
+        "The real records are cached and the attacker has to wait for the TTL to expire",
+        "The resolver blocks the attacker's IP address",
+        "The attack fails for good because the resolver now has the correct berkeley.edu address"
+      ],
+      "answer": 0,
+      "explain": "NXDOMAIN carries no records, so a lost race costs the attacker nothing. The next query, for fake043.berkeley.edu, is another chance."
+    },
+    {
+      "type": "tf",
+      "category": "Kaminsky attack",
+      "q": "The Kaminsky attack also works for off-path attackers: they keep guessing the ID, one fake name after another, until a guess is right.",
+      "answer": true,
+      "explain": "On-path attackers race until their forgery arrives first. Off-path attackers race until they guess the ID correctly. Since failed attempts leave nothing cached, eventually one works."
+    },
+    {
+      "type": "num",
+      "category": "Source port randomization",
+      "q": "To which UDP port on the name server are DNS queries sent?",
+      "answer": 53,
+      "explain": "The destination port is well known and constant, always 53 in practice, so everyone can reach the name server."
+    },
+    {
+      "type": "mc",
+      "category": "Source port randomization",
+      "q": "A resolver using source port randomization sends a query from random port 41237 to a name server. Which ports does the response use?",
+      "choices": [
+        "Source 53, destination 41237",
+        "Source 41237, destination 53",
+        "Source 53, destination 53",
+        "A new random source port, destination 53"
+      ],
+      "answer": 0,
+      "explain": "The response must go back to the port the query came from, so the randomized port goes in the response's destination port field. Its source port is 53."
+    },
+    {
+      "type": "num",
+      "category": "Source port randomization",
+      "q": "With a random 16-bit ID and a random 16-bit source port, how many random bits in total must an off-path attacker guess to forge a response?",
+      "answer": 32,
+      "explain": "16 + 16 = 32 bits, so each guess succeeds with probability 1/2^32. That is much harder, but not impossible."
+    },
+    {
+      "type": "mc",
+      "category": "Source port randomization",
+      "q": "How much extra protection does source port randomization give against an on-path attacker?",
+      "choices": [
+        "None, because the attacker can see the source port in the query",
+        "It cuts the attacker's chance per try to 1 in 2^32",
+        "It cuts the attacker's chance per try to 1 in 2^16",
+        "It prevents forged responses completely"
+      ],
+      "answer": 0,
+      "explain": "An on-path attacker reads the query, so it sees the random port just as it sees the ID. Randomization only helps against off-path attackers, who have to guess."
+    },
+    {
+      "type": "tf",
+      "category": "Source port randomization",
+      "q": "Source port randomization completely eliminates the Kaminsky attack.",
+      "answer": false,
+      "explain": "There's no way to fully eliminate the Kaminsky attack in regular DNS. Randomization raises the off-path attacker's odds to 1 in 2^32, which makes the attack much harder but not impossible."
+    },
+    {
+      "type": "mc",
+      "category": "Source port randomization",
+      "q": "Why does DNS randomize the source port of a query but not its destination port?",
+      "choices": [
+        "The destination port has to be well known and constant (53) so anyone can reach the name server",
+        "UDP packets have no destination port",
+        "Name servers choose a new random port for each query",
+        "The destination port is encrypted, so randomizing it adds nothing"
+      ],
+      "answer": 0,
+      "explain": "Clients have to know where to send queries, so the name server listens on port 53. DNS doesn't say which source port the resolver must use, so that port is free to randomize."
+    }
+  ]
+}

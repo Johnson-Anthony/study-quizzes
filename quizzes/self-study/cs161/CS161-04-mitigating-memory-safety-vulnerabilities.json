@@ -1,0 +1,495 @@
+{
+  "title": "CS161 04: Mitigating Memory-Safety Vulnerabilities",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Defense approaches",
+      "q": "Which approach is the only one that can prevent 100% of memory-safety vulnerabilities?",
+      "choices": [
+        "Using a memory-safe language such as Rust, Go, or Java",
+        "Enabling stack canaries and ASLR together",
+        "Replacing unsafe C library calls with bounded versions",
+        "Running extensive fuzz testing before release"
+      ],
+      "answer": 0,
+      "explain": "Memory-safe languages use compile-time and runtime checks to rule out memory errors entirely. Mitigations, safe libraries and testing all reduce risk but can't guarantee you'll catch every bug."
+    },
+    {
+      "type": "mc",
+      "category": "Defense approaches",
+      "q": "C has one real advantage over a garbage-collected language like Go: more deterministic memory allocation. Why doesn't that argument hold against Rust?",
+      "choices": [
+        "Rust is memory-safe and not garbage-collected, so it is also deterministic",
+        "Rust compiles to C before it is executed",
+        "Rust disables ASLR, so its allocations are predictable",
+        "Rust's garbage collector runs at fixed, scheduled intervals"
+      ],
+      "answer": 0,
+      "explain": "Rust gets memory safety without garbage collection, so C doesn't even keep its determinism advantage."
+    },
+    {
+      "type": "text",
+      "category": "Defense approaches",
+      "q": "Which bounds-checked C library function should replace gets?",
+      "answer": ["fgets", "fgets()"],
+      "explain": "fgets takes a maximum length, so it can't read past the end of the destination buffer."
+    },
+    {
+      "type": "multi",
+      "category": "Defense approaches",
+      "q": "Which functions are safer replacements for strcpy?",
+      "choices": ["strncpy", "strlcpy", "sprintf", "gets"],
+      "answer": [0, 1],
+      "explain": "strncpy and strlcpy take a length bound. sprintf (replace with snprintf) and gets (replace with fgets) are unsafe themselves."
+    },
+    {
+      "type": "text",
+      "category": "Defense approaches",
+      "q": "Which bounds-checked C library function should replace sprintf?",
+      "answer": ["snprintf", "snprintf()"],
+      "explain": "snprintf takes the size of the destination buffer and won't write past it."
+    },
+    {
+      "type": "mc",
+      "category": "Defense approaches",
+      "q": "What does fuzz testing do?",
+      "choices": [
+        "Feeds the program random inputs to try to trigger crashes or bugs",
+        "Checks every pointer for null before it is dereferenced",
+        "Reports memory leaks after the program exits",
+        "Measures which lines of code the test suite has executed"
+      ],
+      "answer": 0,
+      "explain": "Fuzzing throws random inputs at the program. Leak detection is Valgrind's job, and code-coverage tools measure how much of the code the tests executed."
+    },
+    {
+      "type": "mc",
+      "category": "Defense approaches",
+      "q": "Which practice is defensive programming?",
+      "choices": [
+        "Null-checking a pointer before dereferencing it, even when you're sure it's valid",
+        "Randomizing the base address of the stack on every run",
+        "Placing a random value between local variables and the saved return address",
+        "Paying an outside firm to review the code"
+      ],
+      "answer": 0,
+      "explain": "Defensive programming means always adding checks, even ones that seem unnecessary. It relies on programmer discipline and is tedious."
+    },
+    {
+      "type": "tf",
+      "category": "Defense approaches",
+      "q": "True or false: Exploit mitigations such as stack canaries fix the underlying memory-safety bug.",
+      "answer": false,
+      "explain": "They're mitigations, not fixes. The bug is still there, but exploiting it becomes harder or crashes the program, and mitigations aren't foolproof."
+    },
+    {
+      "type": "mc",
+      "category": "Defense approaches",
+      "q": "Why is it worth combining several mitigations instead of relying on just one?",
+      "choices": [
+        "Each can be bypassed alone, but together they force the attacker to find multiple vulnerabilities",
+        "Each mitigation only works if the others are also enabled",
+        "Combining them turns C into a memory-safe language",
+        "Compilers refuse to enable any single mitigation by itself"
+      ],
+      "answer": 0,
+      "explain": "Defense in depth: layers work together. Bypassing several mitigations at once usually takes several separate bugs."
+    },
+    {
+      "type": "mc",
+      "category": "Non-executable pages",
+      "q": "What rule do non-executable pages enforce?",
+      "choices": [
+        "Each page of memory can be writable or executable, but never both",
+        "No page of memory can ever be written after the program starts",
+        "Only the stack may be executed",
+        "Library code is writable but not executable"
+      ],
+      "answer": 0,
+      "explain": "W^X (Write XOR Execute): a page is writable or executable, never both, so eip/rip can never point into memory the attacker could write."
+    },
+    {
+      "type": "multi",
+      "category": "Non-executable pages",
+      "q": "Which names refer to the non-executable pages defense?",
+      "choices": ["W^X", "DEP", "NX bit", "ASLR", "PAC"],
+      "answer": [0, 1, 2],
+      "explain": "W^X (Write XOR Execute), DEP (Data Execution Prevention) and the NX bit are all names for the same idea. ASLR and PAC are separate mitigations."
+    },
+    {
+      "type": "mc",
+      "category": "Non-executable pages",
+      "q": "An attacker overflows a buffer with [shellcode] + [4 bytes garbage] + [&buf]. Which mitigation directly prevents the shellcode from running?",
+      "choices": ["Non-executable pages", "Pointer authentication with a leaked key", "Safe library functions", "Valgrind"],
+      "answer": 0,
+      "explain": "The shellcode sits in buf on the stack, which is writable and therefore not executable. Jumping to &buf crashes instead of running it."
+    },
+    {
+      "type": "tf",
+      "category": "Non-executable pages",
+      "q": "True or false: Non-executable pages stop return-to-libc attacks.",
+      "answer": false,
+      "explain": "Return-to-libc jumps to existing library code, which is legitimately executable. The arguments it uses are data, not code, so NX doesn't block them."
+    },
+    {
+      "type": "mc",
+      "category": "Non-executable pages",
+      "q": "In a 32-bit x86 return-to-libc attack that calls execv, how does the attacker supply the function's argument (e.g., a filename string)?",
+      "choices": [
+        "Places it on the stack where the function expects its arguments",
+        "Loads it into a register by injecting a mov instruction",
+        "Writes it into the libc code section",
+        "Passes it through an environment variable that libc re-executes"
+      ],
+      "answer": 0,
+      "explain": "x86 passes arguments on the stack, so the attacker writes the argument at the right offset during the overflow. It's data, so NX doesn't stop it."
+    },
+    {
+      "type": "mc",
+      "category": "Non-executable pages",
+      "q": "In return-oriented programming (ROP), what is a gadget?",
+      "choices": [
+        "A short instruction sequence already in memory that usually ends in ret",
+        "A complete library function with its own prologue and epilogue",
+        "A piece of injected shellcode stored on the heap",
+        "A compiler-inserted check that validates return addresses"
+      ],
+      "answer": 0,
+      "explain": "Gadgets are snippets of existing code ending in ret. They don't need to be whole functions, so they need no prologue or epilogue."
+    },
+    {
+      "type": "mc",
+      "category": "Non-executable pages",
+      "q": "In a ROP chain, how does execution move from one gadget to the next?",
+      "choices": [
+        "The ret at the end of each gadget pops the next address the attacker placed on the stack",
+        "Each gadget contains a hard-coded jmp to the next gadget",
+        "The CPU follows a table of gadget addresses stored in the code section",
+        "The attacker's shellcode calls each gadget as a function"
+      ],
+      "answer": 0,
+      "explain": "The attacker overwrites a chain of return addresses starting at rip. Each ret pops the next address and jumps there."
+    },
+    {
+      "type": "mc",
+      "category": "Non-executable pages",
+      "q": "What can ROP do that basic return-to-libc can't?",
+      "choices": [
+        "Perform arbitrary computation by stitching together existing code",
+        "Execute code on pages that are writable",
+        "Bypass the need to overwrite rip",
+        "Run without any existing code in memory"
+      ],
+      "answer": 0,
+      "explain": "Return-to-libc calls one existing function. ROP chains gadgets into custom shellcode built from existing code, so it can do arbitrary computation."
+    },
+    {
+      "type": "multi",
+      "category": "Non-executable pages",
+      "q": "An attacker emulates add $0x4, %edx with two gadgets: (1) mov %edx,%eax; leave; ret and (2) add $0x4,%eax; pop %ebx; leave; ret. Which side effects does the attacker have to account for?",
+      "choices": [
+        "The result ends up in EAX rather than EDX",
+        "EBX is clobbered by the pop",
+        "EDX is set to zero",
+        "ECX is incremented by 4"
+      ],
+      "answer": [0, 1],
+      "explain": "Gadget 1 copies EDX into EAX and gadget 2 adds 4 to EAX, so the result is in EAX. pop %ebx overwrites EBX. EDX and ECX aren't modified."
+    },
+    {
+      "type": "tf",
+      "category": "Non-executable pages",
+      "q": "True or false: A large enough codebase usually contains enough gadgets to build any shellcode, and ROP compilers can generate the chain automatically.",
+      "answer": true,
+      "explain": "That's why NX alone is a weak barrier today. ROP compilers take a binary and the desired behavior and output a gadget chain."
+    },
+    {
+      "type": "mc",
+      "category": "Stack canaries",
+      "q": "Where is a stack canary placed?",
+      "choices": [
+        "Above the local variables and below the saved sfp/rip",
+        "Below the local variables, at the lowest address in the frame",
+        "Above the saved rip, in the caller's frame",
+        "In the unused high bits of the return address"
+      ],
+      "answer": 0,
+      "explain": "Overflows usually write consecutive, increasing addresses, so a buffer overflow has to pass the canary before it reaches sfp/rip."
+    },
+    {
+      "type": "mc",
+      "category": "Stack canaries",
+      "q": "When is the stack canary checked?",
+      "choices": [
+        "Just before the function returns",
+        "Every time a local variable is written",
+        "When the function is first called",
+        "Only when the program exits"
+      ],
+      "answer": 0,
+      "explain": "The function never uses the canary. It's checked right before returning, and the program crashes if it changed."
+    },
+    {
+      "type": "tf",
+      "category": "Stack canaries",
+      "q": "True or false: A stack canary is fixed at compile time and stays the same every time the program runs.",
+      "answer": false,
+      "explain": "Canaries are generated at runtime and change on every run. Otherwise the attacker could record the value once and reuse it."
+    },
+    {
+      "type": "tf",
+      "category": "Stack canaries",
+      "q": "True or false: Within a single run of a program, the canary value is usually the same for every function.",
+      "answer": true,
+      "explain": "One random value is typically chosen per run and used by every function."
+    },
+    {
+      "type": "mc",
+      "category": "Stack canaries",
+      "q": "Why do real stack canaries usually contain a null byte?",
+      "choices": [
+        "String functions like strcpy stop copying at a null byte, so they can't write the canary's correct value past it",
+        "A null byte makes the canary easier to check quickly",
+        "The CPU needs a null byte to tell the canary apart from a return address",
+        "It increases the canary's entropy"
+      ],
+      "answer": 0,
+      "explain": "An attacker using a string-copy overflow can't write a null byte and keep going. The cost is one byte of entropy."
+    },
+    {
+      "type": "num",
+      "category": "Stack canaries",
+      "q": "A 32-bit stack canary contains one null byte. How many bits of entropy does it have?",
+      "answer": 24,
+      "explain": "32 bits minus 8 fixed bits for the null byte leaves 24 random bits, so each guess has a 1 in 2^24 chance."
+    },
+    {
+      "type": "num",
+      "category": "Stack canaries",
+      "q": "A 64-bit stack canary contains one null byte. How many bits of entropy does it have?",
+      "answer": 56,
+      "explain": "64 - 8 = 56 bits. At 1000 guesses per second, that's over 2 million years on average."
+    },
+    {
+      "type": "multi",
+      "category": "Stack canaries",
+      "q": "Which attacks can still succeed against a program protected only by stack canaries?",
+      "choices": [
+        "A heap overflow that corrupts heap data",
+        "Overflowing a buffer to change an adjacent local variable like an authenticated flag",
+        "A format string bug that writes directly to rip without touching the canary",
+        "A consecutive stack overflow from a buffer up through the saved rip"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Canaries only catch consecutive writes that pass through them on the stack. Heap attacks, overwrites of other locals that stop before the canary, and non-consecutive writes all get past them."
+    },
+    {
+      "type": "mc",
+      "category": "Stack canaries",
+      "q": "An attacker uses a format string bug to leak the canary. What must be true for this to help the overflow succeed?",
+      "choices": [
+        "The overflow has to write the leaked value back in the same run of the program",
+        "The leaked value can be reused in any later run",
+        "The attacker must also leak the canary of every other function",
+        "The canary must not contain a null byte"
+      ],
+      "answer": 0,
+      "explain": "The canary changes every run, so a leaked value only works in the run it came from."
+    },
+    {
+      "type": "mc",
+      "category": "Stack canaries",
+      "q": "A 32-bit service restarts after each crash, so an attacker can keep guessing the canary. What makes this brute-force attack infeasible?",
+      "choices": [
+        "Adding an exponentially increasing delay after each crash",
+        "Placing the canary below the local variables",
+        "Making the canary the same in every run",
+        "Removing the null byte from the canary"
+      ],
+      "answer": 0,
+      "explain": "At thousands of tries per second, 2^24 guesses take a few hours. Exponential backoff after crashes makes that number of tries impractical."
+    },
+    {
+      "type": "mc",
+      "category": "Pointer authentication",
+      "q": "Where does pointer authentication store the pointer authentication code (PAC)?",
+      "choices": [
+        "In the unused high bits of a 64-bit address",
+        "In a separate word right above the saved rip",
+        "In a dedicated region of the heap",
+        "In the lowest byte of the address, replacing the null byte"
+      ],
+      "answer": 0,
+      "explain": "64-bit address spaces don't use all 64 bits, so the top bits are always 0. The PAC goes there."
+    },
+    {
+      "type": "num",
+      "category": "Pointer authentication",
+      "q": "A system has a 4 TB address space, which needs 42 bits. How many high bits of a 64-bit pointer are always 0 and free to hold a PAC?",
+      "answer": 22,
+      "explain": "64 - 42 = 22 unused high bits."
+    },
+    {
+      "type": "text",
+      "category": "Pointer authentication",
+      "q": "In a 40-bit address space, rip = 0x0000001234567899 and its PAC is 0xABCDEF. What 64-bit value is stored on the stack? (Write it in hex with a 0x prefix.)",
+      "answer": ["0xABCDEF1234567899", "0xabcdef1234567899", "ABCDEF1234567899", "abcdef1234567899"],
+      "explain": "The 24-bit PAC fills the unused top 24 bits: 0xABCDEF followed by the 40-bit address 1234567899."
+    },
+    {
+      "type": "mc",
+      "category": "Pointer authentication",
+      "q": "With per-pointer PAC, the code is computed as PAC = f(KEY, ADDRESS). What kind of function is f?",
+      "choices": [
+        "A MAC: deterministic, and you can't produce valid outputs without the key",
+        "A random number generator that gives a new PAC each time it's called",
+        "A simple checksum of the address bits that anyone can compute",
+        "A public-key encryption of the address"
+      ],
+      "answer": 0,
+      "explain": "f is deterministic, so the CPU stores only the key and recomputes the PAC on every check. Without the key, nobody can forge valid PACs."
+    },
+    {
+      "type": "tf",
+      "category": "Pointer authentication",
+      "q": "True or false: If an attacker leaks a valid pointer and its PAC, they can attach that PAC to a different address of their choice and pass the check.",
+      "answer": false,
+      "explain": "The PAC depends on the address, so f(KEY, new address) won't match the old PAC. Leaked pairs don't help with a new address."
+    },
+    {
+      "type": "mc",
+      "category": "Pointer authentication",
+      "q": "What happens if code dereferences a pointer that still has its PAC in the high bits, without going through the CPU's check?",
+      "choices": [
+        "The program crashes, because the high bits make it an invalid address",
+        "The CPU silently ignores the high bits",
+        "The PAC is verified automatically and stripped",
+        "It reads from a random location in the heap"
+      ],
+      "answer": 0,
+      "explain": "Only the authentication check restores the original zero bits. With the PAC still in them, the address is invalid."
+    },
+    {
+      "type": "multi",
+      "category": "Pointer authentication",
+      "q": "Which are realistic ways to subvert pointer authentication?",
+      "choices": [
+        "Guess the PAC (e.g., 1 in 2^20 for a 20-bit PAC)",
+        "Use another bug to trick the program into creating a validated pointer",
+        "Steal the key from the CPU or break f",
+        "Reuse a leaked PAC with a different address"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Guessing, getting the program to sign a pointer for you, and stealing the key or breaking f all work. A leaked PAC is tied to its own address."
+    },
+    {
+      "type": "mc",
+      "category": "Pointer authentication",
+      "q": "An attacker uses a format string bug to write directly to rip, skipping the stack canary. Which mitigation still catches this?",
+      "choices": ["Pointer authentication", "Non-executable pages", "A larger stack canary", "Safe library functions"],
+      "answer": 0,
+      "explain": "PAC protects the pointer itself, so changing rip without producing a matching PAC fails the check, no matter how the write happened."
+    },
+    {
+      "type": "mc",
+      "category": "ASLR",
+      "q": "What does ASLR randomize on each run?",
+      "choices": [
+        "The start address of each memory section (stack, heap, code, static data, each library)",
+        "The order of local variables within each stack frame",
+        "The offset between the saved sfp and rip",
+        "The instructions inside each function"
+      ],
+      "answer": 0,
+      "explain": "ASLR moves whole sections, so absolute addresses change but layout within a section doesn't."
+    },
+    {
+      "type": "tf",
+      "category": "ASLR",
+      "q": "True or false: ASLR randomizes relative offsets, such as the distance between the saved sfp and rip.",
+      "answer": false,
+      "explain": "Only section start addresses are randomized. Relative offsets stay fixed, so one leaked address reveals the addresses of nearby data."
+    },
+    {
+      "type": "mc",
+      "category": "ASLR",
+      "q": "What limits the amount of randomness ASLR can provide?",
+      "choices": [
+        "Sections have to start on a page boundary",
+        "The random number generator is only 8 bits",
+        "The stack must always start at the same address",
+        "Libraries can't be relocated"
+      ],
+      "answer": 0,
+      "explain": "Section starts have to be multiples of the page size (typically 4096 bytes on 32-bit), which removes the low bits from the randomness."
+    },
+    {
+      "type": "num",
+      "category": "ASLR",
+      "q": "About how many bits of entropy might ASLR provide on a 32-bit system?",
+      "answer": 16,
+      "explain": "Roughly 16 bits, a 1 in 2^16 chance per guess. At one guess per second, that's under a day."
+    },
+    {
+      "type": "mc",
+      "category": "ASLR",
+      "q": "Why does ASLR have low overhead?",
+      "choices": [
+        "Libraries are already dynamically linked at runtime, so segments are relocatable anyway",
+        "The CPU randomizes addresses in hardware at no cost",
+        "ASLR only runs once, when the program is compiled",
+        "ASLR only randomizes the stack"
+      ],
+      "answer": 0,
+      "explain": "Dynamic linking already requires relocatable code, so placing segments at random addresses costs little extra."
+    },
+    {
+      "type": "mc",
+      "category": "ASLR",
+      "q": "A format string bug leaks one saved sfp. Why does that help the attacker against ASLR?",
+      "choices": [
+        "Relative offsets are fixed, so the attacker can work out the addresses of nearby data like rip",
+        "It permanently turns ASLR off for the process",
+        "It reveals the random seed for every later run",
+        "It lets the attacker execute code on the stack"
+      ],
+      "answer": 0,
+      "explain": "Since layout within the section doesn't change, the attacker can compute nearby addresses from one leaked one (e.g., rip is 4 bytes above sfp on 32-bit)."
+    },
+    {
+      "type": "mc",
+      "category": "Combining mitigations",
+      "q": "Against ASLR + NX, how does each mitigation contribute?",
+      "choices": [
+        "NX blocks injected shellcode, and ASLR hides the addresses of existing code needed for ROP or return-to-libc",
+        "ASLR blocks injected shellcode, and NX hides code addresses",
+        "Both only protect the heap",
+        "NX detects overwritten return addresses, and ASLR encrypts pointers"
+      ],
+      "answer": 0,
+      "explain": "Without NX, the attacker could inject code. Without ASLR, they would know where existing code is for ROP or ret2libc."
+    },
+    {
+      "type": "multi",
+      "category": "Combining mitigations",
+      "q": "To exploit a program protected by both ASLR and NX, what does the attacker typically need?",
+      "choices": [
+        "A memory leak that reveals addresses",
+        "A memory write that places a ROP chain",
+        "Only a single stack buffer overflow with injected shellcode",
+        "Physical access to the machine"
+      ],
+      "answer": [0, 1],
+      "explain": "The leak defeats ASLR and the write defeats NX, so the attacker needs two vulnerabilities."
+    },
+    {
+      "type": "mc",
+      "category": "Combining mitigations",
+      "q": "Which mitigation is aimed at stopping an attacker who hard-codes absolute addresses into an exploit?",
+      "choices": ["ASLR", "Stack canaries", "Non-executable pages", "fgets instead of gets"],
+      "answer": 0,
+      "explain": "ASLR changes absolute addresses on every run, so hard-coded addresses for shellcode, libc functions or gadgets stop working."
+    }
+  ]
+}
