@@ -1,0 +1,431 @@
+{
+  "title": "Web cache deception",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "topic": "What WCD is",
+      "q": "What does a web cache deception (WCD) attack trick a web cache into doing?",
+      "choices": [
+        "Storing sensitive, dynamic content that the attacker can then retrieve",
+        "Injecting attacker-controlled content into responses served to other users",
+        "Deleting all cached static resources to force a denial of service",
+        "Revealing the origin server's private TLS key"
+      ],
+      "answer": 0,
+      "explain": "WCD tricks a cache into storing sensitive, dynamic content (such as another user's data). The attacker then requests the same URL and is served the victim's cached response."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "topic": "Root cause",
+      "q": "What is the root cause that makes web cache deception possible?",
+      "choices": [
+        "The cache server and origin server handle or parse the same request differently",
+        "The cache always ignores Cache-Control headers",
+        "Browsers encode all special characters before sending requests",
+        "The origin server never sets cache keys"
+      ],
+      "answer": 0,
+      "explain": "WCD exploits discrepancies in how the cache and the origin interpret a request. The cache treats an ambiguous request as a cacheable static resource while the origin returns dynamic, sensitive content."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "topic": "WCD vs poisoning",
+      "q": "How does web cache deception differ from web cache poisoning?",
+      "choices": [
+        "Deception gets private content stored so the attacker can read it; poisoning manipulates cache keys to inject malicious content served to others",
+        "Deception injects malicious content served to others; poisoning reads private content",
+        "They are two names for the exact same attack",
+        "Deception targets browsers while poisoning targets DNS resolvers"
+      ],
+      "answer": 0,
+      "explain": "Poisoning manipulates cache keys to inject malicious content into a response served to other users. Deception exploits cache rules to get private content stored, which the attacker then retrieves."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "topic": "Attack flow",
+      "q": "In the WCD attack flow, what happens after the victim's browser makes an ambiguous request for sensitive content?",
+      "choices": [
+        "The cache treats it as a static resource and stores the response, which the attacker later requests",
+        "The origin blocks the request and alerts the victim",
+        "The browser caches the response locally and never contacts the server again",
+        "The attacker's session cookie is automatically sent to the origin"
+      ],
+      "answer": 0,
+      "explain": "The cache treats the ambiguous request as a request for a static resource and stores the response. The attacker then requests the same URL and receives the victim's cached response."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "topic": "Cache miss",
+      "q": "What is a cache miss?",
+      "choices": [
+        "No stored copy exists, so the request goes to the origin and the cache decides whether to store the response",
+        "A stored copy is served directly without contacting the origin",
+        "The origin refuses to answer the request",
+        "The cache key fails validation and the request is dropped"
+      ],
+      "answer": 0,
+      "explain": "On a cache miss there is no stored copy, so the request is forwarded to the origin. The response passes back through the cache, which uses its rules to decide whether to store it. A cache hit is when a stored copy is served directly."
+    },
+    {
+      "type": "text",
+      "category": "Fundamentals",
+      "topic": "Cache keys",
+      "q": "A cache key is usually generated from which two parts of the request (name both)?",
+      "answer": ["URL path and query parameters", "path and query parameters", "path and query string", "URL path and query string"],
+      "explain": "Cache keys are typically built from the URL path plus query parameters (and can also include headers, content type, etc.). Requests with a matching key are treated as equivalent, so the cached response is served."
+    },
+    {
+      "type": "multi",
+      "category": "Fundamentals",
+      "topic": "Cache rule types",
+      "q": "Which of the following are types of cache rules based on strings in the URL path that WCD exploits?",
+      "choices": [
+        "Static file extension rules (e.g. .css, .js)",
+        "Static directory rules matching a path prefix (e.g. /static, /assets)",
+        "File name rules matching exact names (e.g. robots.txt, favicon.ico)",
+        "Rules based on the client's TCP source port"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "WCD exploits cache rules keyed on the URL path: static file extension rules, static directory (prefix) rules, and exact file name rules. TCP source port is not a cache rule type described here."
+    },
+    {
+      "type": "multi",
+      "category": "Constructing an attack",
+      "topic": "Target methods",
+      "q": "When looking for a target endpoint, which HTTP methods should you focus on, since state-changing requests generally aren't cached?",
+      "choices": ["GET", "HEAD", "OPTIONS", "DELETE"],
+      "answer": [0, 1, 2],
+      "explain": "Focus on GET, HEAD, and OPTIONS. Requests that change server state (like POST or DELETE) are generally not cached."
+    },
+    {
+      "type": "mc",
+      "category": "Constructing an attack",
+      "topic": "Finding dynamic data",
+      "q": "Why should you inspect raw responses in Burp when hunting for a sensitive target endpoint?",
+      "choices": [
+        "Some sensitive data isn't visible on the rendered page but appears in the raw response",
+        "Burp automatically decrypts the database for you",
+        "The rendered page always hides the cache headers",
+        "Raw responses bypass the origin's authentication"
+      ],
+      "answer": 0,
+      "explain": "Some dynamic, sensitive data is present in the raw response even though it isn't visible on the rendered page, so checking raw responses helps you find a worthwhile target."
+    },
+    {
+      "type": "mc",
+      "category": "Constructing an attack",
+      "topic": "Cache buster",
+      "q": "Why does each test request need a cache buster (a different cache key)?",
+      "choices": [
+        "Otherwise you receive a stale cached response instead of a fresh one from the origin",
+        "It encrypts the request so the WAF cannot read it",
+        "It forces the origin to use a different database",
+        "It disables the victim's session cookie"
+      ],
+      "answer": 0,
+      "explain": "Without a unique cache key per request you may get a stale cached response. A common method is to add a query string and change it on each request; Param Miner can add a dynamic cachebuster automatically."
+    },
+    {
+      "type": "mc",
+      "category": "Constructing an attack",
+      "topic": "Fetch in Burp",
+      "q": "After crafting the malicious URL and letting the victim's response be cached, why fetch the same URL in Burp rather than the browser?",
+      "choices": [
+        "Apps may redirect sessionless users or invalidate local data in the browser, which could hide the vulnerability",
+        "Burp caches responses more aggressively than a browser",
+        "Browsers cannot send GET requests",
+        "The origin only answers requests that come from Burp"
+      ],
+      "answer": 0,
+      "explain": "Fetching in Burp avoids browser behaviors (redirecting sessionless users, invalidating local data) that could mask the cached sensitive response."
+    },
+    {
+      "type": "mc",
+      "category": "Constructing an attack",
+      "topic": "X-Cache values",
+      "q": "What does an X-Cache value of 'hit' indicate?",
+      "choices": [
+        "The response was served from the cache",
+        "The response was generated dynamically by the origin",
+        "The cached content was outdated and had to be revalidated",
+        "The response was not found in the cache and came from the origin"
+      ],
+      "answer": 0,
+      "explain": "X-Cache: hit means the response was served from the cache. 'miss' means it was fetched from the origin, 'dynamic' means the origin generated it dynamically, and 'refresh' means outdated cached content was revalidated."
+    },
+    {
+      "type": "tf",
+      "category": "Constructing an attack",
+      "topic": "Cache-Control proof",
+      "q": "True or false: a response with Cache-Control: public and max-age greater than 0 proves the response is being cached.",
+      "answer": false,
+      "explain": "It only suggests the response is cacheable; it does not prove it, because the cache may override the header. Confirm with headers like X-Cache and by comparing response times."
+    },
+    {
+      "type": "mc",
+      "category": "Static extension rules",
+      "topic": "CDN defaults",
+      "q": "Static file extension rules such as .css and .js are described as what in most CDNs?",
+      "choices": [
+        "The default caching behavior",
+        "A feature that must be custom-written for each site",
+        "Disabled unless a WAF is present",
+        "Only available on the origin, never the CDN"
+      ],
+      "answer": 0,
+      "explain": "Extension rules (.css, .js, etc.) are the default in most CDNs, so the goal is a request for dynamic content carrying a static extension that the origin ignores but the cache sees."
+    },
+    {
+      "type": "mc",
+      "category": "Static extension rules",
+      "topic": "Path mapping",
+      "q": "For the URL /user/123/profile/wcd.css against a REST-style origin with a traditional-style cache that has a .css rule, what happens?",
+      "choices": [
+        "The origin ignores wcd.css and returns the profile; the cache treats wcd.css as a .css file and stores the profile",
+        "The origin returns the wcd.css stylesheet and the cache ignores it",
+        "Both the origin and cache return a 404 error",
+        "The browser blocks the request before it reaches the cache"
+      ],
+      "answer": 0,
+      "explain": "A REST origin maps /user/123/profile to an endpoint and ignores the extra wcd.css segment, returning the profile. A traditional-style cache sees a file wcd.css and, with a .css rule, caches the profile response."
+    },
+    {
+      "type": "mc",
+      "category": "Static extension rules",
+      "topic": "Path mapping limitation",
+      "q": "What is a key limitation of a path-mapping WCD attack?",
+      "choices": [
+        "It works only on the specific endpoint tested, since abstraction rules differ per endpoint",
+        "It works on every endpoint of the whole server at once",
+        "It only works over HTTP, never HTTPS",
+        "It requires the victim to be logged out"
+      ],
+      "answer": 0,
+      "explain": "Path-mapping discrepancies are specific to the endpoint, because URL-to-resource abstraction rules differ per endpoint. Delimiter attacks, by contrast, tend to work across many endpoints."
+    },
+    {
+      "type": "mc",
+      "category": "Static extension rules",
+      "topic": "Delimiter - Spring",
+      "q": "With the payload /profile;foo.css against a Java Spring origin, how do the origin and cache differ?",
+      "choices": [
+        "Spring truncates at the ; (matrix variable) to /profile; most caches see the full path ending .css and cache it",
+        "Spring reads the full .css path; the cache truncates at the ;",
+        "Both treat ; as the end of the path",
+        "Neither side accepts the ; character"
+      ],
+      "answer": 0,
+      "explain": "Spring uses ; for matrix variables, truncating to /profile. Most caches see the full /profile;foo.css path ending in .css and, with a .css rule, cache the dynamic profile."
+    },
+    {
+      "type": "mc",
+      "category": "Static extension rules",
+      "topic": "Delimiter - Rails",
+      "q": "On a Ruby on Rails origin, why does /profile.ico return the profile while /profile.css causes an error?",
+      "choices": [
+        ".ico isn't a recognized format so Rails uses the default HTML formatter; .css is recognized but has no CSS formatter, causing an error",
+        ".ico is a recognized image format that returns a favicon; .css returns a stylesheet",
+        "Rails blocks all requests ending in an extension",
+        "Rails caches .css itself but refuses .ico"
+      ],
+      "answer": 0,
+      "explain": "Rails uses . to select a response format. .css is recognized but has no CSS formatter (error), while .ico is unrecognized, so the default HTML formatter returns the profile. A cache with a .ico rule then stores it."
+    },
+    {
+      "type": "mc",
+      "category": "Static extension rules",
+      "topic": "Decoding discrepancy",
+      "q": "For /profile%23wcd.css (%23 is #), what discrepancy makes this cacheable?",
+      "choices": [
+        "The origin decodes %23 to # and truncates to /profile; the cache does not decode %23, sees .css, and caches it",
+        "The cache decodes %23 and truncates; the origin sees the full path",
+        "Both sides decode %23 identically, so there is no discrepancy",
+        "The browser strips %23 before the request is sent"
+      ],
+      "answer": 0,
+      "explain": "A delimiter-decoding discrepancy: the origin decodes %23 to # and truncates to /profile, but the cache doesn't decode %23, so it sees /profile%23wcd.css and its .css rule caches the response."
+    },
+    {
+      "type": "tf",
+      "category": "Static extension rules",
+      "topic": "Delimiter reach",
+      "q": "True or false: because delimiters are generally consistent across a server, a delimiter-based WCD attack often works on many endpoints.",
+      "answer": true,
+      "explain": "Delimiters tend to be consistent server-wide, so a working delimiter attack often applies to many endpoints, unlike path-mapping attacks which are endpoint-specific."
+    },
+    {
+      "type": "mc",
+      "category": "Static extension rules",
+      "topic": "Intruder encoding",
+      "q": "When brute-forcing delimiter characters with Burp Intruder, what setting must you change?",
+      "choices": [
+        "Turn off payload encoding so the delimiter characters aren't URL-encoded",
+        "Turn on payload encoding so every character is escaped",
+        "Set the attack type to cluster bomb",
+        "Enable the built-in cache buster in Repeater"
+      ],
+      "answer": 0,
+      "explain": "Payload encoding must be turned off (Payloads side panel > Payload encoding) so the candidate delimiter characters are sent raw rather than URL-encoded."
+    },
+    {
+      "type": "mc",
+      "category": "Static directory rules",
+      "topic": "Prefix rules",
+      "q": "Static directory cache rules match what part of the URL?",
+      "choices": [
+        "A path prefix such as /static, /assets, /scripts, or /images",
+        "The file extension at the end of the path",
+        "The exact full file name",
+        "The query string parameters"
+      ],
+      "answer": 0,
+      "explain": "Directory rules match a path prefix (e.g. /static, /assets). Exploiting them relies on path-traversal basics to make the cache and origin disagree about the real path."
+    },
+    {
+      "type": "mc",
+      "category": "Static directory rules",
+      "topic": "Normalization",
+      "q": "What is URL path normalization in this context?",
+      "choices": [
+        "Converting path variants to a standard form, e.g. decoding characters and resolving dot-segments",
+        "Encrypting the path so caches cannot read it",
+        "Removing the query string from every request",
+        "Mapping a REST endpoint to a file on disk"
+      ],
+      "answer": 0,
+      "explain": "Normalization converts URL path variants to a standard form, such as decoding encoded characters and resolving dot-segments (../). Parsers vary a lot in how they normalize, which creates exploitable discrepancies."
+    },
+    {
+      "type": "mc",
+      "category": "Static directory rules",
+      "topic": "Encoded dot-segments",
+      "q": "Why must the dot-segments in a traversal payload be encoded (e.g. ..%2f instead of ../)?",
+      "choices": [
+        "Otherwise the victim's browser resolves them before the request reaches the cache",
+        "Otherwise the origin always returns a 500 error",
+        "Encoded dot-segments are the only form caches recognize as static",
+        "Browsers refuse to send any URL containing a dot"
+      ],
+      "answer": 0,
+      "explain": "If dot-segments are left unencoded, the victim's browser resolves them before the request is sent, so they never reach the cache. Encoding them preserves the traversal for the cache/origin to (dis)agree on."
+    },
+    {
+      "type": "mc",
+      "category": "Static directory rules",
+      "topic": "Detecting origin normalization",
+      "q": "When detecting whether the origin normalizes paths, why use a non-idempotent method like POST?",
+      "choices": [
+        "It uses a non-cacheable resource, so results reflect the origin's behavior rather than the cache's",
+        "POST requests are always faster than GET",
+        "Only POST requests can contain a traversal sequence",
+        "The cache always caches POST responses"
+      ],
+      "answer": 0,
+      "explain": "A POST (non-idempotent) request targets a non-cacheable resource, so the response reveals how the origin handles the traversal (e.g. /aaa/..%2fprofile) without the cache interfering."
+    },
+    {
+      "type": "mc",
+      "category": "Static directory rules",
+      "topic": "Exploit origin normalization",
+      "q": "To exploit origin normalization (origin resolves the path, cache does not), what payload structure is used?",
+      "choices": [
+        "/<static-directory-prefix>/..%2f<dynamic-path>, e.g. /assets/..%2fprofile",
+        "/<dynamic-path>%2f%2e%2e%2f<static-prefix>",
+        "/<dynamic-path>;<static-prefix>.css",
+        "/<static-prefix>/<dynamic-path> with no traversal"
+      ],
+      "answer": 0,
+      "explain": "Use /<static-directory-prefix>/..%2f<dynamic-path> (e.g. /assets/..%2fprofile). The cache sees the /assets prefix and caches it; the origin decodes and resolves the traversal to /profile."
+    },
+    {
+      "type": "mc",
+      "category": "Static directory rules",
+      "topic": "Exploit cache normalization",
+      "q": "When exploiting cache normalization (cache resolves the path, origin does not), why must you add a delimiter after the dynamic path, as in /profile;%2f%2e%2e%2fstatic?",
+      "choices": [
+        "Traversal alone makes the origin see a path that errors; a delimiter the origin uses but the cache doesn't lets the origin truncate to the dynamic data while the cache resolves to /static",
+        "The delimiter encrypts the traversal so the cache ignores it",
+        "Without a delimiter the browser refuses the request",
+        "The delimiter forces the origin to cache the response itself"
+      ],
+      "answer": 0,
+      "explain": "With /profile%2f%2e%2e%2fstatic alone the origin sees that literal path and errors. Adding a delimiter it uses but the cache doesn't (e.g. ;) lets the origin truncate to /profile while the cache resolves the traversal to /static and caches it."
+    },
+    {
+      "type": "mc",
+      "category": "File name and prevention",
+      "topic": "File name rules",
+      "q": "File name cache rules (e.g. for robots.txt, index.html, favicon.ico) match the path how?",
+      "choices": [
+        "By an exact file name match",
+        "By a path prefix",
+        "By any file sharing the same extension",
+        "By the response's content length"
+      ],
+      "answer": 0,
+      "explain": "File name rules use an exact file name match for files that rarely change (robots.txt, index.html, favicon.ico)."
+    },
+    {
+      "type": "mc",
+      "category": "File name and prevention",
+      "topic": "File name exploit",
+      "q": "Because file name rules use an exact match, which WCD case is the only one that works against them?",
+      "choices": [
+        "The cache-resolves / origin-doesn't case, using the file name in place of the directory prefix",
+        "The origin-resolves / cache-doesn't case",
+        "The path-mapping case with an added extension",
+        "Any case, since exact matches are the easiest to exploit"
+      ],
+      "answer": 0,
+      "explain": "An exact file name match means only the cache-normalization method works: e.g. /<dynamic-path><delimiter>%2f%2e%2e%2findex.html, where the cache resolves to /index.html and the origin returns the dynamic data."
+    },
+    {
+      "type": "mc",
+      "category": "File name and prevention",
+      "topic": "Cache-Control defense",
+      "q": "Which Cache-Control directive(s) should be set on dynamic resources to help prevent WCD?",
+      "choices": [
+        "no-store, private",
+        "public, max-age=31536000",
+        "must-revalidate only",
+        "immutable, public"
+      ],
+      "answer": 0,
+      "explain": "Marking dynamic resources Cache-Control: no-store, private tells caches not to store them. The CDN must also be configured so its rules don't override Cache-Control."
+    },
+    {
+      "type": "mc",
+      "category": "File name and prevention",
+      "topic": "Cloudflare protection",
+      "q": "What does a CDN WCD protection like Cloudflare's Cache Deception Armor do?",
+      "choices": [
+        "Checks that the response Content-Type matches the URL's file extension before caching",
+        "Blocks every request that contains a dot-segment",
+        "Encrypts all cached responses at rest",
+        "Disables caching entirely for the whole site"
+      ],
+      "answer": 0,
+      "explain": "Cache Deception Armor verifies that the response Content-Type matches the file extension in the URL, so a dynamic HTML response disguised with a .css path is not cached."
+    },
+    {
+      "type": "multi",
+      "category": "File name and prevention",
+      "topic": "Prevention measures",
+      "q": "Which of the following are recommended measures to prevent web cache deception?",
+      "choices": [
+        "Mark dynamic resources with Cache-Control: no-store, private",
+        "Configure the CDN so its caching rules don't override Cache-Control",
+        "Verify there are no discrepancies between how the origin and cache interpret URL paths",
+        "Serve all sensitive pages only over plain HTTP"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Prevention includes setting no-store/private on dynamic content, stopping the CDN from overriding Cache-Control, enabling CDN WCD protections, and ensuring origin and cache interpret paths identically. Serving over plain HTTP is not a defense."
+    }
+  ]
+}

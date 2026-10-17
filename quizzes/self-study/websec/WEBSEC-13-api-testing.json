@@ -1,0 +1,615 @@
+{
+  "title": "WEBSEC-13: API testing",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "API recon & documentation",
+      "q": "In API testing, what is an endpoint?",
+      "choices": [
+        "The server that hosts the API's documentation",
+        "A location where the API receives requests about a specific resource",
+        "The last response in a sequence of API calls",
+        "A rate limit applied to each API client"
+      ],
+      "answer": 1,
+      "explain": "In GET /api/books, for example, the endpoint is /api/books, which returns a list of books. /api/books/mystery would be a different endpoint that returns mystery books."
+    },
+    {
+      "type": "multi",
+      "category": "API recon & documentation",
+      "q": "During API recon, what do you need to work out about an endpoint so you can build valid requests to it?",
+      "choices": [
+        "Which parameters are compulsory and which are optional",
+        "Which HTTP methods and media formats it accepts",
+        "Its rate limits and authentication mechanisms",
+        "Which programming language its developers prefer"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Recon is about the attack surface: the input data the API takes (compulsory and optional), the request types it accepts (methods and media formats), and its rate limits and authentication mechanisms."
+    },
+    {
+      "type": "mc",
+      "category": "API recon & documentation",
+      "q": "Machine-readable API documentation is meant to be processed by software. Which formats does it typically use?",
+      "choices": [
+        "PDF or DOCX",
+        "Plain-text changelogs",
+        "JSON or XML",
+        "Screenshots of example requests"
+      ],
+      "answer": 2,
+      "explain": "Machine-readable docs use structured formats such as JSON or XML so tools can automate integration and validation. Human-readable docs are written for developers and contain explanations, examples, and usage scenarios."
+    },
+    {
+      "type": "mc",
+      "category": "API recon & documentation",
+      "q": "You spot a request to /api/swagger/v1/users/123. What is a good way to look for the API's documentation?",
+      "choices": [
+        "Request the base paths /api/swagger/v1, /api/swagger, and /api",
+        "Send DELETE /api/swagger/v1/users/123",
+        "Change the user ID to 124",
+        "Remove the Content-Type header"
+      ],
+      "answer": 0,
+      "explain": "Investigating base paths can lead you to documentation. You can also run Intruder with a list of common documentation paths."
+    },
+    {
+      "type": "multi",
+      "category": "API recon & documentation",
+      "q": "Which of these paths could point to API documentation?",
+      "choices": [
+        "/api",
+        "/swagger/index.html",
+        "/openapi.json",
+        "/favicon.ico"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "/api, /swagger/index.html, and /openapi.json are common documentation locations. /favicon.ico is just the site icon."
+    },
+    {
+      "type": "tf",
+      "category": "API recon & documentation",
+      "q": "If you already have the API documentation, you can skip browsing the application to identify endpoints.",
+      "answer": false,
+      "explain": "Documentation can be inaccurate or out of date. Browse the app anyway: crawl it with Burp Scanner, then explore manually in Burp's browser."
+    },
+    {
+      "type": "mc",
+      "category": "API recon & documentation",
+      "q": "Why review an application's JavaScript files during endpoint discovery?",
+      "choices": [
+        "They contain the server's database credentials",
+        "They can reference API endpoints you haven't triggered from the browser",
+        "They define the API's rate limits",
+        "They run on the server, so they reveal server-side logic"
+      ],
+      "answer": 1,
+      "explain": "JavaScript can reference endpoints your browsing never triggered. Burp Scanner extracts some of them during crawls. For heavier extraction, use the JS Link Finder BApp or read the JS manually in Burp."
+    },
+    {
+      "type": "tf",
+      "category": "API recon & documentation",
+      "q": "Classic vulnerabilities such as SQL injection can count as part of API testing.",
+      "answer": true,
+      "explain": "Every dynamic website is built from APIs, so classic web vulnerabilities like SQLi can also be seen as API testing."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP methods & content types",
+      "q": "Which HTTP method asks the server which methods are allowed on a resource?",
+      "choices": ["GET", "PATCH", "OPTIONS", "HEAD"],
+      "answer": 2,
+      "explain": "OPTIONS lists the methods allowed on a resource. GET retrieves data and PATCH applies partial changes."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP methods & content types",
+      "q": "Which HTTP method applies partial changes to a resource?",
+      "choices": ["GET", "PATCH", "OPTIONS", "TRACE"],
+      "answer": 1,
+      "explain": "PATCH applies partial changes. GET retrieves data and OPTIONS lists the allowed methods."
+    },
+    {
+      "type": "tf",
+      "category": "HTTP methods & content types",
+      "q": "Once you know which HTTP method the front-end uses for an endpoint, there's no point testing other methods on it.",
+      "answer": false,
+      "explain": "One endpoint can support several methods. For example, GET /api/tasks lists tasks, POST /api/tasks creates one, and DELETE /api/tasks/1 deletes one. Test them all to find more functionality. Burp Intruder's built-in \"HTTP verbs\" list can cycle through them."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP methods & content types",
+      "q": "When cycling through HTTP methods on an endpoint, why should you target low-priority objects?",
+      "choices": [
+        "Low-priority objects respond faster",
+        "High-priority objects never accept non-GET methods",
+        "Low-priority objects aren't logged by the server",
+        "So you don't alter critical items or create too many records"
+      ],
+      "answer": 3,
+      "explain": "Methods like DELETE, PUT, or POST can change or create data. Testing on low-priority objects avoids unintended consequences."
+    },
+    {
+      "type": "multi",
+      "category": "HTTP methods & content types",
+      "q": "What can changing the content type of an API request achieve?",
+      "choices": [
+        "Trigger errors that disclose useful information",
+        "Bypass flawed defenses",
+        "Exploit differences in processing logic, e.g. an API that is safe with JSON but injectable with XML",
+        "Guarantee that authentication is skipped"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A different content type can expose errors, slip past flawed defenses, or reach different processing logic. Nothing guarantees that authentication gets skipped."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP methods & content types",
+      "q": "How do you change the content type of an API request when testing?",
+      "choices": [
+        "Change only the body and leave the headers alone",
+        "Add a .xml extension to the URL",
+        "Change the Content-Type header and reformat the request body to match",
+        "Change the HTTP method to OPTIONS"
+      ],
+      "answer": 2,
+      "explain": "Change the Content-Type header and reformat the body to match. The Content type converter BApp converts request data between XML and JSON."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP methods & content types",
+      "q": "You've found PUT /api/user/update. How could Burp Intruder help you find hidden endpoints?",
+      "choices": [
+        "Put a payload position at /update and try words like delete and add",
+        "Fuzz the Host header with IP addresses",
+        "Brute-force the user's password",
+        "Replay the request with every HTTP status code"
+      ],
+      "answer": 0,
+      "explain": "Swap the /update segment for candidate names. Build the wordlist from common API naming conventions, industry terms, and app-specific terms you found during recon."
+    },
+    {
+      "type": "tf",
+      "category": "HTTP methods & content types",
+      "q": "API error messages are worth reading closely, since they can show you how to build a valid request.",
+      "answer": true,
+      "explain": "Error messages often reveal what the API expects, such as parameters, formats, or types. That helps you build valid requests."
+    },
+    {
+      "type": "mc",
+      "category": "Hidden parameters & mass assignment",
+      "q": "What is mass assignment?",
+      "choices": [
+        "Sending the same request to many endpoints at once",
+        "A framework automatically binding request parameters to fields on an internal object, so the app accepts parameters the developer never meant it to process",
+        "Assigning many users to the same role through the admin panel",
+        "Overriding a query parameter by supplying it twice"
+      ],
+      "answer": 1,
+      "explain": "Mass assignment (auto-binding) creates hidden parameters by accident. Supplying a parameter twice describes the parameter override in server-side parameter pollution."
+    },
+    {
+      "type": "text",
+      "category": "Hidden parameters & mass assignment",
+      "q": "Mass assignment is also known by what other name?",
+      "answer": ["auto-binding", "autobinding", "auto binding"],
+      "explain": "It's also called auto-binding because the framework binds request parameters to object fields automatically."
+    },
+    {
+      "type": "multi",
+      "category": "Hidden parameters & mass assignment",
+      "q": "PATCH /api/users/ sends username and email. GET /api/users/123 returns id, name, email, and isAdmin. Which fields are likely hidden parameters bound to the user object?",
+      "choices": ["id", "isAdmin", "email", "username"],
+      "answer": [0, 1],
+      "explain": "id and isAdmin appear in the returned object but not in the update request, so they are probably bound to the same internal user object. email and username are already sent by the PATCH request."
+    },
+    {
+      "type": "mc",
+      "category": "Hidden parameters & mass assignment",
+      "q": "To test a suspected isAdmin parameter, you send \"isAdmin\": false and then \"isAdmin\": \"foo\". The app behaves differently for \"foo\". What does that suggest?",
+      "choices": [
+        "The parameter is ignored entirely",
+        "The app is vulnerable to SQL injection",
+        "The invalid value affects query logic, so the parameter may be user-updatable",
+        "The endpoint only accepts XML"
+      ],
+      "answer": 2,
+      "explain": "A different response to the invalid value means the parameter is being processed. The next step is to send \"isAdmin\": true and check whether the account now has admin functionality."
+    },
+    {
+      "type": "tf",
+      "category": "Hidden parameters & mass assignment",
+      "q": "Mass assignment works because the bound parameter's value is accepted without adequate validation or sanitization.",
+      "answer": true,
+      "explain": "The framework binds the value straight onto the object. Without validation, a user can set fields like isAdmin."
+    },
+    {
+      "type": "mc",
+      "category": "Hidden parameters & mass assignment",
+      "q": "How does Burp Intruder help find hidden parameters?",
+      "choices": [
+        "It uses a wordlist of common parameter names to replace existing parameters or add new ones",
+        "It decompiles the server's source code",
+        "It reads the server's environment variables",
+        "It only tests parameters listed in the documentation"
+      ],
+      "answer": 0,
+      "explain": "Intruder fuzzes with common parameter names, and you should add app-relevant ones. The Param miner BApp automates this, guessing up to 65,536 parameter names per request."
+    },
+    {
+      "type": "multi",
+      "category": "Preventing API vulnerabilities",
+      "q": "Which practices help prevent API vulnerabilities?",
+      "choices": [
+        "Allowlist permitted HTTP methods",
+        "Validate the expected content type for each request and response",
+        "Use generic error messages",
+        "Protect only the current production version of the API"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Protect every API version, not just the current production one. Older versions are still part of the attack surface."
+    },
+    {
+      "type": "mc",
+      "category": "Preventing API vulnerabilities",
+      "q": "Which defense addresses mass assignment?",
+      "choices": [
+        "Use verbose error messages so developers can debug faster",
+        "Allowlist the properties users may update and blocklist sensitive properties",
+        "Accept any content type the client sends",
+        "Disable the OPTIONS method"
+      ],
+      "answer": 1,
+      "explain": "Explicitly control which properties can be bound: allowlist the updatable ones and blocklist sensitive ones like isAdmin."
+    },
+    {
+      "type": "tf",
+      "category": "Preventing API vulnerabilities",
+      "q": "Keeping API documentation up to date helps security, because legitimate testers can then see the full attack surface.",
+      "answer": true,
+      "explain": "Outdated docs hide endpoints and parameters from legitimate testers, so those parts never get tested."
+    },
+    {
+      "type": "mc",
+      "category": "Preventing API vulnerabilities",
+      "q": "An API isn't meant for public use. What should happen to its documentation?",
+      "choices": [
+        "Publish it anyway so nothing looks hidden",
+        "Move it to /openapi.json",
+        "Secure it so it isn't publicly accessible",
+        "Remove the error message section from it"
+      ],
+      "answer": 2,
+      "explain": "Public docs hand attackers a map of the attack surface. Secure them if the API isn't intended to be public."
+    },
+    {
+      "type": "mc",
+      "category": "Preventing API vulnerabilities",
+      "q": "What is the main defense against server-side parameter pollution?",
+      "choices": [
+        "Use a WAF that strips duplicate parameters",
+        "Switch the internal API from JSON to XML",
+        "Allowlist characters that don't need encoding and encode all other user input before it goes into a server-side request",
+        "Only accept GET requests"
+      ],
+      "answer": 2,
+      "explain": "Encode user input before embedding it in server-side requests, apart from an allowlist of safe characters. Also check that input matches the expected format and structure."
+    },
+    {
+      "type": "tf",
+      "category": "Preventing API vulnerabilities",
+      "q": "Checking that user input matches the expected format and structure helps prevent server-side parameter pollution.",
+      "answer": true,
+      "explain": "Format and structure validation, together with encoding, stops injected syntax from reaching the internal API."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP in the query string",
+      "q": "What is server-side parameter pollution (SSPP)?",
+      "choices": [
+        "A website embeds user input in a server-side request to an internal API without adequate encoding",
+        "Polluting a JavaScript object's prototype on the server",
+        "Flooding an API with requests to exhaust its resources",
+        "Hiding parameters in the URL fragment so the server never sees them"
+      ],
+      "answer": 0,
+      "explain": "SSPP lets an attacker override existing parameters, change app behavior, or access unauthorized data. It targets internal APIs that can't be reached from the internet, and it has almost nothing to do with server-side prototype pollution."
+    },
+    {
+      "type": "multi",
+      "category": "SSPP in the query string",
+      "q": "Which kinds of user input could be vulnerable to SSPP?",
+      "choices": [
+        "Query parameters",
+        "Form fields",
+        "Headers",
+        "URL path parameters"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Any user input that ends up embedded in a server-side request to an internal API can be vulnerable."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP in the query string",
+      "q": "Why must you send # as %23 when trying to truncate a server-side query string?",
+      "choices": [
+        "The internal API only reads hexadecimal",
+        "Unencoded, # is treated as a fragment identifier and is never passed on to the internal API",
+        "%23 is shorter than #",
+        "An unencoded # always triggers the WAF"
+      ],
+      "answer": 1,
+      "explain": "Encoding it as %23 gets the # to the back end, where it is decoded and can cut off the rest of the internal query string."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP in the query string",
+      "q": "The browser sends GET /userSearch?name=peter%23foo&back=/home, and the server calls GET /users/search?name=peter#foo&publicProfile=true. The response returns the user peter. What does this suggest?",
+      "choices": [
+        "foo was treated as part of the username",
+        "The server-side query may have been truncated at the #",
+        "The back end is PHP",
+        "The parameter was injected but ignored"
+      ],
+      "answer": 1,
+      "explain": "Getting peter back means everything after # was probably dropped. An \"Invalid name\" response would instead mean foo was treated as part of the username, so the query probably wasn't truncated."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP in the query string",
+      "q": "In that example, what is the potential impact of truncating the internal query?",
+      "choices": [
+        "The publicProfile=true condition is dropped, which may expose non-public profiles",
+        "The server deletes peter's account",
+        "The request switches from GET to POST",
+        "The response's content type changes to XML"
+      ],
+      "answer": 0,
+      "explain": "Truncation removes the server-added publicProfile=true restriction, so the internal API may return profiles that aren't public."
+    },
+    {
+      "type": "text",
+      "category": "SSPP in the query string",
+      "q": "When injecting an extra parameter into a server-side query string, what URL-encoded sequence do you send for the & character?",
+      "answer": ["%26"],
+      "explain": "For example, name=peter%26foo=xyz becomes name=peter&foo=xyz&publicProfile=true in the internal request."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP in the query string",
+      "q": "You send name=peter%26foo=xyz and the response is unchanged. What can you conclude?",
+      "choices": [
+        "SSPP is confirmed",
+        "The site is definitely not vulnerable",
+        "The parameter may have been injected but ignored, so you need more tests",
+        "The query was truncated"
+      ],
+      "answer": 2,
+      "explain": "An unchanged response is ambiguous. Next, try injecting a valid parameter (e.g. %26email=foo) or overriding an existing one."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP: overriding parameters",
+      "q": "What does the payload name=peter%26name=carlos attempt?",
+      "choices": [
+        "To override the existing name parameter with a second one of the same name",
+        "To truncate the internal query string",
+        "To traverse to a parent directory in a REST path",
+        "To change the request's content type"
+      ],
+      "answer": 0,
+      "explain": "It produces name=peter&name=carlos&publicProfile=true internally. How the back end handles the duplicate depends on its technology, and a changed response confirms SSPP."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP: overriding parameters",
+      "q": "The internal API runs on PHP and receives name=peter&name=carlos. What happens?",
+      "choices": [
+        "It searches for peter, because only the first parameter is used",
+        "It searches for carlos, because only the last parameter is used",
+        "It combines them into peter,carlos",
+        "It rejects the request for having duplicate parameters"
+      ],
+      "answer": 1,
+      "explain": "PHP uses the last parameter only, so the search is for carlos."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP: overriding parameters",
+      "q": "The internal API runs on ASP.NET and receives name=peter&name=carlos. What happens?",
+      "choices": [
+        "It searches for peter only",
+        "It searches for carlos only",
+        "It combines both values into peter,carlos, which may give an Invalid username error",
+        "It ignores both values"
+      ],
+      "answer": 2,
+      "explain": "ASP.NET combines duplicate parameters, so the search is for peter,carlos, which may not be a valid username."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP: overriding parameters",
+      "q": "The internal API runs on Node.js/Express and receives name=peter&name=carlos. What happens?",
+      "choices": [
+        "It combines both values into peter,carlos",
+        "It searches for carlos only",
+        "It returns an error for duplicate parameters",
+        "It uses only the first parameter, so the result for peter is unchanged"
+      ],
+      "answer": 3,
+      "explain": "Node.js/Express uses the first parameter, so the response doesn't change, even though the injection did happen."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP: overriding parameters",
+      "q": "You've confirmed you can override the name parameter in an internal request. Which injection could let you act as a privileged user?",
+      "choices": [
+        "%26name=administrator",
+        "%23publicProfile",
+        "%2f..%2fhome",
+        "%26back=/home"
+      ],
+      "answer": 0,
+      "explain": "Overriding name with administrator may let you log in as the administrator account."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP in REST paths & structured data",
+      "q": "In the REST URL /api/users/123, what does /123 represent?",
+      "choices": [
+        "The root API endpoint",
+        "The resource",
+        "A parameter (the user identifier)",
+        "The API version"
+      ],
+      "answer": 2,
+      "explain": "/api is the root API endpoint, /users is the resource, and /123 is a parameter. RESTful APIs often put parameters in the URL path instead of the query string."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP in REST paths & structured data",
+      "q": "GET /edit_profile.php?name=peter makes the server request GET /api/private/users/peter. Which payload tests for SSPP in the REST path?",
+      "choices": [
+        "name=peter%23admin",
+        "name=peter%2f..%2fadmin",
+        "name=peter%26name=admin",
+        "name=admin&back=/home"
+      ],
+      "answer": 1,
+      "explain": "Encoded path traversal sequences (%2f = /) produce /api/private/users/peter/../admin in the internal request."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP in REST paths & structured data",
+      "q": "The server-side client or back-end API normalizes /api/private/users/peter/../admin. Which path does it end up requesting?",
+      "choices": [
+        "/api/private/users/peter",
+        "/api/private/admin",
+        "/api/private/users/admin",
+        "/admin"
+      ],
+      "answer": 2,
+      "explain": "The ../ cancels the peter segment, which leaves /api/private/users/admin."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP in REST paths & structured data",
+      "q": "POST /myaccount with name=peter makes the server send PATCH /users/7312/update with {\"name\":\"peter\"}. Which form value could make peter an administrator if the input isn't validated or encoded?",
+      "choices": [
+        "name=peter%23administrator",
+        "name=peter\",\"access_level\":\"administrator",
+        "name=peter%2f..%2fadministrator",
+        "name=administrator%26name=peter"
+      ],
+      "answer": 1,
+      "explain": "The quotes close the name string and add a new key, so the server builds {\"name\":\"peter\",\"access_level\":\"administrator\"}."
+    },
+    {
+      "type": "tf",
+      "category": "SSPP in REST paths & structured data",
+      "q": "Structured-data SSPP can only happen in requests, never in responses.",
+      "answer": false,
+      "explain": "Input stored safely in a database can later be embedded in a back-end API's JSON response without encoding. You detect and exploit that the same way as in requests."
+    },
+    {
+      "type": "mc",
+      "category": "SSPP in REST paths & structured data",
+      "q": "Structured-data injection can happen in any structured format. Which attack is an XML example?",
+      "choices": [
+        "XInclude attacks",
+        "CORS misconfiguration",
+        "Race conditions",
+        "HTTP request smuggling"
+      ],
+      "answer": 0,
+      "explain": "XInclude attacks inject XML structure into server-side XML documents (covered under XXE)."
+    },
+    {
+      "type": "tf",
+      "category": "SSPP in REST paths & structured data",
+      "q": "When Burp Scanner flags a suspicious input transformation, that alone confirms a vulnerability.",
+      "answer": false,
+      "explain": "A transformation (input received, transformed, then processed) is only a lead and needs manual confirmation. Likewise, inputs that Backslash Powered Scanner classifies as \"interesting\" should be investigated manually."
+    },
+    {
+      "type": "mc",
+      "category": "OWASP API Security Top 10",
+      "q": "OWASP's \"Broken object property level authorization\" risk corresponds to which vulnerability?",
+      "choices": [
+        "Server-side request forgery",
+        "Mass assignment",
+        "Race conditions",
+        "CORS misconfiguration"
+      ],
+      "answer": 1,
+      "explain": "Letting users set object properties they shouldn't be able to set, such as isAdmin, is mass assignment."
+    },
+    {
+      "type": "multi",
+      "category": "OWASP API Security Top 10",
+      "q": "Which OWASP API Security Top 10 (2023) risks map to access control / privilege escalation?",
+      "choices": [
+        "Broken object level authorization",
+        "Broken function level authorization",
+        "Broken authentication",
+        "Server side request forgery"
+      ],
+      "answer": [0, 1],
+      "explain": "Both object-level and function-level authorization risks are access control problems. Broken authentication maps to authentication, OAuth 2.0, and JWT attacks."
+    },
+    {
+      "type": "mc",
+      "category": "OWASP API Security Top 10",
+      "q": "OWASP's \"Unrestricted access to sensitive business flows\" risk corresponds to which vulnerability class?",
+      "choices": [
+        "HTTP Host header attacks",
+        "JWT attacks",
+        "Information disclosure",
+        "Business logic vulnerabilities"
+      ],
+      "answer": 3,
+      "explain": "Abusing sensitive business flows is a business logic flaw."
+    },
+    {
+      "type": "mc",
+      "category": "OWASP API Security Top 10",
+      "q": "OWASP's \"Unrestricted resource consumption\" risk relates to which vulnerability classes?",
+      "choices": [
+        "Race conditions and file upload",
+        "CORS and HTTP request smuggling",
+        "OAuth 2.0 and JWT attacks",
+        "Mass assignment and SSRF"
+      ],
+      "answer": 0,
+      "explain": "Race conditions and file upload vulnerabilities both involve resource consumption that the API doesn't adequately limit."
+    },
+    {
+      "type": "multi",
+      "category": "OWASP API Security Top 10",
+      "q": "OWASP's \"Security misconfiguration\" risk relates to which vulnerability classes?",
+      "choices": [
+        "CORS",
+        "Information disclosure",
+        "HTTP Host header attacks",
+        "Mass assignment",
+        "HTTP request smuggling"
+      ],
+      "answer": [0, 1, 2, 4],
+      "explain": "Security misconfiguration covers CORS, information disclosure, HTTP Host header attacks, and HTTP request smuggling. Mass assignment is broken object property level authorization."
+    },
+    {
+      "type": "multi",
+      "category": "OWASP API Security Top 10",
+      "q": "Which OWASP API Security Top 10 risks map directly to API testing itself?",
+      "choices": [
+        "Improper inventory management",
+        "Unsafe consumption of APIs",
+        "Broken authentication",
+        "Server side request forgery"
+      ],
+      "answer": [0, 1],
+      "explain": "Improper inventory management (e.g. undocumented or old API versions) and unsafe consumption of APIs are covered by API testing. Broken authentication and SSRF have their own topics."
+    }
+  ]
+}
