@@ -1,0 +1,429 @@
+{
+  "title": "CS161 18: DNSSEC",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "multi",
+      "category": "Goals and Trust",
+      "q": "Which security properties does DNSSEC add to DNS messages?",
+      "choices": ["Integrity", "Authentication", "Confidentiality", "Availability (protection against DoS)"],
+      "answer": [0, 1],
+      "explain": "DNSSEC provides integrity and authentication on DNS messages. It does not encrypt anything, and it does not protect against denial of service."
+    },
+    {
+      "type": "tf",
+      "category": "Goals and Trust",
+      "q": "DNSSEC encrypts DNS responses so that an on-path attacker cannot read which IP address a domain resolves to.",
+      "answer": false,
+      "explain": "DNSSEC gives no confidentiality. DNS responses aren't sensitive: anyone could query the name servers for the same information."
+    },
+    {
+      "type": "mc",
+      "category": "Goals and Trust",
+      "q": "Why is confidentiality not a goal of DNSSEC?",
+      "choices": [
+        "DNS responses contain no sensitive data; anyone could query the name servers for the same information",
+        "Encryption would make DNS responses too large to fit in a UDP packet",
+        "Digital signatures already give confidentiality as a side effect",
+        "Resolvers do not have a shared symmetric key with name servers"
+      ],
+      "answer": 0,
+      "explain": "The records are public information, so hiding them from an eavesdropper would gain nothing."
+    },
+    {
+      "type": "mc",
+      "category": "Goals and Trust",
+      "q": "In a naive design, every name server signs its records with its own private key and sends its public key along with the signature. What is the main flaw?",
+      "choices": [
+        "A malicious name server can return valid signatures on malicious records",
+        "An off-path attacker can still inject records that verify correctly",
+        "The resolver cannot cache signatures",
+        "Signatures cannot be checked without the name server's private key"
+      ],
+      "answer": 0,
+      "explain": "Signatures only prove the records came from whoever holds the key. With no trust anchor, nothing stops a malicious server from signing bad records with its own valid key."
+    },
+    {
+      "type": "text",
+      "category": "Goals and Trust",
+      "q": "What entity is the trust anchor in DNSSEC, the one every computer implicitly trusts?",
+      "answer": ["root", "the root", "root server", "root servers", "the root server", "the root servers", "root name server", "root name servers", "the root name server", "root KSK", "the root's KSK", "root's KSK"],
+      "explain": "The root servers are the trust anchor. Their honesty is protected by formal key-signing ceremonies, and resolvers have the root's public key hardcoded."
+    },
+    {
+      "type": "mc",
+      "category": "Goals and Trust",
+      "q": "How does a parent name server (e.g., root) delegate trust to a child name server (e.g., .edu)?",
+      "choices": [
+        "By signing the child's public key",
+        "By encrypting the child's records with the parent's public key",
+        "By sharing its private key with the child",
+        "By forwarding all queries for the child's zone itself"
+      ],
+      "answer": 0,
+      "explain": "The parent's signature on the child's public key says \"this key is trustworthy.\" Since you trust the parent, you now trust anything the child signs with the matching private key."
+    },
+    {
+      "type": "mc",
+      "category": "Goals and Trust",
+      "q": "How does a DNS resolver get the root's public key so it can start the chain of trust?",
+      "choices": [
+        "It is hardcoded into the resolver",
+        "It is looked up in a DS record served by the .com name server",
+        "It is fetched over HTTPS from a certificate authority",
+        "The resolver trusts whatever DNSKEY the root sends on first contact"
+      ],
+      "answer": 0,
+      "explain": "All DNS resolvers have the root's public key hardcoded. Any message verified with that key is implicitly trusted."
+    },
+    {
+      "type": "multi",
+      "category": "Goals and Trust",
+      "q": "With DNSSEC, which attackers can no longer tamper with or inject DNS records without being detected?",
+      "choices": ["Man-in-the-middle attacker", "On-path attacker", "Off-path attacker", "An attacker who has stolen a trusted name server's private key"],
+      "answer": [0, 1, 2],
+      "explain": "Signatures stop all network attackers (MITM, on-path, off-path). An attacker holding a trusted server's private key can make valid signatures and impersonate that server. That is why key changes are needed."
+    },
+    {
+      "type": "mc",
+      "category": "Record Types",
+      "q": "Which DNSSEC record type encodes a public key?",
+      "choices": ["DNSKEY", "RRSIG", "DS", "NSEC"],
+      "answer": 0,
+      "explain": "DNSKEY records hold public keys (both the ZSK and the KSK)."
+    },
+    {
+      "type": "mc",
+      "category": "Record Types",
+      "q": "What does a single RRSIG record sign?",
+      "choices": [
+        "A set of records in the message that all have the same type",
+        "Every record in the entire DNS response",
+        "Exactly one record",
+        "Only the question section of the response"
+      ],
+      "answer": 0,
+      "explain": "One RRSIG covers a whole set of records of one type, e.g., all 13 NS records in the authority section at once."
+    },
+    {
+      "type": "num",
+      "category": "Record Types",
+      "q": "A response has 13 NS records in the authority section and 26 A records in the additional section. What is the minimum number of RRSIG records needed to sign all of them?",
+      "answer": 2,
+      "explain": "An RRSIG signs a set of records of one type. One RRSIG covers all 13 NS records and another covers all 26 A records."
+    },
+    {
+      "type": "multi",
+      "category": "Record Types",
+      "q": "Besides the cryptographic signature itself, what does an RRSIG record contain?",
+      "choices": [
+        "The type of the records being signed",
+        "The signature creation and expiration dates",
+        "The identity of the signer (which DNSKEY to verify with)",
+        "The signer's private key",
+        "The IP address of the resolver that asked"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "An RRSIG records the signed type, the validity window, and which public key/DNSKEY verifies it. A private key is never sent, and signatures are made ahead of time, so they can't depend on who is asking."
+    },
+    {
+      "type": "mc",
+      "category": "Record Types",
+      "q": "What is a DS (Delegated Signer) record?",
+      "choices": [
+        "A hash of the signer's name and a child's public key",
+        "A signature over all DNSKEY records in a zone",
+        "The child's private key, encrypted with the parent's public key",
+        "A record proving that a range of domain names does not exist"
+      ],
+      "answer": 0,
+      "explain": "The DS record plus an RRSIG over it is how a parent signs (endorses) its child's public key."
+    },
+    {
+      "type": "mc",
+      "category": "Record Types",
+      "q": "A plain dig response reports \"ADDITIONAL: 1\" but shows no records in an additional section. Why?",
+      "choices": [
+        "The OPT pseudosection is encoded as an additional record, for backwards compatibility with regular DNS",
+        "The server removed one record because it failed signature verification",
+        "dig hides RRSIG records unless +dnssec is set",
+        "The count includes the question record"
+      ],
+      "answer": 0,
+      "explain": "The OPT pseudosection holds DNSSEC-related flags. To stay compatible with regular DNS, it is sent as an additional record in both the request and the reply."
+    },
+    {
+      "type": "text",
+      "category": "Record Types",
+      "q": "Which flag in the OPT pseudosection asks the server to include DNSSEC information? (Give the two-letter flag name.)",
+      "answer": ["DO", "do"],
+      "explain": "The DO flag requests DNSSEC records. In dig output it shows as \"flags: do\" in the EDNS line."
+    },
+    {
+      "type": "mc",
+      "category": "KSK and ZSK",
+      "q": "Why does each DNSSEC name server use two key pairs (a KSK and a ZSK) instead of one?",
+      "choices": [
+        "To minimize use of the hard-to-secure key change protocol, which requires the parent to update its DS record",
+        "To give confidentiality with one key and integrity with the other",
+        "So one key can sign existing domains and the other nonexistent domains",
+        "Because one signature algorithm cannot sign more than one record type"
+      ],
+      "answer": 0,
+      "explain": "Changing the key the parent endorses means getting the parent to change the DS record, which is easy to get wrong. Splitting keys means the parent-endorsed key (KSK) rarely needs to change."
+    },
+    {
+      "type": "mc",
+      "category": "KSK and ZSK",
+      "q": "What does a name server use its key signing key (KSK) to sign?",
+      "choices": [
+        "Only its zone signing key (ZSK)",
+        "All of its records except the ZSK",
+        "Its children's DS records",
+        "Its parent's KSK"
+      ],
+      "answer": 0,
+      "explain": "The KSK signs only the ZSK. The ZSK signs everything else, including the DS records that endorse children."
+    },
+    {
+      "type": "tf",
+      "category": "KSK and ZSK",
+      "q": "A parent's DS record endorses the child's zone signing key (ZSK).",
+      "answer": false,
+      "explain": "The DS record endorses the child's KSK. The child's own KSK then signs its ZSK."
+    },
+    {
+      "type": "tf",
+      "category": "KSK and ZSK",
+      "q": "In the two-key design, a name server can replace its ZSK without asking its parent to change the DS record.",
+      "answer": true,
+      "explain": "The parent's DS record endorses only the KSK. A new ZSK just needs a new signature from the server's own KSK, so the difficult parent-involved key change is avoided."
+    },
+    {
+      "type": "mc",
+      "category": "KSK and ZSK",
+      "q": "In the two-key design, which analogy fits the relationship between a name server's KSK and its ZSK?",
+      "choices": [
+        "The KSK is like a \"parent\" that endorses the \"child\" ZSK by signing it, both inside one name server",
+        "The ZSK is the \"parent\" that signs the KSK",
+        "The KSK and ZSK are two copies of the same key pair kept for backup",
+        "The KSK encrypts the ZSK so only the resolver can read it"
+      ],
+      "answer": 0,
+      "explain": "Inside one server, the KSK signs the public ZSK, the same way a parent endorses a child by signing its public key."
+    },
+    {
+      "type": "mc",
+      "category": "KSK and ZSK",
+      "q": "In the full chain of trust for eecs.berkeley.edu, which key's signature (via a DS record and its RRSIG) is what makes you trust .edu's KSK?",
+      "choices": ["The root's ZSK", "The root's KSK", ".edu's ZSK", "berkeley.edu's KSK"],
+      "answer": 0,
+      "explain": "Chain: root KSK -> root ZSK -> .edu KSK -> .edu ZSK -> berkeley.edu KSK -> berkeley.edu ZSK -> A record. The root's ZSK signs the DS record for .edu's KSK."
+    },
+    {
+      "type": "mc",
+      "category": "KSK and ZSK",
+      "q": "Which key signs the final A record for eecs.berkeley.edu?",
+      "choices": ["berkeley.edu's ZSK", "berkeley.edu's KSK", ".edu's ZSK", "The root's KSK"],
+      "answer": 0,
+      "explain": "A zone's ZSK signs its ordinary records. berkeley.edu's ZSK is trusted because berkeley.edu's KSK signed it."
+    },
+    {
+      "type": "mc",
+      "category": "KSK and ZSK",
+      "q": "What is the actual trust anchor key at the start of the two-key DNSSEC chain?",
+      "choices": ["The root's KSK", "The root's ZSK", ".edu's KSK", "The resolver's own key pair"],
+      "answer": 0,
+      "explain": "We implicitly trust the root's KSK. It signs the root's ZSK, and the chain goes on from there."
+    },
+    {
+      "type": "text",
+      "category": "KSK and ZSK",
+      "q": "In dig output, a zone returns two DNSKEY records, one marked 256 and one marked 257. Which key is the one marked 257? (Give the abbreviation.)",
+      "answer": ["KSK", "ksk", "key signing key", "Key Signing Key"],
+      "explain": "In the walkthrough, 256 is the ZSK and 257 is the KSK."
+    },
+    {
+      "type": "mc",
+      "category": "Query Walkthrough",
+      "q": "A resolver queries the root for DNSKEY and gets back the root's ZSK, the root's KSK, and an RRSIG over the DNSKEY records. Which key does it use to verify that RRSIG?",
+      "choices": ["The root's KSK", "The root's ZSK", ".edu's KSK", "No key: the DNSKEY records are trusted without verification"],
+      "answer": 0,
+      "explain": "The KSK signs the ZSK, so the resolver uses the (trusted, hardcoded) root KSK to verify the signature and then trusts the root's ZSK."
+    },
+    {
+      "type": "multi",
+      "category": "Query Walkthrough",
+      "q": "Compared with regular DNS, what does the root's referral response for eecs.berkeley.edu contain when DNSSEC is used?",
+      "choices": [
+        "The same NS records for .edu in the authority section",
+        "The same A records for the .edu name servers in the additional section",
+        "A DS record holding a hash of .edu's KSK",
+        "An RRSIG over the DS record",
+        "The final A record for eecs.berkeley.edu"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "DNSSEC removes nothing from regular DNS. It adds a DS record and an RRSIG over it. The root doesn't know the final answer, so it only gives a referral."
+    },
+    {
+      "type": "tf",
+      "category": "Query Walkthrough",
+      "q": "DNSSEC responses drop some regular DNS records (such as glue A records) to make room for signatures.",
+      "answer": false,
+      "explain": "The question, answer, authority, and additional sections keep all the regular DNS records. DNSSEC only adds records."
+    },
+    {
+      "type": "mc",
+      "category": "Query Walkthrough",
+      "q": "The .edu server's referral includes a DS record for berkeley.edu and an RRSIG over it. Which key made that RRSIG?",
+      "choices": [".edu's ZSK", ".edu's KSK", "berkeley.edu's KSK", "The root's ZSK"],
+      "answer": 0,
+      "explain": "The ZSK signs everything except the ZSK itself, including DS records. So .edu's ZSK signs the DS record that endorses berkeley.edu's KSK."
+    },
+    {
+      "type": "mc",
+      "category": "Query Walkthrough",
+      "q": "After the .edu referral, why does the resolver send a separate \"DNSKEY berkeley.edu\" query to the berkeley.edu name server?",
+      "choices": [
+        "To get berkeley.edu's KSK and ZSK plus the RRSIG over them, so it can check the KSK against the DS record and then trust the ZSK",
+        "To get the private key it needs to decrypt the final answer",
+        "To ask .edu to re-sign berkeley.edu's records",
+        "To fetch the NSEC record showing that eecs.berkeley.edu exists"
+      ],
+      "answer": 0,
+      "explain": "The DS from .edu only holds a hash of berkeley.edu's KSK. The resolver needs the actual DNSKEYs. The KSK must match the endorsed hash, and the KSK's RRSIG over the DNSKEY set makes the ZSK trusted."
+    },
+    {
+      "type": "num",
+      "category": "Query Walkthrough",
+      "q": "In the full DNSSEC walkthrough for eecs.berkeley.edu (root -> .edu -> berkeley.edu), the resolver sends one DNSKEY query and one A-record query to each name server. How many queries does it send in total?",
+      "answer": 6,
+      "explain": "DNSKEY . and the A query at the root, DNSKEY edu. and the A query at .edu, DNSKEY berkeley.edu and the A query at berkeley.edu."
+    },
+    {
+      "type": "mc",
+      "category": "Query Walkthrough",
+      "q": "What does the final response from the berkeley.edu name server contain in its answer section?",
+      "choices": [
+        "The A record for eecs.berkeley.edu and an RRSIG over that A record",
+        "Only the A record; it was already authenticated by .edu's DS record",
+        "A DS record for eecs.berkeley.edu",
+        "An NSEC record for the range containing eecs"
+      ],
+      "answer": 0,
+      "explain": "The final answer comes with a signature made by berkeley.edu's ZSK, which the resolver already trusts from the previous step."
+    },
+    {
+      "type": "mc",
+      "category": "Nonexistent Domains",
+      "q": "Why do DNSSEC name servers sign their records offline, ahead of time?",
+      "choices": [
+        "Public-key cryptography is slow, and DNS is meant to be fast and lightweight",
+        "Signing keys are only allowed to be used during the root signing ceremony",
+        "Online signing would reveal the private key to resolvers",
+        "Signatures must be identical for every resolver, which online signing can't guarantee"
+      ],
+      "answer": 0,
+      "explain": "Signatures are computed once and stored, so the server can return them immediately without doing slow crypto per query."
+    },
+    {
+      "type": "text",
+      "category": "Nonexistent Domains",
+      "q": "If name servers signed \"this domain doesn't exist\" responses online, what kind of attack would that open them to?",
+      "answer": ["denial of service", "Denial of Service", "denial-of-service", "DoS", "dos", "DDoS"],
+      "explain": "An attacker could flood the server with requests for random nonexistent domains and force it to do an expensive signature for each one."
+    },
+    {
+      "type": "mc",
+      "category": "Nonexistent Domains",
+      "q": "A zone has exactly three subdomains: b.example.com, l.example.com, and q.example.com. A resolver queries c.example.com. What does the NSEC response say?",
+      "choices": [
+        "No domains exist between b.example.com and l.example.com",
+        "No domains exist between l.example.com and q.example.com",
+        "No domains exist between q.example.com and b.example.com",
+        "c.example.com does not exist (signed specifically for c)"
+      ],
+      "answer": 0,
+      "explain": "NSEC signs ranges of nonexistent names. Alphabetically, c falls between b and l."
+    },
+    {
+      "type": "mc",
+      "category": "Nonexistent Domains",
+      "q": "Same zone (b, l, q). A resolver queries r.example.com. Which NSEC range comes back?",
+      "choices": [
+        "Between q.example.com and b.example.com (wrapping around)",
+        "Between l.example.com and q.example.com",
+        "Between b.example.com and l.example.com",
+        "No NSEC record; the server signs a fresh denial online"
+      ],
+      "answer": 0,
+      "explain": "Ranges wrap around from z back to a, so everything after q (and before b) is covered by the q-to-b range."
+    },
+    {
+      "type": "num",
+      "category": "Nonexistent Domains",
+      "q": "A zone has exactly 3 existing subdomains. How many NSEC ranges of nonexistent names does it need (counting the wrap-around range)?",
+      "answer": 3,
+      "explain": "With b, l, q: b-l, l-q, and q-b (wrapping). In general, n names make n ranges."
+    },
+    {
+      "type": "mc",
+      "category": "Nonexistent Domains",
+      "q": "What weakness of NSEC lets an attacker learn every subdomain of a zone?",
+      "choices": [
+        "Each NSEC response reveals the two existing names on either side of the queried name, so walking the alphabet lists them all",
+        "NSEC records are unsigned, so an attacker can forge them",
+        "NSEC records include the zone's private ZSK",
+        "NSEC responses are signed online, which leaks timing information"
+      ],
+      "answer": 0,
+      "explain": "Query c -> learn b and l. Query m -> learn q. Query r -> get q-b back, and since b has already been seen, the whole zone has been walked."
+    },
+    {
+      "type": "tf",
+      "category": "Nonexistent Domains",
+      "q": "One argument that NSEC zone walking isn't a real vulnerability is that hiding a name like admin.example.com is just security through obscurity.",
+      "answer": true,
+      "explain": "Secret domain names shouldn't be relied on for security. Even so, NSEC3 was created to make enumeration harder."
+    },
+    {
+      "type": "mc",
+      "category": "Nonexistent Domains",
+      "q": "How does NSEC3 try to fix NSEC's enumeration problem?",
+      "choices": [
+        "It uses hashes of domain names instead of the names themselves to define the ranges",
+        "It encrypts the NSEC range with the resolver's public key",
+        "It signs every nonexistent domain individually online",
+        "It returns an unsigned \"does not exist\" response"
+      ],
+      "answer": 0,
+      "explain": "Ranges are between hash values, so a response reveals hashes of neighboring names rather than the names."
+    },
+    {
+      "type": "mc",
+      "category": "Nonexistent Domains",
+      "q": "Under NSEC3, the sorted hashes are 372fb... (l), 6898b... (q), and f96a6... (b). c.example.com hashes to 8dca6.... Which range does the NSEC3 record report?",
+      "choices": [
+        "Between 6898b... and f96a6...",
+        "Between 372fb... and 6898b...",
+        "Between f96a6... and 372fb... (wrapping)",
+        "Between b and l, the same as plain NSEC"
+      ],
+      "answer": 0,
+      "explain": "Ranges follow the hash order, not the alphabet. 8dca6 sorts between 6898b and f96a6."
+    },
+    {
+      "type": "mc",
+      "category": "Nonexistent Domains",
+      "q": "What is the remaining weakness of NSEC3?",
+      "choices": [
+        "An attacker can precompute hashes of likely names (e.g., with a GPU) and match them to learn domain names anyway",
+        "The hashes can be inverted directly to recover the names",
+        "NSEC3 records can't be signed offline",
+        "NSEC3 breaks the chain of trust from the root"
+      ],
+      "answer": 0,
+      "explain": "Hashing only hides names that can't be guessed. Brute-forcing candidate names still reveals subdomains, which motivated NSEC5."
+    }
+  ]
+}

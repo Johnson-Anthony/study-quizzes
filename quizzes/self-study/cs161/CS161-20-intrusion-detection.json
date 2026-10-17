@@ -1,0 +1,579 @@
+{
+  "title": "Intrusion Detection",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Detector types (NIDS, HIDS, logging)",
+      "q": "Where is a network intrusion detection system (NIDS) installed?",
+      "choices": [
+        "On every end host, like antivirus software",
+        "Between the router and the internal network, so all traffic to and from the Internet passes through it",
+        "Inside each web server's logging subsystem",
+        "At the attacker's ISP"
+      ],
+      "answer": 1,
+      "explain": "A NIDS sits between the router and the internal network, so it can see (and possibly modify) every packet going to or coming from the outside Internet."
+    },
+    {
+      "type": "mc",
+      "category": "Detector types (NIDS, HIDS, logging)",
+      "q": "What is the biggest advantage of a NIDS?",
+      "choices": [
+        "It can read TLS-encrypted traffic without any extra setup",
+        "It always interprets packets the same way the end host does",
+        "One NIDS covers the whole network, so it is cheap and needs little management",
+        "It detects attacks only after they finish, which avoids false positives"
+      ],
+      "answer": 2,
+      "explain": "Every request passes through the NIDS, so a single install protects the whole network and nothing has to go on the end hosts."
+    },
+    {
+      "type": "multi",
+      "category": "Detector types (NIDS, HIDS, logging)",
+      "q": "Which of these are real challenges for a NIDS?",
+      "choices": [
+        "It has to split packets by connection and put them back in order by TCP sequence number before it can analyze them",
+        "It may see packets that never reach the end host (for example, the TTL runs out after the NIDS or the packet is dropped)",
+        "It cannot read HTTPS traffic unless end hosts give it their private keys",
+        "It must be installed separately on every machine in the network",
+        "It can only look at events after they have already happened"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A NIDS has to rebuild TCP streams, reason about packets that may not arrive, and deal with end-to-end encryption. Installing on every machine is the HIDS drawback, and working only after the fact is the logging drawback."
+    },
+    {
+      "type": "mc",
+      "category": "Detector types (NIDS, HIDS, logging)",
+      "q": "Why might the TCP connection a NIDS rebuilds differ from the one the end host actually receives?",
+      "choices": [
+        "The NIDS may receive a packet whose TTL runs out before it reaches the end host, so the host throws it away",
+        "TCP packets are encrypted by default, so the NIDS sees only random bytes",
+        "The end host reorders packets by arrival time while the NIDS uses sequence numbers",
+        "Routers delete the TCP header before forwarding packets to the internal network"
+      ],
+      "answer": 0,
+      "explain": "A packet can still be alive when it passes the NIDS and then expire (or get corrupted or dropped) before the end host gets it. So the NIDS has to reason about packets that might never arrive."
+    },
+    {
+      "type": "mc",
+      "category": "Detector types (NIDS, HIDS, logging)",
+      "q": "What is the main drawback of a host-based IDS (HIDS) compared with a NIDS?",
+      "choices": [
+        "It cannot see decrypted HTTPS traffic",
+        "It must be installed on every machine, possibly configured differently on each one, which can be very costly",
+        "It has more parsing inconsistencies than a NIDS",
+        "It can only run on logs after the fact"
+      ],
+      "answer": 1,
+      "explain": "A HIDS runs on the end host itself, so you need one per machine. That costs much more than one NIDS for the whole network."
+    },
+    {
+      "type": "tf",
+      "category": "Detector types (NIDS, HIDS, logging)",
+      "q": "To inspect HTTPS traffic, a HIDS must be given the end host's TLS private key.",
+      "answer": false,
+      "explain": "A HIDS runs on the end host, so it can see the traffic after it has been decrypted. Needing private keys to inspect TLS is a NIDS problem."
+    },
+    {
+      "type": "tf",
+      "category": "Detector types (NIDS, HIDS, logging)",
+      "q": "Antivirus software running on an employee's laptop is an example of a HIDS.",
+      "answer": true,
+      "explain": "Antivirus runs on the same computer that sends and receives the network requests, which makes it a host-based detector."
+    },
+    {
+      "type": "mc",
+      "category": "Detector types (NIDS, HIDS, logging)",
+      "q": "What is the biggest drawback of log-based intrusion detection?",
+      "choices": [
+        "It is expensive, because servers need new software to produce logs",
+        "It cannot handle any kind of evasion attack",
+        "It cannot work in real time: an attack is found only after it has happened",
+        "It cannot see what files were accessed on the server"
+      ],
+      "answer": 2,
+      "explain": "A log entry is written only after the event, so logging finds attacks after the fact. That is dangerous if the attack does damage right away, but late detection is still better than none."
+    },
+    {
+      "type": "tf",
+      "category": "Detector types (NIDS, HIDS, logging)",
+      "q": "Logging is usually a cheap detection method, because web servers already log requests and the only extra cost is sometimes running a script over the logs.",
+      "answer": true,
+      "explain": "Most web servers have logging built in, so the extra cost is small."
+    },
+    {
+      "type": "multi",
+      "category": "Detector types (NIDS, HIDS, logging)",
+      "q": "Which detector types use information straight from the end host, avoiding many parsing inconsistencies and most encrypted-traffic problems?",
+      "choices": [
+        "NIDS",
+        "HIDS",
+        "Logging"
+      ],
+      "answer": [1, 2],
+      "explain": "A HIDS and log analysis both work with what the end host actually received and processed. A NIDS sits in the middle of the network, so it has to guess how the host will read each packet and cannot see inside TLS."
+    },
+    {
+      "type": "mc",
+      "category": "Detector types (NIDS, HIDS, logging)",
+      "q": "Nearly all of a company's traffic is HTTPS. It wants to inspect request contents in real time and does not want to share the servers' private keys with any other device. Which detector type fits best?",
+      "choices": [
+        "NIDS",
+        "HIDS",
+        "Logging",
+        "None of these can inspect HTTPS"
+      ],
+      "answer": 1,
+      "explain": "A HIDS sees the decrypted traffic on the host and works in real time. A NIDS would need the private keys, and logging is not real time."
+    },
+    {
+      "type": "mc",
+      "category": "Detector types (NIDS, HIDS, logging)",
+      "q": "A company has thousands of different machines and mostly unencrypted traffic. It wants real-time detection with the lowest cost and management overhead. Which detector type fits best?",
+      "choices": [
+        "NIDS",
+        "HIDS",
+        "Logging",
+        "A separately configured HIDS on each machine plus logging"
+      ],
+      "answer": 0,
+      "explain": "One NIDS covers the whole network in real time, and unencrypted traffic removes its biggest weakness. A HIDS on thousands of different machines would be expensive, and logging is not real time."
+    },
+    {
+      "type": "text",
+      "category": "Evasion attacks",
+      "q": "What is the name for an attack in which the attacker disguises the contents of an attack so a detector fails to recognize it?",
+      "answer": ["evasion attack", "evasion", "an evasion attack"],
+      "explain": "In an evasion attack the attacker exploits differences between how the detector and the end host interpret the same data."
+    },
+    {
+      "type": "mc",
+      "category": "Evasion attacks",
+      "q": "A NIDS raises an alert whenever a request contains the string /etc/passwd. An attacker sends %65%74%63/%70%61%73%73%77%64 instead. Why does this get past the NIDS?",
+      "choices": [
+        "The NIDS cannot read requests that contain percent signs",
+        "The string is encrypted with TLS",
+        "The NIDS does plain string matching, but the end host URL-decodes the input into /etc/passwd",
+        "The TTL of the packet expires before it reaches the NIDS"
+      ],
+      "answer": 2,
+      "explain": "The detector and the end host interpret the bytes differently. A NIDS has to reason about how end hosts will decode what they receive, not just match raw strings."
+    },
+    {
+      "type": "text",
+      "category": "Evasion attacks",
+      "q": "A web server serves files from /public/files based on a filename the user supplies. An attacker submits ../../etc/passwd to reach the password file. What is this type of attack called?",
+      "answer": ["path traversal", "path traversal attack", "directory traversal", "directory traversal attack"],
+      "explain": "In Unix, .. means go up one directory, so the input escapes the intended directory and reaches /etc/passwd."
+    },
+    {
+      "type": "mc",
+      "category": "Evasion attacks",
+      "q": "To fully defend against path traversal attacks, what must a HIDS reason about beyond the contents of the request?",
+      "choices": [
+        "The TTL values of the incoming packets",
+        "How the underlying filesystem interprets the requested path",
+        "The TLS private key of the server",
+        "The order of TCP sequence numbers"
+      ],
+      "answer": 1,
+      "explain": "Whether a path is dangerous depends on how the filesystem resolves it (for example, ..). Modeling that adds new chances for parsing mismatches and evasion."
+    },
+    {
+      "type": "tf",
+      "category": "Evasion attacks",
+      "q": "Because a HIDS runs on the end host, it is immune to evasion attacks.",
+      "answer": false,
+      "explain": "A HIDS has fewer inconsistency problems, but attacks like path traversal still require it to model how the filesystem interprets input, and that can still be evaded."
+    },
+    {
+      "type": "tf",
+      "category": "Evasion attacks",
+      "q": "Log-based detection still has to deal with evasion attacks such as path traversal, which require careful filesystem parsing.",
+      "answer": true,
+      "explain": "Logs come from the end host, which avoids many parsing problems, but recognizing path traversal still means understanding how paths resolve."
+    },
+    {
+      "type": "mc",
+      "category": "False positives and false negatives",
+      "q": "What is a false negative?",
+      "choices": [
+        "No attack occurs, but the detector reports an attack",
+        "An attack occurs, but the detector reports no attack",
+        "An attack occurs, and the detector reports it",
+        "No attack occurs, and the detector reports nothing"
+      ],
+      "answer": 1,
+      "explain": "A false negative is a missed attack, like a fire alarm that stays silent during a fire."
+    },
+    {
+      "type": "mc",
+      "category": "False positives and false negatives",
+      "q": "A fire alarm goes off, but there is no fire. What kind of error is this?",
+      "choices": [
+        "False positive",
+        "False negative",
+        "True positive",
+        "True negative"
+      ],
+      "answer": 0,
+      "explain": "The detector reported an event (fire or attack) that did not happen."
+    },
+    {
+      "type": "mc",
+      "category": "False positives and false negatives",
+      "q": "A detector reports an attack on every single input. Which statement is true?",
+      "choices": [
+        "It has a 0% false positive rate",
+        "It has a 0% false negative rate, but it is useless",
+        "It has a 0% rate for both error types",
+        "Its error rates depend on the base rate of attacks"
+      ],
+      "answer": 1,
+      "explain": "It can never miss an attack, so it has no false negatives. But it flags every benign input, so it is useless. In the same way, a detector that never alerts has a 0% false positive rate."
+    },
+    {
+      "type": "tf",
+      "category": "False positives and false negatives",
+      "q": "In general, tuning a detector to lower its false positive rate tends to raise its false negative rate.",
+      "answer": true,
+      "explain": "Fewer false positives means alerting less often, so the detector also misses more real attacks. Designing a detector means balancing the two error rates."
+    },
+    {
+      "type": "mc",
+      "category": "False positives and false negatives",
+      "q": "Detector A has a 0.1% false positive rate and a 2% false negative rate. Detector B has a 2% false positive rate and a 0.1% false negative rate. For a building's fire alarm, which is probably better?",
+      "choices": [
+        "A, because false positives waste the fire department's time",
+        "B, because a missed fire (false negative) costs far more than a false alarm",
+        "They are equally good, because their total error rates are equal",
+        "Neither, because any nonzero false negative rate is unacceptable"
+      ],
+      "answer": 1,
+      "explain": "Which detector is better depends on what each kind of error costs. A missed fire means the building burns down, while a false alarm wastes an hour. If false positives were the more expensive error, A would be better."
+    },
+    {
+      "type": "num",
+      "category": "False positives and false negatives",
+      "q": "A detector has a 1% false positive rate. A site receives 50,000 requests per day, and 50 of them are attacks. How many false positives should you expect per day?",
+      "answer": 499.5,
+      "tolerance": 0.5,
+      "explain": "False positives can only come from benign requests: 1% x (50,000 - 50) = 1% x 49,950 = 499.5."
+    },
+    {
+      "type": "num",
+      "category": "False positives and false negatives",
+      "q": "A detector has a 0.5% false positive rate. A network sees 2,000,000 requests per day, and 20 of them are attacks. About how many false positives per day should you expect? (Round to the nearest whole number.)",
+      "answer": 10000,
+      "tolerance": 1,
+      "explain": "0.5% x (2,000,000 - 20) = 0.005 x 1,999,980 = 9,999.9, or about 10,000 alerts a day for only 20 real attacks."
+    },
+    {
+      "type": "num",
+      "category": "False positives and false negatives",
+      "q": "A detector has a 2% false negative rate. If 500 real attacks happen in a month, how many should you expect it to miss?",
+      "answer": 10,
+      "tolerance": 0,
+      "explain": "The false negative rate applies only to real attacks: 2% x 500 = 10 missed attacks."
+    },
+    {
+      "type": "tf",
+      "category": "False positives and false negatives",
+      "q": "A detector's traffic grows from 1,000 to 10 million requests a day while the number of attacks stays at 5. Its false positive rate goes up, which is why it becomes less useful.",
+      "answer": false,
+      "explain": "The rate (for example 0.1%) does not change. What changes is the number of false positives, from about 1 a day to about 10,000 a day, because the attack rate is now far lower. That is too many alerts to review."
+    },
+    {
+      "type": "mc",
+      "category": "False positives and false negatives",
+      "q": "Even a very accurate detector can produce an unmanageable flood of false alarms when real attacks are extremely rare. What is this phenomenon called?",
+      "choices": [
+        "The evasion problem",
+        "The base rate fallacy",
+        "Path traversal",
+        "Specification drift"
+      ],
+      "answer": 1,
+      "explain": "When attacks are a tiny fraction of the traffic, even a small false positive rate times a huge number of benign events produces far more false alarms than real attacks."
+    },
+    {
+      "type": "mc",
+      "category": "Detection strategies",
+      "q": "Which detection strategy looks for activity that matches the structure of a known attack, which amounts to blacklisting?",
+      "choices": [
+        "Signature-based",
+        "Anomaly-based",
+        "Specification-based",
+        "Behavioral"
+      ],
+      "answer": 0,
+      "explain": "Signature-based detection keeps a list of disallowed patterns and flags anything that matches one."
+    },
+    {
+      "type": "mc",
+      "category": "Detection strategies",
+      "q": "A detector flags any input that has the pattern 'garbage bytes, then a memory address, then shellcode', the usual shape of a buffer overflow exploit. Which strategy is this?",
+      "choices": [
+        "Behavioral",
+        "Specification-based",
+        "Signature-based",
+        "Anomaly-based"
+      ],
+      "answer": 2,
+      "explain": "It matches input against the known structure of an attack, which makes it a signature."
+    },
+    {
+      "type": "multi",
+      "category": "Detection strategies",
+      "q": "Which are drawbacks of signature-based detection?",
+      "choices": [
+        "It will not catch new attacks that have no known signature",
+        "It may miss variants of known attacks that differ enough from the signature",
+        "Detecting known signatures is computationally hard",
+        "It can only detect an attack after the exploit has already run"
+      ],
+      "answer": [0, 1],
+      "explain": "Signatures are easy to check and very good against known attacks, but new attacks and modified variants can slip past. Detecting only after the exploit runs is a drawback of behavioral detection."
+    },
+    {
+      "type": "mc",
+      "category": "Detection strategies",
+      "q": "A system trains a statistical model on a month of past traffic and flags any request that differs significantly from it. Which strategy is this?",
+      "choices": [
+        "Signature-based",
+        "Anomaly-based",
+        "Specification-based",
+        "Behavioral"
+      ],
+      "answer": 1,
+      "explain": "Anomaly-based detection learns a model of normal activity (a whitelist) and flags anything that deviates from it."
+    },
+    {
+      "type": "mc",
+      "category": "Detection strategies",
+      "q": "What is the key difference between specification-based and anomaly-based detection?",
+      "choices": [
+        "Specification-based uses blacklisting; anomaly-based uses whitelisting",
+        "Specification-based defines normal activity by hand; anomaly-based learns a model of normal activity",
+        "Specification-based only runs on logs; anomaly-based only runs on a NIDS",
+        "Specification-based looks at program behavior; anomaly-based looks at known attack patterns"
+      ],
+      "answer": 1,
+      "explain": "Both are whitelisting: they flag what falls outside normal activity. They differ in whether a person writes the definition of normal or a model learns it."
+    },
+    {
+      "type": "mc",
+      "category": "Detection strategies",
+      "q": "A programmer knows an age field should only ever contain a number, and configures the detector to flag any non-numeric input to that field. Which strategy is this?",
+      "choices": [
+        "Specification-based",
+        "Anomaly-based",
+        "Signature-based",
+        "Behavioral"
+      ],
+      "answer": 0,
+      "explain": "Normal behavior was written down by hand, so this is specification-based detection."
+    },
+    {
+      "type": "mc",
+      "category": "Detection strategies",
+      "q": "A program never legitimately calls exec. The detector raises an alert whenever the program calls exec, without examining the input at all. Which strategy is this?",
+      "choices": [
+        "Signature-based",
+        "Anomaly-based",
+        "Specification-based",
+        "Behavioral"
+      ],
+      "answer": 3,
+      "explain": "Behavioral detection looks for evidence of compromise (the result of the exploit, such as spawning a shell), not for attack patterns in the input."
+    },
+    {
+      "type": "multi",
+      "category": "Detection strategies",
+      "q": "Which detection strategies can catch new attacks that have never been seen before?",
+      "choices": [
+        "Signature-based",
+        "Anomaly-based",
+        "Specification-based",
+        "Behavioral"
+      ],
+      "answer": [1, 2, 3],
+      "explain": "Anomaly-based, specification-based and behavioral detection do not need prior knowledge of a specific attack. Signature-based detection only catches attacks whose signatures are already known."
+    },
+    {
+      "type": "tf",
+      "category": "Detection strategies",
+      "q": "Anomaly-based detection is the most widely deployed detection strategy in practice.",
+      "answer": false,
+      "explain": "Anomaly-based detection is mostly studied in academic papers and is not widely deployed."
+    },
+    {
+      "type": "mc",
+      "category": "Detection strategies",
+      "q": "Which is a specific risk of anomaly-based detection?",
+      "choices": [
+        "If the training data contains attacks, the model may learn to treat those attacks as normal",
+        "It cannot detect any attack that has not been seen before",
+        "It requires writing a manual specification for every application",
+        "It can only detect an attack after the exploit has run"
+      ],
+      "answer": 0,
+      "explain": "Defining normal is hard. A model trained on data that includes attacks, or a poorly built model, can call attacks normal or flag lots of normal requests."
+    },
+    {
+      "type": "mc",
+      "category": "Detection strategies",
+      "q": "What is the main drawback of specification-based detection?",
+      "choices": [
+        "It has an unavoidably high false positive rate",
+        "It cannot catch new attacks",
+        "Writing specifications by hand for every application takes a lot of time",
+        "It only detects attacks after they have started"
+      ],
+      "answer": 2,
+      "explain": "Specification-based detection can catch new attacks, and a well-defined spec can make false positives very rare, but writing specs by hand is very time-consuming."
+    },
+    {
+      "type": "multi",
+      "category": "Detection strategies",
+      "q": "Which are drawbacks of behavioral detection?",
+      "choices": [
+        "The attack is detected only after it has started, so it cannot be prevented beforehand",
+        "An attacker can avoid detection by using different behavior to carry out the attack",
+        "It is always expensive to implement",
+        "It cannot catch never-before-seen attacks"
+      ],
+      "answer": [0, 1],
+      "explain": "Behavioral detection can be cheap, can catch new attacks, and has few false positives when the watched behavior almost never happens legitimately. But it reacts only once the compromise is underway, and attackers can switch to other behavior."
+    },
+    {
+      "type": "tf",
+      "category": "Detection strategies",
+      "q": "Behavioral detection works by scanning the attacker's input for malicious patterns.",
+      "answer": false,
+      "explain": "Behavioral detection ignores the input and watches what the program does (for example, an unexpected exec call), looking for the result of the exploit."
+    },
+    {
+      "type": "mc",
+      "category": "Bulk surveillance as intrusion detection",
+      "q": "In NSA terminology, what is a 'selector'?",
+      "choices": [
+        "A piece of malicious code planted on a target's machine",
+        "A piece of information that identifies what you are looking for, such as an email address or phone number",
+        "An intrusion detection match",
+        "A wiretap installed at an overseas fiber link"
+      ],
+      "answer": 1,
+      "explain": "Selectors are identifiers such as email addresses and phone numbers. A 'fingerprint' is an intrusion detection match, and an 'implant' is malcode or other sabotage."
+    },
+    {
+      "type": "mc",
+      "category": "Bulk surveillance as intrusion detection",
+      "q": "In NSA terminology, what is a 'fingerprint'?",
+      "choices": [
+        "An intrusion detection match",
+        "A user's biometric login data",
+        "A piece of malcode or sabotage",
+        "An email address being searched for"
+      ],
+      "answer": 0,
+      "explain": "A fingerprint is an intrusion detection match, for example one that identifies an application or how it is being used."
+    },
+    {
+      "type": "text",
+      "category": "Bulk surveillance as intrusion detection",
+      "q": "In NSA terminology, what is the word for a piece of malcode or other sabotage?",
+      "answer": ["implant", "an implant"],
+      "explain": "An implant is malcode or another piece of sabotage."
+    },
+    {
+      "type": "mc",
+      "category": "Bulk surveillance as intrusion detection",
+      "q": "Under section 702 of the FISA Amendments Act, the NSA can obtain all of a person's information through a US provider when that person is:",
+      "choices": [
+        "A US citizen located outside the United States",
+        "A permanent resident located inside the United States",
+        "Not a US person (not a citizen or permanent resident) and located outside the United States",
+        "Anyone who communicates through a US provider"
+      ],
+      "answer": 2,
+      "explain": "Section 702 covers non-US persons outside the US. Someone who is a US person, or who is located inside the US, gets much more protection under the Constitution."
+    },
+    {
+      "type": "multi",
+      "category": "Bulk surveillance as intrusion detection",
+      "q": "Which countries are members of the Five Eyes (FVEY) intelligence alliance?",
+      "choices": [
+        "Australia",
+        "Canada",
+        "Germany",
+        "New Zealand",
+        "United Kingdom",
+        "France",
+        "United States"
+      ],
+      "answer": [0, 1, 3, 4, 6],
+      "explain": "The Five Eyes are Australia, Canada, New Zealand, the UK and the US, which are parties to the UKUSA agreement on signals intelligence."
+    },
+    {
+      "type": "tf",
+      "category": "Bulk surveillance as intrusion detection",
+      "q": "The primary rule within the Five Eyes alliance is 'when in country X, behave according to country X's laws'.",
+      "answer": true,
+      "explain": "That is the stated primary rule among the UKUSA partners."
+    },
+    {
+      "type": "mc",
+      "category": "Bulk surveillance as intrusion detection",
+      "q": "Why does the NSA's goal of collecting all relevant communications for valid targets lead it to collect data on everyone?",
+      "choices": [
+        "The law requires it to collect on US persons too",
+        "A valid target could be anyone, so it needs global capability, and it stores everything it can in case it is needed later",
+        "Collecting everything lowers its false positive rate",
+        "Encrypted traffic can only be decrypted if it is collected in bulk"
+      ],
+      "answer": 1,
+      "explain": "Since anyone could turn out to be a target, it collects and keeps whatever it can. The downside is that there is now so much data that finding the relevant details is much harder."
+    },
+    {
+      "type": "mc",
+      "category": "Bulk surveillance as intrusion detection",
+      "q": "From a technical point of view, what are the NSA's Xkeyscore Deepdive wiretaps?",
+      "choices": [
+        "Host-based intrusion detection systems installed on targets' computers",
+        "Scalable network intrusion detection systems that parse traffic and store the extracted metadata",
+        "Log analysis scripts run on US providers' web servers",
+        "Behavioral detectors that watch for exec calls"
+      ],
+      "answer": 1,
+      "explain": "They are NIDS at large scale: they pull in network traffic, parse packets to extract metadata, and store it in a dataframe, with pre-made fingerprints and canned searches."
+    },
+    {
+      "type": "mc",
+      "category": "Bulk surveillance as intrusion detection",
+      "q": "According to the material, what is the simplest way to evade Xkeyscore-style bulk monitoring?",
+      "choices": [
+        "Send packets with very low TTL values",
+        "URL-encode sensitive strings",
+        "Encrypt the data with good transport cryptography",
+        "Use path traversal in your requests"
+      ],
+      "answer": 2,
+      "explain": "Unlike with a conventional NIDS, encrypting the data is enough to evade this monitoring. Good transport cryptography causes the NSA significant collection problems."
+    },
+    {
+      "type": "mc",
+      "category": "Bulk surveillance as intrusion detection",
+      "q": "What does the NSA do with encrypted traffic its wiretaps cannot read?",
+      "choices": [
+        "Discards it immediately",
+        "Sends it to a black box elsewhere, usually in a datacenter, in case the key is obtained later and the ciphertext can be decrypted",
+        "Forwards it to the end host's HIDS for analysis",
+        "Re-encrypts it with its own key and sends it on"
+      ],
+      "answer": 1,
+      "explain": "Encrypted traffic is collected and stored. If the key is obtained later, the stored ciphertext can be turned back into plaintext."
+    }
+  ]
+}

@@ -1,0 +1,633 @@
+{
+  "title": "Certificates",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Man-in-the-middle attacks",
+      "q": "Alice asks Bob for his public key over an insecure channel and encrypts her message under whatever key comes back. What can an active attacker, Mallory, do?",
+      "choices": [
+        "Nothing useful: without Bob's private key, Mallory cannot read the message",
+        "Swap in her own public key, decrypt Alice's ciphertext, then re-encrypt the message (possibly altered) under Bob's real key so neither side notices",
+        "Only read the message. Any change would be detected because Bob could no longer decrypt it",
+        "Recover Bob's private key from his public key while it is in transit"
+      ],
+      "answer": 1,
+      "explain": "Mallory replaces Bob's key with her own. Alice encrypts to Mallory, who decrypts, reads or changes the message, and re-encrypts it under Bob's real public key. No cryptography is broken. The flaw is that Alice could not authenticate the key."
+    },
+    {
+      "type": "tf",
+      "category": "Man-in-the-middle attacks",
+      "q": "In a man-in-the-middle attack on a public-key exchange, Bob will always notice the attack because he receives ciphertext he cannot decrypt with his private key.",
+      "answer": false,
+      "explain": "Mallory re-encrypts the message, possibly modified, under Bob's real public key before forwarding it, so Bob decrypts it normally and suspects nothing."
+    },
+    {
+      "type": "mc",
+      "category": "Man-in-the-middle attacks",
+      "q": "What is the root cause that makes the naive 'just send me your public key' exchange vulnerable to a man-in-the-middle attack?",
+      "choices": [
+        "The channel lacks a shared symmetric key",
+        "Bob's private key travels over the network",
+        "The public-key encryption scheme is too weak",
+        "Alice has no way to verify that the public key she received really belongs to Bob"
+      ],
+      "answer": 3,
+      "explain": "MITM works because Alice cannot authenticate Bob's claimed public key. The general defense is to make sure every participant can verify that other people's public keys are authentic."
+    },
+    {
+      "type": "multi",
+      "category": "Man-in-the-middle attacks",
+      "q": "Alice and Bob send their public keys to each other over an insecure channel, and Mallory sits between them. What can Mallory achieve?",
+      "choices": [
+        "Read the messages Alice sends to Bob",
+        "Read the messages Bob sends to Alice",
+        "Alter messages in either direction without either party noticing",
+        "Learn Alice's and Bob's private keys"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Mallory runs the key-substitution attack in both directions, so she can read and alter all traffic. She never learns their private keys, and she doesn't need them."
+    },
+    {
+      "type": "text",
+      "category": "Man-in-the-middle attacks",
+      "q": "An attacker who places himself between two parties and reads, relays, and possibly alters their traffic while both think they are talking directly to each other is mounting what kind of attack?",
+      "answer": ["man-in-the-middle", "man in the middle", "MITM", "man-in-the-middle attack", "MITM attack"],
+      "explain": "This is a man-in-the-middle (MITM) attack. The attacker sits between the two parties."
+    },
+    {
+      "type": "mc",
+      "category": "Trusted directory service",
+      "q": "Alice gets Bob's public key from a trusted directory, Dirk, over an insecure network. What keeps an attacker from tampering with Dirk's reply?",
+      "choices": [
+        "Nothing can; a directory service is always open to MITM",
+        "Dirk includes his own public key in every reply",
+        "Alice authenticates Dirk's reply using Dirk's public key, which is hardcoded into her application",
+        "Alice asks Bob to confirm the key over the same insecure channel"
+      ],
+      "answer": 2,
+      "explain": "Alice needs Dirk's public key to authenticate his replies, and that key can be hardcoded into the software. If Dirk's key arrived with each reply, an attacker could just replace it."
+    },
+    {
+      "type": "multi",
+      "category": "Trusted directory service",
+      "q": "Which of these are shortcomings of a trusted directory service for public keys?",
+      "choices": [
+        "Everyone's security depends on the directory operating correctly and honestly",
+        "It becomes a bottleneck, since everyone must contact it before talking to someone new",
+        "It is a single point of failure and a global denial-of-service target",
+        "Users cannot look up keys while offline",
+        "Its servers must be Internet-connected at all times, so they must be hardened against remote attacks",
+        "It can never be protected from MITM, because its own public key cannot be distributed safely"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "Trust, scalability, reliability, the online requirement, and server security are all real drawbacks. The last choice is false: hardcoding the directory's public key into applications solves that problem."
+    },
+    {
+      "type": "mc",
+      "category": "Trusted directory service",
+      "q": "Alice is on a flight with no Internet. She wants to encrypt an email to Bob, whose key she has never looked up. Which directory-service limitation is she running into?",
+      "choices": [
+        "Trust",
+        "Scalability",
+        "Security of the directory's servers",
+        "The need to be online"
+      ],
+      "answer": 3,
+      "explain": "A directory has to be queried in real time, so a disconnected user can't look up a new key."
+    },
+    {
+      "type": "mc",
+      "category": "Trusted directory service",
+      "q": "Why is a central key directory a reasonable choice for a messenger such as Signal, despite the usual drawbacks?",
+      "choices": [
+        "Sending a message already requires being online, so needing the directory online costs little",
+        "Messengers use only symmetric keys, so no public keys are looked up",
+        "Signal's directory is run by a CA that every browser trusts",
+        "Messenger users never contact anyone new"
+      ],
+      "answer": 0,
+      "explain": "The directory's biggest practical drawback is that it must be online. In a messenger, Alice already has to be online to send anything."
+    },
+    {
+      "type": "mc",
+      "category": "Trusted directory service",
+      "q": "Under 'trust but verify' (key transparency), Alice and Bob get each other's keys from a central keyserver and later compare them on their devices when they meet in person. What does this achieve?",
+      "choices": [
+        "It removes the need for the keyserver entirely",
+        "It upgrades their future messages to a stronger key",
+        "It acts as a check on the keyserver: a rogue keyserver that hands out false keys knows it might get caught",
+        "It revokes any key the keyserver issued by mistake"
+      ],
+      "answer": 2,
+      "explain": "The in-person comparison is inconvenient, but it means a rogue keyserver always risks being caught, and that discourages misbehavior."
+    },
+    {
+      "type": "mc",
+      "category": "Digital certificates",
+      "q": "What is a digital certificate?",
+      "choices": [
+        "An encrypted copy of a person's private key held by a trusted party",
+        "A list of public keys kept on an online directory server",
+        "A statement linking a name to a public key, digitally signed by a certifying party",
+        "A symmetric key shared between a user and a CA"
+      ],
+      "answer": 2,
+      "explain": "A certificate records a claimed link between a person's name and their public key, and a certifying party vouches for it with a signature. It is just data and can be shared freely."
+    },
+    {
+      "type": "mc",
+      "category": "Digital certificates",
+      "q": "In the notation {M}_{SK^-1}, what does the expression denote?",
+      "choices": [
+        "M encrypted under the public key SK",
+        "A MAC on M computed with the shared key SK",
+        "M decrypted with the inverse of SK",
+        "A digital signature on M made with the private key SK^-1"
+      ],
+      "answer": 3,
+      "explain": "{M}_{SK^-1} is a signature on M made with the private key SK^-1. A certificate is a statement such as 'David's public key is K' written in this signed form."
+    },
+    {
+      "type": "tf",
+      "category": "Digital certificates",
+      "q": "It is unsafe for Alice to download David's certificate from an untrusted website over an insecure channel.",
+      "answer": false,
+      "explain": "A certificate validates itself. If Alice checks the signature with a correct copy of the signer's public key and trusts the signer, it doesn't matter where the certificate came from. Any tampering would make the signature fail."
+    },
+    {
+      "type": "multi",
+      "category": "Digital certificates",
+      "q": "Alice has a certificate, signed by Jerry, that states David's public key. What does she need before she can rely on that key?",
+      "choices": [
+        "A correct copy of Jerry's public key",
+        "A successful check of the certificate's signature using Jerry's public key",
+        "Trust that Jerry is honest and careful about verifying identities before he signs",
+        "A copy of the certificate obtained directly from David over a secure channel",
+        "An online connection to Jerry at the moment she checks the certificate"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Alice builds her trust in David's key from three things: a correct copy of Jerry's key, a valid signature, and her belief that Jerry signs only statements he has checked. She can get the certificate from anywhere and can verify it offline."
+    },
+    {
+      "type": "mc",
+      "category": "Digital certificates",
+      "q": "On its own, a valid signature by Jerry on 'David's public key is K' proves what?",
+      "choices": [
+        "That Jerry chose to sign that statement with his private key",
+        "That K definitely belongs to David",
+        "That David created the certificate himself",
+        "That no one else has ever seen K"
+      ],
+      "answer": 0,
+      "explain": "The signature proves that Jerry agreed to the statement. Whether the statement is true depends on Jerry's honesty and competence, which is why Alice must also trust Jerry."
+    },
+    {
+      "type": "multi",
+      "category": "Digital certificates",
+      "q": "Which limitations of a trusted directory service do digital certificates help with?",
+      "choices": [
+        "Scalability",
+        "Reliability (a single central point of failure)",
+        "Needing to be online to look up a key",
+        "Needing complete trust in a central party"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A certificate can be obtained from anyone and checked offline, so no central server has to answer every request. The certificate's issuer still has to be trusted, so the trust problem remains."
+    },
+    {
+      "type": "mc",
+      "category": "CAs and the web",
+      "q": "How does a web browser normally know which public keys to use when checking a CA's signature on a site's certificate?",
+      "choices": [
+        "It downloads them from the website being visited",
+        "It asks the user to type them in",
+        "It queries an online directory on every visit",
+        "It ships with a built-in list of trusted CAs and their public keys"
+      ],
+      "answer": 3,
+      "explain": "Every browser ships with a list of trusted CAs. Their public keys are effectively hardcoded, which starts the chain of trust."
+    },
+    {
+      "type": "multi",
+      "category": "CAs and the web",
+      "q": "When you visit an https: URL, which steps does the browser take before it trusts the site's public key?",
+      "choices": [
+        "Get a copy of the site's certificate",
+        "Check the certificate's signature using the public key of the CA that issued it",
+        "Check that the domain name in the certificate matches the site you asked to visit",
+        "Contact the CA live to ask whether the site is legitimate",
+        "Ask the site to send its private key for comparison"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The browser gets the certificate, checks the CA's signature, confirms the domain name matches, and then uses the certificate's public key. It never contacts the CA live, and it never sees the site's private key."
+    },
+    {
+      "type": "mc",
+      "category": "CAs and the web",
+      "q": "Mallory owns mallory.com and has a valid CA-signed certificate for it. If a browser skipped the check that the certificate's domain name matches the requested site, what could Mallory do?",
+      "choices": [
+        "Nothing, because her certificate is signed by a trusted CA",
+        "Present her mallory.com certificate while posing as another site, such as bank.com, in a man-in-the-middle attack",
+        "Forge signatures from the CA",
+        "Revoke bank.com's certificate"
+      ],
+      "answer": 1,
+      "explain": "A valid signature only proves which key goes with which name. Without the name check, any valid certificate would be accepted for any site."
+    },
+    {
+      "type": "tf",
+      "category": "CAs and the web",
+      "q": "If a browser trusts 88 CAs, it accepts a certificate for amazon.com only when the certificate comes from the CA that Amazon chose to buy from.",
+      "answer": false,
+      "explain": "The browser accepts any certificate from any of its trusted CAs. If any one of the 88 issues an amazon.com certificate, the browser accepts it."
+    },
+    {
+      "type": "mc",
+      "category": "CAs and the web",
+      "q": "Why does trusting more CAs increase the risk of a security breach?",
+      "choices": [
+        "If any single trusted CA issues a certificate to the wrong party, or acts maliciously, every site's users can be affected",
+        "Each extra CA slows down signature checking",
+        "More CAs mean more certificate chains that must all verify",
+        "CAs share their private keys with each other"
+      ],
+      "answer": 0,
+      "explain": "A browser trusts every CA on its list equally for every domain, so overall security is only as strong as the weakest CA on that list."
+    },
+    {
+      "type": "mc",
+      "category": "CAs and the web",
+      "q": "Which drawback of a trusted directory service still applies when you rely on a CA?",
+      "choices": [
+        "The CA must be online for every lookup",
+        "The CA is a bottleneck that has to answer every new connection",
+        "Everyone's security depends on the CA behaving honestly and carefully",
+        "Users cannot get keys while offline"
+      ],
+      "answer": 2,
+      "explain": "Certificates fix the scalability, reliability, and online problems. The CA must still be trusted, and if it is malicious or careless, users' security can be breached."
+    },
+    {
+      "type": "mc",
+      "category": "Certificate chains",
+      "q": "What is a certificate chain?",
+      "choices": [
+        "A list of certificates that a CA has revoked",
+        "Several certificates for the same person issued by different CAs",
+        "A single certificate signed by several CAs",
+        "A sequence of certificates, each of which authenticates the public key of the party who signs the next one"
+      ],
+      "answer": 3,
+      "explain": "Each link vouches for the key of the next signer, so trust in the root key extends down to the final certificate."
+    },
+    {
+      "type": "mc",
+      "category": "Certificate chains",
+      "q": "Alice knows only Jerry's public key. She receives (1) {UC's public key is PK_N} signed with Jerry's private key, and (2) {David's public key is PK_daw} signed with Napolitano's private key. How does she get David's key?",
+      "choices": [
+        "Check (2) with Jerry's public key, then check (1) with PK_daw",
+        "Check (1) with Jerry's public key to learn PK_N, then check (2) with PK_N",
+        "Check (2) with PK_daw itself, because David's certificate vouches for itself",
+        "She can't, because she would need Napolitano's key in advance"
+      ],
+      "answer": 1,
+      "explain": "She starts from the key she trusts (Jerry's) and checks the first certificate, which gives her Napolitano's key. She then uses that key to check David's certificate."
+    },
+    {
+      "type": "num",
+      "category": "Certificate chains",
+      "q": "A root CA certifies a country CA, which certifies a state CA, which certifies a city CA, which certifies Alice's public key. How many certificates are in the chain from the root down to Alice's key?",
+      "answer": 4,
+      "explain": "There are four certificates: root to country, country to state, state to city, and city to Alice."
+    },
+    {
+      "type": "mc",
+      "category": "Certificate chains",
+      "q": "What is the main reason to use a hierarchy of CAs instead of one CA that signs everyone's certificate?",
+      "choices": [
+        "Scalability: one party can't personally verify hundreds of thousands of people, so it hands the authority to sign down to others",
+        "Each extra level makes signatures harder to forge",
+        "It removes the need to trust the root CA",
+        "It makes certificates shorter"
+      ],
+      "answer": 0,
+      "explain": "A single signer can't check everyone's identity. Each level delegates (and may sub-delegate) the power to issue certificates for its part of the organization."
+    },
+    {
+      "type": "multi",
+      "category": "Certificate chains",
+      "q": "Which statements about hierarchical PKI are true?",
+      "choices": [
+        "The hierarchy forms a tree",
+        "Certificate chains can be of any length",
+        "The CA hierarchy often follows an organization's structure",
+        "Every certificate must be signed directly by the root CA"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The hierarchy is a tree of any depth and usually follows the organization's structure. Only the top-level certificates are signed by the root."
+    },
+    {
+      "type": "tf",
+      "category": "Certificate chains",
+      "q": "In the chain Jerry -> Napolitano -> David, Jerry checks identities perfectly, but Napolitano carelessly certifies an impostor's key as David's. Alice, who trusts only Jerry's key, could still be fooled.",
+      "answer": true,
+      "explain": "Jerry's certificate gives Napolitano authority to vouch for UC employees. Relying on a chain means relying on every signer in it."
+    },
+    {
+      "type": "tf",
+      "category": "Revocation",
+      "q": "In the basic certificate scheme, with no expiration dates and no revocation lists, a CA has no way to cancel a certificate it issued by mistake.",
+      "answer": true,
+      "explain": "Without a revocation mechanism, a certificate stays valid forever once it is issued."
+    },
+    {
+      "type": "mc",
+      "category": "Revocation",
+      "q": "Verisign issued bogus 'Microsoft Corporation' certificates to someone other than Microsoft. How was the problem finally fixed?",
+      "choices": [
+        "Verisign added them to its revocation list",
+        "The certificates expired the next day",
+        "Microsoft shipped a Windows patch that contained the bogus certificates and treated them as invalid",
+        "Browsers removed Verisign from their trusted CA lists"
+      ],
+      "answer": 2,
+      "explain": "Verisign had no way to revoke the certificates. The patch worked only because Microsoft could push software to affected machines, a fix that wouldn't exist for a bogus certificate for an ordinary website."
+    },
+    {
+      "type": "mc",
+      "category": "Revocation",
+      "q": "A CA issues certificates that are valid for only one day. What is the main cost of this approach?",
+      "choices": [
+        "Bad certificates stay valid for years",
+        "Certificates can no longer be checked offline",
+        "Revocation lists grow very large",
+        "Legitimate parties must contact the CA constantly, which adds load and causes reliability problems when the CA is unreachable"
+      ],
+      "answer": 3,
+      "explain": "Short lifetimes let a bad certificate be dealt with quickly, since it is simply not reissued. The cost is heavy load and dependence on the CA. Long lifetimes reverse this tradeoff."
+    },
+    {
+      "type": "tf",
+      "category": "Revocation",
+      "q": "Validity periods let a CA revoke a bad certificate the moment it discovers the mistake.",
+      "answer": false,
+      "explain": "An expiration date only limits the damage: the bad certificate keeps working until it expires."
+    },
+    {
+      "type": "mc",
+      "category": "Revocation",
+      "q": "Clients that can't download a fresh revocation list keep using their old copy. How can an attacker holding a bogus certificate exploit this?",
+      "choices": [
+        "Launch a DoS attack on the CA's revocation servers so clients never learn that the certificate was revoked",
+        "Forge an entry on the signed revocation list",
+        "Keep using the certificate after it expires",
+        "Nothing, because the old list already contains the revocation"
+      ],
+      "answer": 0,
+      "explain": "If the revocation happened after the client's last download, blocking the servers keeps the bogus certificate accepted."
+    },
+    {
+      "type": "mc",
+      "category": "Revocation",
+      "q": "Suppose clients instead reject every certificate whenever they can't get a fresh revocation list. What is the danger?",
+      "choices": [
+        "Bogus certificates get accepted",
+        "A sustained DoS attack on the CA's revocation servers can deny service to every user of the network",
+        "The CA's private key is exposed",
+        "Revocation lists can no longer be signed"
+      ],
+      "answer": 1,
+      "explain": "This fails safe, but it gives an attacker an even worse DoS: knocking out the revocation servers breaks every certificate check."
+    },
+    {
+      "type": "mc",
+      "category": "Revocation",
+      "q": "When can revocation lists be more efficient than constantly reissuing certificates with short validity periods?",
+      "choices": [
+        "When certificates are revoked constantly",
+        "When clients are never online",
+        "When revocation is rare, so the list stays short",
+        "When the CA has no private key"
+      ],
+      "answer": 2,
+      "explain": "A short list is cheap to download and check, so it beats reissuing every certificate. Clients still pay a cost that grows with how often they download it."
+    },
+    {
+      "type": "mc",
+      "category": "Revocation",
+      "q": "Why should a CA date and digitally sign its revocation list?",
+      "choices": [
+        "To encrypt the revoked certificates",
+        "So clients can confirm the list really came from the CA and see how recent it is",
+        "To make the list smaller",
+        "So revoked certificates can be restored later"
+      ],
+      "answer": 1,
+      "explain": "Clients download the list over ordinary channels. The signature proves it is authentic, and the date shows how fresh it is."
+    },
+    {
+      "type": "mc",
+      "category": "Web of trust",
+      "q": "What is the central idea of the web of trust, pioneered by PGP?",
+      "choices": [
+        "One global CA signs everyone's key",
+        "Keys are accepted on first use and remembered",
+        "Anyone can issue certificates for people they know, so key verification doesn't depend on a single central authority",
+        "A central directory answers key lookups in real time"
+      ],
+      "answer": 2,
+      "explain": "The web of trust spreads out certification: people sign keys for friends and colleagues, and chains of these signatures connect strangers."
+    },
+    {
+      "type": "mc",
+      "category": "Web of trust",
+      "q": "Alice trusts Bob. Bob signed Carol's key after carefully checking her ID. Carol signed a key labeled 'Doug'. Why might Alice be wrong to trust that key?",
+      "choices": [
+        "Bob's signature can't be checked",
+        "Bob's signature vouches for Carol's identity, not for her honesty or care when she signs other people's keys",
+        "PGP doesn't allow chains longer than one",
+        "Carol's key is too old"
+      ],
+      "answer": 1,
+      "explain": "If Carol is sloppy or malicious, she might certify an impostor's key as Doug's, and Bob's careful ID check of Carol does nothing to prevent that."
+    },
+    {
+      "type": "mc",
+      "category": "Web of trust",
+      "q": "'Alice trusts Bob not to deliberately deceive her, but doubts that he checks IDs carefully before signing keys.' Which challenge does this illustrate?",
+      "choices": [
+        "Trust isn't transitive",
+        "Key continuity",
+        "Trust isn't absolute",
+        "Single point of failure"
+      ],
+      "answer": 2,
+      "explain": "We trust people for specific purposes. Trusting Bob's intentions is different from trusting how diligent he is, or his judgment about third parties."
+    },
+    {
+      "type": "mc",
+      "category": "Web of trust",
+      "q": "'Alice considers Bob trustworthy, and Bob considers Carol trustworthy, but Alice does not consider Carol trustworthy.' Which challenge does this illustrate?",
+      "choices": [
+        "Trust isn't transitive",
+        "Trust isn't absolute",
+        "Single point of failure",
+        "Leap of faith"
+      ],
+      "answer": 0,
+      "explain": "Alice trusting Bob and Bob trusting Carol does not mean Alice trusts Carol."
+    },
+    {
+      "type": "mc",
+      "category": "Web of trust",
+      "q": "How does PGP try to increase confidence in a key it finds through the web of trust?",
+      "choices": [
+        "It requires every key to be signed by a root CA",
+        "It sets a one-day validity period on every key",
+        "It asks the recipient to sign their own key",
+        "It looks for multiple paths to the recipient, treating more and shorter paths as more trustworthy"
+      ],
+      "answer": 3,
+      "explain": "It's unclear whether this heuristic has a principled basis or actually solves the transitivity and absoluteness problems."
+    },
+    {
+      "type": "multi",
+      "category": "Web of trust",
+      "q": "Which of these are criticisms of the web of trust?",
+      "choices": [
+        "Many users find it hard to understand",
+        "Usability hurdles, such as poor integration with mainstream mail readers",
+        "It doesn't capture that trust is neither transitive nor absolute",
+        "It depends on one central authority that everyone must trust",
+        "Keys can only be looked up while online"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The web of trust has no central authority by design. Its problems are usability and a poor model of how people actually trust each other."
+    },
+    {
+      "type": "mc",
+      "category": "Leap-of-faith authentication",
+      "q": "What does an SSH client do the first time it connects to a server it has never seen?",
+      "choices": [
+        "Checks the server's certificate against a list of trusted CAs",
+        "Looks up the server's key in a trusted directory",
+        "Accepts whatever public key the server sends, remembers it, and uses it on later connections",
+        "Refuses to connect until the user types in the server's key"
+      ],
+      "answer": 2,
+      "explain": "The server sends its key unprotected, and the client simply accepts it, usually after the user clicks OK. Later connections reuse the remembered key."
+    },
+    {
+      "type": "text",
+      "category": "Leap-of-faith authentication",
+      "q": "Leap-of-faith authentication is also known by the acronym TOFU. What does TOFU stand for?",
+      "answer": ["Trust On First Use", "trust on first use"],
+      "explain": "Trust On First Use: the client trusts the key on its first connection and expects that same key afterward."
+    },
+    {
+      "type": "text",
+      "category": "Leap-of-faith authentication",
+      "q": "Leap-of-faith authentication tries to make sure that a server's public key stays the same over a long period, so it is also called key ______ management. Fill in the blank.",
+      "answer": ["continuity", "key continuity", "key continuity management"],
+      "explain": "It's called key continuity management because the key tied to a server is expected to stay the same over time."
+    },
+    {
+      "type": "multi",
+      "category": "Leap-of-faith authentication",
+      "q": "Which attackers does leap-of-faith authentication protect against?",
+      "choices": [
+        "A passive eavesdropper",
+        "An active attacker who was not present during the first connection",
+        "An active man-in-the-middle during the very first connection"
+      ],
+      "answer": [0, 1],
+      "explain": "It is weak only on the first connection. An attacker who intercepts that one can substitute his own key. Otherwise it stops eavesdropping and any attacker who arrives later."
+    },
+    {
+      "type": "mc",
+      "category": "Leap-of-faith authentication",
+      "q": "You SSH into a server you have used many times, and it now presents a different public key from the one your client remembered. Under key continuity, why is this a warning sign?",
+      "choices": [
+        "The server's key is supposed to stay the same over time, so a change may mean someone in the middle is presenting their own key",
+        "SSH keys expire daily, so a change is expected",
+        "It means a CA revoked the server's certificate",
+        "It means your own private key was stolen"
+      ],
+      "answer": 0,
+      "explain": "Key continuity relies on the remembered key staying the same. A different key breaks that and is exactly what a later MITM attacker would cause."
+    },
+    {
+      "type": "mc",
+      "category": "Leap-of-faith authentication",
+      "q": "Which usable-security principle says users shouldn't need to configure their software or take an explicit step to turn security on?",
+      "choices": [
+        "Trust isn't transitive",
+        "Least privilege",
+        "Defense in depth",
+        "There should be only one mode of operation, and it should be secure"
+      ],
+      "answer": 3,
+      "explain": "Security should always be on and automatic in every case, as it is in SSH's key continuity."
+    },
+    {
+      "type": "mc",
+      "category": "Leap-of-faith authentication",
+      "q": "Why might a well-designed system not let users switch its security protections off at all?",
+      "choices": [
+        "Switching them off would slow the system down",
+        "It opens the door to social engineering, where an attacker talks the user into disabling the cryptography",
+        "Users would need to understand cryptography to switch them back on",
+        "Security settings can't be stored"
+      ],
+      "answer": 1,
+      "explain": "If security can be turned off, an attacker can try to persuade the user to turn it off."
+    },
+    {
+      "type": "tf",
+      "category": "Leap-of-faith authentication",
+      "q": "A sound usable-security principle is that users shouldn't have to understand cryptography to use a system securely, though the system's designers should.",
+      "answer": true,
+      "explain": "It is reasonable to expect designers to understand cryptography, but not users. SSH's leap-of-faith approach hides the key management from the user."
+    },
+    {
+      "type": "mc",
+      "category": "Comparing approaches",
+      "q": "Which key-management approach requires contacting a separate trusted party in real time every time you start talking to someone new?",
+      "choices": [
+        "Digital certificates issued by a CA",
+        "Trusted directory service",
+        "Leap-of-faith authentication",
+        "Web of trust"
+      ],
+      "answer": 1,
+      "explain": "A directory must be asked for every new contact. A certificate can be fetched from anywhere and checked offline."
+    },
+    {
+      "type": "mc",
+      "category": "Comparing approaches",
+      "q": "Which of these approaches does NOT rely on a single central trusted authority?",
+      "choices": [
+        "Trusted directory service",
+        "Hierarchical PKI with one root CA",
+        "Web of trust",
+        "The browser CA model"
+      ],
+      "answer": 2,
+      "explain": "The web of trust deliberately spreads certification across ordinary users. The other three all depend on a central authority or a fixed set of them."
+    },
+    {
+      "type": "mc",
+      "category": "Comparing approaches",
+      "q": "Which approach lets Alice get Bob's key from any untrusted source (a search result, a whiteboard, Bob himself) and still verify it while offline?",
+      "choices": [
+        "Digital certificates",
+        "Trusted directory service",
+        "Leap-of-faith authentication",
+        "Asking Bob for his key over the insecure channel"
+      ],
+      "answer": 0,
+      "explain": "A certificate validates itself: the trusted signer's signature can be checked offline no matter where the certificate came from."
+    }
+  ]
+}

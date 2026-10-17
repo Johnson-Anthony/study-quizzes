@@ -1,0 +1,681 @@
+{
+  "title": "CS161 09: Public-Key Encryption and Digital Signatures",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Public-key encryption basics",
+      "q": "Alice wants to send Bob a confidential message using public-key encryption. Which key does she encrypt with?",
+      "choices": ["Her own private key", "Her own public key", "Bob's public key", "Bob's private key"],
+      "answer": 2,
+      "explain": "Anyone can encrypt to Bob with his public key. Only Bob's private key can decrypt."
+    },
+    {
+      "type": "tf",
+      "category": "Public-key encryption basics",
+      "q": "Bob shares his private key only with the people who need to send him messages, such as Alice.",
+      "answer": false,
+      "explain": "Bob tells no one his private key, not even Alice. People sending him messages only need his public key."
+    },
+    {
+      "type": "mc",
+      "category": "Public-key encryption basics",
+      "q": "Which drawback of symmetric-key cryptography is public-key cryptography mainly designed to fix?",
+      "choices": [
+        "Symmetric ciphers cannot provide confidentiality",
+        "Symmetric ciphers are much slower than public-key ones",
+        "Alice and Bob must somehow coordinate to set up a shared secret key first",
+        "Symmetric keys must be published openly"
+      ],
+      "answer": 2,
+      "explain": "The problem is key management. Symmetric crypto needs a secret shared in advance. Public-key crypto lets strangers communicate without one. Symmetric crypto is actually much faster."
+    },
+    {
+      "type": "mc",
+      "category": "Public-key encryption basics",
+      "q": "Alice picks a random symmetric key K, encrypts K under Bob's public key, and sends Bob the ciphertext. What happens next?",
+      "choices": [
+        "Bob decrypts it with his public key to recover K",
+        "Bob decrypts it with his private key to recover K, and then they both use K with a symmetric cipher",
+        "Bob has to send K back encrypted under Alice's public key before anyone can use it",
+        "K is now public, so it can only be used for integrity"
+      ],
+      "answer": 1,
+      "explain": "This is how public-key crypto solves key management. It delivers a symmetric key, and the rest of the conversation uses fast symmetric crypto with K."
+    },
+    {
+      "type": "text",
+      "category": "Public-key encryption basics",
+      "q": "Public-key cryptography is also called ______ cryptography.",
+      "answer": ["asymmetric", "asymmetric cryptography", "asymmetric-key", "asymmetric key"],
+      "explain": "It is asymmetric because encryption and decryption use different keys (public and private)."
+    },
+    {
+      "type": "mc",
+      "category": "Trapdoor one-way functions",
+      "q": "Which statement describes a one-way function f?",
+      "choices": [
+        "Given x, f(x) is hard to compute, but given y, an x with f(x) = y is easy to find",
+        "Only someone holding a secret key can compute f",
+        "Given x, f(x) is easy to compute, but given y, an x with f(x) = y is hard to find",
+        "f is easy to compute and to invert, but its outputs look random"
+      ],
+      "answer": 2,
+      "explain": "One-way means easy to compute forward and hard to invert."
+    },
+    {
+      "type": "mc",
+      "category": "Trapdoor one-way functions",
+      "q": "How does a trapdoor one-way function differ from an ordinary one-way function?",
+      "choices": [
+        "A secret piece of information (the trapdoor) makes it easy to invert for whoever knows it",
+        "Everyone can easily compute it in both directions",
+        "It can only be evaluated with the secret key",
+        "It never has collisions"
+      ],
+      "answer": 0,
+      "explain": "It is still easy to compute and hard to invert in general. Someone who knows the backdoor K, though, can easily find x such that f(x) = y."
+    },
+    {
+      "type": "tf",
+      "category": "Trapdoor one-way functions",
+      "q": "In a public-key scheme built from a trapdoor one-way function, holding the private key makes decryption easy but makes encryption hard.",
+      "answer": false,
+      "explain": "The private key unlocks the trapdoor, so computing f⁻¹ (decryption) becomes easy. Computing f (encryption) stays easy for everyone."
+    },
+    {
+      "type": "mc",
+      "category": "Trapdoor one-way functions",
+      "q": "RSA hardness: n = pq for large primes p and q. Given c = m^e mod n and e, finding m is hard. Which extra information makes finding m easy?",
+      "choices": [
+        "The bit length of n",
+        "The factorization of n (that is, p or q)",
+        "A ciphertext of a different message",
+        "The value of e mod 3"
+      ],
+      "answer": 1,
+      "explain": "The factorization is the trapdoor. Knowing p gives q = n/p, and from there it is easy to recover m."
+    },
+    {
+      "type": "multi",
+      "category": "Trapdoor one-way functions",
+      "q": "Discrete log setting: p is a large prime and g is a generator. An attacker knows g, p, A = g^a mod p and B = g^b mod p. Which of these would let them easily compute g^(ab) mod p?",
+      "choices": ["The exponent a", "The product A × B mod p", "The exponent b", "The prime p"],
+      "answer": [0, 2],
+      "explain": "With a, compute B^a = g^(ab). With b, compute A^b. A × B = g^(a+b), which anyone can compute and which doesn't help. p is already public."
+    },
+    {
+      "type": "tf",
+      "category": "RSA encryption and padding",
+      "q": "Basic (textbook) RSA encryption with no padding is IND-CPA secure.",
+      "answer": false,
+      "explain": "Basic RSA is deterministic. Encrypting the same message twice gives the same ciphertext, so an eavesdropper can tell when a message repeats."
+    },
+    {
+      "type": "mc",
+      "category": "RSA encryption and padding",
+      "q": "Why does sending the same message twice with basic RSA leak information?",
+      "choices": [
+        "Two encryptions reveal the private key",
+        "The modulus n changes between messages",
+        "RSA ciphertexts are longer than the plaintext",
+        "Encryption is deterministic, so identical plaintexts give identical ciphertexts"
+      ],
+      "answer": 3,
+      "explain": "Without randomness, an adversary can see that the same message was sent again. That is why RSA adds randomness through a padding mode."
+    },
+    {
+      "type": "mc",
+      "category": "RSA encryption and padding",
+      "q": "Despite the name, RSA padding modes are most similar to which of these?",
+      "choices": [
+        "Padding in block cipher modes",
+        "MAC tags",
+        "IVs in block cipher modes",
+        "A hash function's compression step"
+      ],
+      "answer": 2,
+      "explain": "RSA padding mixes in randomness so the ciphertext looks random, which is the job an IV does. It is not a deterministic way to extend the message."
+    },
+    {
+      "type": "text",
+      "category": "RSA encryption and padding",
+      "q": "Name (acronym or full name) a common RSA padding scheme that adds randomness to encryption.",
+      "answer": ["OAEP", "Optimal Asymmetric Encryption Padding"],
+      "explain": "OAEP = Optimal Asymmetric Encryption Padding."
+    },
+    {
+      "type": "mc",
+      "category": "RSA encryption and padding",
+      "q": "At a high level, what does OAEP do?",
+      "choices": [
+        "Appends a fixed byte pattern until the message reaches the block length",
+        "Generates a random key, uses it to scramble the message, and encrypts both the scrambled message and the random key",
+        "Hashes the message and encrypts only the hash",
+        "Encrypts the message twice under two different public keys"
+      ],
+      "answer": 1,
+      "explain": "To get the message back, you need both the scrambled message and the random key so you can undo the scrambling. The random key makes each ciphertext different."
+    },
+    {
+      "type": "tf",
+      "category": "RSA encryption and padding",
+      "q": "Like block cipher padding, public-key padding is a deterministic algorithm for extending a message.",
+      "answer": false,
+      "explain": "Public-key padding is a way to mix in randomness. The ciphertext looks random but still decrypts to the original plaintext."
+    },
+    {
+      "type": "mc",
+      "category": "RSA encryption and padding",
+      "q": "The security of RSA encryption rests on the belief that which task is hard?",
+      "choices": [
+        "Computing m^e mod n",
+        "Factoring the large modulus n into its prime factors p and q",
+        "Finding a collision in SHA-256",
+        "Guessing the public exponent e"
+      ],
+      "answer": 1,
+      "explain": "Anyone can compute m^e mod n, and e is public. An attacker can't break RSA unless they can factor n."
+    },
+    {
+      "type": "mc",
+      "category": "El Gamal encryption",
+      "q": "In El Gamal, Bob's private key is b and his public key is B = g^b mod p. How does Alice encrypt a message m?",
+      "choices": [
+        "(g^b mod p, m × r mod p)",
+        "(m^B mod p, g^r mod p)",
+        "(g^r mod p, m × B^r mod p) for a fresh random r",
+        "(B^r mod p, m × g^r mod p) with r = b"
+      ],
+      "answer": 2,
+      "explain": "The ciphertext is a pair (R, S) with R = g^r mod p and S = m × B^r mod p. Alice picks a new random r in 0…p−2 for each message."
+    },
+    {
+      "type": "mc",
+      "category": "El Gamal encryption",
+      "q": "Bob receives an El Gamal ciphertext (R, S). How does he decrypt it?",
+      "choices": ["R^b × S mod p", "S^(−b) × R mod p", "S^b mod p", "R^(−b) × S mod p"],
+      "answer": 3,
+      "explain": "R^(−b) × S = g^(−rb) × m × g^(br) = m (mod p). The R^(−b) factor cancels the B^r = g^(br) factor in S."
+    },
+    {
+      "type": "num",
+      "category": "El Gamal encryption",
+      "q": "Toy El Gamal: p = 23, g = 5, and Bob's private key is b = 6. What is Bob's public key B = g^b mod p?",
+      "answer": 8,
+      "explain": "5^2 = 25 ≡ 2, 5^4 ≡ 2^2 = 4, and 5^6 = 5^4 × 5^2 ≡ 4 × 2 = 8 (mod 23)."
+    },
+    {
+      "type": "num",
+      "category": "El Gamal encryption",
+      "q": "Same toy setup (p = 23, g = 5, B = 8). Alice encrypts m = 10 with r = 3. What is the second ciphertext component, S = m × B^r mod p?",
+      "answer": 14,
+      "explain": "B^3 = 512 ≡ 6 (mod 23), so S = 10 × 6 = 60 ≡ 14. The first component is R = 5^3 = 125 ≡ 10. Check: Bob gets R^b = 10^6 ≡ 6, whose inverse is 4 (6 × 4 = 24 ≡ 1), and 4 × 14 = 56 ≡ 10 = m."
+    },
+    {
+      "type": "mc",
+      "category": "El Gamal encryption",
+      "q": "If you view El Gamal as a Diffie-Hellman exchange, Alice and Bob end up sharing a key K. Which value is K?",
+      "choices": [
+        "g^(r+b) mod p",
+        "r × b mod p",
+        "g^(rb) mod p, which equals both B^r and R^b",
+        "B × R mod p"
+      ],
+      "answer": 2,
+      "explain": "Bob's long-term key is B = g^b, and Alice's fresh one-time key is R = g^r. Alice computes K = B^r and Bob computes K = R^b. Both equal g^(rb)."
+    },
+    {
+      "type": "tf",
+      "category": "El Gamal encryption",
+      "q": "To save effort, Alice can safely reuse the same random r for every El Gamal message she sends to Bob.",
+      "answer": false,
+      "explain": "A fresh r for each message makes K = B^r new every time, so the key material is used only once. Reusing r reuses K, which is like reusing a one-time pad."
+    },
+    {
+      "type": "mc",
+      "category": "El Gamal encryption",
+      "q": "The final step of El Gamal, S = m × K mod p, is best described as:",
+      "choices": [
+        "A MAC over m",
+        "A one-time pad that uses multiplication mod p instead of XOR",
+        "A hash of m",
+        "A block cipher in CBC mode"
+      ],
+      "answer": 1,
+      "explain": "For any ciphertext S and any guessed message m, exactly one K satisfies S = m × K mod p. So, just as with XOR, S alone reveals nothing about m."
+    },
+    {
+      "type": "mc",
+      "category": "El Gamal encryption",
+      "q": "An attacker intercepts a simplified El Gamal ciphertext (R, S) that encrypts M. Which modified ciphertext will Bob decrypt to 2M?",
+      "choices": ["(2R mod p, S)", "(R^2 mod p, S)", "(2R mod p, 2S mod p)", "(R, 2S mod p)"],
+      "answer": 3,
+      "explain": "R^(−b) × 2S = 2 × (R^(−b) × S) = 2M. Changing R instead changes the R^(−b) factor and doesn't give 2M. This malleability is one reason public-key encryption is used only to carry session keys."
+    },
+    {
+      "type": "mc",
+      "category": "El Gamal encryption",
+      "q": "Why doesn't the plain Diffie-Hellman protocol give public-key encryption by itself?",
+      "choices": [
+        "It needs a trusted third party",
+        "Alice and Bob agree on a shared secret, but neither controls its value, so it can't carry a message they choose",
+        "It only works with RSA moduli",
+        "It sends the shared secret in the clear"
+      ],
+      "answer": 1,
+      "explain": "In Diffie-Hellman the shared secret comes out random. El Gamal adds one step: Alice multiplies her message by that shared value."
+    },
+    {
+      "type": "tf",
+      "category": "El Gamal encryption",
+      "q": "The simplified El Gamal scheme shown in the notes is semantically secure without any changes.",
+      "answer": false,
+      "explain": "For technical reasons, the simplified scheme is not semantically secure. With some tweaks it can be made semantically secure. It is also malleable (M can be turned into 2M)."
+    },
+    {
+      "type": "mc",
+      "category": "Key distribution and session keys",
+      "q": "Bob broadcasts his public key. Attila sends a spoofed broadcast that appears to come from Bob but contains a public key Attila generated. If Alice uses that key, what can Attila do?",
+      "choices": [
+        "Nothing, since he doesn't know Bob's private key",
+        "Recover Bob's private key",
+        "Decrypt the messages Alice meant for Bob, using his own private key",
+        "Learn only the lengths of Alice's messages"
+      ],
+      "answer": 2,
+      "explain": "Alice encrypted under Attila's key, so Attila can intercept the messages and decrypt them with the private key he chose. Broadcasting a key does not protect against active attacks."
+    },
+    {
+      "type": "mc",
+      "category": "Key distribution and session keys",
+      "q": "Alice needs to get Bob's public key over some channel. What must that channel guarantee?",
+      "choices": [
+        "Confidentiality only",
+        "Both confidentiality and integrity",
+        "Integrity (no one can tamper with the key); confidentiality is not needed",
+        "Neither, since public keys are public"
+      ],
+      "answer": 2,
+      "explain": "The public key doesn't need to stay secret, but Alice must be sure it really is Bob's key and wasn't swapped."
+    },
+    {
+      "type": "tf",
+      "category": "Key distribution and session keys",
+      "q": "Public keys are meant to be public, so simply broadcasting your public key is enough to protect against active attackers.",
+      "answer": false,
+      "explain": "An active attacker can broadcast a fake key that claims to be yours. Recipients need a channel that protects integrity."
+    },
+    {
+      "type": "mc",
+      "category": "Key distribution and session keys",
+      "q": "Which approach gives authentic public keys without trusting any network channel, but requires meeting in person?",
+      "choices": [
+        "Emailing the key in plaintext",
+        "Key-signing parties, or printing your public key on a business card",
+        "Posting the key on an unauthenticated web page",
+        "Encrypting the key with itself"
+      ],
+      "answer": 1,
+      "explain": "Swapping keys face to face ensures integrity, but Alice and Bob have to meet in advance."
+    },
+    {
+      "type": "multi",
+      "category": "Key distribution and session keys",
+      "q": "Why do systems usually use public-key cryptography only to send session keys, and then switch to symmetric crypto?",
+      "choices": [
+        "Public-key operations are very slow (e.g., raising a 2048-bit number to a 2048-bit power mod a 2048-bit number)",
+        "Public-key encryption cannot provide confidentiality",
+        "Some public-key schemes are only safe for random messages (e.g., RSA without OAEP)",
+        "Some schemes let an attacker change the message (e.g., turning M into 2M in simplified El Gamal)",
+        "Once a public key is published, symmetric keys never need to be exchanged"
+      ],
+      "answer": [0, 2, 3],
+      "explain": "Public-key crypto is expensive and hard to make IND-CPA secure. Using it only to carry random session keys avoids both problems."
+    },
+    {
+      "type": "num",
+      "category": "Key distribution and session keys",
+      "q": "A protocol uses a separate key for each direction (Alice→Bob and Bob→Alice), and separate keys for encryption and for the MAC. How many symmetric session keys does it need?",
+      "answer": 4,
+      "explain": "2 directions × 2 purposes (encryption, MAC) = 4 keys."
+    },
+    {
+      "type": "mc",
+      "category": "Key distribution and session keys",
+      "q": "Alice sends Bob a message encrypted with session keys, plus the session keys encrypted under Bob's public key. What does Bob do?",
+      "choices": [
+        "Decrypts the session keys with his private key, then decrypts the message with the session keys",
+        "Decrypts the message with his private key, then checks the session keys",
+        "Decrypts the session keys with his public key",
+        "Asks Alice to resend the session keys in plaintext"
+      ],
+      "answer": 0,
+      "explain": "The public-key layer only protects the session keys. The message itself is encrypted symmetrically (e.g., AES-128-CBC with HMAC-SHA-256)."
+    },
+    {
+      "type": "mc",
+      "category": "Digital signature basics",
+      "q": "Digital signatures are essentially the public-key version of which symmetric primitive?",
+      "choices": ["Block ciphers", "Stream ciphers", "MACs", "Key derivation functions"],
+      "answer": 2,
+      "explain": "Like MACs, signatures provide integrity and authentication, but they use a private signing key and a public verification key."
+    },
+    {
+      "type": "mc",
+      "category": "Digital signature basics",
+      "q": "In a digital signature scheme, who can create Bob's signatures, and who can verify them?",
+      "choices": [
+        "Anyone can sign; only Bob can verify",
+        "Only Bob can sign and only Bob can verify",
+        "Anyone can sign and anyone can verify",
+        "Only Bob can sign; anyone with his public key can verify"
+      ],
+      "answer": 3,
+      "explain": "This is the reverse of encryption. The private key is needed to sign, and the public key is enough to verify."
+    },
+    {
+      "type": "text",
+      "category": "Digital signature basics",
+      "q": "In a signature scheme, the public key is also called the ______ key.",
+      "answer": ["verification", "verification key", "verifying", "verify"],
+      "explain": "Public key = verification key. Private key = signing key."
+    },
+    {
+      "type": "text",
+      "category": "Digital signature basics",
+      "q": "In a signature scheme, the private key is also called the ______ key.",
+      "answer": ["signing", "signing key", "sign"],
+      "explain": "Private key = signing key. Public key = verification key."
+    },
+    {
+      "type": "multi",
+      "category": "Digital signature basics",
+      "q": "Which algorithms make up a digital signature scheme?",
+      "choices": ["Encrypt", "KeyGen", "Sign", "Decrypt", "Verify"],
+      "answer": [1, 2, 4],
+      "explain": "(PK, SK) = KeyGen(); S = Sign(SK, M); Verify(PK, M, S) returns true or false."
+    },
+    {
+      "type": "tf",
+      "category": "Digital signature basics",
+      "q": "KeyGen is a randomized algorithm, and each call produces a new matching keypair.",
+      "answer": true,
+      "explain": "Each time KeyGen is called, it outputs a fresh (PK, SK) pair."
+    },
+    {
+      "type": "mc",
+      "category": "Digital signature basics",
+      "q": "Which statement is the correctness requirement for a signature scheme?",
+      "choices": [
+        "Verify(SK, M, S) = true for any S",
+        "If (PK, SK) came from KeyGen and S = Sign(SK, M), then Verify(PK, M, S) = true",
+        "Sign(PK, M) = Sign(SK, M)",
+        "Verify returns false for every message Bob never signed"
+      ],
+      "answer": 1,
+      "explain": "Correctness only says that honestly made signatures verify. Rejecting forgeries is a separate requirement, the security property."
+    },
+    {
+      "type": "mc",
+      "category": "Digital signature basics",
+      "q": "Why wouldn't it make sense to create signatures with the public key and verify them with the private key?",
+      "choices": [
+        "Verification would be too slow",
+        "Anyone could produce a valid signature on a malicious message",
+        "The signatures would be too long",
+        "It would reveal the private key"
+      ],
+      "answer": 1,
+      "explain": "If anyone could sign, a signature wouldn't show that the message came from Bob."
+    },
+    {
+      "type": "mc",
+      "category": "RSA signature math",
+      "q": "Euler's totient φ(n) is:",
+      "choices": [
+        "The number of primes less than n",
+        "The largest prime factor of n",
+        "The number of positive integers less than n that share no common factor with n",
+        "n − 1, for every n"
+      ],
+      "answer": 2,
+      "explain": "φ(n) counts the integers in 1…n−1 that are coprime to n. It equals n − 1 only when n is prime."
+    },
+    {
+      "type": "mc",
+      "category": "RSA signature math",
+      "q": "Euler's theorem says that if gcd(x, n) = 1, then:",
+      "choices": ["x^n ≡ 1 (mod φ(n))", "x^φ(n) ≡ 1 (mod n)", "x^φ(n) ≡ 0 (mod n)", "x^2 ≡ 1 (mod n)"],
+      "answer": 1,
+      "explain": "This is Fact 1. It is the reason raising to the power 3d undoes itself in the RSA proof."
+    },
+    {
+      "type": "num",
+      "category": "RSA signature math",
+      "q": "p = 5 and q = 11 (both ≡ 2 mod 3), so n = 55. What is φ(n)?",
+      "answer": 40,
+      "explain": "For distinct odd primes, φ(pq) = (p − 1)(q − 1) = 4 × 10 = 40."
+    },
+    {
+      "type": "num",
+      "category": "RSA signature math",
+      "q": "With φ(n) = 40 (n = 55), find the RSA signing exponent d: the positive value less than 40 with 3d ≡ 1 (mod 40).",
+      "answer": 27,
+      "explain": "3 × 27 = 81 = 2 × 40 + 1, so 3 × 27 ≡ 1 (mod 40)."
+    },
+    {
+      "type": "mc",
+      "category": "RSA signature math",
+      "q": "Why does this RSA signature construction require p ≡ 2 (mod 3) and q ≡ 2 (mod 3)?",
+      "choices": [
+        "So that n is even",
+        "So that p and q are easy to factor",
+        "So that φ(pq) = (p − 1)(q − 1) is not a multiple of 3; then some d with 3d ≡ 1 (mod φ(pq)) exists and cube roots are unique",
+        "So that H(M) is always less than n"
+      ],
+      "answer": 2,
+      "explain": "If p ≡ 2 (mod 3), then p − 1 ≡ 1 (mod 3), and the same holds for q. So (p − 1)(q − 1) is not divisible by 3, and 3 has an inverse d mod φ(pq)."
+    },
+    {
+      "type": "mc",
+      "category": "RSA signature math",
+      "q": "Let F(x) = x^3 mod n and G(x) = x^d mod n, where 3d ≡ 1 (mod φ(n)). Why is G(F(x)) = x when gcd(x, n) = 1?",
+      "choices": [
+        "Because d = 1/3 as an ordinary fraction",
+        "Because 3d = 1 + kφ(n), so x^(3d) = x × (x^φ(n))^k ≡ x × 1^k = x (mod n)",
+        "Because cubing mod n is a linear function",
+        "Because x^3 ≡ x (mod n) for every x"
+      ],
+      "answer": 1,
+      "explain": "This is Theorem 1. Write 3d as 1 plus a multiple of φ(n), then apply Euler's theorem."
+    },
+    {
+      "type": "text",
+      "category": "RSA signature math",
+      "q": "During RSA key generation, which algorithm efficiently computes d from φ(pq) (that is, finds d with 3d ≡ 1 mod φ(pq))?",
+      "answer": ["extended Euclidean algorithm", "extended Euclidean", "extended euclidean algorithm", "extended Euclid", "extended Euclid's algorithm", "extended GCD", "extended gcd"],
+      "explain": "The extended Euclidean algorithm computes modular inverses. Doing this requires φ(pq), which requires knowing p and q."
+    },
+    {
+      "type": "tf",
+      "category": "RSA signature math",
+      "q": "When p and q are large (e.g., 1024-bit primes), computing cube roots mod n is believed to be infeasible for someone who knows only n (not p, q or d).",
+      "answer": true,
+      "explain": "It is also believed hard to factor n or to recover d from n. RSA's security depends on this assumption."
+    },
+    {
+      "type": "mc",
+      "category": "RSA signature scheme",
+      "q": "In the RSA signature scheme described here, what are the public key and the private key?",
+      "choices": [
+        "Public: d; private: n",
+        "Public: n = pq; private: d",
+        "Public: p; private: q",
+        "Public: the hash function H; private: n"
+      ],
+      "answer": 1,
+      "explain": "Anyone with n can cube mod n to verify. The private d lets the signer take cube roots."
+    },
+    {
+      "type": "mc",
+      "category": "RSA signature scheme",
+      "q": "How is the RSA signature on a message M computed?",
+      "choices": ["S = M^3 mod n", "S = H(M)^3 mod n", "S = H(M^d) mod n", "S = H(M)^d mod n"],
+      "answer": 3,
+      "explain": "Sign_d(M) = H(M)^d mod n, that is, the cube root of H(M) mod n, computed using the trapdoor d."
+    },
+    {
+      "type": "mc",
+      "category": "RSA signature scheme",
+      "q": "How does a verifier check a signature S on message M under public key n?",
+      "choices": [
+        "Check that S = H(M)^3 mod n",
+        "Check that H(M) = S^3 mod n",
+        "Check that M = S^d mod n",
+        "Check that H(S) = M^3 mod n"
+      ],
+      "answer": 1,
+      "explain": "A valid signature satisfies H(M) = F(S) = S^3 mod n. Only public values are needed to check this."
+    },
+    {
+      "type": "num",
+      "category": "RSA signature scheme",
+      "q": "Public key n = 55, private key d = 27. A message has H(M) = 2. What is its RSA signature S = H(M)^d mod n?",
+      "answer": 18,
+      "explain": "2^8 = 256 ≡ 36 and 2^16 ≡ 36^2 = 1296 ≡ 31 (mod 55). 2^27 = 2^16 × 2^8 × 2^2 × 2 ≡ 31 × 36 × 4 × 2 ≡ 18. Check: 18^3 = 5832 ≡ 2 (mod 55)."
+    },
+    {
+      "type": "tf",
+      "category": "RSA signature scheme",
+      "q": "Under public key n = 55, S = 17 is a valid RSA signature on a message with H(M) = 2.",
+      "answer": false,
+      "explain": "17^3 = 4913 ≡ 18 (mod 55), since 55 × 89 = 4895. That is not H(M) = 2, so verification fails."
+    },
+    {
+      "type": "mc",
+      "category": "RSA signature scheme",
+      "q": "A forger without d picks a candidate signature S and computes y = S^3 mod n. Why can't she turn this into a forgery?",
+      "choices": [
+        "Computing S^3 mod n requires d",
+        "She would need a message M with H(M) = y, and H is one-way",
+        "y is always larger than n",
+        "Verification also checks that S was produced recently"
+      ],
+      "answer": 1,
+      "explain": "Starting from the signature side gets stuck at inverting H, which has no trapdoor."
+    },
+    {
+      "type": "mc",
+      "category": "RSA signature scheme",
+      "q": "A forger without d picks a message M and computes H(M). What stops her from producing a valid signature?",
+      "choices": [
+        "She can't compute H(M), because H is secret",
+        "She needs Bob's public key, which is secret",
+        "She can't compute the cube root H(M)^d mod n without the trapdoor",
+        "H(M) is always 0 mod n"
+      ],
+      "answer": 2,
+      "explain": "Starting from the message side gets stuck at inverting F (taking cube roots mod n), which requires the private key."
+    },
+    {
+      "type": "tf",
+      "category": "RSA signature scheme",
+      "q": "The hash function H in RSA signatures is a trapdoor function, and its trapdoor is part of the signer's private key.",
+      "answer": false,
+      "explain": "H is a public, standardized one-way function with no trapdoor. Everyone can compute it, and no one can invert it. The only trapdoor is the one for F, namely d."
+    },
+    {
+      "type": "mc",
+      "category": "RSA signature scheme",
+      "q": "What is the intuition behind the RSA trapdoor used for signatures?",
+      "choices": [
+        "Anyone can take cube roots mod n, but cubing mod n is hard",
+        "Multiplying primes is hard, but factoring is easy",
+        "Anyone can cube a number mod n, but taking cube roots mod n is believed hard without knowing the factorization of n",
+        "Hashing is easy, but checking a hash is hard"
+      ],
+      "answer": 2,
+      "explain": "F(x) = x^3 mod n is easy for everyone. G(y) = y^d mod n (the cube root) needs d, which comes from the factorization."
+    },
+    {
+      "type": "mc",
+      "category": "Signature security",
+      "q": "In the signature security game, when does the adversary Georgia win?",
+      "choices": [
+        "When she outputs any (M, S) for which Verify returns true",
+        "When she recovers the private key",
+        "When she gets the referee to sign a message of her choice",
+        "When she outputs (M, S) for which Verify returns true and M was never one of her signing queries"
+      ],
+      "answer": 3,
+      "explain": "A forgery only counts if it is on a message the referee was never asked to sign."
+    },
+    {
+      "type": "tf",
+      "category": "Signature security",
+      "q": "If Georgia asks the referee to sign M, receives S, and then outputs that same (M, S), she wins the game.",
+      "answer": false,
+      "explain": "Repeating a signature she was given is not a forgery. M must be a message she never queried."
+    },
+    {
+      "type": "mc",
+      "category": "Signature security",
+      "q": "Under the security definition, when is a signature scheme declared insecure?",
+      "choices": [
+        "When Georgia has a strategy to forge with non-negligible probability (say ≥ 1/2^40), given generous computation (say 2^80 steps) and a reasonable number of signing queries (say 2^40)",
+        "Only when Georgia can forge, with probability 1, a signature on a specific message the referee chooses",
+        "When Georgia can verify signatures without the private key",
+        "Only when Georgia learns the private key"
+      ],
+      "answer": 0,
+      "explain": "Any noticeable chance of forging any new message breaks the scheme. Verifying without the private key is how signatures are supposed to work."
+    },
+    {
+      "type": "mc",
+      "category": "Signature security",
+      "q": "Why is this security definition considered very stringent?",
+      "choices": [
+        "It requires signatures to also keep messages confidential",
+        "The scheme counts as broken if Georgia forges a signature on any message of her choice, even after getting many messages of her choice signed",
+        "The scheme counts as broken if verification ever takes more than 2^40 steps",
+        "It hides the public key from Georgia"
+      ],
+      "answer": 1,
+      "explain": "Georgia gets to pick which messages are signed and which message to forge on. The scheme must resist all of that. RSA signatures are believed to meet this definition."
+    },
+    {
+      "type": "mc",
+      "category": "Signature security",
+      "q": "Besides the public-key math, what else does signature security depend on?",
+      "choices": [
+        "The secrecy of the verification key",
+        "The length of the message",
+        "The underlying hash function; signatures have been broken in the past through hash collisions",
+        "How fast the verifier is"
+      ],
+      "answer": 2,
+      "explain": "The scheme signs H(M). If H is compromised, signatures can be broken even when the public-key algorithm is fine."
+    },
+    {
+      "type": "mc",
+      "category": "Signature security",
+      "q": "An attacker finds two messages M1 ≠ M2 with H(M1) = H(M2), and gets Bob to sign the harmless M1. What can she do?",
+      "choices": [
+        "Nothing, because the signature is tied to M1 only",
+        "Recover Bob's private key d",
+        "Present Bob's signature on M1 as a valid signature on M2",
+        "Sign arbitrary new messages"
+      ],
+      "answer": 2,
+      "explain": "Verification only checks H(M) = S^3 mod n. Because H(M2) = H(M1), the same S verifies for M2."
+    },
+    {
+      "type": "tf",
+      "category": "Signature security",
+      "q": "Modern digital signature schemes, such as RSA signatures, are believed to meet this stringent security definition.",
+      "answer": true,
+      "explain": "They are believed secure as long as the underlying hash function also holds up."
+    }
+  ]
+}

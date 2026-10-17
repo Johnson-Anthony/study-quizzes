@@ -1,0 +1,660 @@
+{
+  "title": "CS161 13: SQL Injection, the Web and Same-Origin Policy",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Code & SQL Injection Attacks",
+      "q": "A calculator website passes whatever the user types straight into Python's `eval` on the server. What is the core reason this is dangerous?",
+      "choices": [
+        "eval is slow, so long expressions let an attacker cause a denial of service",
+        "User input becomes part of the code the server runs, so a crafted input can make the server execute unintended code",
+        "eval prints the server's source code back to the user",
+        "eval only accepts numbers, so non-numeric input crashes the server"
+      ],
+      "answer": 1,
+      "explain": "This is code injection: unchecked input gets interpreted as code. An input that closes the expression and appends something like `os.system(...)` could make the server run any command, such as deleting its files."
+    },
+    {
+      "type": "mc",
+      "category": "Code & SQL Injection Attacks",
+      "q": "What is the relationship between SQL injection and code injection?",
+      "choices": [
+        "They are unrelated: code injection targets browsers and SQL injection targets servers",
+        "Code injection is a special case of SQL injection",
+        "SQL injection is a special case of code injection, where the injected code is SQL run by the database",
+        "SQL injection can only read data, while code injection can only modify data"
+      ],
+      "answer": 2,
+      "explain": "Both work the same way: the server builds code (here, a SQL query) out of user input, and crafted input changes what that code does."
+    },
+    {
+      "type": "mc",
+      "category": "Code & SQL Injection Attacks",
+      "q": "A server builds `SELECT rating FROM evals WHERE course = '<input>'`. An attacker submits `garbage'; SELECT password FROM passwords WHERE username = 'admin`. What does the single quote right after `garbage` do?",
+      "choices": [
+        "It starts a SQL comment so the rest of the original query is ignored",
+        "It closes the string opened by the original query, so the text after it is parsed as SQL code instead of string data",
+        "It ends the first query so a second query can begin",
+        "It escapes the semicolon so the server doesn't notice it"
+      ],
+      "answer": 1,
+      "explain": "Without that quote, everything the attacker typed would stay inside the course-name string. The `;` is what ends the first query."
+    },
+    {
+      "type": "mc",
+      "category": "Code & SQL Injection Attacks",
+      "q": "A server builds `SELECT rating FROM evals WHERE course = '<input>'`. The attacker's input `garbage'; SELECT password FROM passwords WHERE username = 'admin` has no closing quote after `admin`. Why?",
+      "choices": [
+        "The original query template adds a quote after the input, which completes `'admin'`",
+        "SQL string literals at the end of a query don't need a closing quote",
+        "A closing quote would be escaped by the server",
+        "The `;` earlier in the input already closed all strings"
+      ],
+      "answer": 0,
+      "explain": "The template wraps the input in quotes. The template's own closing quote ends up right after `admin`, so the result is valid SQL. An extra quote from the attacker would leave an unmatched quote."
+    },
+    {
+      "type": "mc",
+      "category": "Code & SQL Injection Attacks",
+      "q": "In the injection `garbage'; SELECT password FROM passwords WHERE username = 'admin` against `SELECT rating FROM evals WHERE course = '<input>'`, why does the input start with a junk value like `garbage` instead of a real course name?",
+      "choices": [
+        "So the database raises an error that reveals the table structure",
+        "Because the server rejects inputs that match real course names",
+        "So the semicolon is treated as part of the string",
+        "So the intended query returns nothing and doesn't get mixed into the attacker's results"
+      ],
+      "answer": 3,
+      "explain": "The first, intended query gets a value that matches no rows, so only the attacker's query returns anything useful."
+    },
+    {
+      "type": "mc",
+      "category": "Code & SQL Injection Attacks",
+      "q": "A login page runs `SELECT username FROM users WHERE username = '<u>' AND password = '<p>'` and logs you in if any rows come back. You enter username `alice' OR 1=1--` and password `garbage`. Why does this log you in?",
+      "choices": [
+        "`OR 1=1` is always true, so the WHERE clause matches every row, and `--` comments out the password check and the leftover quote",
+        "`1=1` sets alice's password to 1, which the password comparison then matches",
+        "`--` deletes alice's password, so any password is accepted",
+        "The query fails with a syntax error, and the server treats errors as successful logins"
+      ],
+      "answer": 0,
+      "explain": "The query becomes `... WHERE username = 'alice' OR 1=1--' AND password = 'garbage'`. Everything after `--` is a comment, and `OR 1=1` makes the condition true for every row, so more than 0 rows come back."
+    },
+    {
+      "type": "tf",
+      "category": "Code & SQL Injection Attacks",
+      "q": "The `' OR 1=1--` login bypass only works if the attacker knows at least one valid username.",
+      "answer": false,
+      "explain": "`1=1` is true for every row, so the query returns rows whether or not the username before it exists. The login check only needs more than 0 rows."
+    },
+    {
+      "type": "text",
+      "category": "Code & SQL Injection Attacks",
+      "q": "Which two-character sequence starts a comment in SQL, so the parser ignores the rest of the query?",
+      "answer": ["--"],
+      "explain": "Attackers append `--` so leftover parts of the original query (closing quotes, password checks) are ignored."
+    },
+    {
+      "type": "multi",
+      "category": "Code & SQL Injection Attacks",
+      "q": "After breaking out of the string in an injected login query, the leftover original text (e.g. `' AND password = '...'`) must not cause a syntax error. Which techniques deal with that leftover text?",
+      "choices": [
+        "Append `--` so the rest of the query is treated as a comment",
+        "Append `;` and then a dummy query whose ending matches the remaining original SQL",
+        "Append `OR 1=1`",
+        "Start the input with a junk value"
+      ],
+      "answer": [0, 1],
+      "explain": "A comment hides the leftover SQL, and `;` plus a dummy query turns it into the end of a valid second statement. `OR 1=1` only makes rows come back, and a junk value only keeps the intended query empty. Neither fixes the trailing syntax."
+    },
+    {
+      "type": "mc",
+      "category": "SQL Injection Defenses",
+      "q": "What does it mean to escape a character in input that goes into a SQL query?",
+      "choices": [
+        "Remove the character from the input",
+        "Mark the character so SQL treats it as a literal part of the string instead of SQL syntax",
+        "Encrypt the character so the database can't read it",
+        "Reject the whole request if the character appears"
+      ],
+      "answer": 1,
+      "explain": "For example, an escaped quote doesn't end the current string, so malicious input stays string data and the parser never runs it as SQL."
+    },
+    {
+      "type": "mc",
+      "category": "SQL Injection Defenses",
+      "q": "A server escapes every `'` and `-` in user input before building `SELECT username FROM users WHERE username = '<u>' AND password = '<p>'`. An attacker enters username `alice' OR 1=1--`. What happens?",
+      "choices": [
+        "The login succeeds because `OR 1=1` is still evaluated",
+        "The quote is neutralized, but the `--` comment still takes effect",
+        "The database looks for a user whose name is literally `alice' OR 1=1--` and finds nothing",
+        "The query errors out because escaped characters aren't allowed in SQL"
+      ],
+      "answer": 2,
+      "explain": "The escaped quote doesn't end the username string and the escaped dashes don't start a comment, so the whole input is just a strange username."
+    },
+    {
+      "type": "mc",
+      "category": "SQL Injection Defenses",
+      "q": "A homemade escaper replaces each `'` with `\\'`. An attacker types `\\'` (a backslash then a quote), and the escaper outputs `\\\\'`. Why can the attacker still break out of the string?",
+      "choices": [
+        "The parser reads `\\\\` as one escaped backslash, so the quote after it is unescaped and ends the string",
+        "Escaping the quote twice cancels out and turns it into a comment",
+        "The parser drops all backslashes in front of quotes",
+        "They can't. Doubled backslashes always make the quote literal"
+      ],
+      "answer": 0,
+      "explain": "The escaper only escaped the quote, not the attacker's backslash. The two backslashes pair up as a literal backslash, leaving a real quote. Edge cases like this are why you shouldn't write your own escaper."
+    },
+    {
+      "type": "mc",
+      "category": "SQL Injection Defenses",
+      "q": "How do parameterized SQL / prepared statements stop SQL injection?",
+      "choices": [
+        "They automatically escape quotes and dashes before building the query string",
+        "They reject any input containing SQL keywords like SELECT or OR",
+        "They run every query read-only so injected writes fail",
+        "The query is compiled and parsed first and user input is plugged in afterward, so input can never be read as SQL code"
+      ],
+      "answer": 3,
+      "explain": "The query's structure is fixed before the input arrives, so no input can change what the query does."
+    },
+    {
+      "type": "tf",
+      "category": "SQL Injection Defenses",
+      "q": "Parameterized SQL prevents all SQL injection attacks.",
+      "answer": true,
+      "explain": "User input is added only after the query has been parsed, so it is always treated as data and never as SQL. That makes parameterized SQL the best defense."
+    },
+    {
+      "type": "mc",
+      "category": "SQL Injection Defenses",
+      "q": "What is the main drawback of parameterized SQL?",
+      "choices": [
+        "It is slower than escaping because every query is compiled twice",
+        "Compatibility: it needs support from the database itself and has no common standard, which can make switching databases harder",
+        "It only protects SELECT queries, not INSERT or UPDATE",
+        "It still lets attackers inject comments with `--`"
+      ],
+      "answer": 1,
+      "explain": "Plain SQL is mostly portable across databases, but parameterization is processed on the database side with no shared syntax. Libraries usually handle the translation."
+    },
+    {
+      "type": "mc",
+      "category": "SQL Injection Defenses",
+      "q": "Even with a correct escaper from a well-tested SQL library, why is escaping often an ineffective defense in a codebase that builds SQL from raw user input?",
+      "choices": [
+        "Every single query must be escaped correctly, and one missed call leaves a vulnerability",
+        "Library escapers are always broken by the backslash-quote trick",
+        "Escaped input can't be stored in the database",
+        "Escaping only works for GET requests, not POST requests"
+      ],
+      "answer": 0,
+      "explain": "Escaping depends on never forgetting it anywhere. Parameterized SQL is far more robust."
+    },
+    {
+      "type": "mc",
+      "category": "SQL Injection Defenses",
+      "q": "A team wants to rule out SQL injection in its application, but its SQL library doesn't support parameterized queries. What's the best approach?",
+      "choices": [
+        "Write a custom escaper tailored to their database",
+        "Strip the words SELECT, OR and DROP from all input",
+        "Switch to a SQL library that supports parameterized SQL, then replace every query call with the parameterized API",
+        "Send every query through a POST request"
+      ],
+      "answer": 2,
+      "explain": "Most modern libraries support parameterized SQL, and safe and unsafe queries use separate API functions. Finding every query and switching it to the parameterized call removes the whole class of bugs."
+    },
+    {
+      "type": "tf",
+      "category": "SQL Injection Defenses",
+      "q": "When you do need to escape SQL input, writing your own escaper is better than using your SQL library's, because you can tailor it to your queries.",
+      "answer": false,
+      "explain": "Building a correct escaper is tricky and full of edge cases. Secure escapers already exist in SQL libraries for almost every language."
+    },
+    {
+      "type": "mc",
+      "category": "URLs",
+      "q": "In `https://bob@shop.example.com:8443/cart/view?item=42&qty=3#reviews`, what is the path?",
+      "choices": [
+        "`shop.example.com/cart/view`",
+        "`/cart/view`",
+        "`/cart/view?item=42&qty=3`",
+        "`/cart/view?item=42&qty=3#reviews`"
+      ],
+      "answer": 1,
+      "explain": "The path starts at the first single slash after the location and ends before the `?` parameters."
+    },
+    {
+      "type": "num",
+      "category": "URLs",
+      "q": "In `https://bob@shop.example.com:8443/cart/view?item=42&qty=3#reviews`, what is the port number?",
+      "answer": 8443,
+      "explain": "The port follows the domain after a colon, as part of the location."
+    },
+    {
+      "type": "mc",
+      "category": "URLs",
+      "q": "When the browser fetches `https://shop.example.com/cart/view?item=42&qty=3#reviews`, which part is NOT sent to the web server?",
+      "choices": [
+        "`reviews` (the anchor)",
+        "`item=42&qty=3` (the parameters)",
+        "`/cart/view` (the path)",
+        "`shop.example.com` (the domain)"
+      ],
+      "answer": 0,
+      "explain": "The anchor stays in the browser. The page can read it, and it's often used to scroll to a section. The parameters and path go to the server, and the domain is sent in the Host header."
+    },
+    {
+      "type": "multi",
+      "category": "URLs",
+      "q": "Which parts are mandatory in every URL?",
+      "choices": [
+        "Protocol (scheme)",
+        "Location (domain)",
+        "Path",
+        "Port",
+        "Query parameters",
+        "Anchor",
+        "Username"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Port, parameters, anchor and username are all optional. The path can be as short as `/`."
+    },
+    {
+      "type": "mc",
+      "category": "URLs",
+      "q": "What does the protocol (scheme) part of a URL tell the browser?",
+      "choices": [
+        "Which web server to contact",
+        "Which resource on the server to request",
+        "How to retrieve the resource",
+        "Where on the page to scroll"
+      ],
+      "answer": 2,
+      "explain": "Examples are `http`, `https`, `ftp` and `git+ssh`. The location says which server to contact, and the path says which resource to request."
+    },
+    {
+      "type": "mc",
+      "category": "URLs",
+      "q": "Which part of a URL does the web server use to decide which page or resource to return?",
+      "choices": [
+        "The protocol",
+        "The anchor",
+        "The username",
+        "The path"
+      ],
+      "answer": 3,
+      "explain": "The path works like a file path on the server, starting from the root `/`."
+    },
+    {
+      "type": "mc",
+      "category": "URLs",
+      "q": "Why might a URL's location include a port number, as in `www.example.com:81`?",
+      "choices": [
+        "To distinguish between different applications running on the same web server",
+        "To choose which file on the server to return",
+        "To tell the browser to use an encrypted connection",
+        "To identify the user making the request"
+      ],
+      "answer": 0,
+      "explain": "One machine can run several services, and the port says which one to talk to."
+    },
+    {
+      "type": "text",
+      "category": "URLs",
+      "q": "What is the shortest possible path in a URL (the root of the site's filesystem)?",
+      "answer": ["/"],
+      "explain": "The path must contain at least `/`. It's called the root because the filesystem is a tree that starts there."
+    },
+    {
+      "type": "mc",
+      "category": "URLs",
+      "q": "In a URL, which character starts the parameters and which character separates them from each other?",
+      "choices": [
+        "`#` starts them and `&` separates them",
+        "`?` starts them and `&` separates them",
+        "`?` starts them and `;` separates them",
+        "`&` starts them and `?` separates them"
+      ],
+      "answer": 1,
+      "explain": "For example, `?k1=v1&k2=v2`. Each parameter is usually a `key=value` pair."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP",
+      "q": "In HTTP's request-response model, how does an exchange begin?",
+      "choices": [
+        "The server pushes pages to clients as soon as the pages change",
+        "The client (e.g. a browser) opens a connection to the server and sends a request, and the server answers it",
+        "Client and server send requests to each other at the same time",
+        "The server opens a connection to the client once it learns the client's address"
+      ],
+      "answer": 1,
+      "explain": "Clients must actively start the connection and issue a request. The server sends a response to every request."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP",
+      "q": "The first line of an HTTP request is `POST /login HTTP/1.1`. What are its three parts, in order?",
+      "choices": [
+        "Method, path, protocol version",
+        "Path, method, host",
+        "Method, host, content type",
+        "Protocol, domain, path"
+      ],
+      "answer": 0,
+      "explain": "`POST` is the method, `/login` is the path, and `HTTP/1.1` is the protocol version. Header lines come after it."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP",
+      "q": "In an HTTP request, the lines right after the first line (e.g. `Host: squigler.com`, `Dnt: 1`) are:",
+      "choices": [
+        "Query parameters",
+        "The request body",
+        "Request headers",
+        "Response headers"
+      ],
+      "answer": 2,
+      "explain": "Each line after the request line is a header carrying metadata about the request. In a POST request, the body comes after the headers."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP",
+      "q": "Which HTTP method is meant for sending information that changes the server's state, such as posting a forum comment or changing a password?",
+      "choices": [
+        "GET",
+        "POST",
+        "Either one. HTTP doesn't intend any difference"
+      ],
+      "answer": 1,
+      "explain": "GET is meant for getting information. POST is meant for sending data that modifies the server's internal state."
+    },
+    {
+      "type": "tf",
+      "category": "HTTP",
+      "q": "Of GET and POST, only POST requests can carry a body. A GET request passes data through query parameters in the URL instead.",
+      "answer": true,
+      "explain": "For example, `GET /posts?search=security&sortby=popularity` sends two parameters in the URL, while a POST login sends `username=...&password=...` in its body."
+    },
+    {
+      "type": "tf",
+      "category": "HTTP",
+      "q": "Because HTTP's original model says GET requests shouldn't change server state, modern web applications never change state in response to a GET request.",
+      "answer": false,
+      "explain": "The original model intended that, but modern web applications often do change server state based on GET query parameters."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP",
+      "q": "How does HTTP2 differ from HTTP 1.1?",
+      "choices": [
+        "HTTP2 adds encryption, which HTTP 1.1 lacks",
+        "HTTP2 drops headers and sends only payloads",
+        "HTTP2 lets servers open connections to clients",
+        "HTTP 1.1 is text-based, while HTTP2 is binary-encoded for efficiency. The same concepts of headers and payloads apply"
+      ],
+      "answer": 3,
+      "explain": "Both versions use requests and responses made of headers plus a payload. Only the encoding differs."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP",
+      "q": "What is HTTPS?",
+      "choices": [
+        "A secure version of HTTP that runs over TLS",
+        "HTTP that uses only POST requests",
+        "The binary-encoded version of HTTP",
+        "HTTP with the username included in the URL"
+      ],
+      "answer": 0,
+      "explain": "HTTPS is HTTP over TLS. The binary-encoded version is HTTP2, which is a different thing."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP",
+      "q": "HTTP can return any kind of file. How does the browser know whether a response body is an HTML page, an image or a PDF?",
+      "choices": [
+        "From the anchor in the URL",
+        "It always assumes HTML",
+        "A media type in the response header tells it how to interpret the body",
+        "From the request method used"
+      ],
+      "answer": 2,
+      "explain": "The response header usually specifies a media type, such as an HTML or image type."
+    },
+    {
+      "type": "mc",
+      "category": "Web Page Elements",
+      "q": "A modern web page can be thought of as a distributed application. What does that mean?",
+      "choices": [
+        "Part of it runs on the web server, which builds the HTTP response, and part runs in the browser, which processes the response and displays it",
+        "It is loaded from several servers at once for redundancy",
+        "Each user's browser shares computation with other users' browsers",
+        "Its HTML, CSS and JavaScript must come from different domains"
+      ],
+      "answer": 0,
+      "explain": "The browser sends a request, the server computes and sends a response, and then the browser computes on that response and shows the result."
+    },
+    {
+      "type": "text",
+      "category": "Web Page Elements",
+      "q": "Which HTML tag embeds an entire other web page inside the current page?",
+      "answer": ["iframe", "<iframe>"],
+      "explain": "For example, `<iframe src=\"http://cs161.org\"></iframe>`. Frames are risky because the inner page may come from a different, possibly malicious source."
+    },
+    {
+      "type": "mc",
+      "category": "Web Page Elements",
+      "q": "What does frame isolation guarantee when a page embeds another page in a frame?",
+      "choices": [
+        "The inner page can't run JavaScript",
+        "The outer page can read the inner page but not modify it",
+        "The outer page can't change the inner page's contents, and the inner page can't change the outer page's contents",
+        "The inner page must come from the same domain as the outer page"
+      ],
+      "answer": 2,
+      "explain": "Modern browsers enforce this in both directions, because the embedded page might be malicious, or the page embedding it might be."
+    },
+    {
+      "type": "tf",
+      "category": "Web Page Elements",
+      "q": "If an attacker can force a victim's browser to load malicious CSS, that's functionally as bad as forcing it to load malicious JavaScript.",
+      "answer": true,
+      "explain": "Used maliciously, CSS is as powerful as JavaScript, even though it looks like it only controls fonts, colors and spacing."
+    },
+    {
+      "type": "mc",
+      "category": "Web Page Elements",
+      "q": "In what order does a browser process an HTML document?",
+      "choices": [
+        "Render the HTML, then run JavaScript on the rendered output",
+        "Convert the HTML into the DOM, apply JavaScript to the DOM, then render the DOM",
+        "Run JavaScript first, turn its output into HTML, then build the DOM",
+        "Convert the HTML into CSS, then into JavaScript, then render"
+      ],
+      "answer": 1,
+      "explain": "The DOM (Document Object Model) is the browser's internal form of the page. JavaScript changes the DOM, and then the browser renders it."
+    },
+    {
+      "type": "tf",
+      "category": "Web Page Elements",
+      "q": "In general, JavaScript on a page can arbitrarily modify any of that page's HTML or CSS.",
+      "answer": true,
+      "explain": "JavaScript is very powerful, and that is why browsers sandbox it from the rest of your computer and from other pages."
+    },
+    {
+      "type": "mc",
+      "category": "Web Page Elements",
+      "q": "Why do browsers run JavaScript in a sandbox?",
+      "choices": [
+        "To make JavaScript run faster through Just In Time compilation",
+        "To stop JavaScript from changing the page's HTML and CSS",
+        "To stop JavaScript from making any HTTP requests",
+        "So code loaded from a web page can't access sensitive data on your computer or data on other web pages"
+      ],
+      "answer": 3,
+      "explain": "JavaScript can freely change its own page. The sandbox keeps it from reaching outside that page."
+    },
+    {
+      "type": "multi",
+      "category": "Web Page Elements",
+      "q": "Why do most exploits that target the web browser itself need JavaScript?",
+      "choices": [
+        "The vulnerability is often in the browser's JavaScript engine",
+        "JavaScript can shape the program's memory layout to make the attack more likely to succeed",
+        "JavaScript is the only language that can make HTTP requests",
+        "JavaScript runs outside the browser's sandbox"
+      ],
+      "answer": [0, 1],
+      "explain": "Either the bug is in the JavaScript engine, or JavaScript is used to arrange memory so a memory-safety exploit works reliably. JavaScript does run inside a sandbox."
+    },
+    {
+      "type": "mc",
+      "category": "Web Page Elements",
+      "q": "How do almost all web browsers run JavaScript?",
+      "choices": [
+        "Line-by-line interpretation with no compilation",
+        "Just In Time compilation into machine code",
+        "Ahead-of-time compilation on the web server",
+        "By sending it to the server to run and showing the result"
+      ],
+      "answer": 1,
+      "explain": "Browsers convert JavaScript into machine code dynamically, because running JavaScript fast matters so much."
+    },
+    {
+      "type": "mc",
+      "category": "Same-Origin Policy",
+      "q": "You have `www.evil.com` open in one tab and your webmail in another. What does the same-origin policy prevent?",
+      "choices": [
+        "The evil page reading your emails or sending emails as you through the webmail page",
+        "The evil page being loaded at all",
+        "Network eavesdroppers seeing your traffic to the evil site",
+        "The webmail page running any JavaScript"
+      ],
+      "answer": 0,
+      "explain": "The browser isolates pages from each other unless they have the same origin, so the evil page can't touch the webmail page."
+    },
+    {
+      "type": "multi",
+      "category": "Same-Origin Policy",
+      "q": "Which components determine a web page's origin?",
+      "choices": [
+        "Protocol",
+        "Domain name",
+        "Port",
+        "Path",
+        "Query parameters",
+        "Username"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Origin = protocol + domain + port. Paths are not checked."
+    },
+    {
+      "type": "mc",
+      "category": "Same-Origin Policy",
+      "q": "How does the same-origin policy decide whether two pages share an origin?",
+      "choices": [
+        "It checks whether both domains resolve to the same IP address",
+        "It treats a subdomain as the same origin as its parent domain",
+        "It compares the two sites' TLS certificates",
+        "Exact string matching on protocol, domain and port"
+      ],
+      "answer": 3,
+      "explain": "All three must match exactly. That's why `example.com` and `www.example.com` are different origins."
+    },
+    {
+      "type": "mc",
+      "category": "Same-Origin Policy",
+      "q": "Which pair of URLs has the same origin?",
+      "choices": [
+        "`http://example.com` and `http://www.example.com`",
+        "`https://shop.example.com/cart` and `https://shop.example.com:443/checkout?id=5`",
+        "`http://example.com` and `https://example.com`",
+        "`http://example.com:8080` and `http://example.com:8081`"
+      ],
+      "answer": 1,
+      "explain": "Both are https with domain shop.example.com, and https defaults to port 443. Paths and parameters don't matter. The other pairs differ in domain, protocol or port."
+    },
+    {
+      "type": "tf",
+      "category": "Same-Origin Policy",
+      "q": "`http://example.com/a` and `http://example.com:80/b` have the same origin.",
+      "answer": true,
+      "explain": "http defaults to port 80, so the ports match. The protocol and domain match too, and paths aren't checked."
+    },
+    {
+      "type": "mc",
+      "category": "Same-Origin Policy",
+      "q": "Do `https://example.com` and `https://example.com:80` have the same origin?",
+      "choices": [
+        "Yes: the protocol and domain match, and the port is ignored",
+        "Yes: 80 is the default port for every protocol",
+        "No: with no port given, https defaults to 443, which doesn't match 80",
+        "No: the second URL has no path"
+      ],
+      "answer": 2,
+      "explain": "Default ports are 80 for http and 443 for https. The first URL is effectively port 443."
+    },
+    {
+      "type": "num",
+      "category": "Same-Origin Policy",
+      "q": "When an `https` URL doesn't specify a port, what port number is assumed when comparing origins?",
+      "answer": 443,
+      "explain": "https defaults to port 443, and http defaults to port 80."
+    },
+    {
+      "type": "mc",
+      "category": "Same-Origin Policy",
+      "q": "A page at `http://news.example` includes `<script src=\"http://ads.tracker.com/t.js\"></script>`. What origin does that script run with?",
+      "choices": [
+        "`http://ads.tracker.com`, where it was fetched from",
+        "`http://news.example`, the page that loads it",
+        "None. Scripts from other domains are blocked",
+        "Both origins at once"
+      ],
+      "answer": 1,
+      "explain": "JavaScript runs with the origin of the page that loads it, not the origin it was downloaded from. Including a third-party script gives it full access as your page."
+    },
+    {
+      "type": "mc",
+      "category": "Same-Origin Policy",
+      "q": "A page at `http://news.example` embeds `<iframe src=\"https://mail.example.com\"></iframe>`. What origin does the frame have?",
+      "choices": [
+        "`https://mail.example.com`, the URL it was retrieved from",
+        "`http://news.example`, the page that embeds it",
+        "`http://mail.example.com`, because the outer page uses http",
+        "None until the user interacts with it"
+      ],
+      "answer": 0,
+      "explain": "Frames take the origin of the URL they load, not the origin of the page embedding them. Scripts are the opposite."
+    },
+    {
+      "type": "mc",
+      "category": "Same-Origin Policy",
+      "q": "A page at `http://news.example` loads an image from `http://photos.example.net/cat.jpg`. Which statement is true?",
+      "choices": [
+        "The image takes the origin `http://news.example`, so the page can read its pixels",
+        "The image is blocked because it comes from a different origin",
+        "The image has no origin",
+        "The image has the origin `http://photos.example.net`, and the loading page only learns its dimensions"
+      ],
+      "answer": 3,
+      "explain": "Images keep the origin they come from. The page that embeds the image can display it but only knows its dimensions."
+    },
+    {
+      "type": "mc",
+      "category": "Same-Origin Policy",
+      "q": "How can two pages from different origins communicate in a controlled way?",
+      "choices": [
+        "By embedding each other in frames, which lets each edit the other's DOM",
+        "By loading each other's scripts, which merges their origins",
+        "Through JavaScript's `postMessage` function, which allows only limited functionality",
+        "They can't communicate at all"
+      ],
+      "answer": 2,
+      "explain": "`postMessage` is the special exception for cross-origin communication. Frame isolation stops frames from editing each other."
+    }
+  ]
+}
