@@ -1,0 +1,391 @@
+{
+  "title": "HTTP Host Header Attacks",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Host header fundamentals",
+      "q": "As of which HTTP version is the Host header a mandatory request header?",
+      "choices": ["HTTP/1.0", "HTTP/1.1", "HTTP/2", "HTTP/3"],
+      "answer": 1,
+      "explain": "The Host header became mandatory as of HTTP/1.1."
+    },
+    {
+      "type": "mc",
+      "category": "Host header fundamentals",
+      "q": "What does the HTTP Host header specify, and what is its purpose?",
+      "choices": [
+        "The client's own IP address, so the server can reply",
+        "The domain name the client wants to access, helping identify which back-end component to route to",
+        "The preferred content language of the response",
+        "The TLS cipher suite to use for the connection"
+      ],
+      "answer": 1,
+      "explain": "It specifies the domain the client wants to reach so the server/intermediary can route the request to the intended back-end component."
+    },
+    {
+      "type": "tf",
+      "category": "Host header fundamentals",
+      "q": "Historically, routing ambiguity didn't exist because each IP address only hosted content for a single domain.",
+      "answer": true,
+      "explain": "Nowadays multiple sites commonly share one IP (cloud/SaaS, CDNs), partly due to IPv4 address exhaustion, which is why the Host header is needed to disambiguate."
+    },
+    {
+      "type": "text",
+      "category": "Host header fundamentals",
+      "q": "What term describes multiple websites hosted on a single server, each with a different domain name but sharing a common IP address?",
+      "answer": ["virtual hosts", "virtual host", "virtual hosting"],
+      "explain": "Sites hosted this way on one server are known as 'virtual hosts'; to a normal user a virtual host is often indistinguishable from a dedicated server."
+    },
+    {
+      "type": "mc",
+      "category": "Host header fundamentals",
+      "q": "In a setup where all of a site's domains resolve to a single intermediary IP (e.g. a CDN, load balancer, or reverse proxy), what does the intermediary rely on to choose the correct back-end?",
+      "choices": [
+        "The source TCP port",
+        "The Host header",
+        "The User-Agent string",
+        "The TLS session ID"
+      ],
+      "answer": 1,
+      "explain": "Like virtual hosting, routing via an intermediary relies on the Host header to specify the intended recipient back-end."
+    },
+    {
+      "type": "mc",
+      "category": "Host header fundamentals",
+      "q": "Why do off-the-shelf web applications sometimes read the current domain from the Host header?",
+      "choices": [
+        "To validate the user's session cookie",
+        "They often don't know which domain they're deployed on, so they use it to build absolute URLs (e.g. links in emails)",
+        "To compress the response body",
+        "To decide which database shard to query by default"
+      ],
+      "answer": 1,
+      "explain": "Unless the domain is set in config, apps may pull it from the Host header to generate absolute URLs such as those in emails."
+    },
+    {
+      "type": "mc",
+      "category": "How Host header attacks arise",
+      "q": "What is a 'Host header injection' attack?",
+      "choices": [
+        "Guessing valid Host values with a wordlist",
+        "Injecting a harmful payload directly into the Host header that a site handles unsafely",
+        "Forcing a victim's browser to send a forged Host header",
+        "Overflowing the server's header parser buffer"
+      ],
+      "answer": 1,
+      "explain": "When a server implicitly trusts the Host header and fails to validate/escape it, an attacker can inject a payload directly into it to manipulate server-side behavior."
+    },
+    {
+      "type": "multi",
+      "category": "How Host header attacks arise",
+      "q": "Which of the following are listed as vulnerabilities the Host header can be a vector for? (Select all that apply)",
+      "choices": [
+        "Web cache poisoning",
+        "Business logic flaws in specific functionality",
+        "Routing-based SSRF",
+        "Classic server-side vulnerabilities such as SQL injection",
+        "Buffer overflow in the TCP/IP stack"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The Host header is cited as a potential vector for web cache poisoning, business logic flaws, routing-based SSRF, and classic server-side bugs like SQL injection."
+    },
+    {
+      "type": "tf",
+      "category": "How Host header attacks arise",
+      "q": "Host header vulnerabilities typically arise from the flawed assumption that the header is NOT user controllable.",
+      "answer": true,
+      "explain": "This implicit trust leads to inadequate validation/escaping, even though an attacker can easily modify the header with tools like Burp Proxy."
+    },
+    {
+      "type": "tf",
+      "category": "How Host header attacks arise",
+      "q": "Many Host header vulnerabilities arise from insecure configuration of infrastructure components rather than from insecure coding.",
+      "answer": true,
+      "explain": "Integrating third-party technologies without understanding their configuration options and security implications is a common root cause."
+    },
+    {
+      "type": "mc",
+      "category": "How Host header attacks arise",
+      "q": "Even when the Host header itself is handled securely, how can its value sometimes still be overridden?",
+      "choices": [
+        "By sending the request over HTTP/2 only",
+        "By injecting other headers (e.g. X-Forwarded-Host) that are supported by default",
+        "By using a longer URL path",
+        "By omitting the Host header entirely"
+      ],
+      "answer": 1,
+      "explain": "Depending on server configuration, headers like X-Forwarded-Host can override the Host; owners often don't realize such headers are supported by default."
+    },
+    {
+      "type": "mc",
+      "category": "How Host header attacks arise",
+      "q": "Why are reflected client-side vulnerabilities such as XSS, when caused by the Host header, typically NOT directly exploitable?",
+      "choices": [
+        "Browsers HTML-encode all Host values automatically",
+        "There is no way for an attacker to force a victim's browser to issue an incorrect Host in a useful manner",
+        "The Host header is always stripped by the server",
+        "XSS cannot occur in server-rendered markup"
+      ],
+      "answer": 1,
+      "explain": "An attacker can't make the victim's own browser send a malicious Host, so the reflection isn't directly exploitable, unless a cache can be poisoned to store it."
+    },
+    {
+      "type": "mc",
+      "category": "Identifying and testing vulnerabilities",
+      "q": "Which tool accurately maintains the separation between the Host header and the target IP address, letting you send an arbitrary Host while still reaching the intended target?",
+      "choices": ["curl", "Burp Suite", "nmap", "Wireshark"],
+      "answer": 1,
+      "explain": "Some proxies derive the target IP from the Host header; Burp Suite keeps them separate so you can supply any arbitrary or malformed Host and still reach the target."
+    },
+    {
+      "type": "text",
+      "category": "Identifying and testing vulnerabilities",
+      "q": "What two-word error message (shown as 'Invalid ___ ___') might a front-end or load balancer return when it can't route a request whose Host you modified?",
+      "answer": ["Invalid Host header", "invalid host header", "Host header"],
+      "explain": "Tampering with the Host often means the front-end doesn't know where to forward the request, producing an 'Invalid Host header' error of some kind."
+    },
+    {
+      "type": "mc",
+      "category": "Identifying and testing vulnerabilities",
+      "q": "Some websites validate the Host header by checking that it matches what from the TLS handshake?",
+      "choices": ["The certificate serial number", "The SNI", "The cipher suite", "The session ticket"],
+      "answer": 1,
+      "explain": "Matching the Host against the SNI from the TLS handshake is one defense, but it doesn't necessarily make a site immune to Host header attacks."
+    },
+    {
+      "type": "text",
+      "category": "Identifying and testing vulnerabilities",
+      "q": "What is the de facto standard HTTP header used to override/carry the original Host value, often referred to by frameworks instead of the Host header?",
+      "answer": ["X-Forwarded-Host", "x-forwarded-host"],
+      "explain": "Front ends inject X-Forwarded-Host with the client's original Host; many frameworks prefer it, so it can be used to inject input while bypassing Host validation."
+    },
+    {
+      "type": "multi",
+      "category": "Identifying and testing vulnerabilities",
+      "q": "Besides X-Forwarded-Host, which headers are listed as serving a similar override purpose? (Select all that apply)",
+      "choices": ["X-Host", "X-Forwarded-Server", "X-HTTP-Host-Override", "Forwarded", "X-Real-IP"],
+      "answer": [0, 1, 2, 3],
+      "explain": "X-Host, X-Forwarded-Server, X-HTTP-Host-Override, and Forwarded are all named as alternatives that can override the Host."
+    },
+    {
+      "type": "mc",
+      "category": "Identifying and testing vulnerabilities",
+      "q": "When injecting duplicate Host headers or supplying an absolute URL in the request line, what are you fundamentally trying to exploit?",
+      "choices": [
+        "A buffer overflow in the parser",
+        "A discrepancy where different systems (e.g. front-end vs back-end) disagree about which value is the correct Host",
+        "A timing side channel",
+        "A weakness in the TLS handshake"
+      ],
+      "answer": 1,
+      "explain": "These 'ambiguous request' techniques exploit discrepancies in how the validating component and the vulnerable component each retrieve the Host."
+    },
+    {
+      "type": "mc",
+      "category": "Exploitation techniques",
+      "q": "How can a reflected, 'useless' Host header vulnerability be turned into a dangerous, stored one that affects other users?",
+      "choices": [
+        "By brute-forcing the victim's session token",
+        "By poisoning a web cache so it serves the malicious response to other users",
+        "By forcing the victim's browser to resend the request",
+        "By exploiting a TLS downgrade"
+      ],
+      "answer": 1,
+      "explain": "If the target uses a web cache, you can elicit a reflected-payload response and get it cached so it is served to subsequent visitors."
+    },
+    {
+      "type": "tf",
+      "category": "Exploitation techniques",
+      "q": "Standalone caches typically include the Host header in the cache key, so Host-based cache poisoning usually works best against integrated, application-level caches.",
+      "answer": true,
+      "explain": "Because standalone caches key on the Host, the approach works best on integrated application-level caches, though earlier ambiguous-request techniques can sometimes poison standalone caches too."
+    },
+    {
+      "type": "mc",
+      "category": "Exploitation techniques",
+      "q": "In the malformed request line 'GET @private-intranet/example HTTP/1.1', a proxy builds the URL http://backend-server@private-intranet/example. How do most HTTP libraries interpret that?",
+      "choices": [
+        "As a request to backend-server with path @private-intranet",
+        "As a request to private-intranet with the username backend-server",
+        "As an invalid URL that is rejected",
+        "As a request to the literal host 'backend-server@private-intranet'"
+      ],
+      "answer": 1,
+      "explain": "The '@' makes 'backend-server' be read as userinfo, so the request is routed to private-intranet, enabling routing-based SSRF via a malformed request line."
+    },
+    {
+      "type": "mc",
+      "category": "Exploitation techniques",
+      "q": "What is the goal of virtual host brute-forcing?",
+      "choices": [
+        "Cracking the server's TLS private key",
+        "Accessing internal or hidden websites on a server by guessing their hostnames",
+        "Exhausting the server's connection pool",
+        "Flooding the DNS resolver with queries"
+      ],
+      "answer": 1,
+      "explain": "An attacker can reach any virtual host on a server they can connect to if they guess the hostname, e.g. brute-forcing candidate subdomains, even when the site has no public DNS record."
+    },
+    {
+      "type": "mc",
+      "category": "Exploitation techniques",
+      "q": "Which Burp tool helps confirm a routing-based SSRF by receiving a DNS lookup when you supply its domain in the Host header?",
+      "choices": ["Burp Intruder", "Burp Collaborator", "Burp Decoder", "Param Miner"],
+      "answer": 1,
+      "explain": "If supplying your Burp Collaborator domain in the Host triggers a DNS lookup from the target or an in-path system, you may be able to route requests to arbitrary domains."
+    },
+    {
+      "type": "num",
+      "category": "Exploitation techniques",
+      "q": "In CIDR notation 192.168.0.0/16, how many bits from the start of the address are fixed for the entire range?",
+      "answer": 16,
+      "explain": "The number after the slash is the count of fixed leading bits; /16 fixes the first two octets (192.168), leaving the rest to vary."
+    },
+    {
+      "type": "mc",
+      "category": "Exploitation techniques",
+      "q": "What dangerous assumption underlies a connection state attack against the Host header?",
+      "choices": [
+        "That TLS is always terminated at the back-end",
+        "That certain properties like the Host header are identical for every HTTP/1.1 request sent over the same reused connection",
+        "That the client always uses HTTP/2",
+        "That the cache never stores error responses"
+      ],
+      "answer": 1,
+      "explain": "Servers that validate only the first request on a connection, or reverse proxies that route all requests on a connection to the first request's host, can be abused; a browser wouldn't vary the Host, but Burp Repeater can."
+    },
+    {
+      "type": "mc",
+      "category": "Password reset poisoning",
+      "q": "What is password reset poisoning?",
+      "choices": [
+        "Flooding a user with reset emails until their account locks",
+        "Manipulating a site into generating a reset link that points to an attacker-controlled domain, to steal the reset token",
+        "Guessing a user's reset token by brute force",
+        "Corrupting the password database so resets fail"
+      ],
+      "answer": 1,
+      "explain": "By controlling the domain in the generated reset link (via the Host header), the attacker can capture the victim's valid reset token and take over the account."
+    },
+    {
+      "type": "mc",
+      "category": "Password reset poisoning",
+      "q": "In a typical password reset flow, how is the unique, high-entropy reset token delivered to the user?",
+      "choices": [
+        "As a query parameter in a reset link emailed to the user",
+        "As an SMS one-time code",
+        "Embedded in a session cookie",
+        "Displayed on screen immediately after the request"
+      ],
+      "answer": 0,
+      "explain": "The token is associated with the account on the back-end and included as a query parameter in the reset URL sent by email, e.g. /reset?token=..."
+    },
+    {
+      "type": "tf",
+      "category": "Password reset poisoning",
+      "q": "In a password reset poisoning attack, the victim receives a genuine reset email from the real website containing a valid token, but the link's domain points to the attacker.",
+      "answer": true,
+      "explain": "The email is legitimate and carries a working token; only the host in the URL has been poisoned to point at the attacker's server."
+    },
+    {
+      "type": "text",
+      "category": "Password reset poisoning",
+      "q": "In the worked example, what attacker-controlled domain is injected via the Host header so the reset link becomes https://<domain>/reset?token=...?",
+      "answer": ["evil-user.net", "evil-user"],
+      "explain": "The example uses evil-user.net as the attacker's domain in the poisoned reset link."
+    },
+    {
+      "type": "mc",
+      "category": "Password reset poisoning",
+      "q": "Besides the victim clicking it, how else might a poisoned reset link deliver the token to the attacker's server?",
+      "choices": [
+        "The token expires and auto-submits",
+        "The link being fetched automatically by something like an antivirus scanner",
+        "The browser pre-rendering the inbox",
+        "The mail server rewriting all links"
+      ],
+      "answer": 1,
+      "explain": "The token can leak if the link is fetched in some other way, for example by an antivirus scanner that follows links."
+    },
+    {
+      "type": "mc",
+      "category": "Password reset poisoning",
+      "q": "If you can't control the reset link itself, what else can the Host header sometimes allow in sensitive emails (noting that email clients typically don't run JavaScript)?",
+      "choices": [
+        "Arbitrary JavaScript execution in the client",
+        "HTML injection, enabling techniques like dangling markup attacks",
+        "Direct database access",
+        "Rewriting the email's From address"
+      ],
+      "answer": 1,
+      "explain": "The Host header can be used to inject HTML into emails; since clients don't execute JS, dangling markup and similar HTML injection techniques are the relevant threat."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "What is described as the simplest approach to prevent HTTP Host header attacks?",
+      "choices": [
+        "Block all requests that lack a Host header",
+        "Avoid using the Host header in server-side code, using relative URLs where possible",
+        "Rotate reset tokens every minute",
+        "Terminate TLS at the back-end"
+      ],
+      "answer": 1,
+      "explain": "Checking whether each URL really needs to be absolute and preferring relative URLs avoids relying on the Host header, which especially helps against web cache poisoning."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "When you must use absolute URLs, what does the guidance recommend?",
+      "choices": [
+        "Derive the domain from the first request on each connection",
+        "Require the current domain to be set in a configuration file and use that value instead of the Host header",
+        "Trust X-Forwarded-Host over Host",
+        "Hash the Host header before use"
+      ],
+      "answer": 1,
+      "explain": "Referring to a manually configured domain instead of the Host header eliminates threats such as password reset poisoning."
+    },
+    {
+      "type": "text",
+      "category": "Prevention",
+      "q": "What Django settings option is given as an example for whitelisting permitted hosts?",
+      "answer": ["ALLOWED_HOSTS", "allowed_hosts"],
+      "explain": "Django's ALLOWED_HOSTS lets you validate the Host against a whitelist of permitted domains."
+    },
+    {
+      "type": "tf",
+      "category": "Prevention",
+      "q": "You should make sure your application does not support Host-override headers such as X-Forwarded-Host, remembering they may be enabled by default.",
+      "answer": true,
+      "explain": "Supporting override headers like X-Forwarded-Host (often on by default via third-party tech) can be used to construct these attacks."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "To prevent routing-based attacks on internal infrastructure, how should load balancers and reverse proxies be configured?",
+      "choices": [
+        "To forward requests only to a whitelist of permitted domains",
+        "To cache every response for one hour",
+        "To accept duplicate Host headers",
+        "To strip the request line's path"
+      ],
+      "answer": 0,
+      "explain": "Forwarding only to a whitelist of permitted domains stops intermediaries from being tricked into routing to arbitrary internal systems."
+    },
+    {
+      "type": "mc",
+      "category": "Prevention",
+      "q": "When using virtual hosting, what practice should you avoid to limit Host header manipulation risk?",
+      "choices": [
+        "Serving static assets from a CDN",
+        "Hosting internal-only websites on the same server as public-facing content",
+        "Using HTTPS for all virtual hosts",
+        "Giving each virtual host its own TLS certificate"
+      ],
+      "answer": 1,
+      "explain": "Co-hosting internal-only apps with public content lets attackers reach internal domains via Host header manipulation, so keep them separate."
+    }
+  ]
+}

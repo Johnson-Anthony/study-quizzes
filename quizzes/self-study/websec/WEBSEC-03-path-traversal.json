@@ -1,0 +1,238 @@
+{
+ "title": "WEBSEC 03: Path Traversal",
+ "course": "WEBSEC",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "Fundamentals",
+   "q": "What does a path traversal vulnerability mainly let an attacker do?",
+   "choices": [
+    "Read arbitrary files on the server running the application",
+    "Run JavaScript in other users' browsers",
+    "Change the SQL queries the application sends to its database",
+    "Make the victim's browser send requests they didn't intend"
+   ],
+   "answer": 0,
+   "explain": "Path traversal (directory traversal) lets an attacker read arbitrary files on the server. The other choices describe XSS, SQL injection and CSRF."
+  },
+  {
+   "type": "multi",
+   "category": "Fundamentals",
+   "q": "Which of these could an attacker obtain by reading files through a path traversal vulnerability?",
+   "choices": [
+    "Application code and data",
+    "Credentials for back-end systems",
+    "Sensitive operating system files",
+    "Cookies stored in another user's browser"
+   ],
+   "answer": [0, 1, 2],
+   "explain": "Path traversal reads files on the server: app code and data, back-end credentials and OS files. Cookies kept in a user's browser are on the client, not the server's filesystem."
+  },
+  {
+   "type": "tf",
+   "category": "Fundamentals",
+   "q": "In some cases path traversal lets an attacker write arbitrary files on the server, which can lead to full control of the server.",
+   "answer": true,
+   "explain": "Being able to write files lets the attacker change the app's data or behavior, and eventually take full control of the server."
+  },
+  {
+   "type": "text",
+   "category": "Fundamentals",
+   "q": "Path traversal is also called ______ traversal. (one word)",
+   "answer": ["directory", "directory traversal", "file path", "file path traversal"],
+   "explain": "Other names are directory traversal and file path traversal."
+  },
+  {
+   "type": "mc",
+   "category": "Basic attack",
+   "q": "An app loads images with /loadImage?filename=218.png by appending the filename to /var/www/images/. An attacker sends filename=../../../etc/passwd. Which file is read?",
+   "choices": [
+    "/etc/passwd",
+    "/var/www/images/etc/passwd",
+    "/var/etc/passwd",
+    "/var/www/etc/passwd"
+   ],
+   "answer": 0,
+   "explain": "The path becomes /var/www/images/../../../etc/passwd. Each ../ moves up one level (images -> www -> var -> /), so the file read is /etc/passwd."
+  },
+  {
+   "type": "num",
+   "category": "Basic attack",
+   "q": "Starting in /var/www/images/, how many ../ sequences do you need to reach the filesystem root?",
+   "answer": 3,
+   "tolerance": 0,
+   "explain": "images -> www -> var -> /. That is three levels up, so ../../../"
+  },
+  {
+   "type": "mc",
+   "category": "Basic attack",
+   "q": "What does the sequence ../ mean in a file path?",
+   "choices": [
+    "Go up one directory level",
+    "The current directory",
+    "The filesystem root",
+    "The user's home directory"
+   ],
+   "answer": 0,
+   "explain": "../ means go up one directory level. It is valid inside a file path, so chaining it lets the path climb out of the intended base directory."
+  },
+  {
+   "type": "text",
+   "category": "Basic attack",
+   "q": "What standard Unix file, which lists the users registered on the server, is a classic target for showing that a path traversal attack worked? (full path)",
+   "answer": ["/etc/passwd", "etc/passwd"],
+   "explain": "/etc/passwd lists the users registered on a Unix server."
+  },
+  {
+   "type": "tf",
+   "category": "Basic attack",
+   "q": "On Windows, only ..\\ works as a traversal sequence; ../ does not.",
+   "answer": false,
+   "explain": "On Windows both ../ and ..\\ work as traversal sequences, e.g. filename=..\\..\\..\\windows\\win.ini"
+  },
+  {
+   "type": "mc",
+   "category": "Bypassing defenses",
+   "q": "An app strips or blocks traversal sequences in the filename parameter. Which payload could still read /etc/passwd?",
+   "choices": [
+    "filename=/etc/passwd",
+    "filename=../../../etc/passwd",
+    "filename=..\\..\\..\\etc\\passwd",
+    "filename=etc/passwd"
+   ],
+   "answer": 0,
+   "explain": "An absolute path from the filesystem root reaches the file directly without any traversal sequence, so a filter that only looks for ../ never fires."
+  },
+  {
+   "type": "mc",
+   "category": "Bypassing defenses",
+   "q": "An app removes ../ from the input once (not recursively). Which payload still leaves a working ../ after stripping?",
+   "choices": [
+    "....//",
+    "../",
+    ".../",
+    "..//"
+   ],
+   "answer": 0,
+   "explain": "Removing the inner ../ from ....// leaves ../. This nested-sequence trick only works because the filter doesn't run again on its own output. ....\\/ works the same way."
+  },
+  {
+   "type": "text",
+   "category": "Bypassing defenses",
+   "q": "Write ../ fully URL-encoded (every character encoded once).",
+   "answer": ["%2e%2e%2f", "%2E%2E%2F"],
+   "explain": ". is %2e and / is %2f, so ../ becomes %2e%2e%2f."
+  },
+  {
+   "type": "mc",
+   "category": "Bypassing defenses",
+   "q": "What is %252e%252e%252f?",
+   "choices": [
+    "../ double URL-encoded",
+    "../ URL-encoded once",
+    "A null byte followed by ../",
+    "..\\ in UTF-16"
+   ],
+   "answer": 0,
+   "explain": "% encodes to %25, so %2e becomes %252e. After one round of decoding (e.g. by the web server) it becomes %2e%2e%2f, and after a second round it becomes ../. This gets past filters that only check the input after the first decode."
+  },
+  {
+   "type": "multi",
+   "category": "Bypassing defenses",
+   "q": "A web server strips ../ from the URL path and from the filename of multipart/form-data requests before the app sees them. Which payloads could get a traversal sequence past it?",
+   "choices": [
+    "%2e%2e%2f",
+    "%252e%252e%252f",
+    "..%c0%af",
+    "..%ef%bc%8f"
+   ],
+   "answer": [0, 1, 2, 3],
+   "explain": "URL-encoding, double URL-encoding and non-standard encodings (..%c0%af, ..%ef%bc%8f) all hide ../ from a filter that looks for the literal sequence."
+  },
+  {
+   "type": "mc",
+   "category": "Bypassing defenses",
+   "q": "An app only accepts a filename that starts with /var/www/images. Which payload gets around this?",
+   "choices": [
+    "filename=/var/www/images/../../../etc/passwd",
+    "filename=/etc/passwd/var/www/images",
+    "filename=../../../var/www/images",
+    "filename=/var/www/images%00/etc/passwd"
+   ],
+   "answer": 0,
+   "explain": "The input starts with the required base folder, and the traversal after it climbs back out to /etc/passwd. The check only looked at the raw string, not where the path ends up."
+  },
+  {
+   "type": "mc",
+   "category": "Bypassing defenses",
+   "q": "An app only accepts a filename that ends with .png. Which payload could read /etc/passwd?",
+   "choices": [
+    "filename=../../../etc/passwd%00.png",
+    "filename=../../../etc/passwd.png",
+    "filename=.png/../../../etc/passwd",
+    "filename=../../../etc/passwd/.png"
+   ],
+   "answer": 0,
+   "explain": "The URL-encoded null byte (%00) ends the path before .png when the file is opened, while the app's check still sees the .png ending."
+  },
+  {
+   "type": "mc",
+   "category": "Prevention",
+   "q": "What is the most effective way to prevent path traversal?",
+   "choices": [
+    "Don't pass user-supplied input to filesystem APIs at all; rewrite the feature to do the same job a safer way",
+    "Strip every ../ from the input",
+    "Block any request that contains /etc/passwd",
+    "Require the filename to end with an allowed extension"
+   ],
+   "answer": 0,
+   "explain": "The best fix is to keep user input away from filesystem APIs altogether. The other choices are filters that can be bypassed (nested sequences, absolute paths, null bytes, and so on)."
+  },
+  {
+   "type": "multi",
+   "category": "Prevention",
+   "q": "If user input must reach a filesystem API, which two defenses should be used together?",
+   "choices": [
+    "Validate the input before processing it, ideally against a whitelist of permitted values",
+    "Append the input to the base directory, canonicalize the path, then check that it starts with the expected base directory",
+    "Remove ../ sequences from the input one time",
+    "URL-decode the input once and reject it if it still contains %"
+   ],
+   "answer": [0, 1],
+   "explain": "Use two layers: (1) input validation, using a whitelist or, failing that, permitted content only such as alphanumeric characters, and (2) canonicalize the full path and check its prefix. One-pass stripping and single decoding can both be bypassed."
+  },
+  {
+   "type": "mc",
+   "category": "Prevention",
+   "q": "If whitelist validation isn't possible, what is the fallback form of input validation?",
+   "choices": [
+    "Allow only permitted content, such as alphanumeric characters",
+    "Allow anything that doesn't contain the string ../",
+    "Allow anything that ends with a permitted file extension",
+    "Allow anything shorter than 255 characters"
+   ],
+   "answer": 0,
+   "explain": "Ideally compare against a whitelist of permitted values. Otherwise allow only permitted content, e.g. alphanumeric characters only, so no path separators or dots get through."
+  },
+  {
+   "type": "mc",
+   "category": "Prevention",
+   "q": "In Java: File file = new File(BASE_DIRECTORY, userInput); if (file.getCanonicalPath().startsWith(BASE_DIRECTORY)) { ... }. What does the if check guarantee?",
+   "choices": [
+    "After ../ and similar sequences are resolved, the real path is still inside the base directory",
+    "The user's input contains no ../ characters",
+    "The file exists and can be read",
+    "The user's input is alphanumeric"
+   ],
+   "answer": 0,
+   "explain": "getCanonicalPath() resolves the path to its real, absolute form, so the prefix check tests where the file actually is, not what the raw input string looks like."
+  },
+  {
+   "type": "tf",
+   "category": "Prevention",
+   "q": "Checking that the raw user input starts with the base directory is enough to stop path traversal.",
+   "answer": false,
+   "explain": "filename=/var/www/images/../../../etc/passwd starts with the base folder but resolves to /etc/passwd. The prefix check only works on the canonicalized path."
+  }
+ ]
+}
