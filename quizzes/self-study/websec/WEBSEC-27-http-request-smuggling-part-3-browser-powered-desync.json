@@ -1,0 +1,336 @@
+{
+  "title": "HTTP request smuggling part 3: Browser-powered desync",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Browser-powered desync overview",
+      "topic": "Significance",
+      "q": "What makes browser-powered desync techniques significant compared with classic request smuggling?",
+      "choices": [
+        "They exploit discrepancies only present in HTTP/2 traffic",
+        "They use fully browser-compatible requests instead of malformed ones that browsers will never send",
+        "They require administrative access to the back-end server",
+        "They only work against sites that use chunked transfer encoding"
+      ],
+      "answer": 1,
+      "explain": "Classic desync attacks rely on intentionally malformed requests that ordinary browsers won't send, limiting them to front-end/back-end architectures exploited via tools like Burp. Browser-powered techniques use fully browser-compatible HTTP/1 requests, exposing more sites and enabling client-side variants."
+    },
+    {
+      "type": "multi",
+      "category": "Browser-powered desync overview",
+      "topic": "Techniques covered",
+      "q": "Which desync techniques are introduced in this material? (Select all that apply)",
+      "choices": [
+        "CL.0 request smuggling",
+        "Client-side desync (CSD) attacks",
+        "Pause-based desync attacks",
+        "TE.CL chunked smuggling"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The browser-powered desync material covers CL.0, client-side desync, and pause-based desync. TE.CL chunked smuggling is a classic server-side technique covered in earlier request smuggling material, not a browser-powered one."
+    },
+    {
+      "type": "tf",
+      "category": "Browser-powered desync overview",
+      "topic": "Traditional limitation",
+      "q": "Classic request smuggling is traditionally considered a server-side issue because standard browsers won't send the kinds of requests needed to trigger the desync.",
+      "answer": true,
+      "explain": "Request smuggling was traditionally exploitable only with specialist tools like Burp Repeater because browsers won't send the malformed requests needed. Browser-powered techniques change this by using browser-compatible requests."
+    },
+    {
+      "type": "mc",
+      "category": "CL.0 request smuggling",
+      "topic": "Definition",
+      "q": "In a CL.0 vulnerability, how does the back-end server effectively treat the Content-Length header?",
+      "choices": [
+        "It doubles the declared length",
+        "It treats it as if the value were 0, assuming the request ends at the end of the headers",
+        "It uses it only for chunked requests",
+        "It forwards the body but never reads the header"
+      ],
+      "answer": 1,
+      "explain": "In CL.0, the back-end can be persuaded to ignore Content-Length, assuming each request finishes at the end of the headers - effectively treating Content-Length as 0 and ignoring the body."
+    },
+    {
+      "type": "tf",
+      "category": "CL.0 request smuggling",
+      "topic": "No chunked/downgrade needed",
+      "q": "CL.0 request smuggling depends on chunked transfer encoding or HTTP/2 downgrading.",
+      "answer": false,
+      "explain": "CL.0 is notable precisely because it does NOT rely on chunked transfer encoding or HTTP/2 downgrading. The discrepancy is that the front-end uses Content-Length while the back-end ignores it."
+    },
+    {
+      "type": "mc",
+      "category": "CL.0 request smuggling",
+      "topic": "Likely candidates",
+      "q": "Which endpoints are the most likely candidates for CL.0 behavior?",
+      "choices": [
+        "Authenticated JSON APIs that expect POST bodies",
+        "Endpoints that aren't expecting POST requests, such as static files and server-level redirects",
+        "WebSocket upgrade endpoints",
+        "Endpoints protected by a web application firewall"
+      ],
+      "answer": 1,
+      "explain": "CL.0 behavior is mostly observed on endpoints that aren't expecting POST requests, so they implicitly assume no request has a body. Static file requests and server-level redirects are prime candidates."
+    },
+    {
+      "type": "text",
+      "category": "CL.0 request smuggling",
+      "topic": "Probing signal",
+      "q": "In the CL.0 probe example, what HTTP status code returned to the follow-up request strongly suggests the back-end interpreted the POST body as the start of another request? (Enter the three-digit code.)",
+      "answer": ["404"],
+      "explain": "The body contained 'GET /hopefully404 ...'. A 404 response to the follow-up request indicates the back-end treated that smuggled prefix as a new request, confirming the CL.0 desync."
+    },
+    {
+      "type": "mc",
+      "category": "CL.0 request smuggling",
+      "topic": "Burp workflow",
+      "q": "Which Burp Repeater send mode is used to test a CL.0 setup/follow-up request pair?",
+      "choices": [
+        "Send group in parallel (new connections)",
+        "Send group in sequence (single connection)",
+        "Send each tab separately",
+        "Send with HTTP/2 multiplexing"
+      ],
+      "answer": 1,
+      "explain": "You add both tabs to a group in order and change the send mode to 'Send group in sequence (single connection)' (with the Connection header set to keep-alive) so both requests travel the same connection."
+    },
+    {
+      "type": "mc",
+      "category": "CL.0 request smuggling",
+      "topic": "H2.0",
+      "q": "What is an H2.0 vulnerability?",
+      "choices": [
+        "A chunked-encoding bug unique to HTTP/2",
+        "The CL.0 equivalent on sites that downgrade HTTP/2 to HTTP/1 where the back-end ignores the downgraded request's Content-Length",
+        "A flaw where the front-end ignores Content-Length but the back-end honors it",
+        "An attack requiring two back-end servers"
+      ],
+      "answer": 1,
+      "explain": "Sites that downgrade HTTP/2 to HTTP/1 can be vulnerable to an equivalent 'H2.0' issue if the back-end ignores the Content-Length header of the downgraded request."
+    },
+    {
+      "type": "multi",
+      "category": "CL.0 request smuggling",
+      "topic": "Eliciting behavior",
+      "q": "If you can't find a naturally vulnerable endpoint, which approaches may elicit CL.0 behavior? (Select all that apply)",
+      "choices": [
+        "Triggering a header-based server error where the server responds without consuming the body and doesn't close the connection",
+        "Using a GET request with an obfuscated Content-Length header hidden from the back-end but not the front-end",
+        "Sending a correctly chunked request",
+        "Removing the Host header entirely"
+      ],
+      "answer": [0, 1],
+      "explain": "You can elicit CL.0 by triggering a server error where the error response is issued without consuming the body (and the connection stays open), or by using a GET with an obfuscated Content-Length that the front-end sees but the back-end doesn't."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side desync attacks",
+      "topic": "Definition",
+      "q": "A client-side desync (CSD) desynchronizes which connection?",
+      "choices": [
+        "The connection between the front-end and back-end servers",
+        "The victim's own browser connection to the vulnerable website",
+        "The connection between two back-end microservices",
+        "The TLS session between the CDN and origin"
+      ],
+      "answer": 1,
+      "explain": "A CSD makes the victim's web browser desynchronize its own connection to the vulnerable website, in contrast to classic smuggling which desyncs the front-end/back-end connection."
+    },
+    {
+      "type": "tf",
+      "category": "Client-side desync attacks",
+      "topic": "Single-server sites",
+      "q": "Because client-side desync attacks don't rely on parsing discrepancies between two servers, even single-server websites may be vulnerable.",
+      "answer": true,
+      "explain": "CSD poisons the browser's own connection to the server, so it doesn't need a front-end/back-end pair. Single-server sites, normally immune to classic smuggling, can be vulnerable."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side desync attacks",
+      "topic": "HTTP version",
+      "q": "Why must the target web server generally NOT support HTTP/2 for a client-side desync to work?",
+      "choices": [
+        "HTTP/2 encrypts request bodies, hiding the prefix",
+        "CSD relies on HTTP/1.1 connection reuse, and browsers favor HTTP/2 when it's available",
+        "HTTP/2 does not allow POST requests",
+        "HTTP/2 always closes the connection after each request"
+      ],
+      "answer": 1,
+      "explain": "Client-side desyncs depend on HTTP/1.1 connection reuse. Since browsers prefer HTTP/2 where available, the target must not offer HTTP/2 (an exception is a victim behind an HTTP/1.1-only forward proxy)."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side desync attacks",
+      "topic": "fetch options",
+      "q": "In the proof-of-concept fetch() call, what does the option credentials: 'include' accomplish?",
+      "choices": [
+        "It attaches an authorization bearer token",
+        "It poisons the 'with-cookies' connection pool, which is wanted for most exploits",
+        "It disables the same-origin policy",
+        "It makes the request use HTTP/2"
+      ],
+      "answer": 1,
+      "explain": "Browsers use separate connection pools for requests with and without cookies. credentials: 'include' ensures you poison the with-cookies pool, which most exploits target."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side desync attacks",
+      "topic": "fetch options",
+      "q": "What is the purpose of setting mode: 'no-cors' in the desync proof-of-concept?",
+      "choices": [
+        "It bypasses CORS to read the cross-domain response body",
+        "It ensures each request's connection ID is visible on the Network tab, helping troubleshooting",
+        "It forces the browser to follow redirects",
+        "It prevents cookies from being sent"
+      ],
+      "answer": 1,
+      "explain": "mode: 'no-cors' ensures the connection ID of each request is visible on the Network tab, which aids troubleshooting - it doesn't let you read the cross-domain response."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side desync attacks",
+      "topic": "Handling redirects",
+      "q": "When the desync vector is a server-level redirect, how do you stop the browser from following the redirect and breaking the attack sequence?",
+      "choices": [
+        "Set mode: 'cors' to intentionally trigger a CORS error, then resume the sequence from catch() instead of then()",
+        "Add a Location override header to the fetch call",
+        "Use the XMLHttpRequest API with async set to false",
+        "Disable JavaScript redirects in the browser settings"
+      ],
+      "answer": 0,
+      "explain": "Setting mode: 'cors' triggers a CORS error that prevents the browser from following the redirect; you resume the sequence by invoking catch() instead of then(). The downside is the connection ID is no longer visible on the Network tab."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side desync attacks",
+      "topic": "Probing",
+      "q": "When probing for a CSD vector by sending a request whose Content-Length is longer than the actual body, what does an immediate response (rather than a hang) indicate?",
+      "choices": [
+        "The server is waiting for the remaining promised bytes",
+        "You've potentially found a CSD vector worth further investigation",
+        "The connection has been upgraded to HTTP/2",
+        "The request was blocked by a WAF"
+      ],
+      "answer": 1,
+      "explain": "If the request hangs/times out, the server is waiting for the promised bytes. An immediate response suggests the server ignored Content-Length - a potential CSD vector warranting further investigation."
+    },
+    {
+      "type": "tf",
+      "category": "Client-side desync attacks",
+      "topic": "Confirming vectors",
+      "q": "A server that responds without waiting for the body but still parses the body correctly when it arrives, or one that closes the connection right after responding, is exploitable for CSD.",
+      "answer": false,
+      "explain": "Both of those cases are NOT exploitable: one still parses the body correctly, and the other closes the connection, preventing reuse. You filter them out by checking whether the first request's body can affect the second request's response on the same connection."
+    },
+    {
+      "type": "text",
+      "category": "Client-side desync attacks",
+      "topic": "Cache poisoning",
+      "q": "For client-side cache poisoning, the follow-up request that triggers the resource import must be sent as what kind of navigation (rather than a cross-domain fetch, which would poison the wrong cache)?",
+      "answer": ["top-level navigation", "top-level", "top level navigation", "top level"],
+      "explain": "Because browsers partition their cache, a cross-domain fetch() poisons the wrong cache. The follow-up must be a top-level navigation to the target domain to use the poisoned entry."
+    },
+    {
+      "type": "mc",
+      "category": "Client-side desync attacks",
+      "topic": "Payload delivery",
+      "q": "How is a polyglot payload constructed so the same endpoint behaves as both HTML and JavaScript during cache-poisoning exploitation?",
+      "choices": [
+        "By base64-encoding the whole response",
+        "By wrapping the HTML in JavaScript comments so HTML execution runs the <script> while JS execution runs only the alert()",
+        "By sending two separate Content-Type headers",
+        "By using a server-side redirect to a .js file"
+      ],
+      "answer": 1,
+      "explain": "The polyglot wraps the HTML (including its <script> block) in JavaScript comments. Loaded as HTML the browser runs the script tags; loaded as JavaScript it runs only the alert() payload and ignores the commented HTML."
+    },
+    {
+      "type": "tf",
+      "category": "Client-side desync attacks",
+      "topic": "Pivoting internal infra",
+      "q": "You can directly make a victim's browser send a custom User-Agent header (e.g., a log4shell payload) cross-domain in the top-level request.",
+      "answer": false,
+      "explain": "Browsers won't let JavaScript set arbitrary headers like User-Agent cross-domain. The workaround is to place the full malicious request (with the custom User-Agent) inside the smuggled prefix body, which the back-end then processes - enabling pivots to internal infrastructure."
+    },
+    {
+      "type": "mc",
+      "category": "Pause-based desync attacks",
+      "topic": "Mechanism",
+      "q": "A pause-based desync vulnerability can occur when a server does what?",
+      "choices": [
+        "Rejects requests that arrive too slowly",
+        "Times out a request (treating it as complete and responding) but leaves the connection open for reuse",
+        "Buffers the entire request before forwarding it",
+        "Requires a Content-Length on every request"
+      ],
+      "answer": 1,
+      "explain": "Servers with a read timeout treat a request as complete and respond when no more data arrives. If the server times out a request but leaves the connection open for reuse, you get a pause-based desync vector."
+    },
+    {
+      "type": "multi",
+      "category": "Pause-based desync attacks",
+      "topic": "Conditions",
+      "q": "Which conditions are required for a server-side pause-based desync? (Select all that apply)",
+      "choices": [
+        "The front-end immediately forwards each byte to the back-end rather than waiting for the full request",
+        "The front-end must not (or can be encouraged not to) time out requests before the back-end",
+        "The back-end leaves the connection open for reuse following a read timeout",
+        "The back-end must support HTTP/2 multiplexing"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "All three conditions are needed: the front-end streams bytes through immediately, the front-end doesn't time out before the back-end, and the back-end leaves the connection open after its read timeout. HTTP/2 is not required."
+    },
+    {
+      "type": "text",
+      "category": "Pause-based desync attacks",
+      "topic": "Apache fix",
+      "q": "PortSwigger found pause-based behavior in Apache HTTP Server doing server-level redirects. In which Apache version was it fixed? (Enter the version number.)",
+      "answer": ["2.4.53"],
+      "explain": "The vulnerability was found on Apache HTTP Server when performing server-level redirects (e.g., /example to /example/) and was fixed in version 2.4.53."
+    },
+    {
+      "type": "mc",
+      "category": "Pause-based desync attacks",
+      "topic": "Tooling",
+      "q": "Why is the Turbo Intruder extension recommended over Burp Repeater for testing pause-based CL.0 vulnerabilities?",
+      "choices": [
+        "It can send HTTP/2 requests that Repeater cannot",
+        "It lets you pause mid-request and then resume regardless of whether you've received a response",
+        "It automatically bypasses WAFs",
+        "It encrypts the smuggled prefix"
+      ],
+      "answer": 1,
+      "explain": "Repeater only works if the front-end forwards the back-end's post-timeout response immediately, which isn't always the case. Turbo Intruder lets you pause mid-request and resume regardless of whether a response has arrived."
+    },
+    {
+      "type": "mc",
+      "category": "Pause-based desync attacks",
+      "topic": "Turbo Intruder args",
+      "q": "To pause before the body using an offset instead of pauseMarker, what value do you give pauseBefore?",
+      "choices": [
+        "The exact byte length of the headers",
+        "The inverse (negative) of the Content-Length, e.g., pauseBefore=-34",
+        "Zero",
+        "The total request length plus one"
+      ],
+      "answer": 1,
+      "explain": "pauseBefore takes an offset; to pause before the body you use the inverse of the Content-Length, for example pauseBefore=-34 when Content-Length is 34."
+    },
+    {
+      "type": "mc",
+      "category": "Pause-based desync attacks",
+      "topic": "Client-side variant",
+      "q": "Since browsers can't reliably be made to pause mid-request, what is the proposed workaround for a client-side pause-based desync?",
+      "choices": [
+        "Using a Service Worker to delay the request",
+        "An active MITM that delays the final TCP packet(s) until the server responds, after padding the request so the OS splits it into multiple packets",
+        "Setting a long fetch() timeout option",
+        "Downgrading the connection to HTTP/0.9"
+      ],
+      "answer": 1,
+      "explain": "TLS stops a MITM from reading traffic but not from delaying TCP packets. By padding the first request so the OS splits it into multiple packets (with a distinct final-packet size) and delaying that final packet until the server responds, you may desync the browser's connection."
+    }
+  ]
+}
