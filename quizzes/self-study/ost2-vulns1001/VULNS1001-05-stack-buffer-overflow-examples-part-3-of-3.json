@@ -1,0 +1,273 @@
+{
+  "title": "Vulns1001 05 - Stack Buffer Overflow Examples (part 3 of 3)",
+  "course": "ost2-vulns1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "CVE-2022-0435 (TIPC)",
+      "q": "In CVE-2022-0435, what does the acronym TIPC stand for?",
+      "choices": [
+        "Transparent Inter-Process Communication",
+        "Trusted Internet Protocol Channel",
+        "Transport-Independent Packet Control",
+        "Telematic Inter-Peer Communication"
+      ],
+      "answer": 0,
+      "explain": "TIPC is a Linux kernel module that does inter-process communication over the network within clusters made of nodes and links."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2022-0435 (TIPC)",
+      "q": "In the TIPC monitoring framework, what do nodes exchange to describe their view of the cluster topology? (The last one received is cached in the peer's domain field.)",
+      "choices": [
+        "Domain records",
+        "Routing advertisements",
+        "Link-state tokens",
+        "Provisioning objects"
+      ],
+      "answer": 0,
+      "explain": "Nodes exchange domain records. The most recently received record is cached in tipc_peer->domain."
+    },
+    {
+      "type": "num",
+      "category": "CVE-2022-0435 (TIPC)",
+      "q": "What is MAX_MON_DOMAIN, the maximum number of u32 entries in the members array of struct tipc_mon_domain?",
+      "answer": 64,
+      "explain": "The legitimate members array holds at most 64 entries (indexes 0..63)."
+    },
+    {
+      "type": "num",
+      "category": "CVE-2022-0435 (TIPC)",
+      "q": "struct tipc_mon_domain is { u16 len; u16 gen; u16 ack_gen; u16 member_cnt; u64 up_map; u32 members[MAX_MON_DOMAIN]; }. dom_rec_len(dom, mcnt) returns the offset of members plus mcnt * sizeof(u32). What does dom_rec_len return when mcnt = 10?",
+      "answer": 56,
+      "explain": "The header before members is 2+2+2+2+8 = 16 bytes. 16 + 10*4 = 56."
+    },
+    {
+      "type": "num",
+      "category": "CVE-2022-0435 (TIPC)",
+      "q": "Using the same struct layout, how many bytes is a full struct tipc_mon_domain (such as the fixed-size dom_bef local variable)?",
+      "answer": 272,
+      "explain": "16 header bytes + 64 members * 4 bytes = 272 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2022-0435 (TIPC)",
+      "q": "What is the root-cause flaw in tipc_mon_rcv()?",
+      "choices": [
+        "new_member_cnt comes from the packet and is never checked against MAX_MON_DOMAIN, even though dlen is checked against dom_rec_len",
+        "dlen is never compared against the expected record length",
+        "kmalloc's return value is never checked for NULL",
+        "ntohs is used where ntohl should be used, so the count is truncated"
+      ],
+      "answer": 0,
+      "explain": "The code has several sanity checks, but all of them only test that the lengths are consistent with each other. None caps the attacker-controlled 16-bit member count at 64. The slides describe this as 'one too few sanity checks'."
+    },
+    {
+      "type": "tf",
+      "category": "CVE-2022-0435 (TIPC)",
+      "q": "When the first oversized domain record arrives, the for loop that copies arrv_dom->members[i] into dom->members[i] directly overflows the newly kmalloc'd heap buffer.",
+      "answer": false,
+      "explain": "The allocation is sized from new_dlen, which is derived from the same member count, so the loop copies exactly as many members as were allocated. It is still wrong, because it lets i go past 63 and stores an oversized record in the cache."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2022-0435 (TIPC)",
+      "q": "Where does the actual stack buffer overflow happen in CVE-2022-0435?",
+      "choices": [
+        "In memcpy(&dom_bef, dom, dom->len) when a later record arrives and the cached, oversized heap record is copied into the fixed-size stack struct dom_bef",
+        "In the for loop that fills dom->members[i] the first time a record arrives",
+        "In kmalloc(new_dlen, GFP_ATOMIC) when new_dlen wraps around",
+        "In be64_to_cpu(arrv_dom->up_map) when up_map is too large"
+      ],
+      "answer": 0,
+      "explain": "On a later call, peer->domain is non-NULL, so its contents are copied into dom_bef on the stack using the cached length. dom_bef only has room through members[63], so a larger cached record overflows the stack buffer."
+    },
+    {
+      "type": "multi",
+      "category": "CVE-2022-0435 (TIPC)",
+      "q": "In memcpy(&dom_bef, dom, dom->len), which of these come from attacker-controlled input data (ACID) set during an earlier call?",
+      "choices": [
+        "The length (dom->len)",
+        "The source contents (dom, the cached record)",
+        "The size of the destination (dom_bef)",
+        "The location of dom_bef on the stack"
+      ],
+      "answer": [0, 1],
+      "explain": "Both the length and the source bytes were filled from a previous packet. The destination is a fixed-size struct on the stack, so its size and location are not attacker-controlled."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2022-0435 (TIPC)",
+      "q": "What did the patch for CVE-2022-0435 add?",
+      "choices": [
+        "A check that rejects the record when new_member_cnt > MAX_MON_DOMAIN",
+        "Stack canaries for the TIPC module",
+        "Moving dom_bef from the stack to the heap",
+        "Replacing memcpy with strncpy"
+      ],
+      "answer": 0,
+      "explain": "The fix adds the missing sanity check on the attacker-controlled member count before the other checks."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2018-9312 (BMW NBT)",
+      "q": "Which BMW component does CVE-2018-9312 affect, and through which interface is the attacker input delivered?",
+      "choices": [
+        "NBT head unit, via USB",
+        "Telematic Communication Box (TCB), via 3G/GSM/SMS",
+        "Central Gateway, via OBD-II",
+        "NBT head unit, via Bluetooth"
+      ],
+      "answer": 0,
+      "explain": "CVE-2018-9312 is in the navigation map update service on the NBT head unit. The update files arrive over USB."
+    },
+    {
+      "type": "text",
+      "category": "CVE-2018-9312 (BMW NBT)",
+      "q": "What is the name of the custom binary-format file that the navigation map update service parses (the attack surface of CVE-2018-9312)?",
+      "answer": ["manage_upd.nzdf", "manage_upd"],
+      "explain": "The service decompresses and parses manage_upd.nzdf. The slides point out that words like 'decompress' and 'parse' usually mean the code is handling attacker-controlled input."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2018-9312 (BMW NBT)",
+      "q": "In Calc_CompressFileInf, which operation causes the stack buffer overflow?",
+      "choices": [
+        "sprintf of a base path plus the decompressed file name into a fixed-size stack buffer fileName, with no size check",
+        "memcpy of the whole file into a heap buffer using a 16-bit length",
+        "strcat of URLs into a global configuration buffer",
+        "A hex-decoding loop writing into a 300-byte stack buffer"
+      ],
+      "answer": 0,
+      "explain": "sprintf(fileName, \"%s/%s\", ...) copies an attacker-controlled file name from the update file into the fixed-size stack buffer fileName. Nothing checks its length."
+    },
+    {
+      "type": "num",
+      "category": "CVE-2018-9312 (BMW NBT)",
+      "q": "How many bytes is the fileName stack buffer in Calc_CompressFileInf?",
+      "answer": 1024,
+      "explain": "fileName is declared as char fileName[1024] on the stack."
+    },
+    {
+      "type": "multi",
+      "category": "CVE-2018-9312 (BMW NBT)",
+      "q": "Which factors made CVE-2018-9312 easy to exploit, according to the material?",
+      "choices": [
+        "Map updates were not digitally signed",
+        "The binary had no stack canaries",
+        "ASLR was not in use",
+        "The bug could be reached remotely over the internet without physical access"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Updates were unsigned and the code was built without protections such as stack canaries or ASLR. The attack surface was local (USB), and KeenLab used it for privilege escalation in a local exploit chain."
+    },
+    {
+      "type": "tf",
+      "category": "CVE-2018-9312 (BMW NBT)",
+      "q": "Because the BMW code is proprietary, the researchers published no patch analysis and the exact fix for CVE-2018-9312 is unknown.",
+      "answer": true,
+      "explain": "The course states that no patch analysis is available, so the fix is not known."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2018-9318 (BMW TCB)",
+      "q": "Which BMW component does CVE-2018-9318 affect, and what kind of data is its attack surface?",
+      "choices": [
+        "Telematic Communication Box (TCB); network data in XML form (provisioning updates)",
+        "NBT head unit; a binary update file on USB",
+        "Central Gateway; OBD-II diagnostic frames",
+        "NBT head unit; Bluetooth pairing messages"
+      ],
+      "answer": 0,
+      "explain": "The bug is in the provisioning update handling of the telematics service on the TCB. The TCB is reached over 3G/GSM/SMS, and in the research it was reached through a simulated GSM network."
+    },
+    {
+      "type": "text",
+      "category": "CVE-2018-9318 (BMW TCB)",
+      "q": "What protocol name does the acronym NGTP stand for? (It carries data between the car and BMW, including provisioning updates.)",
+      "answer": ["Next Generation Telematics Protocol", "next generation telematics protocol"],
+      "explain": "NGTP messages trigger provisioning updates, which change the IPs, ports, URLs and similar settings that the TCB uses to talk to BMW."
+    },
+    {
+      "type": "num",
+      "category": "CVE-2018-9318 (BMW TCB)",
+      "q": "How many bytes is the fixed-size stack buffer that receives the unhexified XML signature in CVE-2018-9318?",
+      "answer": 300,
+      "explain": "The destination is XML_Signature_Unhex_Buf_300_Bytes. A signature that decodes to more than 300 bytes overflows it."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2018-9318 (BMW TCB)",
+      "q": "In the vulnerable unhexify loop, what makes the loop's exit condition attacker-controlled?",
+      "choices": [
+        "It runs while inx < XML_Signature_Buf_Size, and that size comes from the attacker-supplied signature",
+        "It runs until it finds a null byte in a trusted config file",
+        "It runs a constant 300 times regardless of input",
+        "It stops when signature verification succeeds"
+      ],
+      "answer": 0,
+      "explain": "The loop bound is the size of the hex signature taken from the XML, which is ACID. Each iteration writes decoded ACID bytes into the fixed 300-byte stack buffer."
+    },
+    {
+      "type": "tf",
+      "category": "CVE-2018-9318 (BMW TCB)",
+      "q": "Because the provisioning XML is digitally signed, all parsing of its contents happens only after the signature has been verified, so the parsing code never handles attacker-controlled data.",
+      "answer": false,
+      "explain": "This is the key lesson. Signed data always has some format, such as a hex-encoded signature, that must be parsed before the signature can be checked. That pre-verification parsing handles attacker-controlled input, and CVE-2018-9318 is in exactly that code."
+    },
+    {
+      "type": "text",
+      "category": "General SBO patterns/ACID",
+      "q": "What does the acronym ACID stand for in this course?",
+      "answer": ["Attacker Controlled Input Data", "attacker-controlled input data", "attacker controlled input data"],
+      "explain": "ACID is any data an attacker can influence. The course tells you to 'go with the ACID flow' and trace that data to where it is used."
+    },
+    {
+      "type": "multi",
+      "category": "General SBO patterns/ACID",
+      "q": "Which of these are listed as common root causes of stack buffer overflows?",
+      "choices": [
+        "Unsafe or weakly-bounded functions such as memcpy(), strcpy(), strcat(), sprintf()",
+        "Wrapper functions that people write around those unsafe functions",
+        "Sequential data writes inside a loop whose counter or exit condition is ACID",
+        "Using a signed integer for a loop counter that only counts up to a compile-time constant"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The 'Common Root Causes' slide lists unsafe or weakly-bounded copy functions and their wrappers, plus sequential writes in a loop with an ACID counter or exit condition. A loop bounded by a compile-time constant is not attacker-controlled."
+    },
+    {
+      "type": "mc",
+      "category": "General SBO patterns/ACID",
+      "q": "Match each example to its root-cause pattern: CVE-2018-9312, CVE-2018-9318, and the final overflow in CVE-2022-0435.",
+      "choices": [
+        "9312: unsafe sprintf; 9318: loop with ACID exit condition writing sequentially; 0435: memcpy with ACID length and source",
+        "9312: loop with ACID exit condition; 9318: unsafe sprintf; 0435: strcpy of a string",
+        "9312: memcpy with ACID length; 9318: strcat; 0435: loop writing past a heap allocation",
+        "All three are caused by integer overflow in the allocation size"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "9312 uses sprintf into fileName[1024]. 9318 hex-decodes in a loop with an ACID bound into a 300-byte buffer. 0435 calls memcpy into the stack struct dom_bef using a cached ACID length and source."
+    },
+    {
+      "type": "tf",
+      "category": "General SBO patterns/ACID",
+      "q": "Code that performs many sanity checks on attacker-controlled lengths can still be vulnerable if a single attacker-controlled value that later sets a copy size is left unchecked.",
+      "answer": true,
+      "explain": "CVE-2022-0435 is an example. Its checks made the lengths agree with each other, but nobody bounded the member count, so the attacker could pass every check and still overflow the stack later."
+    },
+    {
+      "type": "mc",
+      "category": "General SBO patterns/ACID",
+      "q": "In a linear stack buffer overflow like these examples, what saved value on the stack is the classic target that gives control of execution when a function returns?",
+      "choices": [
+        "The return address",
+        "The heap base pointer",
+        "The kernel page tables",
+        "The global offset table"
+      ],
+      "answer": 0,
+      "explain": "Writing past the end of a stack buffer can overwrite the saved return address that sits above it on the stack. Stack canaries are meant to detect this kind of overwrite."
+    }
+  ]
+}

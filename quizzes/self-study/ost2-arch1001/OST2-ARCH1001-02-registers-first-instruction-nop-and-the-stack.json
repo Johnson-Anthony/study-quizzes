@@ -1,0 +1,682 @@
+{
+  "title": "OST2 Arch1001 02: Registers, First Instruction (NOP) and the Stack",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Memory hierarchy",
+      "q": "In the computer memory hierarchy, what sits at the very top: the smallest capacity and the fastest access?",
+      "choices": ["Processor cache", "Processor registers", "Random access memory (RAM)", "Flash / USB memory"],
+      "answer": 1,
+      "explain": "Registers are built into the processor. There are only tens to hundreds of bytes of them, they are the fastest storage, and assembly instructions operate on them directly."
+    },
+    {
+      "type": "multi",
+      "category": "Memory hierarchy",
+      "q": "Which of these lose their contents when the system is powered off (volatile memory)?",
+      "choices": ["Processor registers", "Processor cache", "RAM", "Flash / USB memory", "Hard drives", "Tape backup"],
+      "answer": [0, 1, 2],
+      "explain": "Registers, cache and RAM are volatile. Flash, hard drives and tape are non-volatile storage that keeps its contents after power-off."
+    },
+    {
+      "type": "mc",
+      "category": "Memory hierarchy",
+      "q": "Which ordering goes from fastest/smallest to slowest/largest?",
+      "choices": [
+        "Registers, cache, RAM, flash, hard drives, tape",
+        "Cache, registers, RAM, hard drives, flash, tape",
+        "Registers, RAM, cache, flash, tape, hard drives",
+        "Registers, cache, flash, RAM, hard drives, tape"
+      ],
+      "answer": 0,
+      "explain": "Registers > cache (MB, very fast) > RAM (GB, fast) > flash (slower, cheap) > hard drives (multiple TB, slow) > tape (can reach petabytes, very slow)."
+    },
+    {
+      "type": "tf",
+      "category": "Memory hierarchy",
+      "q": "Processor cache typically has more capacity than RAM.",
+      "answer": false,
+      "explain": "Cache is on the order of megabytes and RAM is on the order of gigabytes. Cache is faster, but it is expensive to build into the processor, so there is less of it."
+    },
+    {
+      "type": "mc",
+      "category": "Memory hierarchy",
+      "q": "What is the main purpose of the processor cache?",
+      "choices": [
+        "To keep data after the power is turned off",
+        "To make memory accesses faster than going all the way out to RAM",
+        "To hold the instruction pointer",
+        "To add extra general purpose registers"
+      ],
+      "answer": 1,
+      "explain": "The cache sits between registers and RAM so that frequently used data can be reached faster than a full trip to RAM. It is still volatile."
+    },
+    {
+      "type": "num",
+      "category": "Register naming & evolution",
+      "q": "How many general purpose registers does x86-64 have?",
+      "answer": 16,
+      "explain": "RAX, RBX, RCX, RDX, RSP, RBP, RSI, RDI plus R8 through R15. The instruction pointer (RIP) is separate and not counted among them."
+    },
+    {
+      "type": "num",
+      "category": "Register naming & evolution",
+      "q": "How many general purpose registers did 32-bit x86 have?",
+      "answer": 8,
+      "explain": "EAX, EBX, ECX, EDX, ESP, EBP, ESI, EDI (plus EIP). The 64-bit extension doubled this to 16."
+    },
+    {
+      "type": "mc",
+      "category": "Register naming & evolution",
+      "q": "Why did the 64-bit extension increase the number of general purpose registers from 8 to 16?",
+      "choices": [
+        "To give compilers more registers in which to juggle values",
+        "Because 64-bit registers cannot be split into sub-registers",
+        "To replace the stack",
+        "So each register can hold two separate 32-bit values"
+      ],
+      "answer": 0,
+      "explain": "More registers let compilers keep more values in fast storage instead of moving them to and from memory."
+    },
+    {
+      "type": "mc",
+      "category": "Register naming & evolution",
+      "q": "Which processor introduced the 32-bit 'extended' register EAX?",
+      "choices": ["8008", "8086", "80386", "AMD Opteron"],
+      "answer": 2,
+      "explain": "8008: 8-bit A. 8086: 16-bit AX (A eXtended) with AH/AL. 80386: 32-bit EAX (Extended AX). AMD Opteron / Intel Pentium 4: 64-bit RAX."
+    },
+    {
+      "type": "mc",
+      "category": "Register naming & evolution",
+      "q": "Which bits of RAX does AH refer to?",
+      "choices": ["Bits 7-0", "Bits 15-8", "Bits 31-16", "Bits 63-56"],
+      "answer": 1,
+      "explain": "AX is bits 15-0. AH (A High) is its upper byte, bits 15-8. AL (A Low) is bits 7-0."
+    },
+    {
+      "type": "text",
+      "category": "Register naming & evolution",
+      "q": "Name a register that refers to the low 32 bits of RAX.",
+      "answer": ["EAX", "R0D", "eax", "r0d"],
+      "explain": "EAX, also called R0D (R0 Double word). AX / R0W is the low 16 bits and AL / R0B is the low 8."
+    },
+    {
+      "type": "mc",
+      "category": "Register naming & evolution",
+      "q": "In the R0-R15 naming scheme, which register is R3?",
+      "choices": ["RDX", "RBX", "RSP", "RCX"],
+      "answer": 1,
+      "explain": "The numbering is not alphabetical: R0=RAX, R1=RCX, R2=RDX, R3=RBX, R4=RSP, R5=RBP, R6=RSI, R7=RDI. The order comes from history and instruction encoding."
+    },
+    {
+      "type": "mc",
+      "category": "Register naming & evolution",
+      "q": "What does R10W refer to?",
+      "choices": ["The low 16 bits of R10", "The low 32 bits of R10", "The low 8 bits of R10", "Bits 15-8 of R10"],
+      "answer": 0,
+      "explain": "Suffixes follow Intel's size names: D = double word (32 bits), W = word (16 bits), B = byte (8 bits)."
+    },
+    {
+      "type": "multi",
+      "category": "Register naming & evolution",
+      "q": "Which names refer to all or part of the same register as RSP?",
+      "choices": ["ESP", "SPL", "R4D", "RSI", "BPL", "R5"],
+      "answer": [0, 1, 2],
+      "explain": "RSP = R4. ESP = R4D, SP = R4W, SPL = R4B. RSI is R6, and BPL and R5 belong to RBP."
+    },
+    {
+      "type": "mc",
+      "category": "Register naming & evolution",
+      "q": "Which of these 8-bit registers could NOT be accessed before AMD's 64-bit extensions?",
+      "choices": ["AL", "CH", "DL", "SIL"],
+      "answer": 3,
+      "explain": "The low bytes of SP, BP, SI and DI (SPL, BPL, SIL, DIL) were added with the 64-bit extensions for a consistent naming scheme. AL/AH, BL/BH, CL/CH and DL/DH date back to the 16-bit 8086."
+    },
+    {
+      "type": "tf",
+      "category": "Register naming & evolution",
+      "q": "R8 has a high-byte sub-register (an 'R8H') like AH is for RAX.",
+      "answer": false,
+      "explain": "R8-R15 expose only their D (32-bit), W (16-bit) and B (low 8-bit) parts. High-byte registers (AH, BH, CH, DH) exist only for the original A-D registers."
+    },
+    {
+      "type": "tf",
+      "category": "Register naming & evolution",
+      "q": "Most disassemblers display the first general purpose register as r0 rather than rax.",
+      "answer": false,
+      "explain": "rax and r0 are just two mnemonics for the same register, and the disassembler chooses which to print. Most use the alphabetical names that people know from older architectures."
+    },
+    {
+      "type": "text",
+      "category": "Register naming & evolution",
+      "q": "What is the 64-bit instruction pointer register called?",
+      "answer": ["RIP", "rip"],
+      "explain": "IP (16-bit), EIP (32-bit), RIP (64-bit). It points at the next instruction to execute."
+    },
+    {
+      "type": "mc",
+      "category": "Register naming & evolution",
+      "q": "In Intel terminology, a 4-byte value is a:",
+      "choices": ["Word", "Double word", "Quad word", "Byte"],
+      "answer": 1,
+      "explain": "Byte = 1 byte, word = 2, double word = 4, quad word = 8. These are where the B/W/D register suffixes come from."
+    },
+    {
+      "type": "mc",
+      "category": "Register naming & evolution",
+      "q": "The 'R' in RAX can be read as:",
+      "choices": [
+        "'Really wide' AX, or simply 'Register' (RAX = R0)",
+        "'Reserved' AX",
+        "'Return' AX, because it holds return values",
+        "'Real-mode' AX"
+      ],
+      "answer": 0,
+      "explain": "RAX is the 64-bit extension of EAX. The new scheme also calls it R0, so R can mean 'really wide' or just 'register'."
+    },
+    {
+      "type": "mc",
+      "category": "Register conventions",
+      "q": "Under Intel's convention, which register holds a function's return value?",
+      "choices": ["RAX", "RBX", "RCX", "RDX"],
+      "answer": 0,
+      "explain": "RAX stores function return values."
+    },
+    {
+      "type": "mc",
+      "category": "Register conventions",
+      "q": "Which register is conventionally the counter for string and loop operations?",
+      "choices": ["RAX", "RSI", "RCX", "RBP"],
+      "answer": 2,
+      "explain": "RCX: C for Counter."
+    },
+    {
+      "type": "mc",
+      "category": "Register conventions",
+      "q": "By convention, RSI and RDI are:",
+      "choices": [
+        "Source and destination index pointers for string operations",
+        "The stack pointer and the instruction pointer",
+        "The return value register and the loop counter",
+        "The I/O pointer and the data-section base pointer"
+      ],
+      "answer": 0,
+      "explain": "RSI = Source Index, RDI = Destination Index. Both are pointers used in string operations."
+    },
+    {
+      "type": "mc",
+      "category": "Register conventions",
+      "q": "What does RBP conventionally point to?",
+      "choices": [
+        "The top of the stack",
+        "The base of the current stack frame",
+        "The next instruction to execute",
+        "The base of the data section"
+      ],
+      "answer": 1,
+      "explain": "RBP = stack frame Base Pointer. RSP points at the top of the stack, RIP at the next instruction, and Intel suggests RBX as a base pointer to the data section."
+    },
+    {
+      "type": "mc",
+      "category": "Register conventions",
+      "q": "What is Intel's suggested use for RDX?",
+      "choices": ["I/O pointer", "Loop counter", "Destination index", "Stack frame base pointer"],
+      "answer": 0,
+      "explain": "Intel suggests RDX as an I/O pointer."
+    },
+    {
+      "type": "text",
+      "category": "Register conventions",
+      "q": "Intel originally suggested that the A register be the ___, where arithmetic results build up (e.g. the result of 1 + 2 goes back into it).",
+      "answer": ["accumulator", "an accumulator", "the accumulator"],
+      "explain": "A was the accumulator. Modern compilers don't follow that much, but RAX still holds return values."
+    },
+    {
+      "type": "tf",
+      "category": "Register conventions",
+      "q": "Because RSI is the 'source index', a compiler may only use it for string operations.",
+      "answer": false,
+      "explain": "These are only Intel's suggestions. RSI, RDI and the others are general purpose, and the compiler can use them however it wants."
+    },
+    {
+      "type": "mc",
+      "category": "Register conventions",
+      "q": "Which register points at the next instruction the processor should execute?",
+      "choices": ["RSP", "RBP", "RIP", "RAX"],
+      "answer": 2,
+      "explain": "RIP is the instruction pointer."
+    },
+    {
+      "type": "mc",
+      "category": "NOP",
+      "q": "What does the NOP instruction do?",
+      "choices": [
+        "Nothing: it takes no operands and changes no registers or values",
+        "Sets RAX to zero",
+        "Halts the processor until an interrupt arrives",
+        "Pops the top of the stack and discards it"
+      ],
+      "answer": 0,
+      "explain": "NOP = No Operation: no registers, no values, nothing happens."
+    },
+    {
+      "type": "multi",
+      "category": "NOP",
+      "q": "What are NOPs used for?",
+      "choices": [
+        "Padding/aligning code, e.g. so functions start on aligned addresses",
+        "Delaying time by using up cycles",
+        "Making simple exploits more reliable",
+        "Clearing a register to zero",
+        "Returning from a function"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Compilers insert NOPs for alignment (following Intel's optimization guidance). Some architectures use them to delay time, and attackers use them to make exploits more reliable."
+    },
+    {
+      "type": "text",
+      "category": "NOP",
+      "q": "What is the canonical single-byte encoding of NOP, in hex?",
+      "answer": ["0x90", "90", "90h", "0x90h", "0X90"],
+      "explain": "0x90 is the canonical one-byte NOP."
+    },
+    {
+      "type": "mc",
+      "category": "NOP",
+      "q": "The one-byte NOP is an alias mnemonic for which instruction?",
+      "choices": ["XCHG (E)AX, (E)AX", "MOV EAX, EAX", "XOR EAX, EAX", "PUSH EAX followed by POP EAX"],
+      "answer": 0,
+      "explain": "XCHG swaps the values of two registers. Exchanging EAX (or RAX) with itself changes nothing, so it acts as a no-op. XOR EAX, EAX would zero the register."
+    },
+    {
+      "type": "num",
+      "category": "NOP",
+      "q": "Intel specifies NOP forms ranging from 1 byte up to how many bytes long?",
+      "answer": 9,
+      "explain": "0x90 is the canonical 1-byte form, but Intel defines NOP forms 1 to 9 bytes long."
+    },
+    {
+      "type": "tf",
+      "category": "NOP",
+      "q": "The NOP padding a compiler places between functions normally gets executed as part of the program's flow.",
+      "answer": false,
+      "explain": "Alignment NOPs between functions are only there to pad bytes so the next function starts on an aligned address. Execution doesn't reach them."
+    },
+    {
+      "type": "mc",
+      "category": "NOP",
+      "q": "In GCC objdump output, after main's final retq you see `nopw %cs:0x0(%rax,%rax,1)` and `xchg %ax,%ax`. What are these most likely to be?",
+      "choices": [
+        "Multi-byte NOP padding that follows the function",
+        "Code that restores registers before returning",
+        "Part of main's return value calculation",
+        "Instructions that zero the stack after main"
+      ],
+      "answer": 0,
+      "explain": "They come after the ret, so they never run. nopw is a multi-byte NOP and xchg %ax,%ax swaps a register with itself. Both just fill space for alignment."
+    },
+    {
+      "type": "mc",
+      "category": "The stack",
+      "q": "What kind of data structure is the stack?",
+      "choices": ["Last-In-First-Out (LIFO)", "First-In-First-Out (FIFO)", "Random-access array", "Binary tree"],
+      "answer": 0,
+      "explain": "Data is pushed onto the top and popped off the top, like a stack of plates. You can't take items out of the middle."
+    },
+    {
+      "type": "mc",
+      "category": "The stack",
+      "q": "Where does the stack live?",
+      "choices": [
+        "In processor registers",
+        "In an area of main memory (RAM) that the OS designates when the program starts",
+        "Only in the processor cache",
+        "On disk, in the swap file"
+      ],
+      "answer": 1,
+      "explain": "The stack is a conceptual area of RAM that the OS assigns to the program when it starts. RSP just points into it."
+    },
+    {
+      "type": "multi",
+      "category": "The stack",
+      "q": "Why might the stack start at a different address on different systems or on different runs?",
+      "choices": [
+        "Different operating systems follow different conventions for where to put it",
+        "Address space layout randomization (ASLR) can move it from one run to the next",
+        "The CPU picks a new stack address every time an instruction runs",
+        "The stack address is set in the C source code"
+      ],
+      "answer": [0, 1],
+      "explain": "The OS decides where the stack goes. With ASLR, the location can change each time the program is invoked."
+    },
+    {
+      "type": "mc",
+      "category": "The stack",
+      "q": "By convention, which way do the stack and the heap grow?",
+      "choices": [
+        "Stack toward lower addresses, heap toward higher addresses",
+        "Stack toward higher addresses, heap toward lower addresses",
+        "Both toward higher addresses",
+        "Both toward lower addresses"
+      ],
+      "answer": 0,
+      "explain": "The stack grows down toward low addresses ('the enemy's plate is down') and the heap grows up, so they grow toward each other."
+    },
+    {
+      "type": "mc",
+      "category": "The stack",
+      "q": "What happens if a program uses too much stack and too much heap?",
+      "choices": [
+        "They grow into each other and collide, and the program hits an error and is terminated",
+        "The stack automatically moves to disk",
+        "The heap reverses direction to make room",
+        "Nothing: the stack and heap are on separate physical chips"
+      ],
+      "answer": 0,
+      "explain": "The stack grows down and the heap grows up. If both grow too far they collide, and the program errors out and has to be terminated."
+    },
+    {
+      "type": "mc",
+      "category": "The stack",
+      "q": "What does RSP point to?",
+      "choices": [
+        "The top of the stack: the lowest address currently in use",
+        "The bottom of the stack: the highest stack address",
+        "The first free slot just below the top of the stack",
+        "The base of the current function's frame"
+      ],
+      "answer": 0,
+      "explain": "RSP points at the last value put on the stack, which is the lowest address being used. RBP is the one that points at the frame base."
+    },
+    {
+      "type": "tf",
+      "category": "The stack",
+      "q": "Memory just past the top of the stack (below RSP) can still hold data, but it should be treated as undefined and never relied on.",
+      "answer": true,
+      "explain": "Data really does exist there (for example, a value that was just popped), but correctly behaving code never depends on memory beyond the top of the stack."
+    },
+    {
+      "type": "multi",
+      "category": "The stack",
+      "q": "Which of these can be found on the stack?",
+      "choices": [
+        "Return addresses",
+        "Local variables",
+        "Sometimes, arguments passed between functions",
+        "Saved register values",
+        "Memory allocated with alloca()",
+        "Memory allocated with malloc()"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "The stack holds return addresses, locals, sometimes arguments, saved registers, and alloca() space. malloc() allocates from the heap."
+    },
+    {
+      "type": "mc",
+      "category": "The stack",
+      "q": "Why does a function call put a return address on the stack?",
+      "choices": [
+        "So the called function knows where to go back to in the calling function",
+        "So the caller can find the callee's local variables",
+        "So the OS can relocate the program",
+        "So the heap knows where the stack ends"
+      ],
+      "answer": 0,
+      "explain": "When one function calls another, a return address is pushed so that the callee can get back to the caller when it finishes."
+    },
+    {
+      "type": "mc",
+      "category": "The stack",
+      "q": "Why might a compiler save register values on the stack?",
+      "choices": [
+        "All functions share the same 16 registers and must not overwrite each other's values, and a complex function may need to juggle more values than fit in registers",
+        "Registers lose their values after every instruction",
+        "The stack is faster to access than registers",
+        "To make the stack grow toward higher addresses"
+      ],
+      "answer": 0,
+      "explain": "Saving registers lets functions share them without clobbering each other's values. It also gives a complex function somewhere to spill values when 16 registers aren't enough."
+    },
+    {
+      "type": "mc",
+      "category": "The stack",
+      "q": "main() calls foo(), which calls bar(). While bar() is running, which function's frame is at the lowest memory address?",
+      "choices": ["main's", "foo's", "bar's", "All three share a single frame"],
+      "answer": 2,
+      "explain": "Each call creates a new frame further toward lower addresses, so bar's frame is at the top of the stack (lowest address) and main's is nearest the bottom. Frames disappear as functions return."
+    },
+    {
+      "type": "tf",
+      "category": "The stack",
+      "q": "Stack diagrams are always drawn with high addresses at the top and the stack growing downward.",
+      "answer": false,
+      "explain": "Conventions vary. Some people draw the stack growing upward, and 'Smashing the Stack for Fun and Profit' draws it horizontally. You need to be able to read the stack in any orientation."
+    },
+    {
+      "type": "num",
+      "category": "Push & pop",
+      "q": "In 64-bit mode, by how many bytes does PUSH decrement RSP?",
+      "answer": 8,
+      "explain": "PUSH stores a quadword (8 bytes) and automatically subtracts 8 from RSP. The stack grows toward lower addresses."
+    },
+    {
+      "type": "mc",
+      "category": "Push & pop",
+      "q": "RAX = 3 and RSP = 0x14FE08 (the value 2 is stored there). After `push rax`, which is true?",
+      "choices": [
+        "RSP = 0x14FE00, and the 8 bytes at 0x14FE00 hold 3",
+        "RSP = 0x14FE10, and the 8 bytes at 0x14FE10 hold 3",
+        "RSP = 0x14FE08, and the 2 there is overwritten with 3",
+        "RSP = 0x14FE00, and RAX is now 0"
+      ],
+      "answer": 0,
+      "explain": "PUSH subtracts 8 from RSP (0x14FE08 to 0x14FE00) and writes RAX there. RSP then points at the newly pushed 3. RAX itself is unchanged."
+    },
+    {
+      "type": "mc",
+      "category": "Push & pop",
+      "q": "RAX = 0x5007 and RSP = 0x14FE00 (the value 3 is stored there). After `pop rax`, which is true?",
+      "choices": [
+        "RAX = 3, RSP = 0x14FE08",
+        "RAX = 3, RSP = 0x14FDF8",
+        "RAX = 0x5007, RSP = 0x14FE08",
+        "RAX = 3, RSP = 0x14FE00, and the slot is zeroed"
+      ],
+      "answer": 0,
+      "explain": "POP copies the value at RSP into RAX, overwriting 0x5007, and then adds 8 to RSP. The slot at 0x14FE00 is now undefined."
+    },
+    {
+      "type": "tf",
+      "category": "Push & pop",
+      "q": "POP zeroes the stack slot it reads from.",
+      "answer": false,
+      "explain": "Neither the hardware nor compiler-generated code clears it. The old value is still there, but because it is beyond the top of the stack it is considered undefined."
+    },
+    {
+      "type": "tf",
+      "category": "Push & pop",
+      "q": "Right after a PUSH, RSP points at the value that was just pushed.",
+      "answer": true,
+      "explain": "RSP always points at the top of the stack, meaning the last value stored. It does not point at the next free slot."
+    },
+    {
+      "type": "mc",
+      "category": "Push & pop",
+      "q": "RSP = 0x14FE10, RAX = 0xA, RBX = 0xB. You execute `push rax`, `push rbx`, `pop rcx`. What is the result?",
+      "choices": [
+        "RSP = 0x14FE08, RCX = 0xB",
+        "RSP = 0x14FE08, RCX = 0xA",
+        "RSP = 0x14FE18, RCX = 0xB",
+        "RSP = 0x14FE00, RCX = 0xB"
+      ],
+      "answer": 0,
+      "explain": "Two pushes bring RSP down to 0x14FE00. Because the stack is LIFO, the pop returns the last value pushed (0xB) and RSP goes back up by 8 to 0x14FE08."
+    },
+    {
+      "type": "num",
+      "category": "Push & pop",
+      "q": "In 64-bit mode, a function executes 3 pushes and then 1 pop. How many bytes lower is RSP than where it started?",
+      "answer": 16,
+      "explain": "3 x 8 = 24 bytes down, then 8 back up, for a net 16 bytes lower."
+    },
+    {
+      "type": "num",
+      "category": "Push & pop",
+      "q": "In 32-bit mode, by how many bytes does a PUSH decrement ESP?",
+      "answer": 4,
+      "explain": "In 32-bit mode, push and pop move 32-bit values, so ESP changes by 4 instead of 8."
+    },
+    {
+      "type": "mc",
+      "category": "Push & pop",
+      "q": "In 16-bit mode, push and pop change SP by:",
+      "choices": ["1 byte", "2 bytes", "4 bytes", "8 bytes"],
+      "answer": 1,
+      "explain": "16-bit mode pushes and pops 16-bit values, so SP moves by 2."
+    },
+    {
+      "type": "multi",
+      "category": "Push & pop",
+      "q": "In 64-bit mode, which of these can be the operand of POP?",
+      "choices": [
+        "A 64-bit register, e.g. rbx",
+        "A 64-bit memory location in r/mX form, e.g. [rbx]",
+        "An immediate constant, e.g. 5"
+      ],
+      "answer": [0, 1],
+      "explain": "POP needs somewhere to store the value, either a 64-bit register or a memory location. You can't pop into a constant."
+    },
+    {
+      "type": "tf",
+      "category": "Push & pop",
+      "q": "According to Intel's PUSH table, `PUSH r/m32` is valid in 64-bit mode.",
+      "answer": false,
+      "explain": "The table marks PUSH r/m32 (and PUSH r32) as N.E. (not encodable) in 64-bit mode. PUSH r/m16 and PUSH r/m64 are valid there."
+    },
+    {
+      "type": "mc",
+      "category": "Push & pop",
+      "q": "In the Hello World disassemblies, whose main had no push/pop pair and instead adjusted RSP with `sub rsp,28h` ... `add rsp,28h`?",
+      "choices": [
+        "Visual Studio 2019's",
+        "GCC's on Ubuntu",
+        "Apple clang's on macOS",
+        "None: all three used push rbp / pop rbp"
+      ],
+      "answer": 0,
+      "explain": "Both GCC (Linux) and clang (macOS) started main with push rbp and ended it with a balanced pop rbp. Visual Studio's version only used sub/add on RSP."
+    },
+    {
+      "type": "mc",
+      "category": "r/mX addressing & notation",
+      "q": "In Intel syntax, what does `[rbx]` mean?",
+      "choices": [
+        "Treat rbx's value as a memory address and fetch the value stored there",
+        "Use the value in rbx itself",
+        "Use the address of the rbx register",
+        "Treat rbx as an array of bytes"
+      ],
+      "answer": 0,
+      "explain": "Square brackets mean dereference, like a pointer: the value pointed to by rbx is used, not rbx itself."
+    },
+    {
+      "type": "tf",
+      "category": "r/mX addressing & notation",
+      "q": "`push rbx` and `push [rbx]` push the same value.",
+      "answer": false,
+      "explain": "push rbx pushes the value in rbx. push [rbx] treats rbx as an address and pushes the 64-bit value stored in memory at that address."
+    },
+    {
+      "type": "mc",
+      "category": "r/mX addressing & notation",
+      "q": "What does 'r/mX' stand for?",
+      "choices": [
+        "Any operand the Intel manual writes as r/m8, r/m16, r/m32 or r/m64: either a register or a memory location of that size",
+        "Memory operands only, never a register",
+        "A register that holds an X coordinate",
+        "An immediate value that is X bits wide"
+      ],
+      "answer": 0,
+      "explain": "An r/mX operand can be as simple as a plain register or as complex as [base + index*scale + displacement]."
+    },
+    {
+      "type": "multi",
+      "category": "r/mX addressing & notation",
+      "q": "Which values are allowed as the scale in [base + index*scale]?",
+      "choices": ["1", "2", "3", "4", "8", "16"],
+      "answer": [0, 1, 3, 4],
+      "fixed": true,
+      "explain": "The scale can only be 1, 2, 4 or 8. No other values are allowed."
+    },
+    {
+      "type": "mc",
+      "category": "r/mX addressing & notation",
+      "q": "Which of these is NOT a valid r/mX memory form?",
+      "choices": ["[rbx]", "[rbx+rcx*4]", "[rbx+rcx*3]", "[rbx+rcx*8+0x20]"],
+      "answer": 2,
+      "explain": "The scale must be 1, 2, 4 or 8, so *3 can't be encoded. The other three are base-only, base+index*scale, and base+index*scale+displacement."
+    },
+    {
+      "type": "mc",
+      "category": "r/mX addressing & notation",
+      "q": "In `[rbx+rcx*8+0x20]`, what role does each part play?",
+      "choices": [
+        "rbx = base, rcx = index, 8 = scale, 0x20 = displacement",
+        "rbx = index, rcx = base, 8 = displacement, 0x20 = scale",
+        "rbx = base, rcx = scale, 8 = index, 0x20 = displacement",
+        "rbx = displacement, rcx = index, 8 = scale, 0x20 = base"
+      ],
+      "answer": 0,
+      "explain": "The general form is [base + index*scale + displacement]."
+    },
+    {
+      "type": "mc",
+      "category": "r/mX addressing & notation",
+      "q": "rbx = 0x1000 and rcx = 3. What memory address does `[rbx+rcx*8+0x20]` refer to?",
+      "choices": ["0x1038", "0x1023", "0x1044", "0x1058"],
+      "answer": 0,
+      "explain": "0x1000 + 3*8 (0x18) + 0x20 = 0x1038. The value fetched is whatever is stored at that address."
+    },
+    {
+      "type": "mc",
+      "category": "r/mX addressing & notation",
+      "q": "In the base+index*scale+displacement form, how can the displacement be encoded?",
+      "choices": ["As 1 byte or as 4 bytes", "Only as 1 byte", "As 2 bytes or as 8 bytes", "At any size up to 64 bits"],
+      "answer": 0,
+      "explain": "The displacement is encoded in either 1 byte (0 to 2^8) or 4 bytes (0 to 2^32)."
+    },
+    {
+      "type": "mc",
+      "category": "r/mX addressing & notation",
+      "q": "The [base + index*scale + displacement] form is especially natural for accessing:",
+      "choices": [
+        "Multi-dimensional arrays and arrays of structs",
+        "Function return values",
+        "Immediate constants",
+        "NOP padding"
+      ],
+      "answer": 0,
+      "explain": "Base = start of the array, index*scale = element number times element size, displacement = extra offset such as a row or field offset."
+    },
+    {
+      "type": "mc",
+      "category": "r/mX addressing & notation",
+      "q": "What does the backtick in 0x00000000`0014FE08 mark?",
+      "choices": [
+        "The split between the two 32-bit halves of a 64-bit number (WinDbg-style notation)",
+        "A memory dereference",
+        "A negative number",
+        "The boundary between an address and the value stored there"
+      ],
+      "answer": 0,
+      "explain": "The backtick separates the upper and lower 32 bits, which makes it easy to check that a 64-bit number has the right number of digits. WinDbg is probably the only tool that accepts numbers typed this way."
+    },
+    {
+      "type": "tf",
+      "category": "r/mX addressing & notation",
+      "q": "A number written as 0x00000001`00003F50 needs more than 32 bits to represent.",
+      "answer": true,
+      "explain": "A non-zero value to the left of the backtick means the upper 32 bits are in use, so the number is larger than 32 bits."
+    }
+  ]
+}

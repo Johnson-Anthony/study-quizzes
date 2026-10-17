@@ -1,0 +1,263 @@
+{
+ "title": "Vulns1001 04: Stack Buffer Overflow Examples (part 2 of 3)",
+ "course": "VULNS1001",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "CVE-2021-20294 (readelf)",
+   "q": "Which program contains CVE-2021-20294?",
+   "choices": ["The Binutils readelf ELF parser", "The GNU bash shell", "The OpenSSL TLS library", "The Linux kernel TCP stack"],
+   "answer": 0,
+   "explain": "CVE-2021-20294 is in Binutils readelf, a userspace CLI utility that parses ELF binaries. The vulnerable code is in print_dynamic_symbol while handling symbol version strings."
+  },
+  {
+   "type": "mc",
+   "category": "CVE-2021-20294 (readelf)",
+   "q": "What is the attack surface for CVE-2021-20294?",
+   "choices": ["A malicious ELF binary whose symbol/version data is parsed", "A crafted HTTP request", "A malicious BMP image", "An over-the-air SIP message"],
+   "answer": 0,
+   "explain": "readelf parses an attacker-supplied ELF file. The whole file is ACID (attacker-controlled input data); the overflow comes from an attacker-controlled symbol version string."
+  },
+  {
+   "type": "tf",
+   "category": "CVE-2021-20294 (readelf)",
+   "q": "CVE-2021-20294 was discovered being exploited in the wild as a 0day.",
+   "answer": false,
+   "explain": "It is not a 0day and had no public proof-of-concept exploit. readelf is usually run by hand, though automated malware-triage pipelines may run it on attacker files."
+  },
+  {
+   "type": "mc",
+   "category": "CVE-2021-20294 (readelf)",
+   "q": "Which unsafe function performs the overflowing write in CVE-2021-20294?",
+   "choices": ["sprintf", "fread", "memmove", "strncat"],
+   "answer": 0,
+   "explain": "An arbitrary-size attacker-controlled version_string is written with sprintf(buffer, \"@%s\", version_string) into a fixed-size stack buffer. sprintf is one of the 'sweet potato' weakly-bounded functions."
+  },
+  {
+   "type": "num",
+   "category": "CVE-2021-20294 (readelf)",
+   "q": "How many bytes was the vulnerable stack buffer (char buffer[...]) before the fix?",
+   "answer": 256,
+   "explain": "The code declared char buffer[256] and then sprintf'd an arbitrarily long version string into it, so any version_string over 256 bytes overflows the stack buffer."
+  },
+  {
+   "type": "mc",
+   "category": "CVE-2021-20294 (readelf)",
+   "q": "Why is the vulnerable sprintf branch reached by default when running readelf?",
+   "choices": ["The branch runs unless do_wide is set, and do_wide is only true when -W is passed", "It runs only when readelf is given -W", "It runs only under a debugger", "It runs only for 32-bit ELF files"],
+   "answer": 0,
+   "explain": "The guard is 'if (!do_wide && version_string != NULL)'. do_wide is true only when -W (wide) is passed, so in the default invocation the vulnerable branch is taken."
+  },
+  {
+   "type": "mc",
+   "category": "CVE-2021-20294 (readelf)",
+   "q": "What did the upstream fix for CVE-2021-20294 change?",
+   "choices": ["Shrank the buffer to char buffer[16] and replaced the sprintf of version_string with len_avail -= 1 + strlen(version_string)", "Added a call to strncpy with a length of 256", "Removed symbol version parsing entirely", "Switched the buffer from the stack to the heap"],
+   "answer": 0,
+   "explain": "The buffer became char buffer[16] and the version_string was no longer baked into the buffer; instead len_avail is reduced by 1 + strlen(version_string). The version_string is printf'd elsewhere later anyway."
+  },
+  {
+   "type": "mc",
+   "category": "CVE-2021-20294 (readelf)",
+   "q": "After the fix, Xeno still flagged one thing as suspicious about len_avail. What was it?",
+   "choices": ["len_avail is decremented by an attacker-controlled length, so it could integer-underflow", "len_avail is never initialized", "len_avail is a global shared between threads", "len_avail is printed to the user"],
+   "answer": 0,
+   "explain": "len_avail is reduced by the length of ACID data, so it might underflow. That is left for the later Integer Overflow/Underflow section. He also noted other sprintf('%s') calls may exist, raising the question of whether variant analysis was done."
+  },
+  {
+   "type": "mc",
+   "category": "CVE-2021-43579 (htmldoc)",
+   "q": "What does HTMLDOC do?",
+   "choices": ["Reads HTML/Markdown and produces EPUB, HTML, PostScript, or PDF", "Serves web pages over HTTP", "Compiles C source into executables", "Parses cellular baseband firmware"],
+   "answer": 0,
+   "explain": "HTMLDOC is a documentation-conversion tool from the 1990s, often embedded in web servers as a report generator. Its 'words of power' are Parse and Convert."
+  },
+  {
+   "type": "mc",
+   "category": "CVE-2021-43579 (htmldoc)",
+   "q": "What is the attack surface for CVE-2021-43579?",
+   "choices": ["BMP image parsing", "PDF font loading", "Markdown table parsing", "PostScript output generation"],
+   "answer": 0,
+   "explain": "The bug is in image_load_bmp, which parses an attacker-controlled BMP image file."
+  },
+  {
+   "type": "mc",
+   "category": "CVE-2021-43579 (htmldoc)",
+   "q": "Which function call performs the overflowing write in CVE-2021-43579?",
+   "choices": ["fread(colormap, (size_t)colors_used, 4, fp)", "sprintf(colormap, \"%s\", name)", "strcpy(colormap, line)", "memcpy(colormap, fp, 256)"],
+   "answer": 0,
+   "explain": "fread reads an ACID amount of data from an ACID file into the fixed-size stack buffer colormap. fread is an unsafe/weakly-bounded function here, and its return value is never checked."
+  },
+  {
+   "type": "mc",
+   "category": "CVE-2021-43579 (htmldoc)",
+   "q": "What is the declared type of the overflowed buffer in image_load_bmp?",
+   "choices": ["uchar colormap[256][4]", "char buffer[256]", "char v11[136]", "int depth[1024]"],
+   "answer": 0,
+   "explain": "colormap is declared uchar colormap[256][4], a fixed-size stack buffer that fread writes into using the attacker-controlled colors_used count."
+  },
+  {
+   "type": "mc",
+   "category": "CVE-2021-43579 (htmldoc)",
+   "q": "What sanity check did the patch add, and why does it still fail?",
+   "choices": ["It added 'else if (colors_used > 256) return -1', but colors_used is a signed int so -1 passes and then casts to a huge size_t", "It added a check that colors_used != 0, which does nothing", "It added a check on image width only, ignoring colors_used", "It added bounds on depth but the real bug is in width"],
+   "answer": 0,
+   "explain": "Because colors_used is a signed int, a value of -1 is not greater than 256 so it passes the check, then the cast to size_t makes it enormous. This is an 'insanity check': using a signed value in a sanity check tends to be bypassable."
+  },
+  {
+   "type": "mc",
+   "category": "CVE-2021-43579 (htmldoc)",
+   "q": "After the width/height sanity checks, what range can the attacker still choose for image width and height?",
+   "choices": ["1 to 8192", "0 to 65535", "-8192 to 8192", "Exactly 256"],
+   "answer": 0,
+   "explain": "The code returns -1 if width/height are <= 0 or > 8192, leaving them 'semi-ACID' in the range 1..8192."
+  },
+  {
+   "type": "tf",
+   "category": "CVE-2021-43579 (htmldoc)",
+   "q": "The presence of many signed ints with names like sizes or counts (info_size, depth, colors_used) was treated as a sign the code was NOT written 'program paranoid'.",
+   "answer": true,
+   "explain": "Values that can never legitimately be negative (sizes, counts) being signed is a tip-off that the code base was not programmed defensively and likely has the classes of bugs this course covers. 'It's not paranoia if they really are out to get you.'"
+  },
+  {
+   "type": "mc",
+   "category": "CVE-2021-43579 (htmldoc)",
+   "q": "If colors_used is -1 when it reaches the fread, what happens?",
+   "choices": ["It casts to a huge size_t, so fread reads until EOF and overflows colormap, with the return value never checked", "fread returns an error immediately and no data is copied", "The program divides by zero and crashes before the copy", "colors_used is clamped to 256 automatically"],
+   "answer": 0,
+   "explain": "The signed -1 becomes a maximal size_t. fread happily reads from the file, overflowing colormap, and stops only at end-of-file; because its return value is unchecked, the error is ignored and execution continues."
+  },
+  {
+   "type": "mc",
+   "category": "SSBB-BH2021 (baseband)",
+   "q": "What component is affected by the SSBB-BH2021 bug?",
+   "choices": ["Samsung cellular baseband firmware (Exynos 980 SoC)", "The Android Java runtime", "A desktop PDF reader", "A Wi-Fi router's web UI"],
+   "answer": 0,
+   "explain": "It is firmware running on the Samsung cellular baseband (Exynos 980 SoC), presented at BlackHat 2021 by Marco Grassi and Xingyu Chen."
+  },
+  {
+   "type": "mc",
+   "category": "SSBB-BH2021 (baseband)",
+   "q": "What is the attack surface for the SSBB-BH2021 baseband bug?",
+   "choices": ["XML content inside SIP messages received over the air", "A malicious ELF binary", "A crafted BMP image file", "A USB descriptor"],
+   "answer": 0,
+   "explain": "Basebands parse cellular protocol messages; SIP (used by 4G/5G) can carry XML content. The XML is parsed before cellular authentication occurs."
+  },
+  {
+   "type": "tf",
+   "category": "SSBB-BH2021 (baseband)",
+   "q": "The SSBB-BH2021 bug has a known, published CVE number.",
+   "answer": false,
+   "explain": "No CVE is listed; even the researchers did not know one. They reported it to vivo (the phone maker) rather than Samsung, so it may not even be fixed."
+  },
+  {
+   "type": "mc",
+   "category": "SSBB-BH2021 (baseband)",
+   "q": "Who is the assumed attacker in the SSBB-BH2021 scenario?",
+   "choices": ["A compromised/malicious carrier, or someone nearby running a fake base station", "A logged-in local user on the phone", "A malicious app already installed on the phone", "A USB device plugged into the phone"],
+   "answer": 0,
+   "explain": "The attacker is a malicious/compromised carrier or a nearby fake base station the victim phone connects to. The ACID SIP/XML is parsed before any typical cellular authentication."
+  },
+  {
+   "type": "num",
+   "category": "SSBB-BH2021 (baseband)",
+   "q": "How many bytes is the stack buffer v11 that gets overflowed in IMSPL_XmlParser_ContactLstDecode?",
+   "answer": 136,
+   "explain": "v11 is declared char v11[136]. Note bzero(v11, 100) only clears 100 of the 136 bytes; a tag name longer than 136 bytes overflows it."
+  },
+  {
+   "type": "mc",
+   "category": "SSBB-BH2021 (baseband)",
+   "q": "Which operation actually overflows the buffer in the SSBB-BH2021 code?",
+   "choices": ["A memcpy into dst with an attacker-controlled length (v13[0] - v8)", "A sprintf with %s", "A strcat of two tag names", "An fread from a file"],
+   "answer": 0,
+   "explain": "After find_tag_end, the code does memcpy(dst, ptr+1, v13[0]-v8). The length is the pointer distance to the tag's end, which the attacker controls, so a tag name over 136 bytes overflows dst."
+  },
+  {
+   "type": "mc",
+   "category": "SSBB-BH2021 (baseband)",
+   "q": "In the SSBB-BH2021 code, IMSPL_XmlGetNextTagName is best described as what?",
+   "choices": ["A wrapper that behaves like a special-case strcpy with no destination-size limit", "A safe bounded copy using the destination size", "A pure comparison function that copies nothing", "A memory allocator"],
+   "answer": 0,
+   "explain": "It takes a source and a destination and copies a tag into the destination with no notion of the destination's maximum size, effectively a special-case strcpy. It illustrates the 'wrapper functions people inevitably write' root cause."
+  },
+  {
+   "type": "mc",
+   "category": "SSBB-BH2021 (baseband)",
+   "q": "What was notable about find_tag_end in the SSBB-BH2021 walkthrough?",
+   "choices": ["It is an effectively unbounded loop with ACID exit conditions, but it does no copying itself", "It copies each byte into the destination inside the loop", "It uses a fixed loop counter of 136", "It validates the tag length before returning"],
+   "answer": 0,
+   "explain": "find_tag_end walks forward until it hits an exit character (null, tab, newline, carriage return, space, '/', '>', '?'). The exit conditions are ACID and the loop is effectively unbounded, but because no manual copy happens inside it, it is not the classic 'carrot' loop-copy case."
+  },
+  {
+   "type": "mc",
+   "category": "SSBB-BH2021 (baseband)",
+   "q": "What does the public proof-of-concept payload use to trigger the overflow?",
+   "choices": ["An XML tag name made of many 'A' characters, longer than 136 bytes", "A negative colors_used value", "A version string over 256 bytes", "A width field set to -1"],
+   "answer": 0,
+   "explain": "The PoC uses a tag name of all 'A's that is longer than the 136-byte destination buffer, the classic 'ACID burn'."
+  },
+  {
+   "type": "mc",
+   "category": "SSBB-BH2021 (baseband)",
+   "q": "What was the fix for the SSBB-BH2021 bug?",
+   "choices": ["Unknown; it is proprietary code with no patch analysis and no CVE", "The buffer was enlarged to 256 bytes", "memcpy was replaced with strncpy", "A signed-to-unsigned cast was removed"],
+   "answer": 0,
+   "explain": "Because the code is proprietary, no patch analysis was done and no CVE was listed, so whether and how it was fixed is unknown."
+  },
+  {
+   "type": "mc",
+   "category": "Root causes / ACID analysis",
+   "q": "In this course's shorthand, what does the 'sweet potato' root cause refer to?",
+   "choices": ["Unsafe/weakly-bounded functions like memcpy(), strcpy(), strcat(), sprintf(), and their wrapper functions", "Sequential writes in a loop with an ACID counter", "Integer underflow of a length variable", "Unchecked return values from fread"],
+   "answer": 0,
+   "explain": "The 'sweet potato' is an unsafe or weakly-bounded function (memcpy, strcpy, strcat, sprintf, etc.), including the equivalent wrapper functions people inevitably write around them."
+  },
+  {
+   "type": "mc",
+   "category": "Root causes / ACID analysis",
+   "q": "In this course's shorthand, what does the 'carrot' root cause refer to?",
+   "choices": ["Sequential data writes inside a loop with an ACID loop {counter, exit condition}", "A single unsafe library call like strcpy", "A signed integer used in a sanity check", "An uninitialized stack buffer"],
+   "answer": 0,
+   "explain": "The 'carrot' is sequential data writes within a loop whose counter or exit condition is attacker-controlled (ACID)."
+  },
+  {
+   "type": "multi",
+   "category": "Root causes / ACID analysis",
+   "q": "Which of these functions are cited as 'sweet potato' unsafe/weakly-bounded functions?",
+   "choices": ["memcpy", "strcpy", "strcat", "sprintf", "snprintf", "malloc"],
+   "answer": [0, 1, 2, 3],
+   "explain": "memcpy(), strcpy(), strcat(), and sprintf() are the named examples of weakly-bounded functions. snprintf is length-bounded and malloc is an allocator, not a copy."
+  },
+  {
+   "type": "text",
+   "category": "Root causes / ACID analysis",
+   "q": "In this course, 'ACID' is an acronym for what four-word phrase describing tainted data?",
+   "answer": ["Attacker Controlled Input Data", "attacker-controlled input data", "attacker controlled input data"],
+   "explain": "ACID = Attacker Controlled Input Data. 'Go with the ACID-flow' means tracing these tainted variables through the code to the point where they reach a dangerous operation."
+  },
+  {
+   "type": "mc",
+   "category": "Root causes / ACID analysis",
+   "q": "What is the common trigger pattern shared by all three examples in this section?",
+   "choices": ["An attacker-controlled-size write of attacker-controlled data into a fixed-size stack buffer", "A use-after-free of a heap object", "A format-string leak of stack memory", "A race condition between two threads"],
+   "answer": 0,
+   "explain": "readelf (sprintf), htmldoc (fread), and the Samsung baseband (memcpy) all write an ACID amount of ACID data into a fixed-size stack buffer, overflowing it."
+  },
+  {
+   "type": "tf",
+   "category": "Root causes / ACID analysis",
+   "q": "The SSBB-BH2021 find_tag_end loop is a textbook example of the 'carrot' (loop-copy) root cause.",
+   "answer": false,
+   "explain": "It is an unbounded loop with ACID exit conditions, but it performs no copy inside the loop. The actual overflow is a later memcpy, making the bug a 'sweet potato'/wrapper case rather than the classic carrot loop-copy."
+  },
+  {
+   "type": "mc",
+   "category": "Root causes / ACID analysis",
+   "q": "What is the 'program paranoid' lesson stressed in these examples?",
+   "choices": ["Treat all input as hostile, because 'it's not paranoia if they really are out to get you'", "Never use the stack for buffers", "Always compile with optimizations off", "Only parse files you created yourself"],
+   "answer": 0,
+   "explain": "Code written 'program paranoid' defends against hostile input everywhere. Signs it was not (e.g. signed size/count variables, unchecked fread, unbounded copies) predict the vulnerability classes this course covers."
+  }
+ ]
+}

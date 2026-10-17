@@ -1,0 +1,449 @@
+{
+  "title": "Control Flow: goto, if, switch (jmp, Jcc, cmp, RFLAGS)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "multi",
+      "category": "Control flow & goto",
+      "q": "Which of these are forms of UNCONDITIONAL control flow?",
+      "choices": ["Function calls (call/ret)", "goto", "Interrupts", "Exceptions", "if statements", "switch statements", "Loop continue/exit checks"],
+      "answer": [0, 1, 2, 3],
+      "explain": "Unconditional control flow always goes somewhere: function calls, goto, exceptions, interrupts. Conditional control flow goes somewhere only if a condition is met: ifs, switches, loops."
+    },
+    {
+      "type": "mc",
+      "category": "Control flow & goto",
+      "q": "How does a C statement 'goto mylabel;' show up in compiled x86-64 code?",
+      "choices": ["A jmp to the address of the code at mylabel", "A call to mylabel, followed later by a ret", "A cmp followed by je to mylabel", "A push of mylabel's address followed by ret"],
+      "answer": 0,
+      "explain": "goto always goes to its label, and jmp always goes to its target address. goto == jmp."
+    },
+    {
+      "type": "tf",
+      "category": "Control flow & goto",
+      "q": "Given: 0x140001000 sub rsp,28h / 0x140001004 jmp 0000000140001012 / 0x140001006 lea rcx,[0000000140006000h] / 0x14000100D call 0000000140001090 / 0x140001012 lea rcx,[0000000140006010h] / ... True or false: the instructions at 0x140001006 and 0x14000100D are in the binary but never execute.",
+      "answer": true,
+      "explain": "The compiler still emits the code for the skipped printf, but the unconditional jmp at 0x140001004 always jumps over it to 0x140001012."
+    },
+    {
+      "type": "mc",
+      "category": "Control flow & goto",
+      "q": "Given: 0x140001004 jmp 0000000140001012 / 0x140001006 lea rcx,[0000000140006000h] / 0x14000100D call 0000000140001090 / 0x140001012 lea rcx,[0000000140006010h] / 0x140001019 call 0000000140001090 / 0x14000101E mov eax,0B01DFACEh. Which instruction runs right after the jmp?",
+      "choices": ["lea rcx,[0000000140006010h] at 0x140001012", "lea rcx,[0000000140006000h] at 0x140001006", "call 0000000140001090 at 0x14000100D", "mov eax,0B01DFACEh at 0x14000101E"],
+      "answer": 0,
+      "explain": "jmp sets RIP to its target, 0x140001012, so the next instruction is the lea at that address."
+    },
+    {
+      "type": "tf",
+      "category": "Control flow & goto",
+      "q": "Function calls are an example of conditional control flow.",
+      "answer": false,
+      "explain": "A call always transfers control to the callee, so it is unconditional control flow (call/ret), just like goto/jmp."
+    },
+    {
+      "type": "tf",
+      "category": "Control flow & goto",
+      "q": "In a control flow graph, a block that ends in a conditional jump has two outgoing edges: one for jump taken and one for fall-through.",
+      "answer": true,
+      "explain": "A Jcc either jumps to its target (condition true) or falls through to the next instruction (condition false), which gives two possible successors."
+    },
+    {
+      "type": "mc",
+      "category": "jmp",
+      "q": "What does the jmp instruction do?",
+      "choices": ["Unconditionally sets RIP to the target address", "Pushes the address of the next instruction, then sets RIP to the target", "Sets RIP to the target only if ZF == 1", "Pops a value off the stack into RIP"],
+      "answer": 0,
+      "explain": "jmp unconditionally changes RIP. Pushing a return address is call, popping into RIP is ret, and a conditional jump on ZF is je/jz."
+    },
+    {
+      "type": "mc",
+      "category": "jmp",
+      "q": "For a SHORT relative jmp, how is the new RIP computed?",
+      "choices": ["Address of the next instruction + a 1-byte displacement sign-extended to 64 bits", "Address of the jmp itself + a 1-byte displacement zero-extended to 64 bits", "Address of the next instruction + a 4-byte displacement sign-extended to 64 bits", "A full 64-bit absolute address stored in the instruction"],
+      "answer": 0,
+      "explain": "Short relative: RIP = RIP of next instruction + sign-extended 1-byte displacement. A 4-byte displacement is the near relative form."
+    },
+    {
+      "type": "num",
+      "category": "jmp",
+      "q": "A 2-byte short jmp at address 0x140001004 is displayed by the disassembler as 'jmp 0000000140001012'. What displacement (in decimal) is actually encoded in the instruction?",
+      "answer": 12,
+      "explain": "The displacement is relative to the next instruction: 0x140001004 + 2 = 0x140001006. 0x140001012 - 0x140001006 = 0x0C = 12. The instruction really says 'jump 0x0C bytes forward'."
+    },
+    {
+      "type": "tf",
+      "category": "jmp",
+      "q": "The machine-code bytes of an instruction displayed as 'jmp 0000000140001012' must contain the 64-bit value 0x0000000140001012.",
+      "answer": false,
+      "explain": "The disassembler shows the computed target for readability. A relative jmp only encodes a displacement (here one byte, 0x0C) from the next instruction's address."
+    },
+    {
+      "type": "mc",
+      "category": "jmp",
+      "q": "Why does a short relative 'jmp -2' loop forever?",
+      "choices": ["The instruction is 2 bytes long and the displacement is added to the next instruction's address, so the target is the jmp itself", "A displacement of -2 is a special encoding meaning 'halt'", "It jumps back two instructions, and that earlier instruction jumps forward again", "Negative displacements are treated as absolute addresses that hold an infinite loop"],
+      "answer": 0,
+      "explain": "Next instruction = jmp address + 2. Adding -2 lands back on the jmp, which jumps to itself again forever."
+    },
+    {
+      "type": "mc",
+      "category": "jmp",
+      "q": "A 2-byte short jmp at address 0x401000 has the displacement byte 0xF0. Where does it jump?",
+      "choices": ["0x400FF2", "0x400FF0", "0x4010F2", "0x4010F0"],
+      "answer": 0,
+      "explain": "Next instruction = 0x401002. 0xF0 sign-extends to -16 (-0x10). 0x401002 - 0x10 = 0x400FF2. 0x400FF0 forgets that the base is the next instruction; 0x4010F2 treats 0xF0 as unsigned +240."
+    },
+    {
+      "type": "mc",
+      "category": "jmp",
+      "q": "Roughly how far can a NEAR relative jmp reach from the next instruction?",
+      "choices": ["About 2 GB forward or backward (4-byte signed displacement)", "-128 to +127 bytes (1-byte signed displacement)", "About 32 KB forward or backward (2-byte displacement)", "Anywhere in the 64-bit address space"],
+      "answer": 0,
+      "explain": "Near relative uses a 4-byte displacement sign-extended to 64 bits, which is about +/- 2 billion bytes. The 1-byte range belongs to the short form."
+    },
+    {
+      "type": "mc",
+      "category": "jmp",
+      "q": "Which jmp form is 'jmp qword ptr [rax+8]', where the target address is taken from a register or memory through an r/m64 operand?",
+      "choices": ["Near absolute indirect", "Short relative", "Near relative", "Far absolute indirect"],
+      "answer": 0,
+      "explain": "Near absolute indirect takes the target from an r/m64 operand: a register, or memory as here. Far absolute indirect involves segment registers and is a different form."
+    },
+    {
+      "type": "mc",
+      "category": "jmp",
+      "q": "Where are short relative jumps most commonly found?",
+      "choices": ["Small loops that jump back a few instructions", "Calls into shared libraries", "Returning from functions", "Jumps that change segments"],
+      "answer": 0,
+      "explain": "A 1-byte displacement only reaches -128..+127 bytes, which suits tight loops jumping back a short distance."
+    },
+    {
+      "type": "mc",
+      "category": "RFLAGS",
+      "q": "In 64-bit mode, how does RFLAGS relate to EFLAGS?",
+      "choices": ["RFLAGS is 64 bits; its lower 32 bits are EFLAGS and its upper 32 bits are reserved", "RFLAGS is 64 bits; its upper 32 bits hold a copy of EFLAGS", "RFLAGS and EFLAGS are separate registers that cmp updates independently", "RFLAGS is 64 bits and its upper 32 bits hold the system flags"],
+      "answer": 0,
+      "explain": "EFLAGS was extended to 64 bits and renamed RFLAGS. The upper 32 bits are reserved (unused). The lower 16 bits are the original FLAGS."
+    },
+    {
+      "type": "tf",
+      "category": "RFLAGS",
+      "q": "ZF (Zero Flag) is set to 1 when the result of an operation is zero.",
+      "answer": true,
+      "explain": "The name can be confusing: a zero result sets ZF = 1. A nonzero result clears it to 0."
+    },
+    {
+      "type": "mc",
+      "category": "RFLAGS",
+      "q": "What is SF (Sign Flag) set to after an operation?",
+      "choices": ["The most significant bit of the result (1 means negative when read as signed)", "1 whenever the result is zero", "1 whenever an unsigned borrow occurs", "The least significant bit of the result"],
+      "answer": 0,
+      "explain": "SF copies the MSB of the result, which is the sign bit of a signed integer: 0 = positive, 1 = negative."
+    },
+    {
+      "type": "num",
+      "category": "RFLAGS",
+      "q": "Which bit position of RFLAGS holds ZF?",
+      "answer": 6,
+      "explain": "ZF is bit 6 and SF is bit 7."
+    },
+    {
+      "type": "num",
+      "category": "RFLAGS",
+      "q": "Which bit position of RFLAGS holds SF?",
+      "answer": 7,
+      "explain": "SF is bit 7, right above ZF at bit 6."
+    },
+    {
+      "type": "multi",
+      "category": "RFLAGS",
+      "q": "Which of these are STATUS flags in RFLAGS?",
+      "choices": ["CF (Carry)", "PF (Parity)", "AF (Auxiliary Carry)", "ZF (Zero)", "SF (Sign)", "OF (Overflow)", "DF (Direction)", "IF (Interrupt Enable)", "TF (Trap)"],
+      "answer": [0, 1, 2, 3, 4, 5],
+      "explain": "The status flags are CF, PF, AF, ZF, SF and OF. DF is a control flag. IF and TF are system flags."
+    },
+    {
+      "type": "mc",
+      "category": "RFLAGS",
+      "q": "'cmp dword ptr [rsp+4], eax' runs with the dword at [rsp+4] = 0xFFFFFFFF and eax = 2. What are ZF and SF afterward?",
+      "choices": ["ZF = 0, SF = 1", "ZF = 1, SF = 0", "ZF = 0, SF = 0", "ZF = 1, SF = 1"],
+      "answer": 0,
+      "explain": "0xFFFFFFFF - 2 = 0xFFFFFFFD. The result is nonzero, so ZF = 0. Its MSB is 1, so SF = 1."
+    },
+    {
+      "type": "mc",
+      "category": "RFLAGS",
+      "q": "'cmp eax, ebx' runs with eax = 5 and ebx = 5. What are ZF and SF afterward?",
+      "choices": ["ZF = 1, SF = 0", "ZF = 0, SF = 0", "ZF = 0, SF = 1", "ZF = 1, SF = 1"],
+      "answer": 0,
+      "explain": "5 - 5 = 0. A zero result sets ZF = 1, and its MSB is 0, so SF = 0."
+    },
+    {
+      "type": "tf",
+      "category": "RFLAGS",
+      "q": "RFLAGS is a general-purpose register that code can use for arithmetic, just like rax.",
+      "answer": false,
+      "explain": "RFLAGS is a special-purpose register made up of single-bit flags. Instructions like cmp, add and sub set those flags, and Jcc instructions read them."
+    },
+    {
+      "type": "mc",
+      "category": "Jcc conditions",
+      "q": "JE / JZ jumps when:",
+      "choices": ["ZF == 1", "ZF == 0", "SF == 1", "CF == 1"],
+      "answer": 0,
+      "explain": "Equal means the subtraction gave zero, so ZF == 1. JE and JZ are the same instruction."
+    },
+    {
+      "type": "mc",
+      "category": "Jcc conditions",
+      "q": "JNE / JNZ jumps when:",
+      "choices": ["ZF == 0", "ZF == 1", "SF != OF", "CF == 0"],
+      "answer": 0,
+      "explain": "Not equal means the result was nonzero, so ZF == 0."
+    },
+    {
+      "type": "text",
+      "category": "Jcc conditions",
+      "q": "Name the conditional jump mnemonic that is a synonym for jne (same instruction, same flag check).",
+      "answer": ["jnz", "JNZ"],
+      "explain": "JNE == JNZ. Both jump when ZF == 0. E (equal) and Z (zero) are interchangeable in Jcc mnemonics."
+    },
+    {
+      "type": "multi",
+      "category": "Jcc conditions",
+      "q": "Which Jcc mnemonic letters stand for an UNSIGNED comparison?",
+      "choices": ["A (above)", "B (below)", "G (greater)", "L (less)", "E (equal)"],
+      "answer": [0, 1],
+      "explain": "Above and below are unsigned. Greater and less are signed. Equal works the same either way."
+    },
+    {
+      "type": "mc",
+      "category": "Jcc conditions",
+      "q": "Which conditional jump is a synonym for JNA (jump if not above)?",
+      "choices": ["JBE", "JB", "JLE", "JNG"],
+      "answer": 0,
+      "explain": "Not above = below or equal, so JNA == JBE. JLE/JNG is the signed counterpart."
+    },
+    {
+      "type": "mc",
+      "category": "Jcc conditions",
+      "q": "JLE / JNG jumps when:",
+      "choices": ["ZF == 1 or SF != OF", "CF == 1 or ZF == 1", "SF == OF", "CF == 1"],
+      "answer": 0,
+      "explain": "JLE: ZF == 1 or SF != OF. The others are JBE (CF or ZF), JGE (SF == OF) and JB (CF == 1)."
+    },
+    {
+      "type": "mc",
+      "category": "Jcc conditions",
+      "q": "JBE / JNA jumps when:",
+      "choices": ["CF == 1 or ZF == 1", "ZF == 1 or SF != OF", "SF == OF", "ZF == 0"],
+      "answer": 0,
+      "explain": "Unsigned below-or-equal: CF == 1 (below) or ZF == 1 (equal). The signed version, JLE, uses SF and OF."
+    },
+    {
+      "type": "tf",
+      "category": "Jcc conditions",
+      "q": "JGE and JNL are two names for the same conditional jump, taken when SF == OF.",
+      "answer": true,
+      "explain": "Greater-or-equal is the same as not-less. Both are signed and jump when SF == OF."
+    },
+    {
+      "type": "tf",
+      "category": "Jcc conditions",
+      "q": "When a Jcc's condition is false, execution continues with the instruction right after the Jcc.",
+      "answer": true,
+      "explain": "If the condition is true the jump is taken. Otherwise the jump falls through to the next instruction."
+    },
+    {
+      "type": "mc",
+      "category": "Jcc conditions",
+      "q": "One disassembler shows an instruction as 'jnz' and another shows the same bytes as 'jne'. Why?",
+      "choices": ["They are synonyms: both jump when ZF == 0", "jnz tests SF while jne tests ZF", "One is the 32-bit form and the other is the 64-bit form", "One of the disassemblers decoded the instruction wrongly"],
+      "answer": 0,
+      "explain": "Many Jcc mnemonics are just different names for the same instruction. jne/jnz both check ZF == 0, and different tools pick different names."
+    },
+    {
+      "type": "mc",
+      "category": "Jcc conditions",
+      "q": "As 32-bit values, how does 0xFFFFFFFF compare with 0?",
+      "choices": ["Above 0 when unsigned, but less than 0 when signed", "Above 0 when unsigned, and greater than 0 when signed", "Below 0 when unsigned, and less than 0 when signed", "Below 0 when unsigned, but greater than 0 when signed"],
+      "answer": 0,
+      "explain": "Unsigned, 0xFFFFFFFF is the largest 32-bit value, so it is above 0. Signed, it is -1, so it is less than 0. That is why there are both A/B and G/L conditions."
+    },
+    {
+      "type": "mc",
+      "category": "cmp",
+      "q": "How does cmp perform its comparison?",
+      "choices": ["Subtracts the second operand from the first, sets the status flags the same way sub does, and discards the result", "Subtracts the first operand from the second and stores the result in the first operand", "ANDs the two operands and sets only ZF", "Subtracts the second operand from the first and stores the result in RFLAGS"],
+      "answer": 0,
+      "explain": "cmp is a sub whose result is thrown away. Only the flags survive, and a following Jcc reads them."
+    },
+    {
+      "type": "tf",
+      "category": "cmp",
+      "q": "After 'cmp eax, ebx', eax holds the value eax - ebx.",
+      "answer": false,
+      "explain": "That would be 'sub eax, ebx'. cmp computes the difference, sets the flags and discards the result, so eax does not change."
+    },
+    {
+      "type": "multi",
+      "category": "cmp",
+      "q": "Which flags does cmp modify?",
+      "choices": ["CF", "OF", "SF", "ZF", "AF", "PF", "DF", "IF"],
+      "answer": [0, 1, 2, 3, 4, 5],
+      "explain": "cmp sets the status flags the same way sub does: CF, OF, SF, ZF, AF and PF. DF and IF are not status flags."
+    },
+    {
+      "type": "multi",
+      "category": "cmp",
+      "q": "Which instructions can set the status flags that a following Jcc tests?",
+      "choices": ["cmp", "test", "sub", "add", "jmp", "nop"],
+      "answer": [0, 1, 2, 3],
+      "explain": "Flags are usually set by cmp or test, or by an instruction that sets flags as a side effect, such as add or sub. jmp and nop do not change the status flags."
+    },
+    {
+      "type": "mc",
+      "category": "cmp",
+      "q": "Intel syntax: 'cmp dword ptr [rsp+4], eax' followed by 'jle target'. When is the jump taken?",
+      "choices": ["When the dword at [rsp+4] <= eax, compared as signed", "When eax <= the dword at [rsp+4], compared as signed", "When the dword at [rsp+4] <= eax, compared as unsigned", "When the dword at [rsp+4] < eax, compared as signed"],
+      "answer": 0,
+      "explain": "Turn the condition code into its operator and put it between the cmp operands: '[rsp+4] <= eax?'. L means less, which is signed."
+    },
+    {
+      "type": "mc",
+      "category": "cmp",
+      "q": "Intel syntax: 'cmp rcx, rdx' followed by 'jb target'. When is the jump taken?",
+      "choices": ["When rcx < rdx, compared as unsigned", "When rcx < rdx, compared as signed", "When rdx < rcx, compared as unsigned", "When rcx <= rdx, compared as unsigned"],
+      "answer": 0,
+      "explain": "Read it as 'rcx < rdx?'. B (below) is unsigned and strict. jbe would add 'or equal'."
+    },
+    {
+      "type": "tf",
+      "category": "cmp",
+      "q": "In AT&T syntax, you can read 'cmp X, Y' followed by 'jle' as 'X <= Y', just as in Intel syntax.",
+      "answer": false,
+      "explain": "AT&T syntax writes the operands in reverse order, so you cannot put the operator between them as written. Flip them first."
+    },
+    {
+      "type": "num",
+      "category": "Tracing compiled code",
+      "q": "int main() { int a = -1, b = 2; if (a == b) return 1; if (a > b) return 2; if (a < b) return 3; return 0xdefea7; }  What value does main return?",
+      "answer": 3,
+      "explain": "Signed: -1 != 2, -1 > 2 is false, and -1 < 2 is true, so it returns 3. In the assembly, jne is taken, jle is taken (skips return 2), and jge is not taken (falls into return 3)."
+    },
+    {
+      "type": "num",
+      "category": "Tracing compiled code",
+      "q": "int main() { unsigned int a = -1, b = 2; if (a == b) return 1; if (a > b) return 2; if (a < b) return 3; return 0xdefea7; }  What value does main return?",
+      "answer": 2,
+      "explain": "a is stored as 0xFFFFFFFF, which is 4294967295 unsigned, so a > b is true and it returns 2. In the assembly, jbe is not taken, so execution falls through to 'mov eax,2'."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing compiled code",
+      "q": "For 'if (a > b) { return 2; }' with signed ints, the compiler emitted 'cmp dword ptr [rsp+4], eax' (a vs b) followed by 'jle' to the code after the if-body. Why jle instead of jg?",
+      "choices": ["The jump skips the body when the condition is false, so it tests the opposite condition (a <= b)", "jle and jg are synonyms for the same instruction", "jg cannot follow a cmp instruction", "Signed comparisons can only use jle"],
+      "answer": 0,
+      "explain": "The if-body sits right after the Jcc, so execution falls into it when the jump is not taken. To skip the body when a > b is false, the compiler jumps on a <= b."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing compiled code",
+      "q": "With a = -1 and b = 2 (signed), the code runs 'cmp dword ptr [rsp+4], eax' (a vs b) then '0x14000101A jne 0000000140001023'. The next instruction after the jne is 'mov eax,1'. What happens at the jne?",
+      "choices": ["Taken: execution goes to 0x140001023 and skips 'mov eax,1'", "Not taken: it falls through to 'mov eax,1' and returns 1", "Taken only if SF == 1", "Not taken, because jne needs ZF == 1"],
+      "answer": 0,
+      "explain": "-1 - 2 is nonzero, so ZF = 0. jne jumps when ZF == 0, so the 'return 1' block is skipped."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing compiled code",
+      "q": "With unsigned a = 0xFFFFFFFF stored at [rsp+4] and eax = 2: 'cmp dword ptr [rsp+4], eax' then 'jbe 0000000140001033'. The next instruction is 'mov eax,2'. What happens?",
+      "choices": ["Not taken: 0xFFFFFFFF is not below-or-equal 2 unsigned, so it falls through to 'mov eax,2'", "Taken: -1 is less than 2", "Taken: jbe always jumps when SF == 1", "Not taken, because jbe is only valid after a test instruction"],
+      "answer": 0,
+      "explain": "Read it as '[rsp+4] <= eax, unsigned?'. 4294967295 <= 2 is false, so execution falls through into the 'return 2' block."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing compiled code",
+      "q": "A small switch (case 0, case 1, default) compiled without optimization looks like: cmp dword ptr [rsp+20h],0 / je case0 / cmp dword ptr [rsp+20h],1 / je case1 / jmp default. How would you describe this?",
+      "choices": ["A series of if-equal checks: cmp/je per case, then an unconditional jmp to default", "A jump table indexed by the switch value", "A loop that counts up to the matching case", "A separate function call for each case"],
+      "answer": 0,
+      "explain": "Switch statements like this one look like a chain of equality checks. Each case is a cmp plus je, and if nothing matches, a jmp goes to the default code."
+    },
+    {
+      "type": "num",
+      "category": "Tracing compiled code",
+      "q": "int main(int argc, char* argv[]) { int a = atoi(argv[1]); switch (a) { case 0: return 1; case 1: return 2; default: return 3; } return 0xfee1fed; }  The program is run with the argument '1'. What does main return?",
+      "answer": 2,
+      "explain": "a = 1. The first cmp/je (against 0) is not taken. The second cmp/je (against 1) is taken, which runs 'mov eax,2', then jmp to the epilogue."
+    },
+    {
+      "type": "num",
+      "category": "Tracing compiled code",
+      "q": "Same program: int a = atoi(argv[1]); switch (a) { case 0: return 1; case 1: return 2; default: return 3; } return 0xfee1fed;  The program is run with the argument '7'. What does main return?",
+      "answer": 3,
+      "explain": "Neither je is taken, so the unconditional jmp goes to the default block: 'mov eax,3', then jmp to the epilogue."
+    },
+    {
+      "type": "tf",
+      "category": "Tracing compiled code",
+      "q": "End of a compiled switch: 0x140001041 mov eax,1 / 0x140001046 jmp 000000014000105B / 0x140001048 mov eax,2 / 0x14000104D jmp 000000014000105B / 0x14000104F mov eax,3 / 0x140001054 jmp 000000014000105B / 0x140001056 mov eax,0FEE1FEDh / 0x14000105B add rsp,38h / ret. Earlier code only jumps to 0x140001041, 0x140001048 or 0x14000104F. True or false: 'mov eax,0FEE1FEDh' can execute for some input.",
+      "answer": false,
+      "explain": "Every case block ends with an unconditional jmp to 0x14000105B, and nothing jumps to 0x140001056. Because every case returns, the 'return 0xfee1fed' after the switch is unreachable."
+    },
+    {
+      "type": "mc",
+      "category": "Tracing compiled code",
+      "q": "In main(int argc, char* argv[]), argv arrives in rdx. The function runs 'mov qword ptr [rsp+10h],rdx', then 'sub rsp,38h'. Later it runs: 'mov eax,8' / 'imul rax,rax,1' / 'mov rcx,qword ptr [rsp+48h]' / 'mov rcx,qword ptr [rcx+rax]'. What is in rcx at the end?",
+      "choices": ["argv[1], the pointer to the first command-line argument string", "argv itself", "argc", "argv[8]"],
+      "answer": 0,
+      "explain": "After sub rsp,38h, the saved argv at old [rsp+10h] is at [rsp+10h+38h] = [rsp+48h]. rax = 8 * 1 = 8, the offset of element 1 in an array of 8-byte pointers. So [argv+8] = argv[1], which is then passed to atoi."
+    },
+    {
+      "type": "mc",
+      "category": "Signed vs unsigned",
+      "q": "In a function with 'if (a > b)' and 'if (a < b)', changing the variables from int to unsigned int changes the conditional jumps the compiler emits. What changes?",
+      "choices": ["jle becomes jbe and jge becomes jae", "jle becomes jge and jge becomes jle", "jne becomes je", "No jumps change; cmp switches to an unsigned variant instead"],
+      "answer": 0,
+      "explain": "Signed comparisons use the L/G conditions and unsigned ones use the B/A conditions. The cmp instruction stays the same, and only the Jcc that reads the flags changes."
+    },
+    {
+      "type": "tf",
+      "category": "Signed vs unsigned",
+      "q": "For instructions that set status flags, such as sub and cmp, the hardware sets the flags as if the operands were BOTH signed and unsigned.",
+      "answer": true,
+      "explain": "The CPU doesn't know or care how humans interpret the bits. It sets every status flag, and the choice of Jcc decides which interpretation counts."
+    },
+    {
+      "type": "mc",
+      "category": "Signed vs unsigned",
+      "q": "What decides whether a C comparison is carried out as signed or unsigned in the machine code?",
+      "choices": ["The compiler, which emits signed (G/L) or unsigned (A/B) conditional jumps based on the declared types", "The CPU, which checks the operand's sign bit and picks a mode", "A signed/unsigned mode bit in RFLAGS", "Separate signed and unsigned versions of cmp"],
+      "answer": 0,
+      "explain": "The hardware treats the bits both ways. The compiler has to emit instructions that match the signedness declared in the high-level language."
+    },
+    {
+      "type": "mc",
+      "category": "Signed vs unsigned",
+      "q": "While reverse engineering you see 'cmp eax, ecx' followed by 'ja somewhere'. What can you infer about the compared variables?",
+      "choices": ["They were probably declared unsigned", "They were probably declared signed", "They were probably pointers to char", "Nothing, because ja and jg are synonyms"],
+      "answer": 0,
+      "explain": "A (above) is an unsigned condition. Because compilers pick JA for unsigned and JG for signed, a reverse engineer or decompiler can infer the likely signedness."
+    },
+    {
+      "type": "tf",
+      "category": "Signed vs unsigned",
+      "q": "'int a = -1;' and 'unsigned int a = -1;' compile to different stored bit patterns for a.",
+      "answer": false,
+      "explain": "Both compile to 'mov dword ptr [rsp+4],0FFFFFFFFh'. The bits are identical. The only difference is which conditional jumps are used later to compare a."
+    },
+    {
+      "type": "mc",
+      "category": "Signed vs unsigned",
+      "q": "For 'if (x < y) { ... }' where x and y are unsigned int, which conditional jump family would you expect the compiler to use?",
+      "choices": ["The above/below family, e.g. jae to skip the body", "The greater/less family, e.g. jge to skip the body", "Only je/jne", "js (jump if sign)"],
+      "answer": 0,
+      "explain": "Unsigned comparisons use A/B conditions. To skip the body when x < y is false, the compiler jumps on the opposite condition, x >= y unsigned, which is jae."
+    }
+  ]
+}

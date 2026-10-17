@@ -1,0 +1,570 @@
+{
+  "title": "Arch1001 01: Introduction (why assembly, x86 background, number refreshers, endianness)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Why learn assembly",
+      "q": "Why does assembly knowledge tend to be especially valuable to employers?",
+      "choices": [
+        "Fewer people have it than skills like network security, so low supply makes it more valuable",
+        "Most new applications are written directly in assembly",
+        "You need assembly to use any modern IDE",
+        "Assembly code runs unchanged on every CPU architecture"
+      ],
+      "answer": 0,
+      "explain": "Rare skills are more valuable. Fewer people know deep system security (which needs assembly) than, for example, network security. When a company needs the skill, low supply drives up its value."
+    },
+    {
+      "type": "tf",
+      "category": "Why learn assembly",
+      "q": "If you can find a vulnerability by reverse engineering, you can automatically exploit it too. Exploitation needs no additional assembly skill.",
+      "answer": false,
+      "explain": "Finding vulnerabilities and exploiting them are separate skill sets. Writing memory corruption exploits in particular requires knowing assembly."
+    },
+    {
+      "type": "mc",
+      "category": "Why learn assembly",
+      "q": "How do new hardware security features frequently reach software?",
+      "choices": [
+        "As new assembly instructions that compiler, operating system, and firmware authors have to adopt",
+        "As new C keywords added to the language standard",
+        "As new network protocols that replace old ones",
+        "As configuration files read by the BIOS setup screen"
+      ],
+      "answer": 0,
+      "explain": "Modern security mechanisms are tightly tied to both hardware and software. They often take the form of new instructions that compilers, OSes, and firmware must start using. Understanding them means understanding assembly."
+    },
+    {
+      "type": "multi",
+      "category": "Why learn assembly",
+      "q": "In the security career-path diagram (START -> ...), which roles branch directly off Reverse Engineer?",
+      "choices": [
+        "Malware Analyst",
+        "Vulnerability Hunter",
+        "Security Architect",
+        "Exploit Writer"
+      ],
+      "answer": [0, 1],
+      "explain": "Reverse engineering splits into malware analysis (malicious software) and vulnerability hunting (benign software). Security Architect branches directly from START, and Exploit Writer builds on Vulnerability Hunter."
+    },
+    {
+      "type": "mc",
+      "category": "Why learn assembly",
+      "q": "In the 'mage' analogy for security specializations, which role is the blue mage, whose power is mirroring or replication?",
+      "choices": [
+        "Reverse engineer: learns software as well as, or better than, its original engineers",
+        "Security architect: heals and protects systems",
+        "Malware analyst: deals with the bestiary of malicious software",
+        "Exploit writer: kills software and raises it back up to do their bidding"
+      ],
+      "answer": 0,
+      "explain": "White = security architect (healing/protecting), blue = reverse engineer (mirroring/replicating), green = malware analyst (the bestiary), red = vulnerability hunter (aggressive attacks), black = exploit writer (necromancy)."
+    },
+    {
+      "type": "mc",
+      "category": "Why learn assembly",
+      "q": "Why do top security researchers often show assembly in their conference talks and whitepapers?",
+      "choices": [
+        "As evidence of exactly how a system behaves, for example to prove a vulnerability is really there",
+        "Because conferences require all code to be shown in assembly",
+        "Because assembly is easier for general audiences to read than C",
+        "To hide the details of their findings from competitors"
+      ],
+      "answer": 0,
+      "explain": "Assembly shows exactly what the machine does, so researchers use it as proof. To be their peer you have to speak the same language."
+    },
+    {
+      "type": "mc",
+      "category": "Why learn assembly",
+      "q": "Researchers' talks showed assembly for ARM, x86-32, x86-64, MIPS, ARC, and Broadcom's Wi-Fi MAC (D11) core. What does the Broadcom example illustrate?",
+      "choices": [
+        "Some embedded hardware runs a proprietary instruction set seen nowhere else, which researchers still disassemble and read",
+        "Broadcom Wi-Fi chips run x86-64 code",
+        "All Wi-Fi hardware uses MIPS assembly",
+        "Custom instruction sets can never be disassembled"
+      ],
+      "answer": 0,
+      "explain": "The D11 core runs 'ucode', a very proprietary instruction set (8-byte fixed-length instructions, odd bit-oriented operators). A custom disassembler/assembler exists for it. Real security research can involve unusual ISAs, not just x86 and ARM."
+    },
+    {
+      "type": "mc",
+      "category": "x86 history and usage",
+      "q": "Where does the name 'x86' come from?",
+      "choices": [
+        "Intel's chip progression 8086, 80186, 80286, and so on, where the x stands in for the changing digits",
+        "It was Intel's 86th processor design",
+        "The x means 'extended' 86-bit architecture",
+        "It stands for 'eXecute 86 instructions'"
+      ],
+      "answer": 0,
+      "explain": "The family began with the 8086, followed by the 80186, 80286, etc. The 'x' is a placeholder for the part that varies."
+    },
+    {
+      "type": "mc",
+      "category": "x86 history and usage",
+      "q": "What was the original bit width of the 8086 (x86) architecture?",
+      "choices": ["8-bit", "16-bit", "32-bit", "64-bit"],
+      "answer": 1,
+      "fixed": true,
+      "explain": "x86 started as a 16-bit architecture. It was later extended to 32 and 64 bits while keeping backward compatibility."
+    },
+    {
+      "type": "tf",
+      "category": "x86 history and usage",
+      "q": "Even modern x86-64 hardware starts up in 16-bit mode, and software must then transition it to 32- or 64-bit operation.",
+      "answer": true,
+      "explain": "Because of backward compatibility, the hardware still comes out of reset in 16-bit mode before software switches it to 32- or 64-bit operation."
+    },
+    {
+      "type": "mc",
+      "category": "x86 history and usage",
+      "q": "What is IA64?",
+      "choices": [
+        "Itanium, Intel's separate 64-bit architecture, which does not use the x86-64 instruction set",
+        "Intel's official name for x86-64",
+        "AMD's name for its 64-bit x86 extension",
+        "The 64-bit mode of ARM processors"
+      ],
+      "answer": 0,
+      "explain": "IA64 (Intel Architecture 64) is Itanium, Intel's attempt at a clean break from x86. It has different instructions and is a completely different architecture from x86-64. Intel manuals never use IA64 to mean x86-64."
+    },
+    {
+      "type": "multi",
+      "category": "x86 history and usage",
+      "q": "Which of these names refer to the 64-bit x86 architecture (x86-64)?",
+      "choices": ["AMD64", "x64", "Intel 64", "IA32e", "EMT64", "IA64", "Itanium"],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "AMD64 and x64 are used by AMD, Microsoft, and some Linux distributions. Intel manuals use IA32e, EMT64, or Intel 64. IA64 is Itanium, a completely different architecture."
+    },
+    {
+      "type": "mc",
+      "category": "x86 history and usage",
+      "q": "How did x86 become a 64-bit architecture?",
+      "choices": [
+        "AMD extended x86 to 64 bits (AMD64). When Itanium adoption was slow, Intel licensed AMD's 64-bit extensions",
+        "Intel's Itanium replaced x86 and became the standard 64-bit PC architecture",
+        "ARM designed the 64-bit extensions and licensed them to Intel and AMD",
+        "Intel and AMD jointly designed IA64 as the x86 successor"
+      ],
+      "answer": 0,
+      "explain": "Intel wanted a clean break (Itanium), but it saw only limited adoption, mostly on servers. Meanwhile AMD extended x86 in the natural way, and Intel eventually adopted and licensed that extension."
+    },
+    {
+      "type": "mc",
+      "category": "x86 history and usage",
+      "q": "Which statement best describes where x86-64 is used, and why?",
+      "choices": [
+        "Mostly PCs, servers, and supercomputers. It is optimized for performance and is power-hungry, while ARM has long been better at performance per watt",
+        "Mostly phones and embedded devices, because of its very low power use",
+        "Only supercomputers, since desktops have moved entirely to ARM",
+        "Mainly network routers, since network traffic is little endian"
+      ],
+      "answer": 0,
+      "explain": "x86-64 targets maximum performance, so it dominates desktops, servers, and supercomputers. Adoption on phones and embedded systems is minimal, despite Intel's lower-power Atom line."
+    },
+    {
+      "type": "tf",
+      "category": "x86 history and usage",
+      "q": "Because x86 kept backward compatibility as it grew, the 32-bit and 16-bit sub-registers still exist and current instructions can still access them.",
+      "answer": true,
+      "explain": "Registers grew from 16 to 32 to 64 bits. The smaller sub-register names remain usable, which is why you need to learn the 64-bit registers along with their 32- and 16-bit names."
+    },
+    {
+      "type": "text",
+      "category": "Binary, hex, decimal",
+      "q": "Convert 1101b to hexadecimal.",
+      "answer": ["D", "0xD", "0x0D", "d", "0xd", "0x0d", "Dh", "0D"],
+      "explain": "1101b = 8 + 4 + 0 + 1 = 13 = 0xD. You should have all 4-bit patterns 0000b-1111b (0x0-0xF) memorized."
+    },
+    {
+      "type": "num",
+      "category": "Binary, hex, decimal",
+      "q": "Convert 0x2A to decimal.",
+      "answer": 42,
+      "explain": "0x2A = 2*16 + 10 = 42."
+    },
+    {
+      "type": "text",
+      "category": "Binary, hex, decimal",
+      "q": "Convert the binary value 1010 0111 to hexadecimal.",
+      "answer": ["A7", "0xA7", "a7", "0xa7", "A7h", "a7h"],
+      "explain": "Convert each 4-bit group separately: 1010b = 0xA, 0111b = 0x7, so the value is 0xA7."
+    },
+    {
+      "type": "text",
+      "category": "Binary, hex, decimal",
+      "q": "Convert 0x3C to an 8-bit binary number.",
+      "answer": ["00111100", "0011 1100", "111100", "00111100b", "0011 1100b", "0b00111100", "111100b"],
+      "explain": "Each hex digit becomes 4 bits: 0x3 = 0011b, 0xC = 1100b, giving 0011 1100b."
+    },
+    {
+      "type": "num",
+      "category": "Binary, hex, decimal",
+      "q": "A function returns 0x1234. What is that value in decimal?",
+      "answer": 4660,
+      "explain": "0x1234 = 1*4096 + 2*256 + 3*16 + 4 = 4096 + 512 + 48 + 4 = 4660."
+    },
+    {
+      "type": "text",
+      "category": "Binary, hex, decimal",
+      "q": "Convert decimal 200 to hexadecimal.",
+      "answer": ["C8", "0xC8", "c8", "0xc8", "C8h", "c8h"],
+      "explain": "200 / 16 = 12 remainder 8. 12 = 0xC, so 200 = 0xC8 (check: 12*16 + 8 = 200)."
+    },
+    {
+      "type": "num",
+      "category": "Binary, hex, decimal",
+      "q": "Visual Studio shows the instruction `sub rsp,28h`, and Ghidra shows the same instruction as `SUB RSP,0x28`. What is the constant in decimal?",
+      "answer": 40,
+      "explain": "The 'h' suffix and the '0x' prefix both mean hexadecimal. 0x28 = 2*16 + 8 = 40."
+    },
+    {
+      "type": "mc",
+      "category": "Binary, hex, decimal",
+      "q": "Why does hexadecimal map so cleanly onto binary?",
+      "choices": [
+        "Each hex digit represents exactly 4 bits, so one byte is exactly 2 hex digits",
+        "Each hex digit represents exactly 8 bits",
+        "Hex and binary are both stored as base 10 internally",
+        "Each hex digit represents exactly 16 bits"
+      ],
+      "answer": 0,
+      "explain": "16 = 2^4, so each hex digit (0x0-0xF) corresponds to one 4-bit pattern (0000b-1111b). A byte is two hex digits, e.g. 0xFF = 11111111b."
+    },
+    {
+      "type": "mc",
+      "category": "Two's complement",
+      "q": "How do you compute the two's complement of a binary value (i.e., negate it)?",
+      "choices": [
+        "Flip all the bits, then add 1",
+        "Flip all the bits only",
+        "Add 1, then shift left by one bit",
+        "Set the most significant bit to 1"
+      ],
+      "answer": 0,
+      "explain": "Example: 1 = 00000001b -> flip -> 11111110b -> +1 -> 11111111b = 0xFF = -1. Doing it again gets you back to +1."
+    },
+    {
+      "type": "text",
+      "category": "Two's complement",
+      "q": "Write -5 as a one-byte (8-bit) two's complement value in hex.",
+      "answer": ["FB", "0xFB", "fb", "0xfb", "FBh", "fbh"],
+      "explain": "5 = 00000101b. Flip the bits: 11111010b. Add 1: 11111011b = 0xFB."
+    },
+    {
+      "type": "num",
+      "category": "Two's complement",
+      "q": "What decimal value is the byte 0x9C when interpreted as a signed char?",
+      "answer": -100,
+      "explain": "0x9C = 10011100b. The sign bit is 1, so it is negative. Flip the bits (01100011b) and add 1: 01100100b = 100, so the value is -100. Equivalently, 156 - 256 = -100."
+    },
+    {
+      "type": "mc",
+      "category": "Two's complement",
+      "q": "What range of values can a signed char (one byte) hold?",
+      "choices": ["-128 to 127", "-127 to 127", "0 to 255", "-255 to 255"],
+      "answer": 0,
+      "explain": "0x00-0x7F hold 0 to 127, and 0x80-0xFF hold -128 to -1. An unsigned char holds 0-255 with the same 256 bit patterns."
+    },
+    {
+      "type": "mc",
+      "category": "Two's complement",
+      "q": "For a value treated as signed, what does the most significant bit tell you?",
+      "choices": [
+        "It is the sign bit: 1 means the number is negative",
+        "Whether the number is odd or even",
+        "Whether the value fits in a register",
+        "Nothing; only the least significant bit affects the sign"
+      ],
+      "answer": 0,
+      "explain": "Every negative two's complement value has its top bit set (e.g. 0x80 = 10000000b through 0xFF = 11111111b for bytes), so the MSB is called the sign bit."
+    },
+    {
+      "type": "mc",
+      "category": "Two's complement",
+      "q": "Interpreted as a signed 16-bit value, what is 0x8000?",
+      "choices": ["-32768", "32768", "-1", "-0"],
+      "answer": 0,
+      "explain": "For 2 bytes, 0x0001-0x7FFF is the positive range (up to 32767), and 0x8000-0xFFFF covers -32768 to -1. So 0x8000 is the most negative 16-bit value."
+    },
+    {
+      "type": "multi",
+      "category": "Two's complement",
+      "q": "Which of these 32-bit values are negative when interpreted as signed?",
+      "choices": ["0x80000000", "0xFFFFFFFF", "0x7FFFFFFF", "0xC0000000", "0x0000FFFF"],
+      "answer": [0, 1, 3],
+      "explain": "A 32-bit value is negative when its top bit is set, i.e. it falls in [0x80000000, 0xFFFFFFFF]. 0x7FFFFFFF is the largest positive value, and 0x0000FFFF is positive (65535)."
+    },
+    {
+      "type": "num",
+      "category": "Two's complement",
+      "q": "A Bluetooth firmware bug computes `length - 6`, where the packet length came from the attacker. The result is truncated to its low byte, treated as unsigned, and used as the memcpy size. If the attacker sends a length of 2, how many bytes does memcpy copy (decimal)?",
+      "answer": 252,
+      "explain": "2 - 6 = -4, which in two's complement is ...FFFFFFFC. Its low byte is 0xFC, and read as unsigned that is 252. This integer underflow makes a tiny length into a huge copy that overflows a small stack buffer."
+    },
+    {
+      "type": "tf",
+      "category": "Two's complement",
+      "q": "The byte 0xFF means 255 when treated as unsigned and -1 when treated as signed. The bits are identical; only the interpretation differs.",
+      "answer": true,
+      "explain": "Signed and unsigned types have the same number of bits. Signed interpretation just uses the upper half of the bit patterns (top bit set) for negative numbers."
+    },
+    {
+      "type": "num",
+      "category": "C data type sizes",
+      "q": "How many bytes is a C char?",
+      "answer": 1,
+      "explain": "A char is a single byte (8 bits)."
+    },
+    {
+      "type": "num",
+      "category": "C data type sizes",
+      "q": "How many bytes is a C short on x86?",
+      "answer": 2,
+      "explain": "A short is 2 bytes (16 bits), which Intel calls a word."
+    },
+    {
+      "type": "mc",
+      "category": "C data type sizes",
+      "q": "In Intel's fundamental data types figure, which size is a C int?",
+      "choices": ["Doubleword (4 bytes)", "Word (2 bytes)", "Quadword (8 bytes)", "Byte (1 byte)"],
+      "answer": 0,
+      "explain": "char = byte (1), short = word (2), int = doubleword (4), double = quadword (8)."
+    },
+    {
+      "type": "mc",
+      "category": "C data type sizes",
+      "q": "Which Intel data type matches a C double?",
+      "choices": ["Quadword (8 bytes)", "Doubleword (4 bytes)", "Word (2 bytes)", "Double quadword (16 bytes)"],
+      "answer": 0,
+      "explain": "A double is 8 bytes, a quadword (64 bits). A double quadword is 128 bits."
+    },
+    {
+      "type": "mc",
+      "category": "C data type sizes",
+      "q": "Why does Intel terminology call a 16-bit value a 'word'?",
+      "choices": [
+        "x86 started as a 16-bit architecture, so 'word' meant its native 16-bit size. When it grew to 32 bits, that size became a 'double word'",
+        "Every CPU architecture defines a word as exactly 16 bits",
+        "Windows invented the term, and Intel adopted it later",
+        "A word was originally the size of one ASCII character"
+      ],
+      "answer": 0,
+      "explain": "The name comes from the 16-bit 8086. Windows then adopted the terms as data type names: WORD (16-bit), DWORD (32-bit), QWORD (64-bit)."
+    },
+    {
+      "type": "num",
+      "category": "C data type sizes",
+      "q": "How many bits are in a Windows DWORD?",
+      "answer": 32,
+      "explain": "DWORD = double word = 2 x 16 bits = 32 bits (4 bytes). A QWORD is 64 bits."
+    },
+    {
+      "type": "mc",
+      "category": "C data type sizes",
+      "q": "Which list correctly gives the sizes, in bits, of Intel's byte, word, doubleword, quadword, and double quadword?",
+      "choices": ["8, 16, 32, 64, 128", "8, 16, 32, 64, 96", "8, 32, 64, 128, 256", "4, 8, 16, 32, 64"],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Each step doubles: byte 8, word 16, doubleword 32, quadword 64, double quadword 128."
+    },
+    {
+      "type": "mc",
+      "category": "Endianness",
+      "q": "What defines a little-endian architecture?",
+      "choices": [
+        "The least significant byte of a multi-byte value is stored at the lowest memory address",
+        "The most significant byte of a multi-byte value is stored at the lowest memory address",
+        "The bits inside each byte are stored in reverse order",
+        "Registers hold their bytes in reverse order"
+      ],
+      "answer": 0,
+      "explain": "Little endian stores the 'little end' first, e.g. 0x12345678 becomes 78 56 34 12 going up in memory. Intel x86 is little endian. Big endian puts the most significant byte at the lowest address."
+    },
+    {
+      "type": "mc",
+      "category": "Endianness",
+      "q": "On an Intel machine, the 32-bit value 0x12345678 is stored starting at address 0x1000. Which byte is at address 0x1000?",
+      "choices": ["0x78", "0x12", "0x34", "0x56"],
+      "answer": 0,
+      "explain": "Little endian puts the least significant byte (0x78) at the lowest address, then 0x56, 0x34, and 0x12 at 0x1003."
+    },
+    {
+      "type": "mc",
+      "category": "Endianness",
+      "q": "A big-endian machine stores 0x12345678 starting at address 0x1000. Which bytes are at 0x1000, 0x1001, 0x1002, and 0x1003, in that order?",
+      "choices": ["12 34 56 78", "78 56 34 12", "21 43 65 87", "87 65 43 21"],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Big endian stores the 'big end' (most significant byte) first, so memory read upward looks just like the hex number written out."
+    },
+    {
+      "type": "text",
+      "category": "Endianness",
+      "q": "On an Intel machine, the 16-bit value 0xABCD is stored at address N. What byte (in hex) is at address N+1?",
+      "answer": ["AB", "0xAB", "ab", "0xab", "ABh", "abh"],
+      "explain": "Little endian: the low byte 0xCD goes at N and the high byte 0xAB goes at N+1 (Intel's figure labels these the Low Byte at N and the High Byte at N+1)."
+    },
+    {
+      "type": "mc",
+      "category": "Endianness",
+      "q": "In what byte order is network traffic typically sent?",
+      "choices": [
+        "Big endian",
+        "Little endian",
+        "Bi-endian",
+        "Whatever order the sending host uses natively"
+      ],
+      "answer": 0,
+      "explain": "Network byte order is big endian. POSIX provides network-to-host and host-to-network conversion functions such as ntohl, ntohs, htonl, and htons (see 'man byteorder')."
+    },
+    {
+      "type": "tf",
+      "category": "Endianness",
+      "q": "On a little-endian machine, the bits inside each byte are also stored in reverse order.",
+      "answer": false,
+      "explain": "Endianness applies to bytes, not bits. Within any byte, the most significant bit is still on the left and the least significant bit on the right."
+    },
+    {
+      "type": "tf",
+      "category": "Endianness",
+      "q": "Because Intel is little endian, a debugger's register window shows register values with their bytes reversed.",
+      "answer": false,
+      "explain": "Endianness applies to memory, not registers. Register views always show values in big-endian form, with the most significant byte on the left (e.g. rcx = 0x1234567887654321)."
+    },
+    {
+      "type": "mc",
+      "category": "Endianness",
+      "q": "On an Intel machine, a byte-by-byte memory view shows `21 43 65 87 78 56 34 12` starting at the address of an 8-byte variable. What is the variable's value?",
+      "choices": [
+        "0x1234567887654321",
+        "0x2143658778563412",
+        "0x8765432112345678",
+        "0x7856341221436587"
+      ],
+      "answer": 0,
+      "explain": "The lowest address holds the least significant byte (0x21). Read the bytes from highest address to lowest: 12 34 56 78 87 65 43 21, which gives 0x1234567887654321."
+    },
+    {
+      "type": "mc",
+      "category": "Endianness",
+      "q": "You switch the same memory view (bytes `21 43 65 87 78 56 34 12`, Intel machine) to show 4-byte units. What does it display?",
+      "choices": [
+        "87654321 12345678",
+        "12345678 87654321",
+        "21436587 78563412",
+        "1234567887654321"
+      ],
+      "answer": 0,
+      "explain": "The debugger shows each 4-byte chunk in big-endian order. The low-address chunk (21 43 65 87) becomes 87654321, and the next becomes 12345678. Only an 8-byte display matches the full register value 0x1234567887654321."
+    },
+    {
+      "type": "mc",
+      "category": "Endianness",
+      "q": "In GDB on a little-endian machine, `x/16bx main` shows the first bytes as `0x55 0x48 0x89 0xe5`. What does `x/4wx main` show as the first 4-byte word?",
+      "choices": ["0xe5894855", "0x554889e5", "0x89e55548", "0x48558900"],
+      "answer": 0,
+      "explain": "As a 4-byte word, the byte at the lowest address (0x55) is least significant, so GDB displays 0xe5894855."
+    },
+    {
+      "type": "multi",
+      "category": "Endianness",
+      "q": "Which of these architectures started out big endian and can now be configured either way (bi-endian)?",
+      "choices": ["PowerPC", "SPARC", "MIPS", "Motorola 68k", "ARM", "Intel x86"],
+      "answer": [0, 1, 2, 3],
+      "explain": "Many RISC systems (PowerPC, SPARC, MIPS, Motorola 68k) started big endian and became bi-endian. ARM started little endian and is now bi-endian. Intel x86 is little endian."
+    },
+    {
+      "type": "mc",
+      "category": "Endianness",
+      "q": "Which C type is not affected by endianness?",
+      "choices": ["char", "short", "int", "double"],
+      "answer": 0,
+      "explain": "A char is a single byte, so there is no byte order to choose. Every multi-byte type is stored LSB-first on little endian and MSB-first on big endian."
+    },
+    {
+      "type": "mc",
+      "category": "Endianness",
+      "q": "When do you actually need to think about endianness?",
+      "choices": [
+        "When looking at values byte-by-byte in memory, or in chunks smaller than the value's size",
+        "When reading values in a debugger's register window",
+        "When reading the individual bits within a byte",
+        "Only when working on big-endian machines"
+      ],
+      "answer": 0,
+      "explain": "Registers are always shown MSB-first, and bit order within a byte never changes. Endianness only shows up when you view memory in units smaller than the value, e.g. single bytes of a 4- or 8-byte value."
+    },
+    {
+      "type": "mc",
+      "category": "Reading disassembly",
+      "q": "For the C program `int main(){ printf(\"Hello World!\\n\"); return 0x1234; }`, Visual Studio's disassembly is `sub rsp,28h` / `lea rcx,[...]` / `call printf` / `mov eax,1234h` / `add rsp,28h` / `ret`. Which instruction implements `return 0x1234;`?",
+      "choices": ["mov eax,1234h", "sub rsp,28h", "call printf", "lea rcx,[...]"],
+      "answer": 0,
+      "explain": "The constant 0x1234 is moved into the EAX register right before the function returns. That is where the return value is placed."
+    },
+    {
+      "type": "mc",
+      "category": "Reading disassembly",
+      "q": "Ghidra shows `MOV EAX,0x1234` with the machine code bytes `b8 34 12 00 00`. Why does 0x1234 appear as `34 12 00 00`?",
+      "choices": [
+        "The 32-bit constant is stored in the instruction bytes little endian, least significant byte first",
+        "Ghidra prints instruction bytes in reverse order",
+        "Two's complement negation swaps the bytes of constants",
+        "The b8 opcode tells the CPU to reverse the next two bytes"
+      ],
+      "answer": 0,
+      "explain": "Instruction bytes live in memory, so endianness applies to them. The 4-byte value 0x00001234 is stored LSB first: 34 12 00 00."
+    },
+    {
+      "type": "mc",
+      "category": "Reading disassembly",
+      "q": "In the clang/macOS hello world, `movl $0x1234, %ecx` comes first, and later `movl %ecx, %eax` runs just before `retq`. Where does 0x1234 have to end up before the function returns, in every compiler's version?",
+      "choices": ["The EAX register", "The ECX register", "The RSP register", "The stack slot at -0x8(%rbp)"],
+      "answer": 0,
+      "explain": "Visual Studio and GCC move 0x1234 straight into EAX. Clang parks it in ECX first, but copies it into EAX before returning. The return value is passed back in EAX."
+    },
+    {
+      "type": "tf",
+      "category": "Reading disassembly",
+      "q": "Compiling the same C hello world with Visual Studio, GCC, and clang produces identical instruction sequences.",
+      "answer": false,
+      "explain": "Each compiler output differs. GCC added endbr64, push/pop rbp, and padding, while clang added stack-frame setup and extra moves. They all boil down to the same core: pass the string, call the print function, put 0x1234 in EAX, return."
+    },
+    {
+      "type": "mc",
+      "category": "Reading disassembly",
+      "q": "Visual Studio, Ghidra, and IDA each disassembled the same compiled hello world, starting at the same address (0x140001000). How do their listings differ?",
+      "choices": [
+        "Only in presentation (formatting, symbol and string labels, whether raw bytes are shown); the instructions are the same",
+        "Each disassembler produces different machine code",
+        "Ghidra adds instructions that Visual Studio leaves out",
+        "IDA shows the code of a different function"
+      ],
+      "answer": 0,
+      "explain": "A disassembler only interprets bytes that already exist. All three show sub/lea/call/mov/add/ret at the same addresses. Ghidra also shows the raw bytes and the \"Hello World!\" string, and IDA names it Format."
+    },
+    {
+      "type": "mc",
+      "category": "Reading disassembly",
+      "q": "What did the instruction-frequency studies show about real-world code?",
+      "choices": [
+        "A small set of instructions makes up most code. By one measure, just 14 instructions account for 90%",
+        "Programs use all x86 instructions with roughly equal frequency",
+        "Floating point instructions make up most ordinary code",
+        "Most real code consists of rare, complicated instructions"
+      ],
+      "answer": 0,
+      "explain": "Because instruction use is so concentrated, knowing roughly 20-30 common instructions lets you read most code and check the manual only rarely."
+    },
+    {
+      "type": "mc",
+      "category": "Reading disassembly",
+      "q": "In the instruction-frequency chart for web browsers, which instruction was the most frequent?",
+      "choices": ["mov", "push", "call", "nop"],
+      "answer": 0,
+      "explain": "mov was about 23%, followed by push (~12%) and call (~8%). mov was also the top instruction for general-purpose applications (~27%)."
+    }
+  ]
+}

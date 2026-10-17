@@ -1,0 +1,507 @@
+{
+  "title": "Linux Examples 1: AT&T Syntax, Calls, Locals, Parameters (part 1 of 2)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "AT&T vs. Intel basics",
+      "q": "In AT&T syntax, what does `mov %rsp,%rbp` do?",
+      "choices": [
+        "Copies the value of rbp into rsp",
+        "Copies the value of rsp into rbp",
+        "Copies the 8 bytes stored at the address in rsp into rbp",
+        "Swaps the values of rsp and rbp"
+      ],
+      "answer": 1,
+      "explain": "AT&T operands go source -> destination (left to right), so rsp is the source and rbp is the destination. Intel syntax writes the same instruction as `mov rbp, rsp`. There are no parentheses, so no memory is accessed."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T vs. Intel basics",
+      "q": "Which Intel-syntax instruction is equivalent to the AT&T instruction `add $0x14,%rsp`?",
+      "choices": [
+        "add 0x14, rsp",
+        "add rsp, 0x14",
+        "add rsp, [0x14]",
+        "add qword ptr [rsp], 0x14"
+      ],
+      "answer": 1,
+      "explain": "$ marks an immediate and % marks a register. AT&T puts the destination last and Intel puts it first. Both mean rsp = rsp + 0x14."
+    },
+    {
+      "type": "multi",
+      "category": "AT&T vs. Intel basics",
+      "q": "Which of these are features of AT&T syntax, as opposed to Intel syntax?",
+      "choices": [
+        "Registers are written with a % prefix",
+        "Immediate values are written with a $ prefix",
+        "The destination operand is written last",
+        "Memory operand sizes are given with keywords like DWORD PTR",
+        "Memory operands are written inside square brackets",
+        "Operand size can be shown by a suffix on the mnemonic, as in movl or movq"
+      ],
+      "answer": [0, 1, 2, 5],
+      "explain": "AT&T uses %reg and $imm, reads source(s) -> destination, and puts size in the mnemonic suffix (b/w/l/q). The DWORD PTR / QWORD PTR keywords and [square brackets] are Intel syntax. AT&T writes memory as disp(base,index,scale)."
+    },
+    {
+      "type": "tf",
+      "category": "AT&T vs. Intel basics",
+      "q": "In the AT&T instruction `mov $0x0,%esi`, the operand `$0x0` refers to the memory at address 0.",
+      "answer": false,
+      "explain": "$ marks an immediate (constant) value. The instruction just puts 0 into esi. In Intel syntax it is `mov esi,0x0`."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T vs. Intel basics",
+      "q": "The AT&T assembly syntax used by GNU tools comes from which earlier assembly syntax?",
+      "choices": [
+        "The syntax in Intel's original 8086 manuals",
+        "The PDP-11 assembly syntax that early UNIX was written in",
+        "Microsoft's MASM syntax",
+        "A syntax GNU designed from scratch for x86-64"
+      ],
+      "answer": 1,
+      "explain": "Bell Labs went from Multics on mainframes to UNIX in PDP-11 assembly, then rewrote UNIX in C. When UNIX was ported to the 8086, its assembly syntax was adapted from the PDP-11's, and GNU tools inherited that style."
+    },
+    {
+      "type": "mc",
+      "category": "AT&T vs. Intel basics",
+      "q": "Which AT&T instruction is equivalent to the Intel instruction `mov edx,0xa`?",
+      "choices": [
+        "mov %edx,$0xa",
+        "mov $0xa,%edx",
+        "mov 0xa,%edx",
+        "mov %edx,0xa"
+      ],
+      "answer": 1,
+      "explain": "The source comes first and the destination last, and the immediate gets a $. Without the $, `0xa` would be a memory operand (the contents of address 0xa)."
+    },
+    {
+      "type": "num",
+      "category": "Size suffixes and renamed mnemonics",
+      "q": "How many bytes does an AT&T `movl` instruction move?",
+      "answer": 4,
+      "explain": "l = 'long', which Intel calls a dword: 4 bytes. The suffixes are b = 1 byte, w = 2, l = 4, q = 8."
+    },
+    {
+      "type": "mc",
+      "category": "Size suffixes and renamed mnemonics",
+      "q": "Which AT&T mnemonic suffix marks an operation on a 2-byte value?",
+      "choices": ["b", "w", "l", "q"],
+      "fixed": true,
+      "answer": 1,
+      "explain": "w = word (2 bytes). b = byte (1), l = long/dword (4), q = quad word/qword (8)."
+    },
+    {
+      "type": "mc",
+      "category": "Size suffixes and renamed mnemonics",
+      "q": "The disassembler prints `movl $0xff,0x1010(%rsp)` with a size suffix, but `mov $0xa,%edx` without one. Why?",
+      "choices": [
+        "A suffix is added only when the instruction moves an immediate",
+        "In the first instruction, neither the immediate nor the memory operand shows the size, so the suffix is needed. In the second, the register %edx already sets the size to 32 bits",
+        "movl is a different, faster instruction than mov",
+        "The suffix shows that the destination is on the stack"
+      ],
+      "answer": 1,
+      "explain": "Per the GNU assembler docs, the size comes from the mnemonic's last character only when there is no other way to disambiguate the instruction. A register operand implies its own size, but an immediate stored to memory does not. Intel writes the first instruction as `mov DWORD PTR [rsp+0x1010],0xff`."
+    },
+    {
+      "type": "mc",
+      "category": "Size suffixes and renamed mnemonics",
+      "q": "What is the Intel-syntax equivalent of `orq $0x0,(%rsp)`?",
+      "choices": [
+        "or rsp, 0x0",
+        "or QWORD PTR [rsp],0x0",
+        "or DWORD PTR [rsp],0x0",
+        "or 0x0, QWORD PTR [rsp]"
+      ],
+      "answer": 1,
+      "explain": "q = 8 bytes = QWORD PTR. `(%rsp)` means the memory at the address in rsp, which Intel writes as [rsp]. The destination moves to the front."
+    },
+    {
+      "type": "mc",
+      "category": "Size suffixes and renamed mnemonics",
+      "q": "The AT&T instruction `movslq %eax,%rdx` corresponds to which Intel instruction?",
+      "choices": [
+        "movsx eax, rdx",
+        "movsxd rdx, eax",
+        "movzx rdx, eax",
+        "mov rdx, qword ptr [eax]"
+      ],
+      "answer": 1,
+      "explain": "movs + l + q = move with sign extension, from long (32-bit) to quad (64-bit). Intel calls the dword-to-qword form movsxd and puts the destination first."
+    },
+    {
+      "type": "mc",
+      "category": "Size suffixes and renamed mnemonics",
+      "q": "AT&T syntax renames Intel's `cwde` to `cwtl`. What does `cwtl` stand for?",
+      "choices": [
+        "Clear word, test long",
+        "Convert (sign-extend) word to long",
+        "Compare word to long",
+        "Copy word, truncate long"
+      ],
+      "answer": 1,
+      "explain": "c-w-t-l = convert word to long. It sign-extends the 16-bit ax into the 32-bit eax, which is what Intel's cwde does. It was renamed to follow the b/w/l/q size naming convention."
+    },
+    {
+      "type": "tf",
+      "category": "Size suffixes and renamed mnemonics",
+      "q": "AT&T mnemonics only ever add a size suffix to the Intel name, so you can always find a mnemonic like `movsbw` by searching the Intel manual for that exact name.",
+      "answer": false,
+      "explain": "Some mnemonics are renamed, not just given a suffix. movsx becomes movsbw/movswl, movsxd becomes movslq, cwde becomes cwtl, and movabs exists only in GNU's syntax. To look one up, you have to map it back to the Intel name or check the GNU assembler (gas) docs."
+    },
+    {
+      "type": "mc",
+      "category": "Memory operand syntax",
+      "q": "Intel writes a memory operand as `[base + index*scale + disp]`. How does AT&T write it?",
+      "choices": [
+        "disp(base, index, scale)",
+        "(disp, base, index, scale)",
+        "base(index, scale, disp)",
+        "[base, index, scale] + disp"
+      ],
+      "answer": 0,
+      "explain": "AT&T moves the displacement outside the parentheses and lists base, index, scale inside. The address operations aren't written out: you have to remember that it means base + index*scale + disp."
+    },
+    {
+      "type": "mc",
+      "category": "Memory operand syntax",
+      "q": "Which Intel instruction matches the AT&T instruction `callq *-0xe8(%rbx,%rsi,4)`?",
+      "choices": [
+        "call qword ptr [rbx+rsi*4-0xe8]",
+        "call qword ptr [rbx*4+rsi-0xe8]",
+        "call qword ptr [(rbx+rsi)*4-0xe8]",
+        "call rbx+rsi+4-0xe8"
+      ],
+      "answer": 0,
+      "explain": "disp(base,index,scale) = base + index*scale + disp. Here base = rbx, index = rsi, scale = 4 and disp = -0xe8. The * marks an indirect call through the 8-byte pointer stored at that address."
+    },
+    {
+      "type": "text",
+      "category": "Memory operand syntax",
+      "q": "With rbx = 0x1000 and rcx = 3, what address does the AT&T memory operand `-0x8(%rbx,%rcx,8)` refer to? Answer in hex, like 0x1234.",
+      "answer": ["0x1010", "1010", "0x1010h", "1010h"],
+      "explain": "base + index*scale + disp = 0x1000 + 3*8 - 8 = 0x1000 + 0x18 - 0x8 = 0x1010."
+    },
+    {
+      "type": "mc",
+      "category": "Memory operand syntax",
+      "q": "Which AT&T instruction is equivalent to Intel `mov rax, qword ptr [rbp+0x8]`?",
+      "choices": [
+        "movq %rax, 0x8(%rbp)",
+        "movq 0x8(%rbp), %rax",
+        "movq $0x8(%rbp), %rax",
+        "movq (%rbp,0x8), %rax"
+      ],
+      "answer": 1,
+      "explain": "The memory source [rbp+0x8] becomes 0x8(%rbp) and comes first, and the destination %rax comes last. The q suffix replaces 'qword ptr'. A displacement takes no $, because it isn't an immediate."
+    },
+    {
+      "type": "mc",
+      "category": "Memory operand syntax",
+      "q": "Which Intel instruction is equivalent to the AT&T instruction `lea 0x1010(%rsp),%rsi`?",
+      "choices": [
+        "lea rsp, [rsi+0x1010]",
+        "lea rsi, [rsp+0x1010]",
+        "mov rsi, qword ptr [rsp+0x1010]",
+        "lea rsi, [rsp*0x1010]"
+      ],
+      "answer": 1,
+      "explain": "The displacement outside the parentheses becomes +disp inside the brackets, and the destination moves to the front. lea puts the computed address rsp+0x1010 into rsi without reading memory, so it's not the same as the mov."
+    },
+    {
+      "type": "mc",
+      "category": "Memory operand syntax",
+      "q": "What does the AT&T instruction `mov 0x8(%rsi),%rdi` do?",
+      "choices": [
+        "Puts the value rsi+8 into rdi",
+        "Loads the value stored in memory at address rsi+8 into rdi",
+        "Stores rdi to memory at address rsi+8",
+        "Puts the constant 8 into rdi"
+      ],
+      "answer": 1,
+      "explain": "disp(base) without a $ is a memory operand, and the source comes first, so this reads memory at rsi+0x8 into rdi. Intel disassembly of the same bytes shows `mov rdi,QWORD PTR [rsi+0x8]`. The AT&T form has no suffix, so it doesn't spell out the size the way QWORD PTR does."
+    },
+    {
+      "type": "mc",
+      "category": "endbr64 and CallAFunction1",
+      "q": "What is `endbr64`, the instruction gcc puts at the start of each function in these examples?",
+      "choices": [
+        "A stack-protector check that gcc adds",
+        "Part of Intel's Control-flow Enforcement Technology (CET). On processors without CET it acts as a NOP",
+        "An instruction that clears branch prediction state at the end of the previous function",
+        "A breakpoint that gdb inserts at each function entry"
+      ],
+      "answer": 1,
+      "explain": "Intel's CET documentation says ENDBR32/ENDBR64 have the same effect as a NOP on Intel 64 processors that don't support CET. The compiler emits it so the code gets the extra protection on systems that have it. On other systems it does nothing."
+    },
+    {
+      "type": "tf",
+      "category": "endbr64 and CallAFunction1",
+      "q": "On a processor that does not support CET, executing `endbr64` changes no registers or memory: it behaves like a NOP.",
+      "answer": true,
+      "explain": "Without CET support, ENDBR64 has the same effect as a NOP, so you can skip over it when reading these listings."
+    },
+    {
+      "type": "mc",
+      "category": "endbr64 and CallAFunction1",
+      "q": "In gdb, what is the difference between `ni` and `si` when the current instruction is a `call`?",
+      "choices": [
+        "ni steps over the call to the next instruction in the current function, and si steps into the called function",
+        "ni steps into the call, and si steps over it",
+        "Both step into the call, but si also prints the source line",
+        "ni runs to the end of the current function, and si runs one source line"
+      ],
+      "answer": 0,
+      "explain": "ni = next instruction (step over calls). si = step instruction (follows the call into the callee). To watch func's prologue, use si at `callq func`."
+    },
+    {
+      "type": "mc",
+      "category": "endbr64 and CallAFunction1",
+      "q": "Even the one-line `func` in CallAFunction1 gets a `push %rbp` / `mov %rsp,%rbp` prologue from gcc. Why?",
+      "choices": [
+        "Linux requires a frame pointer in every function",
+        "Without an -O flag, gcc compiles with optimization disabled, so it builds a full stack frame even for trivial functions",
+        "endbr64 can only follow a frame-pointer prologue",
+        "func has local variables that must be addressed through rbp"
+      ],
+      "answer": 1,
+      "explain": "gcc's default is no optimization, so it creates a standard rbp-based stack frame even when the function only puts a constant in eax and returns."
+    },
+    {
+      "type": "text",
+      "category": "endbr64 and CallAFunction1",
+      "q": "In CallAFunction1, func does `mov $0xbeef,%eax` and returns. Then main does `mov $0xf00d,%eax` before its own epilogue. What value does main return? Answer in hex.",
+      "answer": ["0xf00d", "0xF00D", "f00d", "F00D", "0xf00dh"],
+      "explain": "eax holds the return value. main ignores func's 0xbeef and overwrites eax with 0xf00d, so main always returns 0xf00d."
+    },
+    {
+      "type": "mc",
+      "category": "endbr64 and CallAFunction1",
+      "q": "func's epilogue is `pop %rbp` followed by `retq`. What does `retq` do?",
+      "choices": [
+        "Pops the value on top of the stack into rip, which returns to the instruction after the call",
+        "Copies rbp into rsp and jumps to main",
+        "Pops the value on top of the stack into rax as the return value",
+        "Jumps to the address held in rbp"
+      ],
+      "answer": 0,
+      "explain": "After `pop %rbp` restores the caller's frame pointer, the top of the stack holds the return address that `call` pushed. ret pops it into rip."
+    },
+    {
+      "type": "mc",
+      "category": "endbr64 and CallAFunction1",
+      "q": "The examples are compiled with gcc's `-fno-stack-protector` option. What does it do?",
+      "choices": [
+        "It turns off gcc's stack-protection (canary) checking code, which keeps the generated assembly simpler",
+        "It disables the System V red zone",
+        "It stops gcc from emitting endbr64",
+        "It makes the stack executable"
+      ],
+      "answer": 0,
+      "explain": "It removes the extra stack-protector instructions, so the listings show only the code that implements the C source. endbr64 still appears, because it is CET-related, not part of the stack protector."
+    },
+    {
+      "type": "mc",
+      "category": "SingleLocalVariable and the red zone",
+      "q": "In SingleLocalVariable, `func` runs `movl $0x5ca1ab1e,-0x4(%rbp)`. Where is the local variable i stored?",
+      "choices": [
+        "In the 4 bytes starting at rbp+4",
+        "In the 4 bytes starting at rbp-4",
+        "In register eax",
+        "In the 8 bytes starting at rbp-8"
+      ],
+      "answer": 1,
+      "explain": "-0x4(%rbp) is the memory at rbp-4. The l suffix makes it a 4-byte store, the size of an int. The next instruction, `mov -0x4(%rbp),%eax`, reads i back into eax to return it."
+    },
+    {
+      "type": "text",
+      "category": "SingleLocalVariable and the red zone",
+      "q": "In func, rbp = rsp = 0x7fffffffdf50. At what address is i = 0x5ca1ab1e stored? Answer in hex.",
+      "answer": ["0x7fffffffdf4c", "0x7FFFFFFFDF4C", "0x7fffffffdf4C", "7fffffffdf4c", "0x7fff`ffffdf4c", "0x00007fffffffdf4c"],
+      "explain": "rbp - 4 = 0x7fffffffdf50 - 4 = 0x7fffffffdf4c."
+    },
+    {
+      "type": "mc",
+      "category": "SingleLocalVariable and the red zone",
+      "q": "In func's stack frame, the saved return address is 0x55555555514f. Which instruction is at that address?",
+      "choices": [
+        "The first instruction of func",
+        "The `pop %rbp` in main, right after `callq func`",
+        "The `callq func` instruction itself",
+        "main's endbr64"
+      ],
+      "answer": 1,
+      "explain": "call pushes the address of the next instruction. callq is at 0x55555555514a and is 5 bytes long, so the return address is 0x55555555514f, main's `pop %rbp`."
+    },
+    {
+      "type": "mc",
+      "category": "SingleLocalVariable and the red zone",
+      "q": "main's frame has its saved rbp at 0x7fffffffdf60, and main then sets rbp = rsp. What value does func's `push %rbp` store at 0x7fffffffdf50?",
+      "choices": [
+        "0x7fffffffdf60, main's frame pointer",
+        "0x0, the rbp value from before main ran",
+        "0x55555555514f, the return address",
+        "0x5ca1ab1e"
+      ],
+      "answer": 0,
+      "explain": "After main's `mov %rsp,%rbp`, rbp = 0x7fffffffdf60. func pushes that value, and func's `pop %rbp` restores it before returning. The 0x0 is the older rbp that main saved at 0x7fffffffdf60."
+    },
+    {
+      "type": "num",
+      "category": "SingleLocalVariable and the red zone",
+      "q": "How many bytes is the red zone in the System V x86-64 ABI?",
+      "answer": 128,
+      "explain": "The ABI reserves the 128-byte area beyond (below) the address in rsp."
+    },
+    {
+      "type": "multi",
+      "category": "SingleLocalVariable and the red zone",
+      "q": "Which statements about the red zone are true?",
+      "choices": [
+        "It is the area just beyond (below) the address in rsp",
+        "Signal and interrupt handlers must not modify it",
+        "Leaf functions may use it for their whole stack frame instead of adjusting rsp in the prologue and epilogue",
+        "Data stored there is preserved across calls the function makes",
+        "It lies above the return address, next to the stack arguments"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The ABI says the 128 bytes beyond rsp are reserved and will not be modified by signal or interrupt handlers, so a function may keep temporary data there that is not needed across function calls. Stack arguments are at 16(%rbp) and above, which is above the return address, not in the red zone."
+    },
+    {
+      "type": "mc",
+      "category": "SingleLocalVariable and the red zone",
+      "q": "In func, rsp and rbp both point at the saved rbp, yet func writes i to rbp-4, below the top of the stack. Why is that safe?",
+      "choices": [
+        "func is a leaf function (it calls nothing), so it can use the red zone below rsp without subtracting from rsp",
+        "Writing below rsp is always safe on x86-64",
+        "gcc subtracts from rsp in an instruction the debugger hides",
+        "rbp-4 belongs to main's frame, which func may reuse"
+      ],
+      "answer": 0,
+      "explain": "Normally the prologue would subtract from rsp to allocate locals. Because the ABI promises that signal/interrupt handlers won't clobber the 128 bytes below rsp, a leaf function can skip the sub/add and keep its locals there."
+    },
+    {
+      "type": "tf",
+      "category": "SingleLocalVariable and the red zone",
+      "q": "If func called another function, data func had left in the red zone could be overwritten by that call.",
+      "answer": true,
+      "explain": "A call pushes the return address at rsp-8, and the callee builds its frame below that, right where the red zone was. That is why the ABI limits the red zone to temporary data not needed across function calls, and why leaf functions are the ones that use it for their whole frame."
+    },
+    {
+      "type": "mc",
+      "category": "SingleLocalVariable and the red zone",
+      "q": "In the System V 'stack frame with base pointer' layout, what is at 8(%rbp)?",
+      "choices": [
+        "The previous rbp value",
+        "The return address",
+        "The first memory argument (eightbyte 0)",
+        "The first local variable"
+      ],
+      "answer": 1,
+      "explain": "0(%rbp) = previous rbp, 8(%rbp) = return address, 16(%rbp) and up = memory arguments (eightbyte 0, 1, ...). Locals sit at negative offsets from rbp."
+    },
+    {
+      "type": "mc",
+      "category": "ArrayLocalVariable",
+      "q": "ArrayLocalVariable's disassembly contains `movabs <64-bit constant>,%rax`. What is movabs?",
+      "choices": [
+        "An instruction that moves the absolute value of its operand",
+        "The GNU assembler's AT&T name for mov when it uses a 64-bit immediate or 64-bit displacement. It is a plain mov that loads the constant into rax",
+        "A mov that uses an absolute address instead of an rbp-relative one",
+        "A privileged mov that only the kernel can run"
+      ],
+      "answer": 1,
+      "explain": "Per the gas docs, in 64-bit code `movabs` can be used to encode the mov instruction with a 64-bit displacement or immediate operand. The Intel manual has no instruction called movabs, so searching it will fail. That is a reason to check the GNU assembler docs when a mnemonic looks unfamiliar."
+    },
+    {
+      "type": "mc",
+      "category": "ArrayLocalVariable",
+      "q": "What does `movswl -0x2(%rbp),%eax` do?",
+      "choices": [
+        "Moves the 32-bit value at rbp-2 into eax, swapping its bytes",
+        "Sign-extends the 16-bit value at rbp-2 to 32 bits and puts it in eax",
+        "Zero-extends the 16-bit value at rbp-2 to 32 bits and puts it in eax",
+        "Moves eax to rbp-2 as a 16-bit value"
+      ],
+      "answer": 1,
+      "explain": "movs = move with sign extension, w = from word (16 bits), l = to long (32 bits). Intel calls this movsx eax, word ptr [rbp-0x2]."
+    },
+    {
+      "type": "text",
+      "category": "ArrayLocalVariable",
+      "q": "The short `a = 0xbabe` is sign-extended to 32 bits by `movswl`. What value ends up in eax? Answer in hex.",
+      "answer": ["0xffffbabe", "0xFFFFBABE", "ffffbabe", "FFFFBABE", "0xFFFFbabe"],
+      "explain": "0xbabe's top bit is 1 (0xb = 1011b), so it's negative as a signed 16-bit value. Sign extension fills the upper 16 bits with 1s: 0xffffbabe."
+    },
+    {
+      "type": "mc",
+      "category": "ArrayLocalVariable",
+      "q": "Why does the compiler sign-extend `a` before storing it into `b[1]`?",
+      "choices": [
+        "a is a signed short being assigned to a signed int, so widening it must keep its (possibly negative) value",
+        "Stack slots must always hold sign-extended values",
+        "movswl is faster than a plain mov",
+        "The red zone requires 32-bit aligned values"
+      ],
+      "answer": 0,
+      "explain": "Converting a signed 16-bit value to a signed 32-bit int must preserve its value, which means copying the sign bit into the new upper bits. That's what sign extension does."
+    },
+    {
+      "type": "mc",
+      "category": "ArrayLocalVariable",
+      "q": "b is an `int b[6]` and analysis shows b[1] is at -0x2c(%rbp). Where is b[4]?",
+      "choices": ["-0x28(%rbp)", "-0x24(%rbp)", "-0x20(%rbp)", "-0x1c(%rbp)"],
+      "fixed": true,
+      "answer": 2,
+      "explain": "Array elements are at increasing addresses, 4 bytes apart for int. b[4] = b[1] + 3*4 = -0x2c + 0xc = -0x20. (b[2] = -0x28, b[3] = -0x24, b[5] = -0x1c.)"
+    },
+    {
+      "type": "num",
+      "category": "ArrayLocalVariable",
+      "q": "The lowest stack access in ArrayLocalVariable is -0x2c(%rbp). How many gdb 'words' (the w size) must you display, starting at rbp-0x2c, to cover everything up to rbp?",
+      "answer": 11,
+      "explain": "0x2c = 44 bytes, and a gdb word is 4 bytes, so 44 / 4 = 11 words (for example, display/11wx $rbp-0x2c)."
+    },
+    {
+      "type": "mc",
+      "category": "ArrayLocalVariable",
+      "q": "In gdb's examine/display size letters, how big are a 'w' (word) and an 'h' (halfword)?",
+      "choices": [
+        "w = 2 bytes, h = 1 byte",
+        "w = 4 bytes, h = 2 bytes",
+        "w = 8 bytes, h = 4 bytes",
+        "w = 2 bytes, h = 4 bytes"
+      ],
+      "answer": 1,
+      "explain": "A gdb 'word' is 4 bytes, but in Intel terms a word is 2 bytes. A gdb halfword (h) is 2 bytes, the Intel word size. So `x/1hx $rbp-0x2` shows just the 16-bit 0xbabe."
+    },
+    {
+      "type": "mc",
+      "category": "ArrayLocalVariable",
+      "q": "In ArrayLocalVariable, how can you tell which stack offset holds which local variable?",
+      "choices": [
+        "Match the values each instruction writes to the C source: 0xbabe goes to -0x2(%rbp), so that's a; the 64-bit constant goes to -0x10(%rbp), so that's c; the sign-extended a goes to -0x2c(%rbp), so that's b[1]",
+        "Locals always appear in declaration order at -0x4, -0x8, -0xc, and so on",
+        "The disassembly labels each offset with its variable name",
+        "Larger variables are always placed closer to rbp"
+      ],
+      "answer": 0,
+      "explain": "Unoptimized code stores each value right after computing it, so you can tie each offset to a variable by matching the constants and operations to the C statements."
+    },
+    {
+      "type": "mc",
+      "category": "ArrayLocalVariable",
+      "q": "To compute `b[4] = b[1] + c` (c is a long long), the code loads c into rax but then does a 32-bit `add %edx,%eax` and stores eax into b[4]. Why is a 32-bit add enough?",
+      "choices": [
+        "b[4] is an int, so only the low 32 bits of the sum are kept, and those depend only on the low 32 bits of b[1] and c",
+        "long long values are only 32 bits on Linux",
+        "The add instruction can't operate on 64-bit registers",
+        "The upper half of c is added later by the sign extension"
+      ],
+      "answer": 0,
+      "explain": "Storing the result into a 4-byte int keeps only its low 32 bits, and the low 32 bits of a sum depend only on the low 32 bits of the operands. So adding edx (b[1]) to eax (the low half of c) gives exactly the value stored into b[4] and returned in eax."
+    }
+  ]
+}

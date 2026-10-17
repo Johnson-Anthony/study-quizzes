@@ -1,0 +1,529 @@
+{
+  "title": "Local Variables (part 2 of 2): IMUL, MOVZX/MOVSX, Array and Struct Locals",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "IMUL forms",
+      "q": "The single-operand instruction `imul r/m32` multiplies its operand by which register, and where does the product go?",
+      "choices": [
+        "By EAX; the 64-bit product goes into EDX:EAX (EDX = high half)",
+        "By EAX; the product is truncated into EAX",
+        "By EDX; the product goes into EAX:EDX (EAX = high half)",
+        "By itself; the result overwrites the operand"
+      ],
+      "answer": 0,
+      "explain": "One-operand IMUL uses implicit registers: EDX:EAX = EAX * r/m32. The output is twice the input width, so nothing is truncated."
+    },
+    {
+      "type": "mc",
+      "category": "IMUL forms",
+      "q": "`imul r/m8` (one 8-bit operand) performs which operation?",
+      "choices": [
+        "AX = AL * r/m8",
+        "DX:AX = AL * r/m8",
+        "AL = AL * r/m8",
+        "AX = AX * r/m8"
+      ],
+      "answer": 0,
+      "explain": "The 8-bit one-operand form multiplies AL by the byte operand and writes the 16-bit product to AX. DX is used only by the larger one-operand forms (DX:AX, EDX:EAX, RDX:RAX)."
+    },
+    {
+      "type": "multi",
+      "category": "IMUL forms",
+      "q": "Which of these IMUL forms can lose the high bits of the product (truncation)?",
+      "choices": [
+        "imul r/m16",
+        "imul r32, r/m32",
+        "imul r64, r/m64, imm8",
+        "imul r16, r/m16, imm16",
+        "imul r/m64"
+      ],
+      "answer": [1, 2, 3],
+      "explain": "One-operand forms store a double-width result (DX:AX ... RDX:RAX), so they can't truncate. Two- and three-operand forms store into a register the same size as the inputs, so a large product gets cut off."
+    },
+    {
+      "type": "tf",
+      "category": "IMUL forms",
+      "q": "IMUL has a three-operand form that encodes a full 64-bit immediate, e.g. `imul r64, r/m64, imm64`.",
+      "answer": false,
+      "explain": "The largest immediate is 32 bits. `imul r64, r/m64, imm32` sign-extends the imm32 to 64 bits. In the debugger, the instruction bytes hold only 4 bytes of immediate."
+    },
+    {
+      "type": "mc",
+      "category": "IMUL forms",
+      "q": "In `imul r64, r/m64, imm32`, how is the 32-bit immediate used?",
+      "choices": [
+        "It is sign-extended to 64 bits, then multiplied by r/m64",
+        "It is zero-extended to 64 bits, then multiplied by r/m64",
+        "It is multiplied by only the low 32 bits of r/m64",
+        "It is placed in the upper 32 bits of a 64-bit constant"
+      ],
+      "answer": 0,
+      "explain": "r64 = r/m64 * sign-extended imm32. A negative imm32 stays negative after it is widened to 64 bits."
+    },
+    {
+      "type": "mc",
+      "category": "IMUL forms",
+      "q": "Which three-operand IMUL form takes a 16-bit immediate?",
+      "choices": [
+        "Only imul r16, r/m16, imm16",
+        "imul r32, r/m32, imm16",
+        "imul r64, r/m64, imm16",
+        "All of the r16, r32 and r64 forms"
+      ],
+      "answer": 0,
+      "explain": "There's just one imm16 form, and its result is 16 bits, so truncation is possible. The 32- and 64-bit three-operand forms take either an imm8 (sign-extended) or an imm32."
+    },
+    {
+      "type": "multi",
+      "category": "IMUL forms",
+      "q": "For the three-operand form `imul reg, r/mX, imm`, which statements are true?",
+      "choices": [
+        "The first operand (destination) must be a register",
+        "The second operand can be a register or a memory location",
+        "The destination's previous value is one of the numbers multiplied",
+        "Result = second operand * immediate"
+      ],
+      "answer": [0, 1, 3],
+      "explain": "reg = r/mX * imm. The destination is only written: in `imul r12, rax, 12341234h`, the old R12 value (0x84) played no part."
+    },
+    {
+      "type": "mc",
+      "category": "IMUL forms",
+      "q": "In `imul r32, r/m32, imm8`, the immediate byte is 0xFF. What multiplier does it represent?",
+      "choices": [
+        "-1",
+        "255",
+        "0xFF000000",
+        "1"
+      ],
+      "answer": 0,
+      "explain": "In the imm8 forms, the immediate is sign-extended to the operand size. 0xFF has its top bit set, so it becomes 0xFFFFFFFF = -1, and the instruction negates r/m32."
+    },
+    {
+      "type": "tf",
+      "category": "IMUL forms",
+      "q": "Visual Studio tends to emit signed `imul` even where unsigned `mul` would be expected, for example when multiplying unsigned values.",
+      "answer": true,
+      "explain": "VS strongly prefers imul. The author couldn't get it to emit plain mul for simple examples. Seeing imul where mul would fit can hint that the code was built with VS."
+    },
+    {
+      "type": "num",
+      "category": "IMUL arithmetic",
+      "q": "What is the signed (two's complement) decimal value of the byte 0x84?",
+      "answer": -124,
+      "explain": "The top bit is set, so the value is negative. 0x100 - 0x84 = 0x7C = 124, so 0x84 = -124."
+    },
+    {
+      "type": "text",
+      "category": "IMUL arithmetic",
+      "q": "RAX = 0x609966C1A977E177 and R12 = 0x84. After `imul r12b`, what hex value is in AX?",
+      "answer": ["0xC65C", "C65C", "0xc65c", "c65c", "C65Ch", "c65ch"],
+      "explain": "AX = AL * r12b. AL = 0x77 = +119, and r12b = 0x84 = -124. 119 * -124 = -14756 = -0x39A4. As a 16-bit two's complement value that is 0x10000 - 0x39A4 = 0xC65C."
+    },
+    {
+      "type": "mc",
+      "category": "IMUL arithmetic",
+      "q": "Same starting registers (RAX = 0x609966C1A977E177, R12 = 0x84). What is the full RAX after `imul r12b`?",
+      "choices": [
+        "0x609966C1A977C65C",
+        "0x000000000000C65C",
+        "0xFFFFFFFFFFFFC65C",
+        "0x609966C1C65CE177"
+      ],
+      "answer": 0,
+      "explain": "The 8-bit one-operand form writes only AX. The other 48 bits of RAX are unchanged."
+    },
+    {
+      "type": "mc",
+      "category": "IMUL arithmetic",
+      "q": "With R12 = 0x84, why is the operand negative in `imul r12b` but +132 in `imul r12d, eax`?",
+      "choices": [
+        "As a byte, 0x84 has its top bit set; as a dword, 0x00000084 has a top bit of 0",
+        "imul treats register operands as negative and memory operands as positive",
+        "The r12d form zero-extends R12 first, while the r12b form sign-extends it",
+        "0x84 is always negative; the sign of the product just happens to cancel"
+      ],
+      "answer": 0,
+      "explain": "Whether a value is negative depends on the operand size. Check the most significant bit at that width: bit 7 of 0x84 is 1, but bit 31 of 0x00000084 is 0."
+    },
+    {
+      "type": "mc",
+      "category": "IMUL arithmetic",
+      "q": "R12 = 0x84 and RAX = 0x609966C1A977E177. What is R12 after `imul r12d, eax`?",
+      "choices": [
+        "0x0000000061D0415C",
+        "0x0000005761D0415C",
+        "0xFFFFFFFF61D0415C",
+        "0x609966C161D0415C"
+      ],
+      "answer": 0,
+      "explain": "r12d = r12d * eax. EAX = 0xA977E177 is negative (top bit set) and r12d = +132, so the true product is negative. Only its low 32 bits are kept: 0x61D0415C. 0x5761D0415C is the full unsigned product, which a 32-bit destination can't hold. In the example, the upper half of R12 ends up 0."
+    },
+    {
+      "type": "mc",
+      "category": "IMUL arithmetic",
+      "q": "R12 = 0x84 and RAX = 0x609966C1A977E177. What does `imul r12, rax, 12341234h` compute?",
+      "choices": [
+        "RAX * 0x0000000012341234 (the imm32 sign-extended), with the result in R12",
+        "R12 * RAX * 0x12341234, with the result in R12",
+        "R12 * 0x12341234, with the result in RAX",
+        "EAX * 0x12341234, with the result in R12D"
+      ],
+      "answer": 0,
+      "explain": "Three-operand form: r64 = r/m64 * sign-extended imm32. The old R12 value is never used. 0x12341234 is positive, so sign extension just adds zeros. R12 ends up as 0xE5A3577504602A2C."
+    },
+    {
+      "type": "text",
+      "category": "IMUL arithmetic",
+      "q": "AL = 0x02 and BL = 0xFF. After `imul bl`, what hex value is in AX?",
+      "answer": ["0xFFFE", "FFFE", "0xfffe", "fffe", "FFFEh", "fffeh"],
+      "explain": "In a signed multiply, BL = 0xFF = -1, so AX = 2 * -1 = -2 = 0xFFFE. An unsigned multiply would instead give 2 * 255 = 0x01FE."
+    },
+    {
+      "type": "mc",
+      "category": "IMUL arithmetic",
+      "q": "CX = 0x4000 and DX = 0x0004. After `imul cx, dx`, what is CX?",
+      "choices": [
+        "0x0000",
+        "0x0001",
+        "0x10000",
+        "0xFFFF"
+      ],
+      "answer": 0,
+      "explain": "Two-operand form: r16 = r16 * r/m16. 0x4000 * 4 = 0x10000, which needs 17 bits. Only the low 16 bits (0x0000) fit in CX, so the product is truncated."
+    },
+    {
+      "type": "mc",
+      "category": "IMUL arithmetic",
+      "q": "AX = 0x4000 and CX = 0x0004. After the one-operand `imul cx`, what are DX and AX?",
+      "choices": [
+        "DX = 0x0001, AX = 0x0000",
+        "DX unchanged, AX = 0x0000",
+        "DX = 0x0000, AX = 0x0001",
+        "DX = 0x4000, AX = 0x0004"
+      ],
+      "answer": 0,
+      "explain": "One-operand 16-bit form: DX:AX = AX * r/m16. The 32-bit product 0x00010000 is split, with the high half (0x0001) in DX and the low half (0x0000) in AX. Nothing is lost."
+    },
+    {
+      "type": "mc",
+      "category": "Sign and zero extension",
+      "q": "EAX = 0xF00DFACE. After `movsxd rbx, eax`, what is RBX?",
+      "choices": [
+        "0xFFFFFFFFF00DFACE",
+        "0x00000000F00DFACE",
+        "0xF00DFACEF00DFACE",
+        "0xF00DFACE00000000"
+      ],
+      "answer": 0,
+      "explain": "Bit 31 of 0xF00DFACE is 1, so sign extension fills the upper 32 bits with 1s. The value stays negative."
+    },
+    {
+      "type": "mc",
+      "category": "Sign and zero extension",
+      "q": "If the 32-bit value 0xF00DFACE is zero-extended into a 64-bit register, what is the result?",
+      "choices": [
+        "0x00000000F00DFACE",
+        "0xFFFFFFFFF00DFACE",
+        "0x000000000000FACE",
+        "0xF00DFACE00000000"
+      ],
+      "answer": 0,
+      "explain": "Zero extension fills all the new high bits with 0, even though the source's top bit is 1."
+    },
+    {
+      "type": "text",
+      "category": "Sign and zero extension",
+      "q": "CX = 0xFFFF. After `movzx eax, cx`, what hex value is in EAX?",
+      "answer": ["0x0000FFFF", "0000FFFF", "0xFFFF", "FFFF", "0x0000ffff", "0000ffff", "0xffff", "ffff"],
+      "explain": "Zero extension always fills the high 16 bits with 0, giving 0x0000FFFF (65535 as a 32-bit value)."
+    },
+    {
+      "type": "mc",
+      "category": "Sign and zero extension",
+      "q": "CX = 0xFFFF. After `movsx eax, cx`, what is EAX, and what signed value does it hold?",
+      "choices": [
+        "0xFFFFFFFF, i.e. -1",
+        "0x0000FFFF, i.e. 65535",
+        "0x0000FFFF, i.e. -1",
+        "0xFFFF0000, i.e. -65536"
+      ],
+      "answer": 0,
+      "explain": "0xFFFF is -1 as a signed 16-bit value. Sign extension copies the top bit (1) into the upper 16 bits, giving 0xFFFFFFFF, which is still -1."
+    },
+    {
+      "type": "mc",
+      "category": "Sign and zero extension",
+      "q": "The 16-bit value 0x7ABC is sign-extended to 32 bits. What is the result?",
+      "choices": [
+        "0x00007ABC",
+        "0xFFFF7ABC",
+        "0x7ABC7ABC",
+        "0x7ABC0000"
+      ],
+      "answer": 0,
+      "explain": "Bit 15 of 0x7ABC is 0 (0x7 = 0111b), so the value is positive and sign extension fills with 0s. Here it gives the same result as zero extension."
+    },
+    {
+      "type": "tf",
+      "category": "Sign and zero extension",
+      "q": "Like MOVSXD, there is a MOVZXD instruction for zero-extending a 32-bit value to 64 bits.",
+      "answer": false,
+      "explain": "Only sign extension has a separate dword variant (MOVSXD). There is no MOVZXD; zero extension is always written MOVZX."
+    },
+    {
+      "type": "mc",
+      "category": "Sign and zero extension",
+      "q": "MOVSX (without the D) sign-extends from which source sizes?",
+      "choices": [
+        "8-bit or 16-bit",
+        "8-bit, 16-bit or 32-bit",
+        "Only 32-bit",
+        "Only 16-bit"
+      ],
+      "answer": 0,
+      "explain": "MOVSX takes 8- or 16-bit sources. To sign-extend a 32-bit value to 64 bits, you need MOVSXD."
+    },
+    {
+      "type": "mc",
+      "category": "Sign and zero extension",
+      "q": "C code copies an `unsigned short` into an `unsigned int`. Which instruction fits that conversion?",
+      "choices": [
+        "movzx",
+        "movsx",
+        "movsxd",
+        "imul"
+      ],
+      "answer": 0,
+      "explain": "An unsigned value's top bit isn't a sign bit, so the new upper bits must be zeros (MOVZX). A signed short going into an int would use MOVSX so that negative values stay negative."
+    },
+    {
+      "type": "tf",
+      "category": "Sign and zero extension",
+      "q": "Zero extension fills the upper bits with 0 whether or not the source value's most significant bit is set.",
+      "answer": true,
+      "explain": "Zero extension always fills the high bits with zeros. Only sign extension looks at the source's top bit."
+    },
+    {
+      "type": "tf",
+      "category": "Array locals on the stack",
+      "q": "Local variables are always laid out on the stack in the order they're declared in C.",
+      "answer": false,
+      "explain": "In ArrayLocalVariable.c (`short a; int b[6]; long long c;`), Visual Studio placed them as a, padding, c, then b. Separate locals need not follow declaration order."
+    },
+    {
+      "type": "mc",
+      "category": "Array locals on the stack",
+      "q": "The locals are declared as `short a; int b[6]; long long c;`. In the compiled ArrayLocalVariable.c, in what order are they placed, from the lowest address up?",
+      "choices": [
+        "a, padding, c, b[0]..b[5], padding",
+        "a, b[0]..b[5], c",
+        "c, b[5]..b[0], a",
+        "b[0]..b[5], c, a"
+      ],
+      "answer": 0,
+      "explain": "a is at [rsp], c at [rsp+8] and b at [rsp+10h]. In 4-byte rows that is a (2 bytes plus 2 undefined), 4 bytes of alignment padding, c (8 bytes), b[0] to b[5], then more padding."
+    },
+    {
+      "type": "mc",
+      "category": "Array locals on the stack",
+      "q": "For `a = 0xbabe;` (a is a `short`), the compiler emits `mov eax, 0FFFFBABEh` and then `mov word ptr [rsp], ax`. Why the 0xFFFF?",
+      "choices": [
+        "a is a signed short and 0xBABE is negative at 16 bits, so the constant was sign-extended to 32 bits; only AX (0xBABE) is stored",
+        "All four bytes 0xFFFFBABE are written into a",
+        "0xFFFF marks uninitialized stack memory",
+        "The short is stored on the stack as a 32-bit int"
+      ],
+      "answer": 0,
+      "explain": "The top bit of 0xBABE is 1, so the compiler put the sign-extended 32-bit constant in EAX. The store is `word ptr`, so only the 2 bytes 0xBABE reach memory."
+    },
+    {
+      "type": "mc",
+      "category": "Array locals on the stack",
+      "q": "Which instruction reads `a` (a short) so it can be stored into `b[1]` (an int)?",
+      "choices": [
+        "movsx ecx, word ptr [rsp]",
+        "movzx eax, word ptr [rsp+rax+10h]",
+        "movsxd rax, dword ptr [rsp+rax+10h]",
+        "mov word ptr [rsp], ax"
+      ],
+      "answer": 0,
+      "explain": "A signed 16-bit value going into a signed 32-bit int has to keep its sign, so it is MOVSX'd into ECX. `mov dword ptr [rsp+rax+10h], ecx` then stores it, making b[1] = 0xFFFFBABE."
+    },
+    {
+      "type": "mc",
+      "category": "Array locals on the stack",
+      "q": "In the sequence `mov eax, 4` / `imul rax, rax, 1` / ... / `mov dword ptr [rsp+rax+10h], ecx`, what do 4, 1 and 10h stand for?",
+      "choices": [
+        "4 = sizeof(int), 1 = the index, 10h = where b starts relative to rsp",
+        "4 = the index, 1 = sizeof(int), 10h = sizeof(b)",
+        "4 = number of elements, 1 = stride, 10h = offset of the return address",
+        "4 = alignment, 1 = sizeof(short), 10h = size of c"
+      ],
+      "answer": 0,
+      "explain": "Unoptimized VS code finds an array element by multiplying the element size by the index with IMUL. Here 4 * 1 = byte offset 4 for b[1], which is added to the array base at [rsp+10h]."
+    },
+    {
+      "type": "num",
+      "category": "Array locals on the stack",
+      "q": "b starts at [rsp+10h] and holds 4-byte ints. How many bytes above rsp is b[4]? (decimal)",
+      "answer": 32,
+      "explain": "0x10 + 4*4 = 0x10 + 0x10 = 0x20 = 32. This matches `imul rcx, rcx, 4` (4*4) followed by `[rsp+rcx+10h]`."
+    },
+    {
+      "type": "text",
+      "category": "Array locals on the stack",
+      "q": "When main starts, RSP = 0x14FE08 (pointing at the return address). main runs `sub rsp, 38h`, and b lives at [rsp+10h]. What is the address of b[1]? (hex)",
+      "answer": ["0x14FDE4", "14FDE4", "0x14fde4", "14fde4", "0x0014FDE4", "0x0014fde4", "0x000000000014FDE4", "000000000014FDE4", "0x000000000014fde4", "000000000014fde4"],
+      "explain": "0x14FE08 - 0x38 = 0x14FDD0. b = 0x14FDD0 + 0x10 = 0x14FDE0, so b[1] = 0x14FDE0 + 4 = 0x14FDE4."
+    },
+    {
+      "type": "mc",
+      "category": "Array locals on the stack",
+      "q": "For `b[4] = b[1] + c;`, why does the compiler run `movsxd rax, dword ptr [rsp+rax+10h]` before `add rax, qword ptr [rsp+8]`?",
+      "choices": [
+        "b[1] is a signed 32-bit int and c is a 64-bit long long, so b[1] is sign-extended to keep its value in the 64-bit addition",
+        "To zero the upper half of RAX before adding",
+        "Because add cannot take a memory operand",
+        "To narrow b[1] to 16 bits before adding"
+      ],
+      "answer": 0,
+      "explain": "The addition is done in a 64-bit register. b[1] = 0xFFFFBABE is negative, so it must become 0xFFFFFFFFFFFFBABE to keep its value."
+    },
+    {
+      "type": "mc",
+      "category": "Array locals on the stack",
+      "q": "c = 0x0BA1B0AB1EDB100D and b[1] = 0xFFFFBABE (signed int). What 32-bit value is stored in b[4] by `b[4] = b[1] + c;`?",
+      "choices": [
+        "0x1EDACACB",
+        "0x1EDBCACB",
+        "0x1EDB100D",
+        "0x0BA1B0AB"
+      ],
+      "answer": 0,
+      "explain": "Sign-extended, b[1] = 0xFFFFFFFFFFFFBABE = -0x4542. 0x0BA1B0AB1EDB100D - 0x4542 = 0x0BA1B0AB1EDACACB. b[4] is an int, so only EAX (0x1EDACACB) is stored. You get 0x1EDBCACB if you wrongly add 0xBABE as a positive number."
+    },
+    {
+      "type": "text",
+      "category": "Array locals on the stack",
+      "q": "b[4] = 0x1EDACACB, and main returns `b[4]` as a short using `movzx eax, word ptr [rsp+rax+10h]`. What hex value is in EAX after that instruction?",
+      "answer": ["0x0000CACB", "0000CACB", "0xCACB", "CACB", "0x0000cacb", "0000cacb", "0xcacb", "cacb"],
+      "explain": "The word read takes the low 2 bytes of b[4] (little-endian), 0xCACB, and MOVZX fills the rest of EAX with zeros, giving 0x0000CACB. The int is truncated to a 16-bit short."
+    },
+    {
+      "type": "tf",
+      "category": "Struct locals and packing",
+      "q": "Struct fields must be stored in memory in the same order they are declared in C.",
+      "answer": true,
+      "explain": "Unlike separate locals, struct fields keep their declaration order. The first field is at the lowest address and each later field is higher."
+    },
+    {
+      "type": "mc",
+      "category": "Struct locals and packing",
+      "q": "For `typedef struct { short a; int b[6]; long long c; } mystruct_t;` in a local `foo`, which field is at the lowest stack address?",
+      "choices": [
+        "a",
+        "b[0]",
+        "c",
+        "It's up to the compiler, as with separate locals"
+      ],
+      "answer": 0,
+      "explain": "The first declared field (the top one in the source) sits at the lowest address, followed by b and then c."
+    },
+    {
+      "type": "mc",
+      "category": "Struct locals and packing",
+      "q": "Without any packing pragma, why are there 2 undefined bytes right after foo.a?",
+      "choices": [
+        "So the int array b starts at a 4-byte-aligned offset (offset 4)",
+        "To hold a's sign extension",
+        "Because a short always takes 4 bytes on x86-64",
+        "To place a stack canary between fields"
+      ],
+      "answer": 0,
+      "explain": "a uses offsets 0-1. Ints are aligned to 4 bytes, so b starts at offset 4, which leaves 2 bytes of padding."
+    },
+    {
+      "type": "num",
+      "category": "Struct locals and packing",
+      "q": "Without packing, at what byte offset from the start of foo does c begin? (decimal)",
+      "answer": 32,
+      "explain": "a (2) + padding (2) + b (6*4 = 24) = 28. The 8-byte long long is aligned to 8, so 4 bytes of struct padding are added and c starts at 32 (0x20). In the stack diagram that is 0x14FDF0 - 0x14FDD0."
+    },
+    {
+      "type": "num",
+      "category": "Struct locals and packing",
+      "q": "Without packing, how many bytes does mystruct_t occupy, from a through the end of c? (decimal)",
+      "answer": 40,
+      "explain": "c starts at offset 32 and is 8 bytes long, so the struct ends at offset 40 (0x28)."
+    },
+    {
+      "type": "mc",
+      "category": "Struct locals and packing",
+      "q": "What does `#pragma pack(1)` around the struct definition do?",
+      "choices": [
+        "Removes the padding between struct fields, so each field starts right after the previous one",
+        "Reorders the fields to minimize padding",
+        "Aligns every field to a 1 KB boundary",
+        "Removes all padding from main's stack frame, including the 16-byte stack alignment"
+      ],
+      "answer": 0,
+      "explain": "Packing to 1 squeezes the fields together with no padding between them, keeping their order. It doesn't change the padding the compiler adds around the struct in main's frame."
+    },
+    {
+      "type": "num",
+      "category": "Struct locals and packing",
+      "q": "With `#pragma pack(1)`, at what byte offset does c begin? (decimal)",
+      "answer": 26,
+      "explain": "a (2 bytes) + b (24 bytes) = 26 = 0x1A. That matches the `qword ptr [rsp+1Ah]` access to c."
+    },
+    {
+      "type": "num",
+      "category": "Struct locals and packing",
+      "q": "With `#pragma pack(1)`, how many bytes does mystruct_t occupy?",
+      "answer": 34,
+      "explain": "2 (a) + 24 (b) + 8 (c) = 34, with no padding between fields."
+    },
+    {
+      "type": "mc",
+      "category": "Struct locals and packing",
+      "q": "With `#pragma pack(1)`, where does b[0] fall in a stack diagram drawn in 4-byte rows?",
+      "choices": [
+        "It starts at offset 2 and straddles two rows: its 2 low bytes share a row with a, and its 2 high bytes are in the next row",
+        "It starts at offset 4 in its own row",
+        "It overlaps a, since packing lets fields overlap",
+        "It moves to after c"
+      ],
+      "answer": 0,
+      "explain": "With no padding after the 2-byte a, b[0] covers offsets 2-5 and crosses a 4-byte boundary. c ends up split across three rows for the same reason."
+    },
+    {
+      "type": "mc",
+      "category": "Struct locals and packing",
+      "q": "A struct local's assembly reads foo.a at [rsp], foo.b[i] as `dword ptr [rsp+rax+2]` and foo.c as `qword ptr [rsp+1Ah]`. Which layout does this match?",
+      "choices": [
+        "Packed: b at offset 2 and c at offset 0x1A, with no padding between fields",
+        "Natural alignment: b at offset 4 and c at offset 0x20",
+        "Reordered fields: c first, then b, then a",
+        "Every field padded out to 8 bytes"
+      ],
+      "answer": 0,
+      "explain": "With natural alignment the accesses would be [rsp+rax+4] and [rsp+20h]. Offsets 2 and 0x1A mean there is no padding after a or after b, which is the pack(1) layout."
+    },
+    {
+      "type": "multi",
+      "category": "Struct locals and packing",
+      "q": "Comparing ArrayLocalVariable.c (a, b and c as separate locals) with StructLocalVariable.c (the same three as struct fields), which statements are true?",
+      "choices": [
+        "The separate locals were rearranged on the stack (a, c, b)",
+        "The struct fields kept declaration order (a, b, c)",
+        "#pragma pack(1) removes the padding between the struct's fields",
+        "#pragma pack(1) also removes the padding the compiler puts around the struct in main's frame"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Packing only changes the struct's internal layout. The packed version still had plenty of padding above the struct in main's frame, plus the 16-byte stack-alignment slot."
+    }
+  ]
+}

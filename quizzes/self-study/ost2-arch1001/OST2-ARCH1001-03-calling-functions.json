@@ -1,0 +1,550 @@
+{
+  "title": "Calling Functions: CallASubroutine1 (call, ret, mov, add, sub)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "CALL and RET",
+      "q": "What does the CALL instruction do, in order?",
+      "choices": [
+        "Changes RIP to the target address, then pushes the address of the CALL instruction",
+        "Pushes the address of the next instruction onto the stack, then changes RIP to the target address",
+        "Pushes RIP onto the stack and leaves RIP unchanged until a RET",
+        "Copies the target address into RSP and continues at the next instruction"
+      ],
+      "answer": 1,
+      "explain": "CALL first pushes a return address, which is the address of the instruction after the CALL. That push moves RSP down by 8. CALL then sets RIP to the target, so execution continues in the called function and can later resume where it left off."
+    },
+    {
+      "type": "tf",
+      "category": "CALL and RET",
+      "q": "The return address that CALL pushes is the address of the CALL instruction itself.",
+      "answer": false,
+      "explain": "It is the address of the instruction after the CALL. If RET went back to the CALL, the CALL would run again and loop forever. In CallASubroutine1, `call func` at 0x140001014 pushes 0x140001019."
+    },
+    {
+      "type": "mc",
+      "category": "CALL and RET",
+      "q": "What does a plain `ret` do?",
+      "choices": [
+        "Pops the top of the stack into RAX so the caller gets the return value",
+        "Jumps to the address in RBP and leaves RSP unchanged",
+        "Pops the 8 bytes at the top of the stack into RIP, so RSP goes up by 8",
+        "Decreases RSP by 8 and jumps to the address stored there"
+      ],
+      "answer": 2,
+      "explain": "RET pops whatever is on top of the stack into RIP. Like any pop, this adds 8 to RSP. RET does not check whether that value really is a return address."
+    },
+    {
+      "type": "num",
+      "category": "CALL and RET",
+      "q": "Before `ret 0x20` executes, RSP holds some value R. How many bytes (decimal) higher is RSP after it executes?",
+      "answer": 40,
+      "explain": "Popping the return address into RIP adds 8, and the operand adds another 0x20 = 32 bytes. 8 + 32 = 40."
+    },
+    {
+      "type": "multi",
+      "category": "CALL and RET",
+      "q": "In what ways can a CALL's destination address be specified?",
+      "choices": [
+        "As an absolute address",
+        "Relative to the end of the CALL instruction",
+        "Relative to some other register",
+        "Only through the value currently on top of the stack"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The target can be an absolute address or a relative one, either relative to the end of the CALL instruction or to some other register. The value on top of the stack is what RET uses, not CALL."
+    },
+    {
+      "type": "text",
+      "category": "CALL and RET",
+      "q": "Which register does CALL load with the target function's address? Give its 64-bit name.",
+      "answer": ["rip", "RIP"],
+      "explain": "After pushing the return address, CALL sets RIP, the instruction pointer, to the target address."
+    },
+    {
+      "type": "mc",
+      "category": "CALL and RET",
+      "q": "Where are you most likely to see the `ret N` form, for example `ret 0x8` or `ret 0x20`?",
+      "choices": [
+        "In every function that returns a value",
+        "In disassembled Windows API functions, which use a particular function-calling convention",
+        "Only at the end of main()",
+        "Only in functions that have no stack frame"
+      ],
+      "answer": 1,
+      "explain": "This form is less common than plain `ret`. You will see it in Windows API code because of the particular calling convention those APIs use. It pops into RIP and then adds N extra bytes to RSP."
+    },
+    {
+      "type": "tf",
+      "category": "CALL and RET",
+      "q": "On x86-64, CALL moves RSP down by 8, just as a push would.",
+      "answer": true,
+      "explain": "CALL pushes an 8-byte return address, and a push decrements RSP by 8."
+    },
+    {
+      "type": "mc",
+      "category": "Intel vs AT&T syntax",
+      "q": "In Intel syntax, what does `mov rbp, rsp` do?",
+      "choices": [
+        "Copies RBP into RSP",
+        "Swaps RBP and RSP",
+        "Copies RSP into RBP",
+        "Copies the memory that RSP points to into RBP"
+      ],
+      "answer": 2,
+      "explain": "Intel syntax puts the destination first and the source(s) after it, like C's `rbp = rsp;`. There are no brackets, so no memory is accessed."
+    },
+    {
+      "type": "mc",
+      "category": "Intel vs AT&T syntax",
+      "q": "How is the Intel instruction `add rsp, 0x14` written in AT&T syntax?",
+      "choices": [
+        "add %rsp, $0x14",
+        "add $0x14, %rsp",
+        "add rsp, $0x14",
+        "add $rsp, %0x14"
+      ],
+      "answer": 1,
+      "explain": "AT&T syntax puts the source first and the destination last. Registers get a % prefix and immediates get a $ prefix, so it is `add $0x14,%rsp`."
+    },
+    {
+      "type": "tf",
+      "category": "Intel vs AT&T syntax",
+      "q": "In AT&T syntax, `mov %rsp, %rbp` copies RBP into RSP.",
+      "answer": false,
+      "explain": "AT&T syntax goes from source to destination, so this copies RSP into RBP. That is the same operation as Intel's `mov rbp, rsp`."
+    },
+    {
+      "type": "multi",
+      "category": "Intel vs AT&T syntax",
+      "q": "Which of these describe AT&T syntax?",
+      "choices": [
+        "Registers get a % prefix",
+        "Immediates get a $ prefix",
+        "The destination operand is written first",
+        "Operands go from source(s) to destination, like 1 + 2 = 3",
+        "It is the syntax Windows tools typically use",
+        "It is typical of *nix/GNU tools"
+      ],
+      "answer": [0, 1, 3, 5],
+      "explain": "AT&T is the *nix/GNU style: source then destination, with % on registers and $ on immediates. Putting the destination first and being the usual Windows choice describe Intel syntax."
+    },
+    {
+      "type": "mc",
+      "category": "Intel vs AT&T syntax",
+      "q": "Which syntax do Windows tools typically use, and how does it order two operands?",
+      "choices": [
+        "AT&T, with the source first and then the destination",
+        "Intel, with the destination first and then the source",
+        "Intel, with the source first and then the destination",
+        "AT&T, with the destination first and then the source"
+      ],
+      "answer": 1,
+      "explain": "Windows typically uses Intel syntax, which reads like algebra or C (y = 2x + 1): destination <- source(s)."
+    },
+    {
+      "type": "text",
+      "category": "Intel vs AT&T syntax",
+      "q": "In AT&T syntax, which prefix character marks an immediate (constant) value?",
+      "answer": ["$"],
+      "explain": "Immediates get a $ prefix, as in `$0x14`. Registers get %, as in `%rsp`."
+    },
+    {
+      "type": "multi",
+      "category": "MOV and r/mX forms",
+      "q": "Which data movements can a single x86 MOV instruction perform?",
+      "choices": [
+        "Register to register",
+        "Memory to register",
+        "Register to memory",
+        "Immediate to register",
+        "Immediate to memory",
+        "Memory to memory"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "MOV supports every combination except memory to memory, which x86 never allows."
+    },
+    {
+      "type": "mc",
+      "category": "MOV and r/mX forms",
+      "q": "Which of these Intel-syntax MOVs is NOT valid on x86?",
+      "choices": [
+        "mov rax, [rbx+rcx*8+0x10]",
+        "mov [rbx], rax",
+        "mov rbx, rax",
+        "mov [rbx], [rcx]"
+      ],
+      "answer": 3,
+      "explain": "`mov [rbx], [rcx]` would copy memory to memory, which MOV cannot do. The others are memory to register, register to memory, and register to register."
+    },
+    {
+      "type": "mc",
+      "category": "MOV and r/mX forms",
+      "q": "Which statement about immediate sizes in MOV is correct?",
+      "choices": [
+        "Memory can receive a 64-bit immediate, but a register can only receive a 32-bit immediate",
+        "Both registers and memory can receive 64-bit immediates",
+        "A register can receive a 64-bit immediate, but an immediate written to memory is limited to 32 bits",
+        "Neither can receive an immediate larger than 16 bits"
+      ],
+      "answer": 2,
+      "explain": "`mov rbx, imm64` is allowed. Immediate-to-memory forms such as `mov [rbx], imm32` only take 32-bit immediates."
+    },
+    {
+      "type": "mc",
+      "category": "MOV and r/mX forms",
+      "q": "What kind of MOV is `mov rax, [rbx+rcx*X+Y]`?",
+      "choices": [
+        "Register to memory",
+        "Memory to register",
+        "Immediate to register",
+        "Register to register"
+      ],
+      "answer": 1,
+      "explain": "The bracketed r/mX operand is a memory address computed from rbx + rcx*X + Y. It is the source (on the right in Intel syntax), and RAX is the destination."
+    },
+    {
+      "type": "tf",
+      "category": "MOV and r/mX forms",
+      "q": "In r/mX addressing such as `mov [rbx+rcx*X], rax`, the base and index must be rbx and rcx. Other general-purpose registers can't be used.",
+      "answer": false,
+      "explain": "Those registers are only examples. Any other general-purpose registers can take their place."
+    },
+    {
+      "type": "mc",
+      "category": "MOV and r/mX forms",
+      "q": "In a study of instruction frequencies in web browser code, which instruction was the most common?",
+      "choices": ["push", "call", "mov", "nop"],
+      "answer": 2,
+      "explain": "MOV was about 23% of instructions, well ahead of push (12%), call (8%), and nop (6%)."
+    },
+    {
+      "type": "mc",
+      "category": "ADD and SUB",
+      "q": "What does `sub rax, [rbx*2]` compute?",
+      "choices": [
+        "rax = rax - (rbx * 2)",
+        "rax = rax - (the value in memory at address rbx*2)",
+        "[rbx*2] = [rbx*2] - rax",
+        "rax = (rbx * 2) - rax"
+      ],
+      "answer": 1,
+      "explain": "The brackets mean a memory access at the address rbx*2. That value is subtracted from RAX, and the result goes back into RAX, the destination on the left in Intel syntax."
+    },
+    {
+      "type": "num",
+      "category": "ADD and SUB",
+      "q": "RAX = 0x30, RBX = 0x1000, and the 8 bytes at address 0x2000 hold 0x10. After `sub rax, [rbx*2]`, what is RAX, in decimal?",
+      "answer": 32,
+      "explain": "rbx*2 = 0x2000, and the value stored there is 0x10. RAX = 0x30 - 0x10 = 0x20 = 32."
+    },
+    {
+      "type": "multi",
+      "category": "ADD and SUB",
+      "q": "Which of these are legal ADD/SUB instructions in Intel syntax?",
+      "choices": [
+        "add rsp, 8",
+        "sub rax, [rbx*2]",
+        "add [rbx], rax",
+        "sub [rax], [rbx]",
+        "add 0x14, rsp",
+        "sub rsp, 0x28"
+      ],
+      "answer": [0, 1, 2, 5],
+      "explain": "The destination can be an r/mX or a register. The source can be an r/mX, a register, or an immediate. `sub [rax], [rbx]` is memory to memory, which is not allowed. `add 0x14, rsp` puts an immediate in the destination slot, which is also not allowed."
+    },
+    {
+      "type": "tf",
+      "category": "ADD and SUB",
+      "q": "ADD and SUB can't use memory r/mX operands for both source and destination, because that would be a memory-to-memory operation, which x86 doesn't allow.",
+      "answer": true,
+      "explain": "Like MOV, ADD and SUB never operate memory to memory. At least one operand must be a register, or the source must be an immediate."
+    },
+    {
+      "type": "tf",
+      "category": "ADD and SUB",
+      "q": "In `add rsp, 8`, RSP is both a source and the destination.",
+      "answer": true,
+      "explain": "The instruction computes rsp + 8 and writes the result back into RSP, so RSP is read and then written."
+    },
+    {
+      "type": "mc",
+      "category": "ADD and SUB",
+      "q": "What can the source operand of ADD or SUB be?",
+      "choices": [
+        "Only an immediate",
+        "A register or an immediate, but never memory",
+        "An r/mX, a register, or an immediate",
+        "Only a register"
+      ],
+      "answer": 2,
+      "explain": "The source can be an r/mX (memory), a register, or an immediate. The only rule is that source and destination can't both be memory."
+    },
+    {
+      "type": "mc",
+      "category": "Zero extension",
+      "q": "RAX = 0x1122334455667788. After `mov eax, 0BEEFh`, what is RAX?",
+      "choices": [
+        "0x112233440000BEEF",
+        "0x112233445566BEEF",
+        "0x000000000000BEEF",
+        "0xFFFFFFFF0000BEEF"
+      ],
+      "answer": 2,
+      "explain": "In 64-bit mode, a 32-bit result written to a general-purpose register is zero-extended, so the upper 32 bits of RAX become 0."
+    },
+    {
+      "type": "mc",
+      "category": "Zero extension",
+      "q": "RAX = 0x1122334455667788. After the 16-bit write `mov ax, 0BEEFh`, what is RAX?",
+      "choices": [
+        "0x000000000000BEEF",
+        "0x112233445566BEEF",
+        "0x112233440000BEEF",
+        "0xBEEF334455667788"
+      ],
+      "answer": 1,
+      "explain": "8-bit and 16-bit results don't modify the rest of the register. Only the low 16 bits change, and the upper 48 bits stay the same."
+    },
+    {
+      "type": "tf",
+      "category": "Zero extension",
+      "q": "If you write a 32-bit value to a memory location that holds a 64-bit variable, the variable's upper 32 bits are zeroed too.",
+      "answer": false,
+      "explain": "Zero extension only applies when writing to registers. A 32-bit write to memory changes exactly 32 bits."
+    },
+    {
+      "type": "mc",
+      "category": "Zero extension",
+      "q": "In the CallASubroutine1 trace, `mov eax, 0BEEFh` zero-extends into RAX, but the register view gives no sign of it. Why?",
+      "choices": [
+        "The debugger only displays the low 32 bits of RAX",
+        "RAX started as 1, so its upper 32 bits were already zero",
+        "Zero extension only happens when optimizations are on",
+        "Writing EAX never affects the rest of RAX"
+      ],
+      "answer": 1,
+      "explain": "RAX began as 0x0000000000000001. The upper half was already all zeros, so writing zeros there changed nothing you could see."
+    },
+    {
+      "type": "multi",
+      "category": "Zero extension",
+      "q": "In 64-bit mode, which result sizes leave the upper bits of the destination general-purpose register unmodified?",
+      "choices": ["8-bit", "16-bit", "32-bit", "64-bit"],
+      "answer": [0, 1],
+      "explain": "8-bit and 16-bit writes leave the upper 56 or 48 bits alone. 32-bit writes zero-extend to 64 bits, and 64-bit writes replace the whole register."
+    },
+    {
+      "type": "text",
+      "category": "Zero extension",
+      "q": "When a 32-bit result is written into a 64-bit general-purpose register, the upper 32 bits are filled with zeros. What is this behavior called?",
+      "answer": ["zero extension", "zero-extension", "zero extend", "zero-extend", "zero extended", "zero-extended", "zero extending", "zero-extending"],
+      "explain": "It is called zero extension. The Intel manual says 32-bit operands generate a 32-bit result, zero-extended to a 64-bit result in the destination register."
+    },
+    {
+      "type": "mc",
+      "category": "CallASubroutine1 trace",
+      "q": "Program: func = 140001000 mov eax,0BEEFh; 140001005 ret. main = 140001010 sub rsp,28h; 140001014 call func; 140001019 mov eax,0F00Dh; 14000101E add rsp,28h; 140001022 ret. When main starts, RSP = 0x14FE08 and [RSP] = 0x140001349. What is RSP after `sub rsp,28h`?",
+      "choices": ["0x14FE30", "0x14FDEC", "0x14FDE0", "0x14FDD8"],
+      "answer": 2,
+      "explain": "0x14FE08 - 0x28 = 0x14FDE0. The other choices add instead of subtracting (0x14FE30), treat 28 as decimal (0x14FDEC), or also count the later CALL's push (0x14FDD8)."
+    },
+    {
+      "type": "num",
+      "category": "CallASubroutine1 trace",
+      "q": "How many bytes (decimal) of stack space does `sub rsp,28h` reserve?",
+      "answer": 40,
+      "explain": "28h = 0x28 = 2*16 + 8 = 40 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "CallASubroutine1 trace",
+      "q": "Program: func = 140001000 mov eax,0BEEFh; 140001005 ret. main = 140001010 sub rsp,28h; 140001014 call func; 140001019 mov eax,0F00Dh; 14000101E add rsp,28h; 140001022 ret. When main starts, RSP = 0x14FE08. Right after `call func` executes, what is on top of the stack?",
+      "choices": [
+        "0x140001014, stored at 0x14FDD8",
+        "0x140001019, stored at 0x14FDE0",
+        "0x140001000, stored at 0x14FDD8",
+        "0x140001019, stored at 0x14FDD8"
+      ],
+      "answer": 3,
+      "explain": "After the sub, RSP is 0x14FDE0. CALL pushes the address of the next instruction (0x140001019), which moves RSP down 8 to 0x14FDD8."
+    },
+    {
+      "type": "multi",
+      "category": "CallASubroutine1 trace",
+      "q": "Program: func = 140001000 mov eax,0BEEFh; 140001005 ret. main = 140001010 sub rsp,28h; 140001014 call func; 140001019 mov eax,0F00Dh; 14000101E add rsp,28h; 140001022 ret. When main starts, RSP = 0x14FE08. Which of these change when `call func` executes?",
+      "choices": [
+        "RSP (it decreases by 8)",
+        "RIP (it becomes 0x140001000)",
+        "The 8 bytes of memory at 0x14FDD8",
+        "RAX",
+        "The 8 bytes of memory at 0x14FE08"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "CALL pushes the return address, which decrements RSP and writes 0x140001019 at 0x14FDD8. It then sets RIP to func. RAX and main's incoming return address at 0x14FE08 are not touched."
+    },
+    {
+      "type": "text",
+      "category": "CallASubroutine1 trace",
+      "q": "Program: func = 140001000 mov eax,0BEEFh; 140001005 ret. main = 140001010 sub rsp,28h; 140001014 call func; 140001019 mov eax,0F00Dh; 14000101E add rsp,28h; 140001022 ret. After func's `ret` executes, what address (hex) is in RIP?",
+      "answer": ["0x140001019", "140001019", "0x0000000140001019", "0000000140001019", "00000001`40001019", "140001019h"],
+      "explain": "RET pops the return address that `call func` pushed: 0x140001019, the address of the `mov eax,0F00Dh` right after the call."
+    },
+    {
+      "type": "mc",
+      "category": "CallASubroutine1 trace",
+      "q": "Program: func = 140001000 mov eax,0BEEFh; 140001005 ret. main = 140001010 sub rsp,28h; 140001014 call func; 140001019 mov eax,0F00Dh; 14000101E add rsp,28h; 140001022 ret. When main starts, RSP = 0x14FE08. After func's `ret`, what is RSP, and how is the 8-byte slot at 0x14FDD8 treated?",
+      "choices": [
+        "0x14FDD8; the slot still holds the live return address",
+        "0x14FDE0; the slot is now at a lower address than RSP, so its contents are treated as undefined",
+        "0x14FDE0; RET zeroes the slot as it pops",
+        "0x14FE08; RET also undoes main's sub rsp,28h"
+      ],
+      "answer": 1,
+      "explain": "The pop adds 8, taking RSP from 0x14FDD8 to 0x14FDE0. The old bytes are still physically there, but they sit below the top of the stack and are treated as undefined. RET does not zero them, and it does not undo the sub."
+    },
+    {
+      "type": "num",
+      "category": "CallASubroutine1 trace",
+      "q": "Program: func = 140001000 mov eax,0BEEFh; 140001005 ret. main = 140001010 sub rsp,28h; 140001014 call func; 140001019 mov eax,0F00Dh; 14000101E add rsp,28h; 140001022 ret. While func is executing, how many bytes (decimal) below main's starting RSP is RSP?",
+      "answer": 48,
+      "explain": "The sub moves RSP down 0x28 = 40 bytes and the CALL's push moves it down 8 more: 40 + 8 = 48. Equivalently, 0x14FE08 - 0x14FDD8 = 0x30."
+    },
+    {
+      "type": "mc",
+      "category": "CallASubroutine1 trace",
+      "q": "Program: func = 140001000 mov eax,0BEEFh; 140001005 ret. main = 140001010 sub rsp,28h; 140001014 call func; 140001019 mov eax,0F00Dh; 14000101E add rsp,28h; 140001022 ret. What value is in RAX when main executes its final `ret`?",
+      "choices": ["0xBEEF", "0x1", "0xF00D", "0x140001019"],
+      "answer": 2,
+      "explain": "func leaves 0xBEEF in EAX/RAX (the return-value register by convention), but main ignores it and immediately overwrites it with `mov eax,0F00Dh`, main's own return value."
+    },
+    {
+      "type": "mc",
+      "category": "CallASubroutine1 trace",
+      "q": "Program: func = 140001000 mov eax,0BEEFh; 140001005 ret. main = 140001010 sub rsp,28h; 140001014 call func; 140001019 mov eax,0F00Dh; 14000101E add rsp,28h; 140001022 ret. When main starts, RSP = 0x14FE08 and [RSP] = 0x140001349. After main's final `ret`, what are RIP and RSP?",
+      "choices": [
+        "RIP = 0x140001019, RSP = 0x14FE10",
+        "RIP = 0x140001349, RSP = 0x14FE00",
+        "RIP = 0x140001022, RSP = 0x14FE08",
+        "RIP = 0x140001349, RSP = 0x14FE10"
+      ],
+      "answer": 3,
+      "explain": "`add rsp,28h` brings RSP back to 0x14FE08, where the return address 0x140001349 is stored. RET pops that address into RIP and adds 8: 0x14FE08 + 8 = 0x14FE10."
+    },
+    {
+      "type": "multi",
+      "category": "CallASubroutine1 trace",
+      "q": "Which instructions in main (`sub rsp,28h`; `call func`; `mov eax,0F00Dh`; `add rsp,28h`; `ret`) change RSP when they execute?",
+      "choices": ["sub rsp,28h", "call func", "mov eax,0F00Dh", "add rsp,28h", "ret"],
+      "answer": [0, 1, 3, 4],
+      "explain": "sub and add change RSP explicitly. CALL pushes, which is -8, and RET pops, which is +8. `mov eax,0F00Dh` only touches RAX and leaves the stack alone."
+    },
+    {
+      "type": "tf",
+      "category": "CallASubroutine1 trace",
+      "q": "In CallASubroutine1, func() is dead code. main ignores its return value, so a compiler with optimizations turned on would remove it.",
+      "answer": true,
+      "explain": "func's 0xBEEF is never used and main always returns 0xF00D. The program is built with optimizations off so that simple C maps to simple, visible assembly."
+    },
+    {
+      "type": "mc",
+      "category": "CallASubroutine1 trace",
+      "q": "In this unoptimized Visual Studio build, main brackets its code with `sub rsp,28h` and `add rsp,28h`. What is observed about that 0x28-byte region?",
+      "choices": [
+        "It holds func's local variables",
+        "It holds the return address back to the function that called main",
+        "It is reserved, but nothing visibly gets stored in it in this program",
+        "It holds main's 0xF00D return value"
+      ],
+      "answer": 2,
+      "explain": "The stack space is over-allocated: 0x28 bytes are reserved with no apparent data stored there. func doesn't use the stack, and return values travel in RAX, not in this region."
+    },
+    {
+      "type": "tf",
+      "category": "CallASubroutine1 trace",
+      "q": "main reserves and later releases its stack space by adjusting RSP directly with sub and add, rather than with a series of push and pop instructions.",
+      "answer": true,
+      "explain": "`sub rsp,28h` moves the stack pointer down in one step, and the matching `add rsp,28h` moves it back up. That leaves RSP pointing at main's return address, ready for RET."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames",
+      "q": "In CallASubroutine1, main runs `call func` at 0x140001014, which pushes the return address 0x140001019. Which function's stack frame is that return address considered part of?",
+      "choices": [
+        "func's",
+        "main's",
+        "The frame of the function that called main",
+        "No frame; return addresses sit between frames"
+      ],
+      "answer": 1,
+      "explain": "A return address belongs to the frame of the caller, the function that executed the CALL. Here that is main."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames",
+      "q": "When CallASubroutine1's main starts, RSP = 0x14FE08 and the value there is 0x140001349. Whose frame does that value belong to?",
+      "choices": [
+        "main's",
+        "func's",
+        "The function that called main (the function before main)",
+        "No one's; it is unused stack space"
+      ],
+      "answer": 2,
+      "explain": "It is the return address pushed when something called main. Because it was pushed by the caller, it counts as part of the frame of the function before main."
+    },
+    {
+      "type": "tf",
+      "category": "Stack frames",
+      "q": "In CallASubroutine1, func sets up and uses its own stack frame to hold 0xBEEF before returning.",
+      "answer": false,
+      "explain": "func is so simple that it never even makes or uses a stack frame. It just puts 0xBEEF in EAX (the return register by convention) and returns."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames",
+      "q": "main() calls foo(), and foo() calls bar(). While bar runs, in what order are the frames laid out from the stack bottom (highest address) toward the stack top?",
+      "choices": [
+        "bar, foo, main",
+        "main, foo, bar",
+        "foo, main, bar",
+        "main, bar, foo"
+      ],
+      "answer": 1,
+      "explain": "The stack grows toward lower addresses, so each newly called function's frame goes on top: main first, then foo, then bar at the top."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames",
+      "q": "main() calls foo(), and foo() calls bar(). While bar runs, what sits at the stack-top end of foo's frame, right before bar's frame?",
+      "choices": [
+        "bar's local variable a",
+        "The return address for returning from main() to invoke_main()",
+        "The return address for returning from bar() to foo()",
+        "The return address for returning from foo() to main()"
+      ],
+      "answer": 2,
+      "explain": "When foo executes `call bar`, the pushed return address (back into foo) is the last thing in foo's frame, because return addresses belong to the caller's frame. The foo->main return address sits at the end of main's frame."
+    },
+    {
+      "type": "tf",
+      "category": "Stack frames",
+      "q": "When one function calls another, the return address pushed by CALL is counted as part of the caller's frame, not the callee's.",
+      "answer": true,
+      "explain": "Return addresses are placed in the frame of whichever function makes the call."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames",
+      "q": "In the main -> foo -> bar stack diagram, what sits at the stack bottom, before (at a higher address than) the rest of main's frame?",
+      "choices": [
+        "main's local variable c",
+        "The return address from foo() to main()",
+        "The argument 7 passed to foo()",
+        "The return address from main() back to invoke_main()"
+      ],
+      "answer": 3,
+      "explain": "The first thing on the stack is the return address pushed when invoke_main called main, which main's final RET uses to go back."
+    }
+  ]
+}

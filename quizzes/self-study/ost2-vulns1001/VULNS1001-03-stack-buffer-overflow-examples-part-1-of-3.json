@@ -1,0 +1,446 @@
+{
+  "title": "Stack Buffer Overflow Examples, Part 1 of 3 (BIOS Disconnect & Apple SMB)",
+  "course": "VULNS1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: background",
+      "q": "What is the Unified Extensible Firmware Interface (UEFI)?",
+      "choices": [
+        "A firmware interface specification (not a firmware itself), used predominantly on Intel-based platforms",
+        "A specific firmware image shipped only by Dell",
+        "A bootloader that loads Windows or Linux",
+        "An operating system that runs before the BIOS"
+      ],
+      "answer": 0,
+      "explain": "UEFI is a specification, not a firmware in and of itself. Dell's Intel-based laptops have a BIOS that implements the UEFI specification."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: background",
+      "q": "What is the name of the Dell UEFI BIOS feature that supports remote BIOS updates, and which gives the 'BIOS Disconnect' vulnerability its name?",
+      "choices": [
+        "Dell BIOSConnect",
+        "Dell SupportAssist",
+        "Dell FOTA Launcher",
+        "Dell Update Manager"
+      ],
+      "answer": 0,
+      "explain": "The feature is 'Dell BIOSConnect'; the vulnerability is dubbed 'BIOS Disconnect' because the flaw is in that feature."
+    },
+    {
+      "type": "tf",
+      "category": "BIOS Disconnect: background",
+      "q": "The UEFI BIOS is the code that runs earliest on the Intel CPU; it hands off to a bootloader, which loads an OS (Windows/Linux), which then runs applications.",
+      "answer": true,
+      "explain": "The boot flow is UEFI BIOS -> Bootloader -> OS -> Applications, in that time order."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: background",
+      "q": "After the Dell firmware reaches out to Dell.com over SSL, which file does it pull down and parse to decide between a firmware over-the-air update and an OS update?",
+      "choices": [
+        "CatalogBc.xml",
+        "bc_config.zip",
+        "FOTA.EFI",
+        "manage_upd.nzdf"
+      ],
+      "answer": 0,
+      "explain": "The simplified flow is: laptop -> Dell.com (SSL) -> CatalogBc.xml -> FOTA.EFI / CSOS.EFI."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: background",
+      "q": "After CatalogBc.xml is parsed, the update flow branches into which two EFI files?",
+      "choices": [
+        "FOTA.EFI and CSOS.EFI",
+        "BOOT.EFI and GRUB.EFI",
+        "UPDATE.EFI and VERIFY.EFI",
+        "SHELL.EFI and DELL.EFI"
+      ],
+      "answer": 0,
+      "explain": "The branches are FOTA.EFI and CSOS.EFI. The sha256-field overflow (CVE-2021-21574) is in the CSOS.EFI path."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: background",
+      "q": "Eclypsium analyzed Dell's remote firmware update capability. How many vulnerabilities did they find?",
+      "choices": [
+        "4",
+        "1",
+        "2",
+        "7"
+      ],
+      "answer": 0,
+      "explain": "They found 4: CVE-2021-21571 (wildcard cert), 21572 (XML parsing overflow), 21573 (JSON 'url' field overflow), and 21574 (JSON 'sha256' field overflow)."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: background",
+      "q": "CVE-2021-21571 (described as arguably the most severe of the chain) was which flaw?",
+      "choices": [
+        "HTTPS accepted any wildcard certificate, not just ones from *.dell.com",
+        "A buffer overflow while parsing the XML catalog",
+        "A buffer overflow in the JSON 'url' field",
+        "A buffer overflow in the JSON 'sha256' field"
+      ],
+      "answer": 0,
+      "explain": "The whole architecture assumed the HTTPS data could not be manipulated. Accepting an attacker-controlled wildcard certificate cancelled that protection, turning all the downloaded data into attacker-controlled input."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: the vulnerability",
+      "q": "CVE-2021-21574, the focus of this module, is an overflow in the parsing of which JSON field?",
+      "choices": [
+        "The 'sha256' field",
+        "The 'url' field",
+        "The 'size' field",
+        "The 'filetype' field"
+      ],
+      "answer": 0,
+      "explain": "CVE-2021-21574 is an overflow in JSON parsing of the 'sha256' field; that is the field the researchers wrote their proof-of-concept for."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: the vulnerability",
+      "q": "In the vulnerable sha256-parsing pseudocode, at what location is the destination stack buffer (buf_on_stack / write_ptr)?",
+      "choices": [
+        "rbp - 0x158",
+        "rbp + 0x158",
+        "rsp - 0x20",
+        "rbp - 0x58"
+      ],
+      "answer": 0,
+      "explain": "buf_on_stack is at rbp - 0x158, so the buffer is at most 0x158 bytes before it starts corrupting the saved rbp and the return address."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: the vulnerability",
+      "q": "Why can the sha256 field deliver arbitrary binary bytes (for example NOP sleds / shellcode) without worrying about 'bad characters' outside the printable range?",
+      "choices": [
+        "It holds ASCII-encoded hex digits that the code converts back into binary bytes",
+        "It is base64-encoded",
+        "It is passed straight to strcpy, which stops at nulls only",
+        "The field is compressed, so any byte is legal"
+      ],
+      "answer": 0,
+      "explain": "The field is ASCII hex (e.g. the characters '9' and '0' become the byte 0x90). Because any byte can be written as two hex characters, the attacker can encode arbitrary binary without bad-character issues."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: the vulnerability",
+      "q": "In the loop, the exit check compares the index against strnlen(hex_ptr, N). What is N (the maximum allowed length)?",
+      "choices": [
+        "20000",
+        "0x158",
+        "32",
+        "1024"
+      ],
+      "answer": 0,
+      "explain": "The loop allows indices up to 20000, far larger than the 0x158-byte buffer, so the attacker can keep the loop writing well past the buffer."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: the vulnerability",
+      "q": "What makes the loop's exit condition 'ACID' (attacker-controlled)?",
+      "choices": [
+        "The attacker fully controls the hex_ptr string and its length (up to 20000), so the index is effectively attacker-controlled",
+        "The index is initialized to a random value",
+        "strnlen reads uninitialized stack memory",
+        "The buffer size is computed from the packet header"
+      ],
+      "answer": 0,
+      "explain": "Because hex_ptr is a fully attacker-controlled string that can be nearly 20000 long, the attacker effectively controls when (if ever) the loop exits - an ACID loop exit condition."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: the vulnerability",
+      "q": "Which 'common root cause' pattern does the sha256 overflow match?",
+      "choices": [
+        "Sequential data writes within a loop with an ACID loop counter / exit condition",
+        "Unsafe/weakly-bounded functions like strcpy(), strcat(), sprintf()",
+        "An integer overflow in an allocation size calculation",
+        "A use-after-free of a heap object"
+      ],
+      "answer": 0,
+      "explain": "It is a manual memory copy: a loop doing sequential writes (*write_ptr++) with an attacker-controlled exit condition - the 'carrot' root cause of sequential writes within a loop with an ACID exit condition."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: the vulnerability",
+      "q": "Students in the class corrected the researchers' pseudocode for the line CONVERT_HEX(hex_ptr[idx]) << N | CONVERT_HEX(hex_ptr[idx+1]). What was the correction?",
+      "choices": [
+        "The shift should be 4 (one hex nibble), not 8",
+        "The shift should be 8, not 4",
+        "The index step should be +1, not +2",
+        "The maximum should be 0x158, not 20000"
+      ],
+      "answer": 0,
+      "explain": "Two hex characters make one byte, so the high nibble is shifted left by 4 bits. Students pointed out the original '8' should be '4', and the researchers confirmed it."
+    },
+    {
+      "type": "tf",
+      "category": "BIOS Disconnect: the vulnerability",
+      "q": "Because there is no length check against the 0x158-byte buffer, the loop can keep copying until it overwrites the saved rbp register and the saved return address.",
+      "answer": true,
+      "explain": "This is the classic linear stack buffer overflow: continued sequential writes run past the buffer into the saved rbp and the return address, giving an attacker-controlled return address."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: exploitation",
+      "q": "Which exploitation technique did the researchers use - executing small snippets of existing code ('gadgets') that each end in a return instruction?",
+      "choices": [
+        "Return-oriented programming (ROP)",
+        "Heap spraying",
+        "A format-string attack",
+        "DLL side-loading"
+      ],
+      "answer": 0,
+      "explain": "ROP chains together 'gadgets' - short pieces of existing code ending in a return - to perform the attacker's computation."
+    },
+    {
+      "type": "tf",
+      "category": "BIOS Disconnect: exploitation",
+      "q": "ROP works because the return instruction removes the value at the top of the stack (altering the stack pointer) and loads it into the instruction pointer, indicating the next gadget to execute.",
+      "answer": true,
+      "explain": "Each 'return' pops the next gadget's address off the stack into the instruction pointer, so chaining gadgets drives execution."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: exploitation",
+      "q": "Since neither a non-executable stack nor ASLR were actually in play on the Dell BIOS, why did the attackers still use ROP?",
+      "choices": [
+        "To increase reliability across different models and build versions whose stack addresses could vary",
+        "To defeat stack canaries present in the firmware",
+        "To bypass ASLR, which was enabled",
+        "It was required to escape a sandbox"
+      ],
+      "answer": 0,
+      "explain": "ROP let them avoid hard-coding a fixed address; it increased reliability against the natural address variation across different firmware builds and hardware models."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: exploitation",
+      "q": "Which exploit mitigation WAS present in the Dell UEFI firmware being attacked?",
+      "choices": [
+        "None of these - the stack/heap were executable, with no stack canaries and no ASLR",
+        "Stack canaries",
+        "Address-space layout randomization (ASLR)",
+        "A non-executable stack"
+      ],
+      "answer": 0,
+      "explain": "UEFI firmware lagged OSes on mitigations: executable heap and stack, no canaries, and no ASLR, so the linear stack overflow just worked."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: exploitation",
+      "q": "In what Intel privilege level does all of the firmware code at system boot run?",
+      "choices": [
+        "Ring 0, the most privileged execution environment",
+        "Ring 3 (user mode)",
+        "Ring 1",
+        "Only in System Management Mode"
+      ],
+      "answer": 0,
+      "explain": "Firmware at boot runs in ring 0, the most privileged level on Intel, which is part of why this bug is so serious."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: exploitation",
+      "q": "In the demo, how were the Secure Boot / BitLocker 'known good' measurements kept from detecting the BIOS infection?",
+      "choices": [
+        "BitLocker was suspended from within the OS, defeating the locking-in of known-good boot measurements",
+        "The TPM chip was physically removed",
+        "Secure Boot was disabled in the firmware setup menu",
+        "The attacker brute-forced the TPM PCR values"
+      ],
+      "answer": 0,
+      "explain": "There exist mechanisms to suspend BitLocker from within the OS. Suspending it defeats locking in known-good measurements, so the BIOS could be infected and remeasured while everything still reported 'safe'."
+    },
+    {
+      "type": "mc",
+      "category": "BIOS Disconnect: exploitation",
+      "q": "The small shellcode placed on the stack was only enough to find and call the attacker's 'full code'. Where had that full code been attached?",
+      "choices": [
+        "Onto the EFI executables that were sent in, which are never signature-verified before the exploit runs",
+        "Into the Windows kernel image",
+        "Into the TPM firmware",
+        "Into the bootloader configuration file"
+      ],
+      "answer": 0,
+      "explain": "Because code execution is achieved before any verification of the EFI executables, the attacker can simply attach the full payload to those images; it is never subject to signature verification."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2020-10005 (Apple SMB)",
+      "q": "CVE-2020-10005 is a remote stack buffer overflow in which functionality of the macOS SMB server (smbx)?",
+      "choices": [
+        "The Tree Connect functionality",
+        "User authentication/login",
+        "Directory enumeration",
+        "File read/write"
+      ],
+      "answer": 0,
+      "explain": "It is a remote stack buffer overflow in the Tree Connect functionality of Apple's proprietary SMB server for macOS."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2020-10005 (Apple SMB)",
+      "q": "What is SMB?",
+      "choices": [
+        "Microsoft Server Message Block, a network file-sharing protocol",
+        "A macOS daemon supervisor",
+        "Apple's secure messaging bus",
+        "A BIOS update transport"
+      ],
+      "answer": 0,
+      "explain": "SMB (Server Message Block) is a network file-sharing protocol originally designed by Microsoft; macOS ships its own server and client implementation."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2020-10005 (Apple SMB)",
+      "q": "In the vulnerable code, which fixed-size stack buffer overflows?",
+      "choices": [
+        "wcSharePath",
+        "memcpy_src",
+        "packet_input_ptr",
+        "tc_PathLength"
+      ],
+      "answer": 0,
+      "explain": "wcSharePath is the fixed-size stack buffer that is the destination of the memcpy; attacker-controlled data gets written past its end."
+    },
+    {
+      "type": "num",
+      "category": "CVE-2020-10005 (Apple SMB)",
+      "q": "In the ACID-Flow source, how many elements is the wcSharePath array declared with (wchar16 wcSharePath[...])?",
+      "answer": 1024,
+      "tolerance": 0,
+      "explain": "It is declared wchar16 wcSharePath[1024]; it is a fixed size, but the attacker controls how many characters get copied into it."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2020-10005 (Apple SMB)",
+      "q": "At which operation does the overflow actually write attacker data past the end of the fixed-size buffer?",
+      "choices": [
+        "memcpy(wcSharePath, memcpy_src.buf, num_chars * 2)",
+        "bzero(wcSharePath, 0x800)",
+        "strcpy(wcSharePath, path)",
+        "sprintf(wcSharePath, ...)"
+      ],
+      "answer": 0,
+      "explain": "The destination wcSharePath is fixed-size, but num_chars (the count) and memcpy_src.buf (the data) both come from the attacker-controlled packet, so the memcpy writes out of bounds."
+    },
+    {
+      "type": "tf",
+      "category": "CVE-2020-10005 (Apple SMB)",
+      "q": "Per the SMB2 TREE_CONNECT Request spec the StructureSize must be 9, but PathOffset, PathLength, and the Buffer are all attacker-controlled.",
+      "answer": true,
+      "explain": "The 'Never Trust a Packet' slide marks StructureSize (must be 9) as fixed and the remaining fields - Flags/Reserved, PathOffset, PathLength, and the variable Buffer - as attacker-controlled."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2020-10005 (Apple SMB)",
+      "q": "How was CVE-2020-10005 fixed?",
+      "choices": [
+        "By limiting the number of characters that can be copied into wcSharePath",
+        "By removing the SMB server from macOS",
+        "By adding a stack canary to the function",
+        "By encrypting the Tree Connect packet"
+      ],
+      "answer": 0,
+      "explain": "The fix bounds the character count that may be copied into wcSharePath so the copy can no longer run past the fixed-size buffer."
+    },
+    {
+      "type": "mc",
+      "category": "CVE-2020-10005 (Apple SMB)",
+      "q": "In the 'What Was the Fix?' code, which constant does the added check compare the character count (bitmasked_num_chars) against?",
+      "choices": [
+        "0x155",
+        "0x158",
+        "0x800",
+        "20000"
+      ],
+      "answer": 0,
+      "explain": "The fix adds if (bitmasked_num_chars < 0x155), bounding the count before the memcpy."
+    },
+    {
+      "type": "mc",
+      "category": "Stack overflow examples & root causes",
+      "q": "Throughout these examples, what does the acronym 'ACID' stand for?",
+      "choices": [
+        "Attacker-Controlled Input Data",
+        "Atomicity, Consistency, Isolation, Durability",
+        "Automatic Code Injection Detection",
+        "Address Collision In Data"
+      ],
+      "answer": 0,
+      "explain": "ACID = Attacker-Controlled Input Data; tracing the ACID flow means following attacker-controlled data to where it is misused."
+    },
+    {
+      "type": "multi",
+      "category": "Stack overflow examples & root causes",
+      "q": "According to the 'Common Root Causes' slide, which are listed as common root causes of these overflows? Select all that apply.",
+      "choices": [
+        "Unsafe/weakly-bounded functions like memcpy(), strcpy(), strcat(), sprintf()",
+        "The wrapper functions people inevitably write around those unsafe functions",
+        "Sequential data writes within a loop with an ACID loop-counter / exit condition",
+        "Garbage-collector pauses that free memory early"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The slide lists unsafe/weakly-bounded functions (and their homemade wrappers) and sequential writes in a loop with an ACID loop counter/exit condition. Garbage collection is not listed (and C/C++ has no GC)."
+    },
+    {
+      "type": "mc",
+      "category": "Stack overflow examples & root causes",
+      "q": "On the Stack Overflow Map's key, what does the ninja (writeup) marker indicate for an example?",
+      "choices": [
+        "The writeup includes both the vulnerability and an example exploit description",
+        "The vulnerability was found in the wild as a zero-day",
+        "A public proof-of-concept exploit exists",
+        "The bug is in kernel space"
+      ],
+      "answer": 0,
+      "explain": "The ninja marks examples whose writeup covers both the vulnerability and an example exploit - these satisfy the 'vulnerability + exploit' requirement on the Secure Development learning path."
+    },
+    {
+      "type": "mc",
+      "category": "Stack overflow examples & root causes",
+      "q": "In the CVE classification table, how is CVE-2021-21574 'BIOS Disconnect' categorized?",
+      "choices": [
+        "Firmware (UEFI BIOS); attack surface = network traffic (JSON over HTTPS parsing)",
+        "Userspace daemon; attack surface = SMB network packets",
+        "Kernel module; attack surface = TIPC network packets",
+        "Userspace CLI utility; attack surface = ELF symbol parsing"
+      ],
+      "answer": 0,
+      "explain": "BIOS Disconnect is firmware (UEFI BIOS) from Dell; its attack surface is network traffic parsed as JSON over HTTPS."
+    },
+    {
+      "type": "mc",
+      "category": "Stack overflow examples & root causes",
+      "q": "How is CVE-2020-10005 categorized in the classification table?",
+      "choices": [
+        "Userspace; SubType = daemon (smbd); attack surface = network packets (SMB)",
+        "Firmware; SubType = UEFI BIOS; attack surface = JSON over HTTPS",
+        "Kernel; SubType = TIPC protocol module; attack surface = TIPC packets",
+        "Userspace; SubType = documentation conversion; attack surface = BMP image parsing"
+      ],
+      "answer": 0,
+      "explain": "CVE-2020-10005 is an Apple userspace daemon (smbd) bug reached through SMB network packets."
+    },
+    {
+      "type": "tf",
+      "category": "Stack overflow examples & root causes",
+      "q": "A public proof-of-concept exploit is available for CVE-2021-21574 'BIOS Disconnect'.",
+      "answer": true,
+      "explain": "The classification table lists 'Public Proof-of-Concept Exploit Available? Yes' for BIOS Disconnect, and it is marked as a vulnerability-plus-exploit example."
+    },
+    {
+      "type": "tf",
+      "category": "Stack overflow examples & root causes",
+      "q": "CVE-2020-10005 (the Apple SMB bug) was discovered in the wild as a zero-day.",
+      "answer": false,
+      "explain": "The table lists 'Discovered in the Wild? No' for CVE-2020-10005; it was not a zero-day."
+    }
+  ]
+}

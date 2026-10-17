@@ -1,0 +1,422 @@
+{
+  "title": "Arch1001 04: Local Variables (part 1 of 2)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Locals on the stack",
+      "q": "SingleLocalVariable.c: int func(){ int i = 0x5ca1ab1e; return i; } compiles (Visual Studio) to: sub rsp,18h / mov dword ptr [rsp],5CA1AB1Eh / mov eax,dword ptr [rsp] / add rsp,18h / ret. Where is the local variable i stored?",
+      "choices": [
+        "On the stack, in func's frame, at the address held in rsp after sub rsp,18h",
+        "Only in register eax; it never touches memory",
+        "In a global data section, because it is initialized with a constant",
+        "At [rsp+18h], inside main's frame"
+      ],
+      "answer": 0,
+      "explain": "mov dword ptr [rsp],5CA1AB1Eh writes i into memory at rsp, inside the 0x18 bytes func just reserved. Local variables get space on the stack in the frame of the function they are scoped to. eax only receives a copy afterward for the return."
+    },
+    {
+      "type": "tf",
+      "category": "Locals on the stack",
+      "q": "Local variables lead to an allocation of space on the stack, within the frame of the function the variable is scoped to.",
+      "answer": true,
+      "explain": "This is the first takeaway from SingleLocalVariable.c: func reserves stack space with sub rsp,18h and stores i there."
+    },
+    {
+      "type": "mc",
+      "category": "Locals on the stack",
+      "q": "In func from SingleLocalVariable.c, what does mov eax,dword ptr [rsp] do?",
+      "choices": [
+        "Copies the 4-byte value of i from the stack into eax so func can return it (return i;)",
+        "Stores eax onto the stack to initialize i",
+        "Loads the address held in rsp into eax",
+        "Loads 8 bytes from the stack into rax"
+      ],
+      "answer": 0,
+      "explain": "The memory operand [rsp] is the source and dword ptr means 4 bytes. It reads i back out of its stack slot into eax, which carries the return value."
+    },
+    {
+      "type": "num",
+      "category": "Locals on the stack",
+      "q": "func reserves 0x18 bytes of stack with sub rsp,18h. How many of those bytes does the assembly actually write for i? (decimal)",
+      "answer": 4,
+      "explain": "The store is mov dword ptr [rsp],5CA1AB1Eh. A dword is 4 bytes, so only 4 of the 0x18 (24) reserved bytes get written. That gap is the over-allocation the module goes on to explain."
+    },
+    {
+      "type": "mc",
+      "category": "Locals on the stack",
+      "q": "Which instruction in func gives back the stack space it reserved for its local variable?",
+      "choices": [
+        "add rsp,18h",
+        "ret",
+        "mov eax,dword ptr [rsp]",
+        "sub rsp,18h"
+      ],
+      "answer": 0,
+      "explain": "sub rsp,18h allocates by moving rsp down. add rsp,18h moves it back up so rsp points at the return address again, which lets ret pop it."
+    },
+    {
+      "type": "tf",
+      "category": "Locals on the stack",
+      "q": "In Visual Studio's build of SingleLocalVariable.c, the stack space func reserves exactly matches the size of its single int.",
+      "answer": false,
+      "explain": "It reserves 0x18 (24) bytes for only 0x4 bytes of int data. Visual Studio over-allocates, and the reason turns out to be 16-byte alignment padding."
+    },
+    {
+      "type": "mc",
+      "category": "Operand size & undefined memory",
+      "q": "In Intel syntax, an r/mX memory operand annotated qword ptr, dword ptr or word ptr operates on how many bytes, respectively?",
+      "choices": [
+        "8, 4, 2",
+        "4, 2, 1",
+        "16, 8, 4",
+        "64, 32, 16"
+      ],
+      "answer": 0,
+      "explain": "qword = 8 bytes, dword = 4 bytes, word = 2 bytes (byte ptr = 1). The 64/32/16 choice gives the sizes in bits, not bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Operand size & undefined memory",
+      "q": "Right after mov dword ptr [rsp],5CA1AB1Eh runs with rsp = 0x14FDC0, how should the 8-byte stack slot at 0x14FDC0 be drawn?",
+      "choices": [
+        "undef`5CA1AB1E: the low 4 bytes hold 0x5CA1AB1E and the high 4 bytes were not touched, so they are undefined",
+        "00000000`5CA1AB1E: the write is zero-extended to 8 bytes",
+        "FFFFFFFF`5CA1AB1E: the write is sign-extended to 8 bytes",
+        "5CA1AB1E`undef: the value lands in the high 4 bytes"
+      ],
+      "answer": 0,
+      "explain": "A dword ptr store writes exactly 4 bytes. The other 4 bytes of that 8-byte slot keep whatever was there before, which is undefined."
+    },
+    {
+      "type": "tf",
+      "category": "Operand size & undefined memory",
+      "q": "Writing a 32-bit value to a 64-bit register zero-extends into the upper 32 bits, and the same zero-extension happens when a dword is written to memory.",
+      "answer": false,
+      "explain": "Zero extension applies to 32-bit writes into registers only. A write to memory touches exactly the number of bytes the operand size says (4 for dword ptr) and nothing more."
+    },
+    {
+      "type": "mc",
+      "category": "Operand size & undefined memory",
+      "q": "While stepping, the debugger shows a leftover value in a stack slot that no instruction you traced ever wrote to. What should your stack diagram show for that slot?",
+      "choices": [
+        "undef: it is uninitialized or padding space, and whatever bytes happen to be there are meaningless",
+        "The literal value the debugger shows, because that is what is in memory",
+        "Zero, because sub rsp clears the space it allocates",
+        "A copy of the previous return address"
+      ],
+      "answer": 0,
+      "explain": "If you don't see the assembly initialize a location, it is undefined. sub rsp only moves the stack pointer and doesn't initialize anything."
+    },
+    {
+      "type": "mc",
+      "category": "Operand size & undefined memory",
+      "q": "In the Visual Studio memory window you can overwrite freshly allocated stack memory with a known pattern (for example all 1s) before stepping. What is this trick for?",
+      "choices": [
+        "Seeing exactly which bytes an instruction changes and which stay untouched (uninitialized)",
+        "Making the program run faster",
+        "Zeroing the stack so that undefined values become defined in the real program",
+        "Forcing the compiler to allocate less padding"
+      ],
+      "answer": 0,
+      "explain": "After mov dword ptr [rsp],5CA1AB1Eh, only 4 bytes change from 1s to 5CA1AB1E and the rest stay 1s. That makes the initialized/uninitialized boundary easy to see."
+    },
+    {
+      "type": "mc",
+      "category": "Operand size & undefined memory",
+      "q": "What is the authoritative way to tell how many bytes a mov writes to memory?",
+      "choices": [
+        "The size annotation on the memory operand (byte/word/dword/qword ptr)",
+        "The number of hex digits in the immediate value",
+        "The amount subtracted from rsp in the function prologue",
+        "The type of whatever variable sits next on the stack"
+      ],
+      "answer": 0,
+      "explain": "The memory-window trick helps, but the size in the instruction is the real answer. For example, mov dword ptr [rsp],07A11h writes 4 bytes even though the immediate has only 5 hex digits."
+    },
+    {
+      "type": "mc",
+      "category": "Operand size & undefined memory",
+      "q": "DoubleLocalVariable.c stores j with mov eax,0B57AC1E5h followed by mov qword ptr [rsp],rax. The slot ends up as 0x00000000`B57AC1E5, fully defined, unlike the undef`5CA1AB1E slot in SingleLocalVariable.c. Why?",
+      "choices": [
+        "Writing eax zero-extends into the upper 32 bits of rax, and the qword ptr store then writes all 8 bytes of rax",
+        "Memory writes are always zero-extended to 8 bytes",
+        "sub rsp clears long long variables to zero",
+        "The debugger fills undefined bytes with zeros"
+      ],
+      "answer": 0,
+      "explain": "The zero extension happens in the register: writing eax clears rax's upper half. The store is qword-sized, so all 8 bytes in memory get written. In SingleLocalVariable.c the store itself was only dword-sized."
+    },
+    {
+      "type": "mc",
+      "category": "Stack diagrams & return addresses",
+      "q": "In SingleLocalVariable.c, main has 140001024: call func (0140001000h) followed by 140001029: add rsp,28h. What return address does the call push onto the stack?",
+      "choices": [
+        "0x140001029",
+        "0x140001024",
+        "0x140001000",
+        "0x14000102D"
+      ],
+      "answer": 0,
+      "explain": "call pushes the address of the instruction right after itself, so execution resumes there when func returns. In the diagram, that value (0x140001029) sits at 0x14FDD8."
+    },
+    {
+      "type": "mc",
+      "category": "Stack diagrams & return addresses",
+      "q": "When main's first instruction runs, rsp = 0x14FE08 (the return address into main's caller is stored there). What is rsp after main's sub rsp,28h?",
+      "choices": [
+        "0x14FDE0",
+        "0x14FE30",
+        "0x14FDD8",
+        "0x14FDE8"
+      ],
+      "answer": 0,
+      "explain": "The stack grows down, so subtract: 0x14FE08 - 0x28 = 0x14FDE0. That gives the five 8-byte slots 0x14FE00 through 0x14FDE0 in main's frame."
+    },
+    {
+      "type": "mc",
+      "category": "Stack diagrams & return addresses",
+      "q": "Continuing from rsp = 0x14FDE0: main calls func, and func runs sub rsp,18h and then mov dword ptr [rsp],5CA1AB1Eh. At what address is i stored?",
+      "choices": [
+        "0x14FDC0",
+        "0x14FDD8",
+        "0x14FDC8",
+        "0x14FDD0"
+      ],
+      "answer": 0,
+      "explain": "call pushes 8 bytes, so rsp = 0x14FDD8 (the return address 0x140001029 is there). Then sub rsp,18h gives 0x14FDD8 - 0x18 = 0x14FDC0, and i is written at [rsp]."
+    },
+    {
+      "type": "mc",
+      "category": "Stack diagrams & return addresses",
+      "q": "In the stack diagram for SingleLocalVariable.c, what is stored at 0x14FE08?",
+      "choices": [
+        "The return address back into whatever called main (invoke_main), 0x140001349",
+        "The return address back into main, 0x140001029",
+        "The local variable i",
+        "Alignment padding allocated by main"
+      ],
+      "answer": 0,
+      "explain": "On main's first instruction, the top of the stack already holds the return address that main's caller pushed. main's own allocation begins below it, at 0x14FE00."
+    },
+    {
+      "type": "mc",
+      "category": "Stack diagrams & return addresses",
+      "q": "main calls foo, and foo calls bar. Each has one int local (c in main, b in foo, a in bar). Going from the stack bottom (highest address) toward the stack top (lowest address), which order matches the stack diagram?",
+      "choices": [
+        "return address to invoke_main, int c, return address foo->main, int b, return address bar->foo, int a",
+        "int c, return address to invoke_main, int b, return address foo->main, int a, return address bar->foo",
+        "int a, return address bar->foo, int b, return address foo->main, int c, return address to invoke_main",
+        "return address to invoke_main, return address foo->main, return address bar->foo, int c, int b, int a"
+      ],
+      "answer": 0,
+      "explain": "Each frame holds its function's locals. When a function makes a call, the return address goes below that function's locals, and then the callee's frame starts beneath it."
+    },
+    {
+      "type": "tf",
+      "category": "Stack diagrams & return addresses",
+      "q": "In these stack diagrams the stack grows toward lower addresses, so each called function's frame sits at lower addresses than its caller's frame.",
+      "answer": true,
+      "explain": "main's frame is at 0x14FE00..0x14FDD8 and func's is below it at 0x14FDD0..0x14FDC0. The stack bottom (higher addresses) is at the top of the diagram."
+    },
+    {
+      "type": "mc",
+      "category": "Stack diagrams & return addresses",
+      "q": "In the course's stack diagrams, the return address pushed by main's call instruction (0x140001029 at 0x14FDD8) is drawn as part of which frame?",
+      "choices": [
+        "main's frame, at its bottom (lowest address)",
+        "func's frame, at its top",
+        "invoke_main's frame",
+        "No frame, because return addresses sit between frames"
+      ],
+      "answer": 0,
+      "explain": "main's frame bracket includes the return address that main's call pushes, and func's frame starts just below it. Likewise, Simple Stack Diagram 3 shows the return address foo->main inside main's frame box."
+    },
+    {
+      "type": "mc",
+      "category": "16-byte alignment padding",
+      "q": "Why does Visual Studio reserve 0x18 bytes for a function whose only local is a 4-byte int and which calls nothing?",
+      "choices": [
+        "The compiler keeps the stack 16-byte aligned: locals get space in 0x10-byte chunks, plus 0x8 of padding to make up for the 8-byte return address",
+        "The extra bytes are a guard region that detects buffer overflows",
+        "The extra bytes hold a copy of the return value",
+        "The int is stored as 8 bytes and duplicated for safety"
+      ],
+      "answer": 0,
+      "explain": "0x18 = 0x10 (minimum local-variable chunk, holding the 4-byte int plus padding) + 0x8 (padding to bring the stack back to 16-byte alignment after the return address was pushed). The over-allocation is 16-byte alignment padding."
+    },
+    {
+      "type": "mc",
+      "category": "16-byte alignment padding",
+      "q": "In SingleLocalVariable2.c, func3 (one int local, calls nothing) does sub rsp,18h, and func (no locals, calls func2) does sub rsp,28h. func2 has one int local AND calls func3. If its allocation were just the sum of those two, what would it be, and what is it actually?",
+      "choices": [
+        "Sum would be 0x40; actual is 0x38",
+        "Sum would be 0x40; actual is 0x40",
+        "Sum would be 0x30; actual is 0x38",
+        "Sum would be 0x38; actual is 0x28"
+      ],
+      "answer": 0,
+      "explain": "0x28 + 0x18 = 0x40, but func2 does sub rsp,38h. The 8-byte return-address padding inside both 0x28 and 0x18 is only needed once per frame."
+    },
+    {
+      "type": "mc",
+      "category": "16-byte alignment padding",
+      "q": "Under the alignment explanation, how does func2's sub rsp,38h break down?",
+      "choices": [
+        "0x20 (the amount that shows up when a function makes a call) + 0x10 (local-variable chunk) + 0x8 (padding for the return address)",
+        "0x28 (main-specific space) + 0x10 (local variable)",
+        "0x18 + 0x18 + 0x8",
+        "0x30 for locals + 0x8 for storing the return address itself"
+      ],
+      "answer": 0,
+      "explain": "0x28 = 0x20 + 0x8 and 0x18 = 0x10 + 0x8, so a function that both calls and has one local needs 0x20 + 0x10 + 0x8 = 0x38. The return address itself is pushed by call and isn't part of the sub."
+    },
+    {
+      "type": "tf",
+      "category": "16-byte alignment padding",
+      "q": "In SingleLocalVariable2.c, main and func both do sub rsp,28h, which shows the 0x28 isn't something specific to main.",
+      "answer": true,
+      "explain": "func is just a function that calls another function and has no locals, and it gets the same 0x28. So the 0x28 is tied to making a call, not to being main."
+    },
+    {
+      "type": "mc",
+      "category": "16-byte alignment padding",
+      "q": "Microsoft's stack-usage documentation says the stack is always kept 16-byte aligned except within the prolog, for example right after the return address is pushed. Why does pushing the return address break alignment?",
+      "choices": [
+        "The return address is 8 bytes, so a 16-byte-aligned rsp (ending in hex 0) becomes one ending in hex 8",
+        "The return address is 16 bytes and overshoots the boundary",
+        "call clears the low 4 bits of rsp",
+        "Return addresses are 4 bytes in 64-bit mode"
+      ],
+      "answer": 0,
+      "explain": "For example, rsp = 0x14FDE0 before main's call becomes 0x14FDD8 after it. The callee's extra 0x8 of padding brings rsp back to a 16-byte boundary."
+    },
+    {
+      "type": "mc",
+      "category": "16-byte alignment padding",
+      "q": "func2 starts with rsp = 0x14FDA8, then runs sub rsp,38h and mov dword ptr [rsp+20h],7A1Eh. Where is j stored?",
+      "choices": [
+        "0x14FD90",
+        "0x14FD70",
+        "0x14FD98",
+        "0x14FDC8"
+      ],
+      "answer": 0,
+      "explain": "0x14FDA8 - 0x38 = 0x14FD70, and 0x14FD70 + 0x20 = 0x14FD90. The 16-byte local chunk is 0x14FD90-0x14FD9F, so 0x14FD98 is padding inside that chunk. 0x14FDA0 is the return-address padding."
+    },
+    {
+      "type": "tf",
+      "category": "16-byte alignment padding",
+      "q": "Right before each call instruction in these examples (rsp = 0x14FDE0 in main, 0x14FDB0 in func, 0x14FD70 in func2), rsp is 16-byte aligned.",
+      "answer": true,
+      "explain": "All of these addresses end in hex 0. The call's 8-byte push misaligns rsp, and the callee's allocation includes 8 bytes of padding to restore alignment."
+    },
+    {
+      "type": "mc",
+      "category": "16-byte alignment padding",
+      "q": "Within func2's frame (0x14FDA0 down to 0x14FD70), which region sits at the lowest addresses, starting right at rsp after sub rsp,38h?",
+      "choices": [
+        "The 0x20 bytes that appear when a function makes a call",
+        "The 8 bytes of return-address alignment padding",
+        "The 16-byte local-variable chunk holding j",
+        "The return address back to func"
+      ],
+      "answer": 0,
+      "explain": "From high to low: 0x14FDA0 is return-address padding, 0x14FD98/0x14FD90 is the local chunk (padding + j), and 0x14FD88..0x14FD70 is the 0x20 region. The return address to func is at 0x14FDA8, above the frame."
+    },
+    {
+      "type": "mc",
+      "category": "16-byte alignment padding",
+      "q": "Microsoft could have collapsed the padding when a function has only one small local. Why doesn't it, according to the explanation given?",
+      "choices": [
+        "Generating the same simple layout in every case beats special-casing one situation to save a few bytes that make no difference to execution time",
+        "Without the padding, the int would overwrite the return address",
+        "The debugger needs the padding to display variables",
+        "Removing the padding would make the function's locals unreadable"
+      ],
+      "answer": 0,
+      "explain": "Allocating local-variable space in 16-byte chunks plus separate return-address padding is consistent and simple. Over-optimizing one case would save a couple of bytes for no practical gain."
+    },
+    {
+      "type": "text",
+      "category": "16-byte alignment padding",
+      "q": "To what byte boundary does Microsoft's compiler try to keep the stack aligned? (number of bytes)",
+      "answer": ["16", "16 bytes", "16-byte", "0x10", "sixteen"],
+      "explain": "MSVC maintains 16-byte stack alignment, except briefly in the prolog (for example, right after a return address is pushed)."
+    },
+    {
+      "type": "mc",
+      "category": "Double/Triple local variable tests",
+      "q": "DoubleLocalVariable.c: func has two long long locals (16 bytes total), calls nothing, and does sub rsp,18h. What does its stack diagram show?",
+      "choices": [
+        "The two 8-byte locals exactly fill one 0x10 chunk with no padding around them, and the remaining 0x8 is the padding below the return address",
+        "Each local gets its own 0x10 chunk with 8 bytes of padding apiece",
+        "0x10 of padding, then 8 bytes for only one local, because the other lives in a register",
+        "0x18 bytes of locals, because a long long takes 12 bytes"
+      ],
+      "answer": 0,
+      "explain": "0x14FDD0 is the return-address alignment padding, i is at 0x14FDC8 and j is at 0x14FDC0. With exactly 16 bytes of locals there's no extra undefined padding in the local area, which supports the 16-byte-chunk claim."
+    },
+    {
+      "type": "mc",
+      "category": "Double/Triple local variable tests",
+      "q": "In DoubleLocalVariable.c, rsp = 0x14FDC0 after sub rsp,18h. i (0xF01DAB1EF007BA11) is stored with mov qword ptr [rsp+8],rax. Which address holds i?",
+      "choices": [
+        "0x14FDC8",
+        "0x14FDC0",
+        "0x14FDD0",
+        "0x14FDB8"
+      ],
+      "answer": 0,
+      "explain": "0x14FDC0 + 8 = 0x14FDC8. j goes to [rsp] = 0x14FDC0, and 0x14FDD0 is the return-address alignment padding."
+    },
+    {
+      "type": "mc",
+      "category": "Double/Triple local variable tests",
+      "q": "TripleLocalVariable.c: func has three long long locals (24 bytes), calls nothing, and does sub rsp,28h. How does the 0x28 break down?",
+      "choices": [
+        "0x20 for locals (24 bytes rounded up to a multiple of 16, which leaves 8 bytes of padding in the local area) + 0x8 return-address alignment padding",
+        "0x20 because func calls another function + 0x8 padding",
+        "0x18 for locals + 0x10 for the return address",
+        "Every function allocates 0x28 regardless of its locals"
+      ],
+      "answer": 0,
+      "explain": "Local space comes in 16-byte chunks, so 24 bytes need two chunks (0x20) with 8 bytes left over as padding. Adding the usual 0x8 return-address padding gives 0x28."
+    },
+    {
+      "type": "tf",
+      "category": "Double/Triple local variable tests",
+      "q": "If a function does sub rsp,28h, it must be calling another function.",
+      "answer": false,
+      "explain": "TripleLocalVariable.c's func calls nothing and still allocates 0x28 (0x20 for 24 bytes of locals + 0x8 padding). The same total can come from different combinations, so decompose it instead of pattern-matching."
+    },
+    {
+      "type": "multi",
+      "category": "Double/Triple local variable tests",
+      "q": "TripleLocalVariable.c: after sub rsp,28h, rsp = 0x14FDB0. j is at [rsp], i at [rsp+8] and k at [rsp+10h], and the return address back to main is at 0x14FDD8. Which 8-byte slots in func's frame are 16-byte-alignment padding?",
+      "choices": [
+        "0x14FDD0",
+        "0x14FDC8",
+        "0x14FDC0",
+        "0x14FDB8",
+        "0x14FDB0"
+      ],
+      "answer": [0, 1],
+      "fixed": true,
+      "explain": "j = 0x14FDB0, i = 0x14FDB8 and k = 0x14FDC0. 0x14FDC8 pads the 24 bytes of locals out to 32, and 0x14FDD0 is the padding that offsets the 8-byte return address."
+    },
+    {
+      "type": "mc",
+      "category": "Double/Triple local variable tests",
+      "q": "What prediction were the DoubleLocalVariable and TripleLocalVariable experiments testing?",
+      "choices": [
+        "That local-variable space is allocated in 16-byte chunks: exactly 16 bytes of locals need no extra padding, while 24 bytes get rounded up to 32",
+        "That long long variables are always kept in registers",
+        "That each additional local variable adds exactly 8 bytes to the allocation",
+        "That the 0x8 return-address padding disappears when there are several locals"
+      ],
+      "answer": 0,
+      "explain": "Double: 16 bytes of locals fill one chunk exactly (sub 0x18 = 0x10 + 0x8). Triple: 24 bytes become 0x20, with 8 bytes of padding (sub 0x28 = 0x20 + 0x8). The return-address padding is present in both."
+    }
+  ]
+}

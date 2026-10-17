@@ -1,0 +1,355 @@
+{
+  "title": "Arch1001 10: Bit Shifting, Multiply and Divide",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "text",
+      "category": "SHL and SHR (logical shifts)",
+      "q": "The shift count for shl, shr, sar and sal can be a 1-byte immediate. What is the only register that can hold it instead?",
+      "answer": ["cl", "CL"],
+      "explain": "The count operand is either an imm8 or cl, the lowest byte of rcx."
+    },
+    {
+      "type": "mc",
+      "category": "SHL and SHR (logical shifts)",
+      "q": "Why is the immediate shift count for shl/shr only one byte instead of four?",
+      "choices": [
+        "Shift instructions can only operate on memory, not registers",
+        "A register is at most 64 bits wide, so shifting by more than 64 is pointless and any useful count fits in a byte",
+        "Larger counts are automatically placed in rcx",
+        "Shifts can only move a value by 1 to 8 places"
+      ],
+      "answer": 1,
+      "explain": "Registers are at most 64 bits, so counts above 64 do nothing useful. One byte is more than enough to hold any count that matters."
+    },
+    {
+      "type": "mc",
+      "category": "SHL and SHR (logical shifts)",
+      "q": "al = 0x5A (01011010b). After shl al, 4, what are al and CF?",
+      "choices": [
+        "al = 0xA5, CF = 0",
+        "al = 0x05, CF = 1",
+        "al = 0xA0, CF = 1",
+        "al = 0xA0, CF = 0"
+      ],
+      "answer": 2,
+      "explain": "Shifting 01011010 left by 4 gives 10100000 = 0xA0, with zeros filling the low bits. Treat it as four 1-bit shifts: bits 7, 6, 5 and 4 fall off in that order (0, 1, 0, 1). CF keeps the last one, bit 4 = 1."
+    },
+    {
+      "type": "mc",
+      "category": "SHL and SHR (logical shifts)",
+      "q": "dl = 0x6D (01101101b). After shr dl, 3, what are dl and CF?",
+      "choices": [
+        "dl = 0xED, CF = 1",
+        "dl = 0x0D, CF = 1",
+        "dl = 0x0D, CF = 0",
+        "dl = 0x68, CF = 1"
+      ],
+      "answer": 1,
+      "explain": "Shifting right by 3 gives 00001101 = 0x0D, with zeros filling the top bits. Bits 0, 1 and 2 fall off in that order (1, 0, 1). CF holds the last one, bit 2 = 1."
+    },
+    {
+      "type": "tf",
+      "category": "SHL and SHR (logical shifts)",
+      "q": "shr always fills the vacated most significant bits with 0, even if the original top bit was 1.",
+      "answer": true,
+      "explain": "That's what makes it a logical shift. Filling the top bits with copies of the sign bit is what sar does."
+    },
+    {
+      "type": "tf",
+      "category": "SHL and SHR (logical shifts)",
+      "q": "After shl eax, 3, CF is set if any of the three bits shifted out was a 1.",
+      "answer": false,
+      "explain": "CF holds only the last bit shifted out. Think of a shift by n as n separate 1-bit shifts, where each one overwrites CF."
+    },
+    {
+      "type": "mc",
+      "category": "SHL and SHR (logical shifts)",
+      "q": "Which statement about the first operand of shl/shr is correct?",
+      "choices": [
+        "It must be cl",
+        "It is only the source; the result always goes into rax",
+        "It must be a register; memory operands are not allowed",
+        "It is an r/mX operand that is both the source and the destination"
+      ],
+      "answer": 3,
+      "explain": "The first operand is an r/mX (register or memory). It is shifted in place, so it is both source and destination. The second operand is the count."
+    },
+    {
+      "type": "num",
+      "category": "SHL and SHR (logical shifts)",
+      "q": "unsigned int a = 0x5; b = a << 4; c = b >> 3; return c;  This compiles to shl eax, 4 and shr eax, 3. What value (decimal) is returned?",
+      "answer": 10,
+      "explain": "shl by 4 multiplies by 16: 5 becomes 80 (0x50). shr by 3 divides by 8: 80 becomes 10 (0x0A)."
+    },
+    {
+      "type": "mc",
+      "category": "SAR and SAL (arithmetic shifts)",
+      "q": "What is the difference between sar and shr?",
+      "choices": [
+        "sar does not update CF; shr does",
+        "sar fills the vacated high bits with copies of the original sign (most significant) bit; shr always fills them with 0",
+        "sar shifts left and shr shifts right",
+        "sar can only take an immediate count"
+      ],
+      "answer": 1,
+      "explain": "Both shift right and put the last bit shifted out into CF. sar fills the top bits with the sign bit so negative values stay negative. shr always fills them with zeros."
+    },
+    {
+      "type": "mc",
+      "category": "SAR and SAL (arithmetic shifts)",
+      "q": "bl = 0xB3 (10110011b). What do sar bl, 2 and shr bl, 2 each produce?",
+      "choices": [
+        "sar: 0x2C; shr: 0xEC",
+        "Both give 0x2C",
+        "sar: 0xEC; shr: 0x2C",
+        "Both give 0xEC"
+      ],
+      "answer": 2,
+      "explain": "The top bit is 1, so sar shifts in 1s and gives 11101100 = 0xEC. shr shifts in 0s and gives 00101100 = 0x2C."
+    },
+    {
+      "type": "mc",
+      "category": "SAR and SAL (arithmetic shifts)",
+      "q": "For which starting value of bl do sar bl, 2 and shr bl, 2 give the same result?",
+      "choices": ["0x80", "0xFF", "0xB3", "0x33"],
+      "answer": 3,
+      "explain": "The two only differ when the most significant bit is 1, meaning the value can be read as negative. 0x33 = 00110011 has MSB 0, so both give 0x0C. The other three choices all have MSB 1."
+    },
+    {
+      "type": "num",
+      "category": "SAR and SAL (arithmetic shifts)",
+      "q": "al = 0xF0, which is -16 as a signed byte. After sar al, 3, what is al as a signed decimal number?",
+      "answer": -2,
+      "explain": "11110000 becomes 11111110 = 0xFE = -2. sar keeps the sign, so it divides by 8: -16 / 8 = -2. shr would have given 0x1E = 30."
+    },
+    {
+      "type": "tf",
+      "category": "SAR and SAL (arithmetic shifts)",
+      "q": "sal (shift arithmetic left) behaves exactly the same as shl.",
+      "answer": true,
+      "explain": "Both fill the low bits with 0 and put the last bit shifted out into CF. That's why compilers just emit shl even for signed values."
+    },
+    {
+      "type": "mc",
+      "category": "SAR and SAL (arithmetic shifts)",
+      "q": "Why doesn't an arithmetic left shift need to behave differently from a logical left shift?",
+      "choices": [
+        "Left shifts of signed values are not allowed on x86",
+        "The CPU converts sal into an imul",
+        "Shifting 0s into the low bits doubles a two's-complement value whether it is positive or negative (e.g. -2 = 0xFE becomes 0xFC = -4)",
+        "sal fills the low bits with the sign bit, which is always 0"
+      ],
+      "answer": 2,
+      "explain": "A left shift brings in zeros at the low end for both signed and unsigned values, and the result is still the value times 2. Only right shifts need special handling for the sign."
+    },
+    {
+      "type": "tf",
+      "category": "SAR and SAL (arithmetic shifts)",
+      "q": "For sar, the last bit shifted off the right side ends up in CF.",
+      "answer": true,
+      "explain": "This works the same way for shl, shr, sal and sar: CF gets the last bit shifted out."
+    },
+    {
+      "type": "mc",
+      "category": "SAR and SAL (arithmetic shifts)",
+      "q": "Which C expression is most likely to compile to a sar instruction?",
+      "choices": [
+        "x << 2, where x is an int",
+        "x >> 2, where x is an unsigned int",
+        "x * 3, where x is an int",
+        "x >> 2, where x is an int"
+      ],
+      "answer": 3,
+      "explain": "A right shift of a signed operand has to keep the sign, so it uses sar. An unsigned right shift uses shr, and a left shift uses shl. Multiplying by 3 isn't a power-of-2 shift."
+    },
+    {
+      "type": "mc",
+      "category": "Compilers, shifts and signedness",
+      "q": "unsigned int a = atoi(argv[1]); b = a * 8; c = b / 16; return c;  With /O2 (maximize speed), which instructions does the compiler use for the arithmetic?",
+      "choices": [
+        "imul eax, 8 then div 16",
+        "shl eax, 3 then shr eax, 4",
+        "shl eax, 8 then shr eax, 16",
+        "shl eax, 3 then sar eax, 4"
+      ],
+      "answer": 1,
+      "explain": "8 = 2^3, so the multiply becomes shl by 3. 16 = 2^4, so the unsigned divide becomes shr by 4. sar would only appear if the operands were signed."
+    },
+    {
+      "type": "num",
+      "category": "Compilers, shifts and signedness",
+      "q": "In the same program (shl eax, 3 then shr eax, 4 on an unsigned value), atoi returns 100. What does main return (decimal)?",
+      "answer": 50,
+      "explain": "shl by 3: 100 * 8 = 800. shr by 4: 800 / 16 = 50."
+    },
+    {
+      "type": "tf",
+      "category": "Compilers, shifts and signedness",
+      "q": "You may see shl or shr in a disassembly even when the C source has no << or >> operators.",
+      "answer": true,
+      "explain": "Compilers often turn multiplies and divides by powers of 2 into shifts."
+    },
+    {
+      "type": "mc",
+      "category": "Compilers, shifts and signedness",
+      "q": "Why do compilers turn multiplies and divides by powers of 2 into shifts?",
+      "choices": [
+        "Shifts are more efficient than multiply and divide instructions",
+        "mul and div can't take power-of-2 operands",
+        "Shifts detect overflow and multiplies don't",
+        "Shifts don't change any flags"
+      ],
+      "answer": 0,
+      "explain": "A shift by n multiplies or divides by 2^n more cheaply than a multiply or divide instruction. Shifts do change flags; CF gets the last bit shifted out."
+    },
+    {
+      "type": "multi",
+      "category": "Compilers, shifts and signedness",
+      "q": "The program b = a * 8; c = b / 16; is recompiled with a, b, c declared as int instead of unsigned int. Compared with the unsigned version, which are true of the optimized code?",
+      "choices": [
+        "The multiply by 8 becomes an imul instruction",
+        "The shl eax, 3 for the multiply stays the same",
+        "A cdq instruction appears",
+        "The divide by 16 becomes an idiv instruction",
+        "The shr eax, 4 is replaced by a sequence that ends in sar eax, 4"
+      ],
+      "answer": [1, 2, 4],
+      "explain": "A left shift is the same for signed and unsigned values (sal = shl), so shl eax, 3 stays. The divide becomes cdq; and edx, 0Fh; add eax, edx; sar eax, 4. It is still done with shifts, not imul or idiv."
+    },
+    {
+      "type": "mc",
+      "category": "Compilers, shifts and signedness",
+      "q": "In the signed version, a cdq instruction appears before the sar. What is cdq?",
+      "choices": [
+        "Compare doubleword quick: sets flags for the following sar",
+        "Convert doubleword to quadword: a sign-extension instruction that helps make the signed division come out right",
+        "Clear destination quadword: zeroes rdx before dividing",
+        "Copy doubleword to quadword: moves eax into rax"
+      ],
+      "answer": 1,
+      "explain": "cdq means convert dword to qword. It sign-extends eax into edx. Together with the and/add that follow, it handles the corner cases of signed division. It is mostly something Visual Studio emits."
+    },
+    {
+      "type": "num",
+      "category": "Compilers, shifts and signedness",
+      "q": "In the signed version, atoi returns -3, so eax = -24 after shl eax, 3. The code then runs: cdq; and edx, 0Fh; add eax, edx; sar eax, 4. cdq sets edx to all 1s if eax is negative and to 0 otherwise. What is eax at the end, as a signed decimal?",
+      "answer": -1,
+      "explain": "cdq makes edx = 0xFFFFFFFF. and edx, 0Fh leaves edx = 15. add gives eax = -24 + 15 = -9. sar eax, 4 on -9 (0xFFFFFFF7) shifts in sign bits and gives 0xFFFFFFFF = -1. That matches C's -24 / 16 = -1, since C rounds toward zero. A plain sar eax, 4 on -24 would give -2; that is the corner case the extra instructions fix. For non-negative values edx becomes 0 and nothing changes."
+    },
+    {
+      "type": "mc",
+      "category": "Compilers, shifts and signedness",
+      "q": "MulDivExample.c uses unsigned 64-bit values: a = 0xdefec7ed; a *= 0xde7ec7ab1e; a /= 0x2bad505ad. Which arithmetic instructions does Visual Studio emit?",
+      "choices": ["shl and shr", "mul and div", "imul and div", "imul and idiv"],
+      "answer": 2,
+      "explain": "The constants aren't powers of 2, so the compiler uses real multiply and divide instructions. Visual Studio prefers imul even for unsigned multiplies. The unsigned divide uses div."
+    },
+    {
+      "type": "tf",
+      "category": "Compilers, shifts and signedness",
+      "q": "When the operands are unsigned, Visual Studio emits the unsigned multiply mul rather than imul.",
+      "answer": false,
+      "explain": "Visual Studio prefers imul even for unsigned operands. MulDivExample's unsigned long long multiply compiled to imul rcx, rax."
+    },
+    {
+      "type": "mc",
+      "category": "DIV and IDIV",
+      "q": "For the 64-bit form of div (div r/m64), where are the dividend, the quotient and the remainder?",
+      "choices": [
+        "Dividend rax; quotient rdx; remainder rax",
+        "Dividend rdx:rax; quotient rax; remainder rdx",
+        "Dividend rax:rdx; quotient rdx; remainder rax",
+        "Dividend rax; quotient rax; remainder rcx"
+      ],
+      "answer": 1,
+      "explain": "The 128-bit dividend is rdx (upper 64 bits) concatenated with rax (lower 64 bits). The quotient goes to rax and the remainder to rdx. The 32-bit form works the same way with edx:eax."
+    },
+    {
+      "type": "mc",
+      "category": "DIV and IDIV",
+      "q": "For the 8-bit form (div r/m8), where are the dividend, the quotient and the remainder?",
+      "choices": [
+        "Dividend dx:ax; quotient ax; remainder dx",
+        "Dividend al; quotient al; remainder ah",
+        "Dividend ax; quotient ah; remainder al",
+        "Dividend ax; quotient al; remainder ah"
+      ],
+      "answer": 3,
+      "explain": "The 16-bit ax is divided by the r/m8 divisor. The quotient goes to al (low byte) and the remainder to ah (high byte)."
+    },
+    {
+      "type": "mc",
+      "category": "DIV and IDIV",
+      "q": "ax = 0x0064 (100) and bl = 9. After div bl, what are al and ah?",
+      "choices": [
+        "al = 0x0B, ah = 0x01",
+        "al = 0x01, ah = 0x0B",
+        "al = 0x0B, ah = 0x00",
+        "al = 0x0C, ah = 0x00"
+      ],
+      "answer": 0,
+      "explain": "100 / 9 = 11 remainder 1. The quotient 11 = 0x0B goes in al and the remainder 1 goes in ah."
+    },
+    {
+      "type": "num",
+      "category": "DIV and IDIV",
+      "q": "edx = 0, eax = 100 and ecx = 7. After div ecx, what is edx (decimal)?",
+      "answer": 2,
+      "explain": "edx:eax = 100, and 100 / 7 = 14 remainder 2. eax gets the quotient 14 and edx gets the remainder 2."
+    },
+    {
+      "type": "mc",
+      "category": "DIV and IDIV",
+      "q": "In MulDivExample, why does xor edx, edx appear just before the 64-bit div?",
+      "choices": [
+        "To clear CF so the divide doesn't overflow",
+        "To set the divisor to zero",
+        "div divides rdx:rax, and the dividend is only 64 bits, so the upper half (rdx) must be zeroed",
+        "To make room for the quotient"
+      ],
+      "answer": 2,
+      "explain": "div always takes its dividend from rdx:rax. The 64-bit value is in rax, so the compiler zeroes rdx first. Writing edx also clears the upper 32 bits of rdx."
+    },
+    {
+      "type": "tf",
+      "category": "DIV and IDIV",
+      "q": "Visual Studio displays div rax, rcx, but div really has only one explicit operand (the divisor). rdx:rax is always the implied dividend.",
+      "answer": true,
+      "explain": "You can't choose which registers hold the dividend or receive the results, so the compiler may have to move values into rdx and rax first. Disassemblers such as IDA show the same instruction as div rcx."
+    },
+    {
+      "type": "mc",
+      "category": "DIV and IDIV",
+      "q": "What happens if div or idiv runs with a divisor of 0?",
+      "choices": [
+        "The quotient is set to 0 and CF is set",
+        "rax is left unchanged and ZF is set",
+        "A divide-by-zero exception is raised",
+        "The quotient is set to all 1s"
+      ],
+      "answer": 2,
+      "explain": "Dividing by zero isn't allowed, so the CPU raises a divide-by-zero exception."
+    },
+    {
+      "type": "mc",
+      "category": "DIV and IDIV",
+      "q": "ax = 0xFFFE (-2) and cl = 2. After idiv cl, what are al and ah?",
+      "choices": [
+        "al = 0x7F, ah = 0x00",
+        "al = 0xFF, ah = 0x00",
+        "al = 0x00, ah = 0xFF",
+        "al = 0xFF, ah = 0x01"
+      ],
+      "answer": 1,
+      "explain": "As a signed divide, -2 / 2 = -1 remainder 0. -1 as a byte is 0xFF, which goes in al, and the remainder 0 goes in ah. idiv uses the same register layout as div."
+    },
+    {
+      "type": "text",
+      "category": "DIV and IDIV",
+      "q": "If MulDivExample's variables were changed from unsigned to signed, which instruction would replace div?",
+      "answer": ["idiv", "IDIV"],
+      "explain": "idiv is the signed divide. It has the same three forms, the same implied rdx:rax / edx:eax / ax dividend, and the same quotient and remainder registers as div."
+    }
+  ]
+}

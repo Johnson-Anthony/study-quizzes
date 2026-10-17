@@ -1,0 +1,288 @@
+{
+  "title": "OST2 DBG1012 03: Stepping, Saved Configuration and Syntax",
+  "course": "OST2-DBG1012",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Stepping (ni / si / finish)",
+      "q": "You are stopped on a `call` instruction. You want the called function to run all the way through, with gdb stopping at the instruction right after the call. Which command do you use?",
+      "choices": ["nexti (ni)", "stepi (si)", "finish (fin)", "display/10i $rip"],
+      "answer": 0,
+      "explain": "nexti steps over the call. It runs every instruction inside the function and only stops at the instruction after the call. stepi would go into the function, and finish runs until the function you are currently in returns."
+    },
+    {
+      "type": "mc",
+      "category": "Stepping (ni / si / finish)",
+      "q": "You are stopped on `callq 0x555555555169 <fibbonacci>` at 0x5555555551e0 in main. The next instruction in main is at 0x5555555551e5. Where does execution stop after `si`?",
+      "choices": ["0x555555555169, the first instruction of fibbonacci", "0x5555555551e5, the instruction after the call", "At the return instruction at the end of fibbonacci", "gdb refuses because si cannot be used on a call"],
+      "answer": 0,
+      "explain": "stepi steps into the call and continues from wherever it leads. In the trace, si on this call stopped at `0x0000555555555169 in fibbonacci ()`."
+    },
+    {
+      "type": "mc",
+      "category": "Stepping (ni / si / finish)",
+      "q": "From the same spot (stopped on `callq 0x555555555169 <fibbonacci>` at 0x5555555551e0, next instruction at 0x5555555551e5), where does execution stop after `ni`?",
+      "choices": ["0x555555555169, the first instruction of fibbonacci", "0x5555555551e5, the instruction after the call, with fibbonacci already fully executed", "0x5555555551e5, but fibbonacci was skipped and never ran", "At the end of main"],
+      "answer": 1,
+      "explain": "Step over still runs every instruction in the called function. It just doesn't show the debugger as stopped until the instruction after the call is reached. The function is not skipped."
+    },
+    {
+      "type": "mc",
+      "category": "Stepping (ni / si / finish)",
+      "q": "You are stopped on `jmp 0x5555555551fc <main+83>` at 0x5555555551d9 and you type `ni`. Where does gdb stop?",
+      "choices": ["0x5555555551fc (main+83), the jump target", "0x5555555551db, the next instruction in memory", "gdb refuses because ni only works on calls", "At the end of main"],
+      "answer": 0,
+      "explain": "Step over only makes a difference for instructions that come back to the same spot, like calls. A jmp doesn't come back, so ni simply follows it. The trace shows ni on this jmp landing at 0x5555555551fc."
+    },
+    {
+      "type": "mc",
+      "category": "Stepping (ni / si / finish)",
+      "q": "You are stopped on `jb 0x5555555551db <main+50>` at 0x555555555202, and the branch will be taken. You type `si`. Where does execution stop?",
+      "choices": ["0x5555555551db (main+50), the branch target", "0x555555555204, the next instruction in memory", "At the return instruction of main", "gdb refuses because si only works on call instructions"],
+      "answer": 0,
+      "explain": "stepi continues from wherever the instruction leads, and that includes jumps and branches. In the trace, si on the taken jb stopped at 0x5555555551db."
+    },
+    {
+      "type": "mc",
+      "category": "Stepping (ni / si / finish)",
+      "q": "You used `si` to step into fibbonacci (called from main at 0x5555555551e0) and you are now a few instructions in, at fibbonacci+9. You type `fin`. Where does gdb stop?",
+      "choices": ["At 0x5555555551e5 in main, the instruction right after the call to fibbonacci", "At the call instruction 0x5555555551e0 in main", "Back at the first instruction of fibbonacci", "At the retq at the end of main"],
+      "answer": 0,
+      "explain": "finish steps out. It runs the rest of the current function and stops in the caller after the function returns. gdb printed `Run till exit from #0 ... in fibbonacci ()` and then stopped at `0x00005555555551e5 in main ()`."
+    },
+    {
+      "type": "mc",
+      "category": "Stepping (ni / si / finish)",
+      "q": "How does gdb decide that the current function is complete when you step out with `finish`?",
+      "choices": ["It uses a heuristic: the function counts as done when a return-type instruction executes", "It counts the instructions in the function's symbol-table entry", "It waits until the stack pointer becomes zero", "It stops at the next call instruction it sees"],
+      "answer": 0,
+      "explain": "Step out runs until the function exits, and the debugger guesses that point by watching for a return-type instruction."
+    },
+    {
+      "type": "text",
+      "category": "Stepping (ni / si / finish)",
+      "q": "What is the short form of the gdb command `stepi`?",
+      "answer": ["si"],
+      "explain": "stepi / si = **s**tep **i**nstruction. It steps into the next instruction."
+    },
+    {
+      "type": "text",
+      "category": "Stepping (ni / si / finish)",
+      "q": "What is the short form of the gdb command `nexti`?",
+      "answer": ["ni"],
+      "explain": "nexti / ni = **n**ext **i**nstruction. It steps over the next instruction."
+    },
+    {
+      "type": "text",
+      "category": "Stepping (ni / si / finish)",
+      "q": "What is the short form of the gdb command `finish` (step out)?",
+      "answer": ["fin"],
+      "explain": "finish / fin runs the rest of the current function and stops after it returns."
+    },
+    {
+      "type": "tf",
+      "category": "Stepping (ni / si / finish)",
+      "q": "In gdb, pressing Enter on an empty line re-runs the previous command. After one `ni` you can keep pressing Enter to keep stepping over.",
+      "answer": true,
+      "explain": "An empty line repeats the last command, so you don't have to retype the step command each time. The traces show this as bare `(gdb)` prompts that each step once."
+    },
+    {
+      "type": "tf",
+      "category": "Stepping (ni / si / finish)",
+      "q": "For an ordinary instruction that doesn't change control flow, like `mov %rsp,%rbp`, `ni` and `si` both just stop at the next instruction.",
+      "answer": true,
+      "explain": "The two commands only behave differently on control-flow instructions such as calls. On push, mov, cmp and similar instructions, both advance by exactly one instruction."
+    },
+    {
+      "type": "mc",
+      "category": "Stepping (ni / si / finish)",
+      "q": "In the RISC-V RV64I example code, which instruction calls a function such as fibbonacci or printf?",
+      "choices": ["jal", "j", "bltu", "auipc"],
+      "answer": 0,
+      "explain": "The code calls functions with `jal ra,<target>`, which saves the return address in ra. On RISC-V, `si` steps into a jal and `ni` steps over it, the same as with a call on x86."
+    },
+    {
+      "type": "tf",
+      "category": "Stepping (ni / si / finish)",
+      "q": "When `finish` returns to the caller, gdb can also report the value the function returned, for example `Value returned is $1 = 0`.",
+      "answer": true,
+      "explain": "In the RISC-V example, which has debug symbols, `fin` out of fibbonacci(n=0) stopped back in main and printed `Value returned is $1 = 0`."
+    },
+    {
+      "type": "mc",
+      "category": "Run until address",
+      "q": "What does `until <address>` do in gdb?",
+      "choices": ["Runs until execution reaches that address, like a temporary breakpoint you don't have to set and then delete", "Sets a permanent breakpoint at that address without running anything", "Single-steps exactly <address> instructions", "Runs until the current function returns and ignores the address"],
+      "answer": 0,
+      "explain": "until <address> works like a temporary code breakpoint. It lets you run forward to a known spot without setting and deleting a breakpoint, and without counting instructions."
+    },
+    {
+      "type": "text",
+      "category": "Run until address",
+      "q": "What is the short form of the gdb `until` command?",
+      "answer": ["u"],
+      "explain": "`u *0x...` is the same as `until *0x...`."
+    },
+    {
+      "type": "tf",
+      "category": "Run until address",
+      "q": "Control flow goes another way, so the address you gave `until` is never reached. In that case `until` will also stop when the current function exits.",
+      "answer": true,
+      "explain": "until doesn't keep running forever if the target is never hit. It also stops on exit from the current function."
+    },
+    {
+      "type": "tf",
+      "category": "Run until address",
+      "q": "After `until *0x5555555551f8` stops, `info b` shows a new breakpoint at 0x5555555551f8 that you now have to delete.",
+      "answer": false,
+      "explain": "until leaves no breakpoint behind. In the example, `info b` afterwards listed only breakpoint 1 at main."
+    },
+    {
+      "type": "mc",
+      "category": "Run until address",
+      "q": "You are stopped at the start of main. `disas` shows `0x5555555551e0 <+55>: callq <fibbonacci>` followed by `0x5555555551e5 <+60>: mov %eax,%esi`. You want execution to run until fibbonacci has returned to main. Which command do you use?",
+      "choices": ["u *0x5555555551e5", "u *0x5555555551e0", "fin", "si"],
+      "answer": 0,
+      "explain": "Run until the instruction after the call. 0x...e0 would stop before the call runs. fin from main would run until main itself returns, and si moves only one instruction."
+    },
+    {
+      "type": "multi",
+      "category": "Run until address",
+      "q": "Which of these are reasons to use `until <address>` to move forward?",
+      "choices": ["You don't want to set a breakpoint and then delete it", "You don't want to count how many instructions it is to the target", "It permanently patches the program to jump to that address", "It makes gdb stop inside every function called along the way"],
+      "answer": [0, 1],
+      "explain": "until is a quick temporary breakpoint: no breakpoint cleanup and no instruction counting. It doesn't change the program, and it doesn't stop inside calls along the way."
+    },
+    {
+      "type": "mc",
+      "category": "Run until address",
+      "q": "The examples write the target as `u *0x00005555555551e5`. What does the `*` tell gdb?",
+      "choices": ["The argument is a code address, not a line number or function name", "Read the pointer stored at that address and run to the value it holds", "Stop every time that address is hit, forever", "Treat the number as decimal"],
+      "answer": 0,
+      "explain": "In gdb location syntax, `*ADDRESS` means a specific instruction address. A bare number would be read as a source line number."
+    },
+    {
+      "type": "mc",
+      "category": "Saved GDB configuration (commands file)",
+      "q": "Which gdb command-line option takes a file of gdb commands and runs them at startup?",
+      "choices": ["-x", "-q", "-c", "-s"],
+      "answer": 0,
+      "explain": "`-x <file>` runs the commands in that file when gdb starts, for example `-x ~/x.cfg`. -q only turns off the startup banner."
+    },
+    {
+      "type": "tf",
+      "category": "Saved GDB configuration (commands file)",
+      "q": "A gdb commands file is a plain text file with one gdb command per line.",
+      "answer": true,
+      "explain": "For example, ~/x.cfg contains lines like `display/10i $rip` ... `start`, and each line runs in order when gdb starts."
+    },
+    {
+      "type": "mc",
+      "category": "Saved GDB configuration (commands file)",
+      "q": "Which command line starts gdb quietly on fibber_bin and runs the commands in ./x.cfg at startup?",
+      "choices": ["gdb -q -x ./x.cfg fibber_bin", "gdb -q fibber_bin ./x.cfg", "gdb -q -c ./x.cfg fibber_bin", "gdb -q fibber_bin --display ./x.cfg"],
+      "answer": 0,
+      "explain": "The example used `gdb -q -x ./x.cfg fibber_bin`. -q turns off the banner and -x names the commands file."
+    },
+    {
+      "type": "mc",
+      "category": "Saved GDB configuration (commands file)",
+      "q": "The recommended x.cfg files end with the command `start`. What does it do when gdb runs the file?",
+      "choices": ["Sets a temporary breakpoint at main and runs the program, so it stops at the start of main with all the displays shown", "Opens gdb's text user interface", "Restarts gdb and clears all displays", "Runs the program to completion without stopping"],
+      "answer": 0,
+      "explain": "The trace shows `Temporary breakpoint 1 at 0x71a ...` and then `Temporary breakpoint 1, main () ...`, followed by every display expression."
+    },
+    {
+      "type": "mc",
+      "category": "Saved GDB configuration (commands file)",
+      "q": "Why put a set of `display/...` commands in a startup commands file?",
+      "choices": ["So every new gdb session automatically shows the same registers, memory and instructions each time execution stops", "Because display commands only work when they are loaded from a file", "So the program runs faster under the debugger", "To save the program's register values to disk between runs"],
+      "answer": 0,
+      "explain": "You often start and stop gdb many times. A commands file sets up the same view (and any common breakpoints) automatically, so you don't retype it each time."
+    },
+    {
+      "type": "text",
+      "category": "Saved GDB configuration (commands file)",
+      "q": "The x86-64 startup file uses `display/10i $___` to show the next 10 instructions at every stop. Which register goes in the blank?",
+      "answer": ["rip", "$rip"],
+      "explain": "$rip is the x86-64 instruction pointer, so `display/10i $rip` disassembles 10 instructions starting at the current one."
+    },
+    {
+      "type": "text",
+      "category": "Saved GDB configuration (commands file)",
+      "q": "The RISC-V startup file uses `display/10i $___` to show the next 10 instructions. Which register goes in the blank?",
+      "answer": ["pc", "$pc"],
+      "explain": "RISC-V uses $pc (program counter) where x86-64 uses $rip."
+    },
+    {
+      "type": "mc",
+      "category": "Saved GDB configuration (commands file)",
+      "q": "What does `display/10gx $rsp` show each time execution stops?",
+      "choices": ["10 8-byte (giant) values in hex, starting at the stack pointer", "The value of rsp printed 10 times", "10 instructions disassembled at the stack pointer", "10 single bytes in hex at rsp"],
+      "answer": 0,
+      "explain": "/10gx = 10 units of g (giant, 8 bytes) in x (hex). Since it uses $rsp ($sp on RISC-V), it is a view of the top of the stack. The RISC-V trace shows it as `x/10xg $sp` with 8-byte values."
+    },
+    {
+      "type": "mc",
+      "category": "RISC-V disassembly syntax",
+      "q": "Which command makes gdb's RISC-V disassembly use the register names x0-x31 instead of ABI names like a5 and s0?",
+      "choices": ["set disassembler-options numeric", "set disassembler-options no-aliases", "set disassembly-flavor intel", "set disassembler-options abi"],
+      "answer": 0,
+      "explain": "`numeric` turns off the ABI register names. `no-aliases` is a separate option that turns off pseudo-instructions."
+    },
+    {
+      "type": "mc",
+      "category": "RISC-V disassembly syntax",
+      "q": "Which command stops gdb from showing pseudo-instructions (aliases) in RISC-V disassembly?",
+      "choices": ["set disassembler-options no-aliases", "set disassembler-options numeric", "unset disassembler-options", "set disassembler-options aliases"],
+      "answer": 0,
+      "explain": "`no-aliases` shows the real underlying instructions instead of pseudo-instructions like li, mv, j and sext.w."
+    },
+    {
+      "type": "text",
+      "category": "RISC-V disassembly syntax",
+      "q": "After `set disassembler-options numeric`, the instruction `li a5,10` was displayed as `li ___,10`. What goes in the blank?",
+      "answer": ["x15"],
+      "explain": "The ABI name a5 is register x15. The trace notes that the \"a5\" turned into \"x15\"."
+    },
+    {
+      "type": "multi",
+      "category": "RISC-V disassembly syntax",
+      "q": "In the numeric example, `sw a5,-20(s0)` became `sw x15,-20(x8)`, `jal ra,...` became `jal x1,...`, `sw zero,-24(s0)` became `sw x0,-24(x8)` and `auipc a0,0x0` became `auipc x10,0x0`. Which ABI-name to x-register mappings are correct?",
+      "choices": ["s0 = x8", "ra = x1", "zero = x0", "a0 = x10", "a5 = x5"],
+      "answer": [0, 1, 2, 3],
+      "explain": "s0 is x8, ra is x1, zero is x0 and a0 is x10. a5 is x15, not x5."
+    },
+    {
+      "type": "mc",
+      "category": "RISC-V disassembly syntax",
+      "q": "With `no-aliases` set, how was the instruction `sext.w a5,a5` at main+50 displayed?",
+      "choices": ["c.addiw a5,0", "addi a5,a5,0", "c.mv a5,a5", "sext.w x15,x15"],
+      "answer": 0,
+      "explain": "sext.w is a pseudo-instruction. Here the real instruction underneath was the compressed `c.addiw a5,0`."
+    },
+    {
+      "type": "multi",
+      "category": "RISC-V disassembly syntax",
+      "q": "After `set disassembler-options no-aliases`, which of these original lines were shown with a different mnemonic?",
+      "choices": ["li a5,10", "mv a1,a5", "j 0x55555555575e <main+76>", "sw a5,-20(s0)", "auipc a0,0x0", "jal ra,0x5555555556b8 <fibbonacci>"],
+      "answer": [0, 1, 2],
+      "explain": "li became c.li, mv became c.mv and j became c.j. These were pseudo-instructions over compressed (c.) instructions. sw, auipc and jal are real instructions and did not change."
+    },
+    {
+      "type": "tf",
+      "category": "RISC-V disassembly syntax",
+      "q": "Running `set disassembler-options` with no arguments clears numeric/no-aliases and brings back the default disassembly display.",
+      "answer": false,
+      "explain": "It should, but it doesn't (apparently a bug). In the example, the output still showed c.li, c.mv and so on afterwards. `unset disassembler-options` doesn't work either."
+    },
+    {
+      "type": "mc",
+      "category": "RISC-V disassembly syntax",
+      "q": "You set `no-aliases` and now want the normal pseudo-instruction display back. What reliably works?",
+      "choices": ["Quit and restart gdb", "set disassembler-options", "unset disassembler-options", "set disassembler-options aliases"],
+      "answer": 0,
+      "explain": "Clearing the option with set or unset doesn't take effect, so the only known way to undo these options is to restart gdb."
+    }
+  ]
+}

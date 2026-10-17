@@ -1,0 +1,504 @@
+{
+  "title": "OST2 Arch1001 06: Function Parameter Passing and Calling Conventions (part 1 of 2)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "64-bit parameter passing",
+      "q": "Under the Microsoft x64 ABI (Visual Studio), which register carries the FIRST integer/pointer argument to a function?",
+      "choices": ["RDI", "RCX", "RAX", "R8"],
+      "answer": 1,
+      "explain": "The Microsoft x64 ABI passes arguments 1-4 in RCX, RDX, R8 and R9. RDI is the first-argument register under System V, not Microsoft."
+    },
+    {
+      "type": "mc",
+      "category": "64-bit parameter passing",
+      "q": "Under the System V x86-64 ABI (GCC/Clang on Linux, the BSDs and macOS), what is the order of the six registers used for the first six integer arguments?",
+      "choices": ["RDI, RSI, RDX, RCX, R8, R9", "RCX, RDX, R8, R9, RDI, RSI", "RSI, RDI, RCX, RDX, R8, R9", "RDI, RSI, RCX, RDX, R8, R9"],
+      "answer": 0,
+      "explain": "System V: arg1 RDI, arg2 RSI, arg3 RDX, arg4 RCX, arg5 R8, arg6 R9. RDX comes before RCX, which is the reverse of the Microsoft order for those two."
+    },
+    {
+      "type": "text",
+      "category": "64-bit parameter passing",
+      "q": "func(a, b, c, d, e) is compiled by Visual Studio for x64. Which 64-bit register holds d when func is entered?",
+      "answer": ["R9", "r9"],
+      "explain": "a goes in RCX, b in RDX, c in R8 and d in R9. e goes on the stack. In TooManyParameters, main did 'mov r9d,44h' for d."
+    },
+    {
+      "type": "mc",
+      "category": "64-bit parameter passing",
+      "q": "The same func(a, b, c, d, e) is compiled by GCC for Linux x86-64. Where is e passed?",
+      "choices": ["R8", "R9", "On the stack, above the shadow store", "RCX"],
+      "answer": 0,
+      "explain": "System V: a goes in RDI, b in RSI, c in RDX, d in RCX and e in R8. Five arguments fit in System V's six argument registers, so this 'too many parameters' case isn't too many there, and System V has no shadow store."
+    },
+    {
+      "type": "num",
+      "category": "64-bit parameter passing",
+      "q": "A function takes 8 integer parameters and is compiled for the System V x86-64 ABI. How many of those parameters are passed on the stack rather than in registers?",
+      "answer": 2,
+      "explain": "System V passes six in registers (RDI, RSI, RDX, RCX, R8, R9), so parameters 7 and 8 go on the stack. Under the Microsoft x64 ABI, 4 of the 8 would go on the stack."
+    },
+    {
+      "type": "mc",
+      "category": "64-bit parameter passing",
+      "q": "A function returns a 128-bit value. Which register holds the upper 64 bits?",
+      "choices": ["RAX", "RDX", "RCX", "RBX"],
+      "answer": 1,
+      "explain": "128-bit values come back in RDX:RAX, with RDX holding the top 64 bits and RAX the bottom 64. Anything 64 bits or smaller comes back in RAX alone."
+    },
+    {
+      "type": "mc",
+      "category": "64-bit parameter passing",
+      "q": "When arguments beyond the register-passed ones go on the stack (in either 64-bit ABI), how are they laid out?",
+      "choices": [
+        "The leftmost stack argument ends up at the lowest address, and compilers usually write them with mov rather than push",
+        "The rightmost stack argument ends up at the lowest address, and they are always written with push",
+        "They are placed in the order the callee first uses them",
+        "They are placed below the return address, inside the callee's own frame"
+      ],
+      "answer": 0,
+      "explain": "They are notionally 'pushed' in reverse order so the leftmost ends up lowest. In practice the compiler usually stores them with mov (e.g. mov qword ptr [rsp+20h],55h)."
+    },
+    {
+      "type": "tf",
+      "category": "64-bit parameter passing",
+      "q": "Both the Microsoft x64 and System V x86-64 ABIs pass parameters in a subset of the caller-save (volatile) registers.",
+      "answer": true,
+      "explain": "Both ABIs pass arguments and return values in caller-save registers: RAX for the return value, plus RCX/RDX/R8/R9 (MS) or RDI/RSI/RDX/RCX/R8/R9 (System V)."
+    },
+    {
+      "type": "mc",
+      "category": "Register conventions",
+      "q": "A calling convention has two main parts. Which pair are they?",
+      "choices": [
+        "Register conventions (which registers belong to the caller vs. the callee) and parameter-passing conventions (how arguments go in and return values come out)",
+        "Instruction encoding and memory addressing modes",
+        "Heap allocation rules and stack allocation rules",
+        "Exception handling and thread-local storage"
+      ],
+      "answer": 0,
+      "explain": "Both parts are compiler-dependent. The course covers the Microsoft x64 ABI (Visual Studio) and the System V x86-64 ABI (GCC/Clang)."
+    },
+    {
+      "type": "tf",
+      "category": "Register conventions",
+      "q": "Because calling conventions are compiler-dependent, code from two different compilers can be mutually incompatible unless one deliberately follows the other's convention.",
+      "answer": true,
+      "explain": "An ABI (Application Binary Interface) is the standard for how executables should work on an architecture. Unless a compiler deliberately follows another's convention (e.g. GCC targeting Microsoft code), they can generate incompatible code."
+    },
+    {
+      "type": "mc",
+      "category": "Register conventions",
+      "q": "Microsoft calls caller-save registers 'volatile'. What does that tell the caller?",
+      "choices": [
+        "It should assume the callee will change them, so it must save any value it still needs before the call and restore it afterward",
+        "It can assume the callee will leave them unchanged",
+        "The callee may only read them, never write them",
+        "The call instruction resets them to zero"
+      ],
+      "answer": 0,
+      "explain": "Caller-save registers 'belong' to the callee, which may smash them freely. If the caller needs a value afterward, it saves the register before the call and restores it after."
+    },
+    {
+      "type": "tf",
+      "category": "Register conventions",
+      "q": "Callee-save (non-volatile) registers are said to 'belong' to the callee.",
+      "answer": false,
+      "explain": "They belong to the caller. The caller assumes they won't change, so a callee that wants to use them must save and restore them. Caller-save registers are the ones that 'belong' to the callee."
+    },
+    {
+      "type": "multi",
+      "category": "Register conventions",
+      "q": "Which of these are caller-save (volatile) registers in the Visual Studio x64 convention?",
+      "choices": ["RAX", "RBX", "RCX", "RSI", "R10", "R12", "RDI"],
+      "answer": [0, 2, 4],
+      "explain": "Visual Studio's caller-save registers are RAX, RCX, RDX and R8-R11. Its callee-save registers are RBX, RBP, RDI, RSI and R12-R15."
+    },
+    {
+      "type": "mc",
+      "category": "Register conventions",
+      "q": "The register-saving rules of Visual Studio x64 and GCC/System V x86-64 differ only for which registers?",
+      "choices": ["RSI and RDI", "RBX and RBP", "R10 and R11", "RAX and RDX"],
+      "answer": 0,
+      "explain": "Visual Studio treats RSI/RDI as callee-save. System V treats them as caller-save, and they are its 1st and 2nd argument registers. All other registers are classified the same way."
+    },
+    {
+      "type": "multi",
+      "category": "Register conventions",
+      "q": "Which of these are callee-save registers under the System V (GCC) x86-64 convention?",
+      "choices": ["RBX", "RBP", "RSI", "RDI", "R12", "R11"],
+      "answer": [0, 1, 4],
+      "explain": "System V callee-save registers are RBX, RBP and R12-R15. RSI and RDI are caller-save in System V (they carry arguments 1 and 2), and R11 is caller-save in both conventions."
+    },
+    {
+      "type": "mc",
+      "category": "Register conventions",
+      "q": "While reading disassembly you see a few registers pushed immediately before a call and popped, balanced, immediately after it. What is the most likely explanation?",
+      "choices": [
+        "The caller is saving caller-save registers it needs after the call",
+        "The callee is saving callee-save registers",
+        "Those registers are being passed as arguments",
+        "The compiler is setting up a frame pointer"
+      ],
+      "answer": 0,
+      "explain": "Callers typically save right before the call and restore right after it. Callees typically save at the start of the function and restore at the end. To confirm, check the registers against the caller-save list."
+    },
+    {
+      "type": "mc",
+      "category": "Register conventions",
+      "q": "In MS x64 code, a function begins by pushing RBX and R12 and ends with matching pops just before ret. What is happening?",
+      "choices": [
+        "The callee is preserving non-volatile (callee-save) registers it intends to use",
+        "The caller is preserving volatile registers across a call",
+        "RBX and R12 are being passed as the 5th and 6th arguments",
+        "The function is allocating shadow space"
+      ],
+      "answer": 0,
+      "explain": "RBX and R12 are callee-save. Saving them at the start and restoring them at the end is the callee pattern, and the balanced push/pop keeps the caller's values intact."
+    },
+    {
+      "type": "mc",
+      "category": "Shadow store",
+      "q": "What is the Microsoft x64 'shadow store' (shadow space)?",
+      "choices": [
+        "Stack space the caller reserves so the callee can save the four register parameters (RCX, RDX, R8, R9) if it wants",
+        "A copy of the callee's local variables kept for the debugger",
+        "A hidden register bank that mirrors RCX, RDX, R8 and R9",
+        "Space the callee reserves in its own frame for its return value"
+      ],
+      "answer": 0,
+      "explain": "The x64 ABI uses a four-register fast-call convention. Space is allocated on the call stack as a shadow store so callees can save those registers."
+    },
+    {
+      "type": "num",
+      "category": "Shadow store",
+      "q": "How many bytes is the shadow store that a Visual Studio x64 caller reserves? (decimal)",
+      "answer": 32,
+      "explain": "4 registers x 8 bytes = 32 bytes (0x20). This is the 'hex 20 chunk' that shows up right above the return address."
+    },
+    {
+      "type": "tf",
+      "category": "Shadow store",
+      "q": "The caller only reserves shadow space when the callee actually takes four or more parameters.",
+      "answer": false,
+      "explain": "The caller must always allocate space for four register parameters, even if the callee takes fewer. The compiler reserves it even when no parameters are passed, as in CallASubroutine1's func()."
+    },
+    {
+      "type": "mc",
+      "category": "Shadow store",
+      "q": "Who writes the register parameters into the shadow space?",
+      "choices": [
+        "The callee, if it needs to (e.g. func storing ECX to [rsp+8] on entry)",
+        "The caller, always, right before the call",
+        "The CPU, automatically, as part of the call instruction",
+        "Nobody; the space is reserved but must never be written"
+      ],
+      "answer": 0,
+      "explain": "'The callee has the responsibility of dumping the register parameters into their shadow space if needed.' That's why func reaches up into main's frame."
+    },
+    {
+      "type": "mc",
+      "category": "Shadow store",
+      "q": "In CallASubroutine1, main() calls func() with no arguments and has no locals, yet starts with sub rsp,28h. What makes up that 0x28?",
+      "choices": [
+        "0x20 bytes of shadow store plus 8 bytes of padding to keep the stack 16-byte aligned",
+        "0x28 bytes reserved for main's return value",
+        "Five 8-byte slots for possible arguments",
+        "8 bytes for a saved RBP plus 0x20 bytes of locals"
+      ],
+      "answer": 0,
+      "explain": "The expanded stack diagram shows the return address, then 16-byte-alignment padding, then RCX/RDX/R8/R9 shadow slots. That 'seemingly useless over-allocation' is the MS x64 ABI shadow space."
+    },
+    {
+      "type": "mc",
+      "category": "Shadow store",
+      "q": "Under the Microsoft x64 ABI, where must a fifth argument be placed before the call?",
+      "choices": [
+        "On the stack, just after (at a higher address than) the 0x20-byte shadow store",
+        "In R10",
+        "In the first slot of the shadow store",
+        "On the stack, below the return address in the callee's frame"
+      ],
+      "answer": 0,
+      "explain": "'Any parameters beyond the first four must be stored on the stack after the shadow store before the call.' In TooManyParameters, main does mov qword ptr [rsp+20h],55h: rsp+0 through rsp+1Fh is the shadow store, so arg 5 lands at rsp+20h."
+    },
+    {
+      "type": "mc",
+      "category": "Shadow store",
+      "q": "Within the shadow store, which register's slot sits at the lowest address, right above the return address?",
+      "choices": ["RCX", "RDX", "R8", "R9"],
+      "answer": 0,
+      "explain": "Going up from the return address, the slots are RCX (arg1), RDX, R8, then R9. That is consistent with the leftmost argument being at the lowest address."
+    },
+    {
+      "type": "mc",
+      "category": "Shadow store",
+      "q": "Per Microsoft's stack-usage documentation, how many parameter entries does a function A reserve for the functions it calls?",
+      "choices": [
+        "Four, or the largest number of parameters taken by any function A calls, whichever is greater",
+        "Exactly four, always",
+        "The number of parameters A itself takes",
+        "Six, to match the System V register count"
+      ],
+      "answer": 0,
+      "explain": "A reserves one area for both the register-parameter homes (RCX, RDX, R8, R9) and any stack parameters. It is sized for at least four entries, or more if some callee takes more."
+    },
+    {
+      "type": "mc",
+      "category": "Reading the stack",
+      "q": "Pass1Parameter (VS x64): func's first instruction is mov dword ptr [rsp+8],ecx, executed BEFORE its sub rsp,18h. Where does that write land?",
+      "choices": [
+        "In main's frame: the RCX shadow slot just above func's return address, outside func's own frame",
+        "In func's own local-variable area",
+        "On top of func's return address",
+        "In the 16-byte alignment padding at the top of main's frame"
+      ],
+      "answer": 0,
+      "explain": "On entry, rsp points at the return address, so rsp+8 is the first shadow slot main reserved. The diagram shows a = ecx = 0x11 at 0x14FDE0, just above the return address at 0x14FDD8."
+    },
+    {
+      "type": "mc",
+      "category": "Reading the stack",
+      "q": "After func executes sub rsp,18h, it reads its parameter with mov eax,dword ptr [rsp+20h]. Why +20h rather than +8?",
+      "choices": [
+        "rsp moved down by 0x18, so the slot that was [rsp+8] is now [rsp+0x18+8] = [rsp+0x20]",
+        "The parameter was moved to a different slot during the subtraction",
+        "0x20 is the size of the shadow store, and parameters always come after it",
+        "The return address grew from 8 bytes to 0x20 bytes"
+      ],
+      "answer": 0,
+      "explain": "The memory didn't move, only rsp did. Any rsp-relative offset to existing data grows by the amount subtracted from rsp."
+    },
+    {
+      "type": "mc",
+      "category": "Reading the stack",
+      "q": "Why did func storing its register-passed argument back onto the stack in Pass1Parameter look wasteful?",
+      "choices": [
+        "Passing in a register avoids memory, and writing it to the stack touches cache/RAM, which is much slower than register access",
+        "It overwrites main's return address",
+        "It doubles the number of instructions in main",
+        "Registers can't hold 32-bit values, so the store truncates the argument"
+      ],
+      "answer": 0,
+      "explain": "In the memory hierarchy, registers are much faster than cache or RAM. Spilling the argument seems to defeat the speed benefit of register passing. The behavior turns out to be the MS shadow-store convention."
+    },
+    {
+      "type": "mc",
+      "category": "Reading the stack",
+      "q": "TooManyParameters (VS x64): func(a,b,c,d,e) first spills r9, r8, rdx, rcx to [rsp+20h], [rsp+18h], [rsp+10h], [rsp+8], then does sub rsp,18h. Which parameter does sub rax,qword ptr [rsp+40h] subtract?",
+      "choices": ["e", "d", "c", "a"],
+      "answer": 0,
+      "explain": "After the sub, a is at 0x20, b at 0x28, c at 0x30 and d at 0x38. e was stored by main at its [rsp+20h], which is [rsp+28h] at func entry (the call pushed the return address) and 0x28+0x18 = 0x40 after the sub."
+    },
+    {
+      "type": "text",
+      "category": "Reading the stack",
+      "q": "In that same func, after sub rsp,18h, which C parameter is read by mov rax,qword ptr [rsp+28h]? (give the parameter name)",
+      "answer": ["b", "B"],
+      "explain": "RDX (b) was spilled to [rsp+10h] before the sub, and 0x10 + 0x18 = 0x28."
+    },
+    {
+      "type": "num",
+      "category": "Reading the stack",
+      "q": "func computes i = a+b-c+d-e with a..e = 0x11, 0x22, 0x33, 0x44, 0x55. What is i as a signed decimal integer?",
+      "answer": -17,
+      "explain": "17 + 34 - 51 + 68 - 85 = -17. The stack diagram shows it as ffffffef in i's 32-bit slot (two's complement)."
+    },
+    {
+      "type": "mc",
+      "category": "Reading the stack",
+      "q": "In TooManyParameters, main begins with sub rsp,38h. Which breakdown matches the stack diagram?",
+      "choices": [
+        "0x20 shadow store + 8 for the 5th argument + 8 undefined + 8 alignment padding",
+        "0x28 for the five arguments + 0x10 for locals",
+        "0x30 shadow store for six registers + 8 padding",
+        "0x20 shadow store + 0x18 for main's local variables"
+      ],
+      "answer": 0,
+      "explain": "From high to low addresses, main's 0x38 bytes hold 16-byte-alignment padding, an undef slot, arg5 = 0x55, then the four shadow slots (r9, r8, rdx, rcx). That is 7 x 8 = 0x38."
+    },
+    {
+      "type": "tf",
+      "category": "Reading the stack",
+      "q": "In the VS x64 TooManyParameters main, the fifth argument 0x55 is placed on the stack with a push instruction.",
+      "answer": false,
+      "explain": "main uses mov qword ptr [rsp+20h],55h. Stack arguments are 'pushed' only notionally; compilers typically use mov into pre-allocated space."
+    },
+    {
+      "type": "mc",
+      "category": "32-bit conventions",
+      "q": "In the 32-bit cdecl convention (the default for most C code), who removes the pushed arguments from the stack after the call?",
+      "choices": ["The caller", "The callee", "The operating system", "Nobody; they remain until the program exits"],
+      "answer": 0,
+      "explain": "Under cdecl the caller always cleans up: if you push the parameters, you remove them."
+    },
+    {
+      "type": "mc",
+      "category": "32-bit conventions",
+      "q": "stdcall is used by Windows' Win32 APIs. How does it differ from cdecl?",
+      "choices": [
+        "The callee cleans up the stack instead of the caller",
+        "Arguments are pushed left to right instead of right to left",
+        "The first four arguments go in registers",
+        "It never uses a stack frame"
+      ],
+      "answer": 0,
+      "explain": "With stdcall, the called Win32 API removes the arguments the caller pushed. (It's 'standard call', but not the standard.)"
+    },
+    {
+      "type": "mc",
+      "category": "32-bit conventions",
+      "q": "Where are you most likely to find the form of ret that also adds an amount to the stack pointer as it returns?",
+      "choices": [
+        "At the end of stdcall functions such as Win32 APIs, since the callee cleans up its own arguments",
+        "At the end of every cdecl function",
+        "Only in main()",
+        "In System V x86-64 code that passes more than six arguments"
+      ],
+      "answer": 0,
+      "explain": "A stdcall callee is responsible for removing its stack arguments, so it uses the ret form that pops the return address and also adjusts the stack pointer."
+    },
+    {
+      "type": "num",
+      "category": "32-bit conventions",
+      "q": "32-bit TooManyParameters (ints): main pushes 55h, 44h, 33h, 22h, 11h, calls func, then executes add esp, X. What is X in decimal?",
+      "answer": 20,
+      "explain": "5 arguments x 4 bytes = 20 bytes (0x14, so the instruction is add esp,14h). That's the cdecl caller cleaning up its own pushes."
+    },
+    {
+      "type": "mc",
+      "category": "32-bit conventions",
+      "q": "32-bit function parameters are pushed right to left. Where does the leftmost (first) parameter end up?",
+      "choices": [
+        "At the lowest address, closest to the return address",
+        "At the highest address, farthest from the return address",
+        "In ECX",
+        "Just below the callee's saved EBP"
+      ],
+      "answer": 0,
+      "explain": "main pushes 55h first and 11h last, so a = 0x11 sits at the lowest address, right above the return address. The rightmost argument is highest."
+    },
+    {
+      "type": "mc",
+      "category": "32-bit conventions",
+      "q": "In the 32-bit func (after push ebp; mov ebp,esp), what does mov eax,dword ptr [ebp+8] load?",
+      "choices": ["The first parameter, a", "The saved EBP", "The return address", "The local variable i"],
+      "answer": 0,
+      "explain": "[ebp] holds the saved EBP and [ebp+4] the return address. Then [ebp+8] = a, +0Ch = b, +10h = c, +14h = d, +18h = e. The local i is at [ebp-4]."
+    },
+    {
+      "type": "tf",
+      "category": "32-bit conventions",
+      "q": "In the 32-bit Visual Studio build of func, the push ecx right after mov ebp,esp saves ECX because it is a callee-save register.",
+      "answer": false,
+      "explain": "It's a Visual Studio quirk for allocating one int's worth of space for the local variable i, which is then written at [ebp-4]. ECX is caller-save in 32-bit VS anyway."
+    },
+    {
+      "type": "mc",
+      "category": "32-bit conventions",
+      "q": "Microsoft's 32-bit fastcall convention passes the first two parameters in which registers?",
+      "choices": ["ECX and EDX", "EAX and EBX", "ESI and EDI", "EDX and EAX"],
+      "answer": 0,
+      "explain": "fastcall puts parameter 1 in ECX and parameter 2 in EDX; the rest go on the stack. It uses no stack frames (extra overhead would make it less fast), so it's like a limited version of the x86-64 convention."
+    },
+    {
+      "type": "tf",
+      "category": "32-bit conventions",
+      "q": "In the 32-bit TooManyParameters stack diagram, the five arguments above the return address are the Microsoft shadow space.",
+      "answer": false,
+      "explain": "These are the normal 32-bit stack-passed arguments, not shadow space. The 32-bit build also makes no alignment attempts, so there is no padding."
+    },
+    {
+      "type": "multi",
+      "category": "32-bit conventions",
+      "q": "Which registers are callee-save in 32-bit Visual Studio code?",
+      "choices": ["EAX", "EBX", "ECX", "ESI", "EDI", "EBP"],
+      "answer": [1, 3, 4, 5],
+      "explain": "In 32-bit VS, EAX, ECX and EDX are caller-save, and EBX, ESI, EDI and EBP are callee-save. As in 64-bit, System V differs only on ESI and EDI, which it treats as caller-save."
+    },
+    {
+      "type": "mc",
+      "category": "Frame pointers",
+      "q": "cdecl and stdcall perform explicit stack frame linkage. What does each function do on entry?",
+      "choices": [
+        "push ebp, then mov ebp,esp: save the caller's frame pointer and point ebp at that saved copy",
+        "mov ebp,esp, then push ebp",
+        "sub esp,20h to create shadow space",
+        "push esp, then mov esp,ebp"
+      ],
+      "answer": 0,
+      "explain": "The old EBP (stack frame base pointer) is pushed, then ESP, which now points at that saved copy, is moved into EBP. The saved EBPs chain the frames together."
+    },
+    {
+      "type": "mc",
+      "category": "Frame pointers",
+      "q": "With an EBP-based frame in 32-bit code, how are parameters and local variables typically referenced?",
+      "choices": [
+        "Parameters as [ebp+offset], locals as [ebp-offset] (gcc sometimes uses [esp+offset] for locals)",
+        "Parameters as [ebp-offset], locals as [ebp+offset]",
+        "Both as [esp-offset]",
+        "Parameters through ECX/EDX, locals through [ebp+offset]"
+      ],
+      "answer": 0,
+      "explain": "Parameters live above the saved EBP and return address (positive offsets). Locals live below the saved EBP (negative offsets)."
+    },
+    {
+      "type": "mc",
+      "category": "Frame pointers",
+      "q": "Why do the GCC/Clang 64-bit HelloWorld builds have a balanced push rbp / pop rbp while the Visual Studio build doesn't?",
+      "choices": [
+        "System V compilers still set up frame pointers in the 32-bit style unless compile options tell them not to, while MS x64 code generally doesn't use a frame pointer",
+        "RBP is caller-save on System V, so GCC must save it",
+        "Visual Studio stores RBP in the shadow store instead of pushing it",
+        "GCC and Clang need RBP to hold the first argument"
+      ],
+      "answer": 0,
+      "explain": "This is a difference between the MS and System V ABIs. RBP is callee-save in both."
+    },
+    {
+      "type": "mc",
+      "category": "Frame pointers",
+      "q": "When is Visual Studio x64 code definitely required to use a frame pointer?",
+      "choices": [
+        "When the function uses _alloca() to allocate stack space dynamically",
+        "Whenever the function has local variables",
+        "Whenever it calls a function with more than four parameters",
+        "Only in debug builds"
+      ],
+      "answer": 0,
+      "explain": "Per Microsoft's docs, _alloca must be 16-byte aligned and also requires a frame pointer. A nonvolatile register must mark the base of the fixed part of the stack and be saved and initialized in the prolog."
+    },
+    {
+      "type": "tf",
+      "category": "Frame pointers",
+      "q": "Microsoft's x64 documentation requires the frame pointer to be RBP specifically.",
+      "answer": false,
+      "explain": "The docs only say 'a nonvolatile register'. One of Microsoft's own examples uses R13 instead of RBP."
+    },
+    {
+      "type": "mc",
+      "category": "Frame pointers",
+      "q": "In the 64-bit Visual Studio 'maximum' stack diagram, what lies directly above (at a higher address than) the return address from foo() to main()?",
+      "choices": ["Shadow space plus any extra function arguments", "Saved RBP", "foo's local variables", "Callee-save registers"],
+      "answer": 0,
+      "explain": "From high to low addresses, main's frame holds locals, callee-save regs, caller-save regs, then shadow space + extra function arguments. The return address follows, and then foo's frame begins."
+    },
+    {
+      "type": "mc",
+      "category": "Frame pointers",
+      "q": "In the 64-bit System V 'maximum' stack diagram, what is the first item placed in a function's own frame, which rbp is then made to point at?",
+      "choices": ["The saved rbp (the caller's frame pointer)", "Shadow space", "Callee-save registers", "The function's return value"],
+      "answer": 0,
+      "explain": "System V code does push rbp; mov rbp,rsp, just like the 32-bit ebp linkage. Locals, callee-save regs, caller-save regs and stack arguments follow below it."
+    },
+    {
+      "type": "tf",
+      "category": "Frame pointers",
+      "q": "In the System V x86-64 stack layout, there is no shadow space: a frame goes from caller-save registers straight to any stack-passed function arguments and then the return address.",
+      "answer": true,
+      "explain": "Shadow space is specific to the Microsoft x64 ABI. The System V diagram shows saved rbp, locals, callee-save, caller-save, function arguments (if any), then the return address."
+    }
+  ]
+}

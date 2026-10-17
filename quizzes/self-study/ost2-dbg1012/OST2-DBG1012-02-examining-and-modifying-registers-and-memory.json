@@ -1,0 +1,456 @@
+{
+  "title": "Examining and Modifying Registers and Memory",
+  "course": "OST2-DBG1012",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "/FMT format specifiers",
+      "q": "In the GDB command `x/4xh $sp`, what do `4`, `x`, and `h` specify?",
+      "choices": [
+        "A count of 4 units, hexadecimal format, half-word (2-byte) units",
+        "4 bytes total, hexadecimal format, the high half of each word",
+        "A count of 4 units, hexadecimal format, hex-word (16-byte) units",
+        "A starting offset of 4, hexadecimal format, host byte order"
+      ],
+      "answer": 0,
+      "explain": "/FMT is /n f u: n = count (4), f = format (x = hex), u = unit size (h = half-word, 2 bytes). So it shows four 2-byte hex values starting at $sp."
+    },
+    {
+      "type": "multi",
+      "category": "/FMT format specifiers",
+      "q": "Which /FMT format letters (f) are paired with their correct meaning?",
+      "choices": [
+        "x: hexadecimal",
+        "u: unsigned decimal",
+        "c: ASCII character",
+        "h: hexadecimal",
+        "b: binary",
+        "d: double-precision float"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "x = hex, d = signed decimal, u = unsigned decimal, c = ASCII character, s = null-terminated string. h and b are unit sizes (half-word, byte), not formats, and d means signed decimal."
+    },
+    {
+      "type": "tf",
+      "category": "/FMT format specifiers",
+      "q": "GDB's 'word' (unit letter w) is 2 bytes, the same as Intel's definition of a word.",
+      "answer": false,
+      "explain": "A GDB word is 4 bytes. Intel calls 2 bytes a word, so the two use the term differently. In GDB: b = 1, h = 2, w = 4, g = 8 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "/FMT format specifiers",
+      "q": "RISC-V calls a 64-bit value a 'double-word'. Which GDB unit size letter covers the same 8 bytes?",
+      "choices": ["g", "w", "d", "h"],
+      "answer": 0,
+      "explain": "GDB calls 8 bytes a giant-word (g). w is 4 bytes, which matches RISC-V's word. d is not a unit at all. It is the signed decimal format."
+    },
+    {
+      "type": "mc",
+      "category": "/FMT format specifiers",
+      "q": "Why does `display/10i $rip` give a count (10) and a format (i) but no unit size letter?",
+      "choices": [
+        "A unit size doesn't make sense for instructions",
+        "The letter i already means 8-byte units",
+        "display ignores the whole /FMT except the count",
+        "The unit always defaults to b, so it is never written"
+      ],
+      "answer": 0,
+      "explain": "Here n = 10 and f = i (instructions). Instructions are decoded at their own lengths, so a fixed unit size like b/h/w/g has no meaning for them."
+    },
+    {
+      "type": "tf",
+      "category": "/FMT format specifiers",
+      "q": "If you leave out the count, format, or unit size in a /FMT, GDB uses the last value you used for it, or its default initial value.",
+      "answer": true,
+      "explain": "n, f, and u are all optional. If one is left out, GDB uses the last-used value or the initial default."
+    },
+    {
+      "type": "num",
+      "category": "/FMT format specifiers",
+      "q": "How many bytes does a GDB half-word (unit letter h) occupy?",
+      "answer": 2,
+      "explain": "b = 1 byte, h = 2 bytes, w = 4 bytes, g = 8 bytes."
+    },
+    {
+      "type": "text",
+      "category": "Viewing registers (info registers, print)",
+      "q": "Write the short-form GDB command that prints the value of the rax register in hexadecimal.",
+      "answer": ["p/x $rax", "print/x $rax", "p /x $rax", "print /x $rax"],
+      "explain": "print (short form p) takes only the format letter f from /FMT, and the register name needs a $ prefix: p/x $rax."
+    },
+    {
+      "type": "tf",
+      "category": "Viewing registers (info registers, print)",
+      "q": "With `info r`, register names must have a $ prefix, as in `info r $rsp`.",
+      "answer": false,
+      "explain": "info r takes plain names (info r rax rbx rsp). The print command is the one that needs the $ prefix (p/x $rax)."
+    },
+    {
+      "type": "num",
+      "category": "Viewing registers (info registers, print)",
+      "q": "rax holds 0xface. What does `p/d $ax` print? (Give the number.)",
+      "answer": -1330,
+      "explain": "ax is the low 16 bits of rax, so it holds 0xface. Its top bit is set, so as a signed 16-bit value it is 0xface - 0x10000 = 64206 - 65536 = -1330."
+    },
+    {
+      "type": "mc",
+      "category": "Viewing registers (info registers, print)",
+      "q": "rax holds 0xface. `p/d $rax` prints 64206, but `p/d $ax` prints -1330. Why?",
+      "choices": [
+        "ax is 16 bits, so 0xface has its sign bit set and reads as negative. In the 64-bit rax the upper bits are 0, so the value is positive.",
+        "p/d prints ax in ones' complement but rax in two's complement",
+        "ax holds a different value from the low 16 bits of rax",
+        "p/d treats every register as unsigned except the 16-bit ones"
+      ],
+      "answer": 0,
+      "explain": "d is signed decimal. The register's size sets where the sign bit is. Bit 15 of 0xface is 1, but bit 63 of rax is 0. (p/u $rax and p/d $rax both print 64206.)"
+    },
+    {
+      "type": "mc",
+      "category": "Viewing registers (info registers, print)",
+      "q": "What happens if you type `p/gx $fp`?",
+      "choices": [
+        "GDB rejects it: size letters are meaningless in the print command",
+        "It prints fp as a 64-bit hex value",
+        "It prints the 8 bytes of memory that fp points to",
+        "It prints fp in hex, followed by the giant-word fp points to"
+      ],
+      "answer": 0,
+      "explain": "print uses only the format letter. A unit size letter gives the error 'Size letters are meaningless in \"print\" command.' Use p/x $fp, or use x to look at memory."
+    },
+    {
+      "type": "tf",
+      "category": "Viewing registers (info registers, print)",
+      "q": "`p/10x $fp` prints 10 hex values starting at fp.",
+      "answer": false,
+      "explain": "GDB answers 'Item count other than 1 is meaningless in \"print\" command.' To see several units, use x (for example x/10xg $fp)."
+    },
+    {
+      "type": "mc",
+      "category": "Viewing registers (info registers, print)",
+      "q": "On RISC-V, which registers does plain `info registers` show by default?",
+      "choices": [
+        "The general purpose registers x0-x31, shown by their ABI names (sp, a0, ...), plus pc",
+        "Only a0-a7 and sp",
+        "x0-x31 by numeric name plus all the CSRs",
+        "Only the floating-point registers f0-f31"
+      ],
+      "answer": 0,
+      "explain": "By default, info r shows a commonly needed set. On RISC-V that is x0-x31 by ABI name plus pc. On Intel it is the general purpose registers, eflags, and the segment registers."
+    },
+    {
+      "type": "mc",
+      "category": "Viewing registers (info registers, print)",
+      "q": "In AT&T x86-64 syntax (`mov $0x0,%eax`), `$` marks an immediate and `%` marks a register. How do you write the eax register in a GDB print command?",
+      "choices": ["$eax", "%eax", "eax (no prefix)", "#eax"],
+      "answer": 0,
+      "explain": "GDB's print needs a $ before a register name (p/x $eax). In AT&T assembly, though, $ marks an immediate and % marks a register. Keep the two apart."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory (x)",
+      "q": "`x/8xb $rsp` shows: 0xb3 0xd0 0xde 0xf7 0xff 0x7f 0x00 0x00. What does `x/1xg $rsp` show?",
+      "choices": [
+        "0x00007ffff7ded0b3",
+        "0xb3d0def7ff7f0000",
+        "0xf7ded0b300007fff",
+        "0x0000ff7ff7ded0b3"
+      ],
+      "answer": 0,
+      "explain": "The byte at the lowest address is the least significant byte of the 8-byte value (little-endian). Reading the bytes from last to first gives 0x00007ffff7ded0b3."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory (x)",
+      "q": "`x/8xb $sp` shows: 0x50 0xe0 0xff 0xf7 0xff 0x7f 0x00 0x00. What does `x/4xh $sp` show?",
+      "choices": [
+        "0xe050  0xf7ff  0x7fff  0x0000",
+        "0x50e0  0xfff7  0xff7f  0x0000",
+        "0x0000  0x7fff  0xf7ff  0xe050",
+        "0x0050  0x00e0  0x00ff  0x00f7"
+      ],
+      "answer": 0,
+      "explain": "Each half-word is 2 bytes with the lower-address byte as the low byte: (0x50,0xe0) becomes 0xe050, (0xff,0xf7) becomes 0xf7ff, and so on."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory (x)",
+      "q": "`x/8xb 0x7ffffffff908` shows: 0x12 0x57 0x55 0x55 0x55 0x55 0x00 0x00. What does `x/2xw 0x7ffffffff908` show?",
+      "choices": [
+        "0x55555712  0x00005555",
+        "0x12575555  0x55550000",
+        "0x00005555  0x55555712",
+        "0x5712  0x5555"
+      ],
+      "answer": 0,
+      "explain": "A GDB word is 4 bytes. Bytes 12 57 55 55 make 0x55555712, and bytes 55 55 00 00 make 0x00005555. As one giant-word this is 0x0000555555555712."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory (x)",
+      "q": "Which command shows the null-terminated ASCII string stored at 0x555555556008?",
+      "choices": [
+        "x/s 0x555555556008",
+        "x/c 0x555555556008",
+        "x/1xg 0x555555556008",
+        "info r 0x555555556008"
+      ],
+      "answer": 0,
+      "explain": "The s format prints a full string, assumed to end with a null byte, e.g. \"First %d elements of the Fibbonacci sequence: \". c prints a single character."
+    },
+    {
+      "type": "text",
+      "category": "Examining memory (x)",
+      "q": "On x86-64, write the x command that disassembles the next 3 instructions, starting at the instruction pointer.",
+      "answer": ["x/3i $rip"],
+      "explain": "x/3i $rip: count 3, format i (instructions), starting at the address in rip. On RISC-V the same idea is x/3i $pc."
+    },
+    {
+      "type": "num",
+      "category": "Examining memory (x)",
+      "q": "How many bytes of memory in total does `x/10xg $rsp` display?",
+      "answer": 80,
+      "explain": "10 units of 8 bytes each (g = giant-word) = 80 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Examining memory (x)",
+      "q": "`x/8xb $sp` shows: 0x44 0x33 0x22 0x11 0x00 0x00 0x00 0x00. What does `x/1xg $sp` show?",
+      "choices": [
+        "0x0000000011223344",
+        "0x4433221100000000",
+        "0x0000000044332211",
+        "0x1122334400000000"
+      ],
+      "answer": 0,
+      "explain": "The lowest-address byte (0x44) is the least significant byte, so the 8-byte value is 0x0000000011223344."
+    },
+    {
+      "type": "mc",
+      "category": "Modifying registers and memory (set)",
+      "q": "rax = 0xdeadbeeff00dface. After `set $ax = 0xcafef00d`, what does `p/x $rax` print?",
+      "choices": [
+        "0xdeadbeeff00df00d",
+        "0x00000000cafef00d",
+        "0xdeadbeefcafef00d",
+        "0xdeadbeeff00dcafe"
+      ],
+      "answer": 0,
+      "explain": "The size of the write is the size of the register (ax, 16 bits), not the size of the immediate. Only the low 16 bits (0xf00d) are written. The rest of rax stays the same."
+    },
+    {
+      "type": "mc",
+      "category": "Modifying registers and memory (set)",
+      "q": "rax = 0x1111222233334444. After `set $ax = 0x12345`, what is rax?",
+      "choices": [
+        "0x1111222233332345",
+        "0x1111222200012345",
+        "0x0000000000012345",
+        "0x1111222233334444 (GDB rejects the oversized value)"
+      ],
+      "answer": 0,
+      "explain": "ax is 16 bits, so only the low 16 bits of the immediate (0x2345) go into the low 16 bits of rax. The upper bits of rax don't change."
+    },
+    {
+      "type": "tf",
+      "category": "Modifying registers and memory (set)",
+      "q": "With `set {short}$rsp = 0xFF`, GDB sign-extends the 1-byte value, so the 2 bytes at rsp become 0xFFFF.",
+      "answer": false,
+      "explain": "If the immediate is smaller than the write size, GDB zero-extends it. 0xFF becomes 0x00FF, so the bottom 2 bytes become 0x00FF."
+    },
+    {
+      "type": "mc",
+      "category": "Modifying registers and memory (set)",
+      "q": "`x/1xg $rsp` shows 0x00007ffff7ded0b3. After `set {int}$rsp = 0xFF`, what does `x/1xg $rsp` show?",
+      "choices": [
+        "0x00007fff000000ff",
+        "0x00007ffff7ded0ff",
+        "0x00007fffffffffff",
+        "0x00000000000000ff"
+      ],
+      "answer": 0,
+      "explain": "{int} writes 4 bytes. 0xFF is zero-extended to 0x000000FF and replaces the low 4 bytes. The upper 4 bytes (0x00007fff) stay the same."
+    },
+    {
+      "type": "mc",
+      "category": "Modifying registers and memory (set)",
+      "q": "`x/1xg $sp` shows 0x00007ffff7ffe050. After `set {char}$sp = 0x11223344`, what does `x/1xg $sp` show?",
+      "choices": [
+        "0x00007ffff7ffe044",
+        "0x00007ffff7ffe011",
+        "0x00007fff11223344",
+        "0x0000000011223344"
+      ],
+      "answer": 0,
+      "explain": "{char} writes just 1 byte, so only the low byte of the immediate (0x44) is stored at sp. (With set {int}$sp = 0x11223344, the low 4 bytes would become 0x11223344.)"
+    },
+    {
+      "type": "mc",
+      "category": "Modifying registers and memory (set)",
+      "q": "`x/1xg $sp` shows 0x00007ffff7ffe050. After `set {long long}$sp = 0x1337bee7`, what does `x/1xg $sp` show?",
+      "choices": [
+        "0x000000001337bee7",
+        "0x00007fff1337bee7",
+        "0xffffffff1337bee7",
+        "0x00007ffff7ffe0e7"
+      ],
+      "answer": 0,
+      "explain": "{long long} writes 8 bytes. The 4-byte immediate is zero-extended to 0x000000001337bee7, which replaces all 8 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Modifying registers and memory (set)",
+      "q": "In `set {short}$rsp = 0xFFFF`, what does `{short}` control?",
+      "choices": [
+        "How many bytes are written to memory (2 bytes)",
+        "The display format of the result",
+        "Whether the value is sign-extended",
+        "Which register is modified"
+      ],
+      "answer": 0,
+      "explain": "When you write memory with set, the C-style type in braces gives the length of the write: {char} = 1, {short} = 2, {int} = 4, {long long} = 8 bytes. $rsp is the address."
+    },
+    {
+      "type": "tf",
+      "category": "Modifying registers and memory (set)",
+      "q": "On RV64I, `set $a0 = 0xdeadbeeff00dface` stores the whole value, so `p/x $a0` prints 0xdeadbeeff00dface.",
+      "answer": true,
+      "explain": "a0 is a 64-bit register on RV64I, so all 64 bits of the immediate fit. The write is truncated only when the register is smaller than the value, as with ax on x86."
+    },
+    {
+      "type": "mc",
+      "category": "Updating stack view (display)",
+      "q": "Which command sets up an updating view of the top 10 pointer-sized stack values on 32-bit x86?",
+      "choices": [
+        "display/10xw $esp",
+        "display/10xg $esp",
+        "x/10xw $esp",
+        "display/10xh $sp"
+      ],
+      "answer": 0,
+      "explain": "Use display (not x) so the view updates, and match the unit to the pointer size: words (4 bytes) on 32-bit, starting at the stack pointer esp."
+    },
+    {
+      "type": "mc",
+      "category": "Updating stack view (display)",
+      "q": "Which command sets up the updating stack view on 64-bit RISC-V (RV64I)?",
+      "choices": [
+        "display/10xg $sp",
+        "display/10xw $sp",
+        "display/10xg $rsp",
+        "display/10i $sp"
+      ],
+      "answer": 0,
+      "explain": "On a 64-bit architecture pointers are 8 bytes, so use giant-words (g). RISC-V's stack pointer is sp. rsp is the x86-64 name."
+    },
+    {
+      "type": "tf",
+      "category": "Updating stack view (display)",
+      "q": "After `display/10xg $rsp`, GDB keeps showing memory at the address rsp held when you ran the command, even after rsp changes.",
+      "answer": false,
+      "explain": "display re-runs its expression every time the program stops. In the x86-64 example the view moved from 0x7fffffffe038 (in main) to 0x7fffffffe018 when fibbonacci was hit."
+    },
+    {
+      "type": "mc",
+      "category": "Updating stack view (display)",
+      "q": "Why use the g unit (rather than w) for a stack view on a 64-bit architecture?",
+      "choices": [
+        "So each displayed unit matches the 8-byte pointer size and shows one whole stack value",
+        "Because w is not allowed with display",
+        "Because g shows signed values and w shows unsigned ones",
+        "Because g shows the stack from high to low addresses"
+      ],
+      "answer": 0,
+      "explain": "Match the unit size to the pointer size: words (w) on 32-bit, giant-words (g) on 64-bit. With w on 64-bit, each 8-byte value would be split into two halves."
+    },
+    {
+      "type": "mc",
+      "category": "Updating stack view (display)",
+      "q": "In an RV64I session with a breakpoint in recursive fibbonacci, sp was 0x7ffffffff8a0 at the stops for n=0, 1, and 2 (each called from main). At the next stop (n=1, called by fibbonacci(n=2)), sp was 0x7ffffffff870. What does this show?",
+      "choices": [
+        "The deeper nested call's frame is at lower addresses (the stack grows down)",
+        "The stack grows toward higher addresses",
+        "sp changes at every breakpoint hit, whatever the call depth",
+        "GDB shifted the display window by 0x30 to show more data"
+      ],
+      "answer": 0,
+      "explain": "Calls made directly from main stop with the same sp, even though values on the stack differ. A call one level deeper puts its frame below the caller's, at 0x...870. When fibbonacci(n=3) was later called from main, sp was back at 0x...8a0."
+    },
+    {
+      "type": "num",
+      "category": "Updating stack view (display)",
+      "q": "In that RV64I session, sp went from 0x7ffffffff8a0 to 0x7ffffffff870 for the nested call. How many bytes lower (in decimal) is the new sp?",
+      "answer": 48,
+      "explain": "0x8a0 - 0x870 = 0x30 = 48 bytes."
+    },
+    {
+      "type": "tf",
+      "category": "Updating stack view (display)",
+      "q": "When the same function is hit again at the same call depth, the stack pointer can be the same as before even though the values stored on the stack have changed.",
+      "answer": true,
+      "explain": "In the examples, sp stayed the same for each fibbonacci call made from main, while values in the frame (such as the stored n) changed from call to call."
+    },
+    {
+      "type": "text",
+      "category": "Stack backtrace (bt)",
+      "q": "What is the short form of the GDB backtrace command?",
+      "answer": ["bt"],
+      "explain": "backtrace (short form: bt) prints the call stack."
+    },
+    {
+      "type": "tf",
+      "category": "Stack backtrace (bt)",
+      "q": "In backtrace output, the bottom frame is the function that was called most recently.",
+      "answer": false,
+      "explain": "The most recently called function is at the top (#0). The least recently called (for example main) is at the bottom. Each function was called by the one listed below it."
+    },
+    {
+      "type": "mc",
+      "category": "Stack backtrace (bt)",
+      "q": "bt prints:\n#0  fibbonacci (n=3) at ./fibber.c:4\n#1  0x00005555555556ea in fibbonacci (n=4) at ./fibber.c:8\n#2  0x00005555555556ea in fibbonacci (n=5) at ./fibber.c:8\n#3  0x0000555555555742 in main () at ./fibber.c:18\nWhich function called fibbonacci(n=4)?",
+      "choices": ["fibbonacci(n=5)", "fibbonacci(n=3)", "main()", "It cannot be told from a backtrace"],
+      "answer": 0,
+      "explain": "Each frame was called by the frame listed below it. fibbonacci(n=4) is #1, and below it is #2, fibbonacci(n=5)."
+    },
+    {
+      "type": "mc",
+      "category": "Stack backtrace (bt)",
+      "q": "In `#1  0x0000555555555742 in main () at ./fibber.c:18`, what is 0x0000555555555742?",
+      "choices": [
+        "The address in main where execution will continue when the called fibbonacci returns",
+        "The address of main's first instruction",
+        "The value of main's stack pointer",
+        "The address of the argument passed to fibbonacci"
+      ],
+      "answer": 0,
+      "explain": "The address shown in a backtrace frame is the return location: where execution goes back to when the function called from that frame is done."
+    },
+    {
+      "type": "mc",
+      "category": "Stack backtrace (bt)",
+      "q": "In a backtrace of recursive fibbonacci, frames #1 (n=4) and #2 (n=5) both show 0x00005555555556ea. Why?",
+      "choices": [
+        "Both are return locations at the same recursive call site inside fibbonacci",
+        "GDB lists fibbonacci's entry address for every recursive frame",
+        "Frames #1 and #2 share one stack frame",
+        "It is the address of the variable n in each frame"
+      ],
+      "answer": 0,
+      "explain": "Each recursive call is made from the same instruction in fibbonacci, so each frame returns to the same address. Only the frame (and n) differs."
+    },
+    {
+      "type": "mc",
+      "category": "Stack backtrace (bt)",
+      "q": "In the RV64I stack view, the value 0x0000555555555742 is on the stack while fibbonacci runs after being called from main. bt shows that same value as the address for main's frame. What does this stack value most likely hold?",
+      "choices": [
+        "The saved return address back into main",
+        "A pointer to the string printed by main",
+        "fibbonacci's argument n",
+        "The old value of sp"
+      ],
+      "answer": 0,
+      "explain": "The address bt shows for a frame is where execution returns. That it also appears in the stack view means the return location into main is stored on the stack. In the nested call, 0x00005555555556ea (the return location inside fibbonacci) appears instead."
+    }
+  ]
+}

@@ -1,0 +1,608 @@
+{
+  "title": "Vulns1001 02: (Linear) Stack Buffer Overflow Overview",
+  "course": "VULNS1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Definition and ACID/SACI",
+      "q": "What is a stack buffer overflow?",
+      "choices": [
+        "Too much attacker-controlled data is written into a buffer stored on the stack, overflowing its bounds and corrupting adjacent data",
+        "A function recurses so deeply that the stack region runs out of space",
+        "Too much data is written into a buffer obtained from malloc(), corrupting neighboring heap data",
+        "A program reads past the end of a stack buffer and leaks the adjacent data"
+      ],
+      "answer": 0,
+      "explain": "A stack buffer overflow happens when too much ACID data is written into a buffer on the stack. The write goes past the buffer's bounds and corrupts whatever data sits next to it."
+    },
+    {
+      "type": "text",
+      "category": "Definition and ACID/SACI",
+      "q": "Spell out the acronym ACID as it is used for data in this material.",
+      "answer": ["Attacker-Controlled Input Data", "Attacker Controlled Input Data", "attacker-controlled input data", "attacker controlled input data"],
+      "explain": "ACID = Attacker-Controlled Input Data. It is drawn in red in the stack diagrams."
+    },
+    {
+      "type": "multi",
+      "category": "Definition and ACID/SACI",
+      "q": "In memcpy(vuln_buf, acid_buf, acid_len), which parts are attacker-controlled (ACID)?",
+      "choices": [
+        "The destination buffer vuln_buf",
+        "The source data in acid_buf",
+        "The length acid_len",
+        "The declared size of vuln_buf"
+      ],
+      "answer": [1, 2],
+      "explain": "The attacker controls the data being copied (acid_buf) and how much of it gets copied (acid_len). The destination vuln_buf has a fixed size, and that is the buffer that overflows."
+    },
+    {
+      "type": "mc",
+      "category": "Definition and ACID/SACI",
+      "q": "In memcpy(vuln_buf, acid_buf, acid_len), why does an attacker-controlled length lead to an overflow?",
+      "choices": [
+        "The attacker can keep increasing the length until the copy goes past the bounds of vuln_buf",
+        "memcpy() stops at the first NULL byte, so a long length is ignored",
+        "A large length makes memcpy() allocate a bigger destination buffer on the heap",
+        "The length only matters if the source buffer is also on the stack"
+      ],
+      "answer": 0,
+      "explain": "memcpy() copies exactly as many bytes as it is told to. If the attacker picks that count, they can make it larger than vuln_buf so the copy runs past the buffer's end."
+    },
+    {
+      "type": "tf",
+      "category": "Definition and ACID/SACI",
+      "q": "If an attacker only partly controls some data (SACI rather than ACID), that is usually enough to stop them from reaching their goals.",
+      "answer": false,
+      "explain": "In many cases the attacker does not control every detail of the data. Even with only SACI data, an attacker can still reach their goals most of the time."
+    },
+    {
+      "type": "mc",
+      "category": "Definition and ACID/SACI",
+      "q": "In the stack diagrams, what does a cell shaded with a blue-to-red gradient represent?",
+      "choices": [
+        "Semi-Attacker-Controlled Input (SACI)",
+        "Uninitialized memory",
+        "Initialized data that the attacker does not control",
+        "Fully attacker-controlled input data (ACID)"
+      ],
+      "answer": 0,
+      "explain": "The color key: gray = uninitialized, blue = initialized, red = ACID, blue fading into red = SACI (semi-attacker-controlled)."
+    },
+    {
+      "type": "mc",
+      "category": "Definition and ACID/SACI",
+      "q": "In the stack diagrams, what does a plain gray cell represent?",
+      "choices": [
+        "Uninitialized memory",
+        "Initialized memory",
+        "Attacker-controlled input data",
+        "Memory that has been freed"
+      ],
+      "answer": 0,
+      "explain": "Gray marks memory that is uninitialized (reserved but not yet set). Blue marks initialized memory."
+    },
+    {
+      "type": "mc",
+      "category": "Memory regions",
+      "q": "A global declared as char buf1[8] = {0}; is stored where?",
+      "choices": [
+        "In the area for zero-initialized/uninitialized globals",
+        "In the area for initialized (non-zero) globals",
+        "On the stack",
+        "On the heap"
+      ],
+      "answer": 0,
+      "explain": "buf1 is declared outside any function, so it is a global and does not live on the stack. Because it is zero-initialized, it goes in the area for zero/uninitialized globals."
+    },
+    {
+      "type": "mc",
+      "category": "Memory regions",
+      "q": "A global declared as char buf2[8] = {0, 1, 2, 3, 4, 5, 6, 7}; is stored where?",
+      "choices": [
+        "In the area for initialized globals, whose values are compiled into the binary on disk",
+        "In the area for zero-initialized/uninitialized globals",
+        "On the stack",
+        "On the heap"
+      ],
+      "answer": 0,
+      "explain": "buf2 is a global with specific non-zero initial values. It goes in the initialized-globals area, and those values are stored in the compiled binary."
+    },
+    {
+      "type": "multi",
+      "category": "Memory regions",
+      "q": "Inside main(): char buf3[8]; char * buf4; buf4 = malloc(8);  Which of these are on the stack?",
+      "choices": [
+        "The 8 bytes of buf3",
+        "The pointer variable buf4 itself",
+        "The 8 bytes returned by malloc(8)",
+        "A global char buf1[8]"
+      ],
+      "answer": [0, 1],
+      "explain": "buf3 and buf4 are local variables, so both are on the stack. The 8 bytes that malloc() returns are on the heap; buf4 only holds a pointer to them. Globals are not on the stack."
+    },
+    {
+      "type": "num",
+      "category": "Memory regions",
+      "q": "On a 64-bit system, how many bytes does the local pointer variable buf4 (char * buf4;) take up on the stack?",
+      "answer": 8,
+      "explain": "A pointer is as wide as the system's pointer size: 32 bits (4 bytes) on a 32-bit system and 64 bits (8 bytes) on a 64-bit system."
+    },
+    {
+      "type": "multi",
+      "category": "Memory regions",
+      "q": "Which memory regions have contents that come from the compiled binary on disk, rather than only being allocated at execution time?",
+      "choices": [
+        "Code",
+        "Initialized globals (like buf2)",
+        "Zero/uninitialized globals (like buf1)",
+        "Stack",
+        "Heap"
+      ],
+      "answer": [0, 1],
+      "explain": "Code and initialized globals (shown in green) come from the binary on disk. The zero/uninitialized globals area, the stack and the heap are simply allocated when the program runs."
+    },
+    {
+      "type": "tf",
+      "category": "Memory regions",
+      "q": "In the memory layout shown, the stack grows toward lower addresses and the heap generally grows toward higher addresses.",
+      "answer": true,
+      "explain": "The stack grows down toward low addresses, and the heap generally grows up toward high addresses."
+    },
+    {
+      "type": "tf",
+      "category": "Memory regions",
+      "q": "If strcpy(buf1, argv[1]) overflowed the global buf1 from the example, that would be a stack buffer overflow.",
+      "answer": false,
+      "explain": "buf1 is a global in the zero-initialized globals area, not on the stack. A stack buffer overflow needs the overflowed buffer to be on the stack, like the local buf3."
+    },
+    {
+      "type": "mc",
+      "category": "Memory regions",
+      "q": "When this material talks about 'the stack', what does it mean?",
+      "choices": [
+        "A region of memory that acts like a push/pop-on-top data structure and holds temporary data such as local variables",
+        "Only the abstract first-in-last-out data structure studied in algorithms",
+        "The region that holds code and initialized globals",
+        "Memory handed out by malloc()"
+      ],
+      "answer": 0,
+      "explain": "'Stack' also names a data structure type where you push onto and pop off the top. Here it means the region of memory that behaves that way and stores temporary data, most importantly local variables."
+    },
+    {
+      "type": "mc",
+      "category": "Stack diagram conventions",
+      "q": "How are addresses laid out in the stack diagrams?",
+      "choices": [
+        "High addresses at the top, low addresses at the bottom",
+        "Low addresses at the top, high addresses at the bottom",
+        "Low addresses on the left, high addresses on the right, in one row",
+        "It changes from diagram to diagram"
+      ],
+      "answer": 0,
+      "explain": "The convention is high addresses drawn high and low addresses drawn low. Computer architecture books use the same convention."
+    },
+    {
+      "type": "tf",
+      "category": "Stack diagram conventions",
+      "q": "In these diagrams, the 'stack top' (the most recently pushed data, at the lowest address) is drawn at the bottom of the picture.",
+      "answer": true,
+      "explain": "The stack grows toward low addresses and low addresses are drawn at the bottom. So the stack top is at the bottom of the diagram and the stack bottom is at the top."
+    },
+    {
+      "type": "mc",
+      "category": "Stack diagram conventions",
+      "q": "Which pairing is correct?",
+      "choices": [
+        "The stack grows toward low addresses; memory writes generally move toward high addresses",
+        "The stack grows toward high addresses; memory writes generally move toward low addresses",
+        "Both the stack and memory writes grow toward low addresses",
+        "Both the stack and memory writes grow toward high addresses"
+      ],
+      "answer": 0,
+      "explain": "The stack grows down, but a write such as a copy into a buffer moves up toward higher addresses. That is why overflowing a buffer reaches data the program stored earlier, such as the return address."
+    },
+    {
+      "type": "mc",
+      "category": "Stack diagram conventions",
+      "q": "On a little-endian architecture, where is the least significant byte of an 8-byte row drawn?",
+      "choices": [
+        "At the right end (lowest address)",
+        "At the left end",
+        "In the row above",
+        "In the middle of the row"
+      ],
+      "answer": 0,
+      "explain": "The little end (least significant byte) is drawn on the right, at the lowest address. The big end (most significant byte) is drawn on the left."
+    },
+    {
+      "type": "text",
+      "category": "Stack diagram conventions",
+      "q": "The 8-byte value 0x1122334455667788 is stored little-endian at addresses A through A+7. Which byte is at address A? (Give it in hex, e.g. 0xNN.)",
+      "answer": ["0x88", "88"],
+      "explain": "Little-endian puts the least significant byte at the lowest address, so 0x88 is at A and 0x11 is at A+7. In the diagram the row reads 0x11 ... 0x88 from left to right, with 0x88 in the bottom-right cell."
+    },
+    {
+      "type": "num",
+      "category": "Stack diagram conventions",
+      "q": "A 64-byte buffer is drawn 8 bytes per row. What index is in the top-left cell?",
+      "answer": 63,
+      "explain": "Index [0] is in the bottom-right cell (lowest address). The indexes increase right to left and bottom to top, ending at [63] in the top-left cell (highest address)."
+    },
+    {
+      "type": "mc",
+      "category": "Stack diagram conventions",
+      "q": "In that same 64-byte buffer diagram (8 bytes per row), which index is in the top-right cell?",
+      "choices": ["[56]", "[63]", "[7]", "[0]"],
+      "answer": 0,
+      "explain": "The top row holds [63] through [56] from left to right. The rightmost cell of each row has the row's lowest index, so the top-right cell is [56]."
+    },
+    {
+      "type": "mc",
+      "category": "Stack diagram conventions",
+      "q": "The string \"/home/user/sbo\" is drawn in a stack diagram. Which character is at the lowest address (the bottom-right cell)?",
+      "choices": [
+        "The first '/'",
+        "The final 'o'",
+        "The NULL terminator",
+        "The 's' of \"sbo\""
+      ],
+      "answer": 0,
+      "explain": "A string's first character is at its lowest address. Reading right to left and bottom to top gives /home/user/sbo, and the NULL terminator comes last at the highest address."
+    },
+    {
+      "type": "num",
+      "category": "Stack diagram conventions",
+      "q": "How many bytes does the string \"/home/user/sbo\" take up, counting its NULL terminator?",
+      "answer": 15,
+      "explain": "\"/home/user/sbo\" has 14 characters, plus 1 NULL byte, for 15 bytes. In the diagram that is 8 cells in one row and 7 in the next."
+    },
+    {
+      "type": "num",
+      "category": "Stack diagram conventions",
+      "q": "On a 64-bit architecture, how many bytes are typically pushed onto the stack at a time?",
+      "answer": 8,
+      "explain": "On a 64-bit architecture, values are typically pushed 8 bytes at a time, and each push moves the stack toward lower addresses."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and the return address",
+      "q": "What is a return address?",
+      "choices": [
+        "The address of the code where execution should continue when the current function returns to its caller",
+        "The address of the function's first local variable",
+        "The value the function returns to its caller",
+        "The address of the top of the heap"
+      ],
+      "answer": 0,
+      "explain": "Calling a function jumps into its code. The architecture has to remember where to go back to when the function returns, and that saved location is the return address."
+    },
+    {
+      "type": "tf",
+      "category": "Stack frames and the return address",
+      "q": "Every function on every architecture stores its return address on the stack.",
+      "answer": false,
+      "explain": "On most architectures the return address is generally stored somewhere on the stack, but not necessarily in leaf functions."
+    },
+    {
+      "type": "multi",
+      "category": "Stack frames and the return address",
+      "q": "According to the general stack-frame diagram, which of these can be found in stack frames?",
+      "choices": [
+        "Return addresses",
+        "Local variables",
+        "Caller-save registers",
+        "Function parameters",
+        "Callee-save registers",
+        "The bytes returned by malloc()",
+        "Initialized global variables"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "A frame can hold a return address, local variables, saved registers (caller-save and callee-save), and function parameters on some architectures. What is actually there depends on the architecture and calling convention. Heap data and globals live in other regions."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and the return address",
+      "q": "f1 calls f2, and f2 calls f3, a leaf function. Where is f3's frame drawn in the stack diagrams?",
+      "choices": [
+        "At the bottom (lowest addresses), below the frames of f1 and f2",
+        "At the top (highest addresses), above f1 and f2",
+        "Between f1 and f2",
+        "Nowhere, because leaf functions never have stack frames"
+      ],
+      "answer": 0,
+      "explain": "Frames of earlier functions are at the top and later calls are below them, because the stack grows toward low addresses. The leaf function's frame is at the bottom."
+    },
+    {
+      "type": "multi",
+      "category": "Stack frames and the return address",
+      "q": "The general frame diagram, from high to low addresses, is: return address, caller's local variables, caller-save registers, function parameters, return address, callee's local variables, callee-save registers. A linear overflow of a buffer among the callee's local variables writes toward higher addresses. Which items are in its path?",
+      "choices": [
+        "The return address back into the caller",
+        "The function parameters",
+        "The caller-save registers",
+        "The caller's local variables",
+        "The callee-save registers"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Writes move up toward higher addresses, so the overflow hits everything above the callee's locals, starting with the return address. The callee-save registers are below the locals in this diagram, so the overflow moves away from them."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and the return address",
+      "q": "Why is the saved return address the main target of a stack buffer overflow?",
+      "choices": [
+        "When the function returns, execution jumps to whatever address is stored there, so overwriting it sends execution to a location the attacker chose",
+        "It holds the buffer's length, so changing it makes the buffer bigger",
+        "It points into the heap, so overwriting it frees memory",
+        "The compiler reads it again to decide whether to re-run the function"
+      ],
+      "answer": 0,
+      "explain": "Once the overflow replaces the return address, the function 'returns' to an address the attacker controls instead of to its real caller."
+    },
+    {
+      "type": "tf",
+      "category": "Stack frames and the return address",
+      "q": "Besides the return address, attackers can also benefit from corrupting local variables on the stack.",
+      "answer": true,
+      "explain": "The return address is the most important target, but attackers can also gain a lot by corrupting local variables."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frames and the return address",
+      "q": "Why is there a return address on the stack even for main()?",
+      "choices": [
+        "Some other code calls main(), so a return address back to that caller is pushed when main() is called",
+        "The operating system stores main()'s return value there",
+        "main() pushes its own address so it can restart itself",
+        "There isn't one, because main() never has a return address"
+      ],
+      "answer": 0,
+      "explain": "You only wrote main(), but something has to call it. Calling main() pushes the return address back to that caller, shown as the 'saved return (out-of-main()) address'."
+    },
+    {
+      "type": "multi",
+      "category": "Root causes",
+      "q": "Which of these does the material list as common root causes of stack buffer overflows?",
+      "choices": [
+        "Unsafe or weakly-bounded functions like memcpy(), strcpy(), strcat() and sprintf()",
+        "Custom wrapper functions that people write around those functions",
+        "Sequential data writes in a loop whose counter or exit condition is ACID",
+        "Storing globals in the zero-initialized area",
+        "Allocating buffers with malloc()"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "There are two root causes. The 'sweet potato' is unsafe/weakly-bounded functions and their wrappers. The 'carrot' is sequential writes in a loop with an ACID loop counter or exit condition."
+    },
+    {
+      "type": "mc",
+      "category": "Root causes",
+      "q": "A function copies bytes with for (i = 0; i < pkt_len; i++) { local_buf[i] = pkt[i]; }. local_buf is a fixed-size stack array and pkt_len comes from the attacker's packet. Which root cause is this?",
+      "choices": [
+        "Sequential data writes in a loop with an ACID loop counter/exit condition (the 'carrot')",
+        "An unsafe/weakly-bounded library function (the 'sweet potato')",
+        "Neither, because no memcpy() is called",
+        "A heap overflow, because pkt came from the network"
+      ],
+      "answer": 0,
+      "explain": "The loop is effectively a memory copy built from direct writes. The attacker controls its exit condition, so they can keep it writing past the end of local_buf."
+    },
+    {
+      "type": "mc",
+      "category": "Root causes",
+      "q": "A programmer writes copy_header(struct hdr *dst, void *src, size_t len), which just calls memcpy(dst, src, len). A caller passes a stack struct as dst and an ACID len. Which root cause is this?",
+      "choices": [
+        "An unsafe/weakly-bounded function, reached through a wrapper function",
+        "Sequential writes in a loop with an ACID exit condition",
+        "Not a root cause, because the wrapper hides the memcpy()",
+        "Uninitialized stack data"
+      ],
+      "answer": 0,
+      "explain": "Custom copy helpers made for a particular struct type are usually backed by memcpy(). They count as the same unsafe-function root cause, so watch for wrappers as well as the library functions."
+    },
+    {
+      "type": "tf",
+      "category": "Root causes",
+      "q": "The loop-based root cause usually means calling memcpy() inside the loop.",
+      "answer": false,
+      "explain": "The loop case usually does not use memcpy(). It writes directly, for example by assigning through a dereferenced pointer, and the loop as a whole acts like a memory copy."
+    },
+    {
+      "type": "mc",
+      "category": "Root causes",
+      "q": "char buf[8]; strcpy(buf, argv[1]);  Which root cause does this fall under?",
+      "choices": [
+        "An unsafe/weakly-bounded function (the 'sweet potato')",
+        "Sequential writes in a loop with an ACID exit condition (the 'carrot')",
+        "A custom wrapper function",
+        "A heap overflow"
+      ],
+      "answer": 0,
+      "explain": "strcpy() copies a string of any length without checking the destination's size. That makes it one of the unsafe/weakly-bounded functions."
+    },
+    {
+      "type": "text",
+      "category": "Root causes",
+      "q": "Besides memcpy() and strcpy(), name one other unsafe/weakly-bounded function that the material lists as a common root cause.",
+      "answer": ["strcat", "strcat()", "sprintf", "sprintf()"],
+      "explain": "The list is memcpy(), strcpy(), strcat(), sprintf(), etc. Some of these copy memory directly, while others copy it as part of string operations."
+    },
+    {
+      "type": "mc",
+      "category": "Root causes",
+      "q": "What makes a copy loop dangerous enough to count as a root cause?",
+      "choices": [
+        "Its counter or exit condition is attacker-controlled, so the attacker can keep it writing past the buffer",
+        "It is written in C rather than assembly",
+        "It reads from the heap",
+        "It copies one byte at a time instead of using memcpy()"
+      ],
+      "answer": 0,
+      "explain": "Sequential writes in a loop are only a problem when the attacker controls when the loop stops. Then they can make it copy too much and overflow the buffer."
+    },
+    {
+      "type": "mc",
+      "category": "Trivial strcpy example",
+      "q": "In void main(int argc, char * argv[]){ char buf[8]; strcpy(buf, argv[1]); ... }, why is buf a stack buffer?",
+      "choices": [
+        "It is a local variable declared inside main()",
+        "strcpy() always copies onto the stack",
+        "It is declared with a fixed size",
+        "argv is on the stack, so anything copied from it is too"
+      ],
+      "answer": 0,
+      "explain": "Local variables are stored on the stack, and buf is a local variable of main()."
+    },
+    {
+      "type": "mc",
+      "category": "Trivial strcpy example",
+      "q": "By convention, what does argv[0] contain?",
+      "choices": [
+        "The path to the executable itself (e.g. /home/user/sbo)",
+        "The first command-line argument the user typed",
+        "The number of arguments",
+        "The program's return address"
+      ],
+      "answer": 0,
+      "explain": "argv[0] is conventionally the path of the program being run. argv[1] is the first actual command-line argument."
+    },
+    {
+      "type": "mc",
+      "category": "Trivial strcpy example",
+      "q": "Why is argv[0] marked SACI instead of ACID?",
+      "choices": [
+        "It is probably not 100% attacker-controlled: only root/administrator could put the program at a completely arbitrary path, and an attacker who can do that has usually already won",
+        "argv[0] is always a constant compiled into the binary",
+        "argv[0] is stored on the heap",
+        "argv[0] is never copied anywhere"
+      ],
+      "answer": 0,
+      "explain": "The attacker can influence the path but cannot fully choose it unless they have root/administrator rights. With those rights they have already won on most Unix-type systems, so the path counts as semi-attacker-controlled."
+    },
+    {
+      "type": "tf",
+      "category": "Trivial strcpy example",
+      "q": "In this example, argv[1] is fully attacker-controlled input (ACID).",
+      "answer": true,
+      "explain": "argv[1] is the command-line argument, and the attacker can put anything they want there. It is drawn solid red as an 'ACID string'."
+    },
+    {
+      "type": "mc",
+      "category": "Trivial strcpy example",
+      "q": "In what order do the steps of the strcpy example happen?",
+      "choices": [
+        "argv strings set up on the stack -> other stack memory used before main() -> main() called and its return address pushed -> buf[8] allocated -> strcpy() overwrites buf and the return address -> main() returns to an attacker-chosen location",
+        "buf[8] allocated -> argv strings set up -> main() called -> strcpy() overwrites the return address -> main() returns",
+        "main() called -> strcpy() runs -> buf[8] allocated -> argv strings set up -> return address pushed",
+        "argv strings set up -> buf[8] allocated -> main() called and return address pushed -> main() returns -> strcpy() runs"
+      ],
+      "answer": 0,
+      "explain": "The argument vector is set up first, then other stack memory is used, then calling main() pushes the out-of-main() return address. main() then reserves buf, and strcpy() writes upward past buf over the return address. When main() returns, execution goes to the ACID value."
+    },
+    {
+      "type": "mc",
+      "category": "Trivial strcpy example",
+      "q": "Right after char buf[8]; runs, buf's cells are drawn gray. What does that mean?",
+      "choices": [
+        "The 8 bytes are reserved on the stack but not set to anything yet",
+        "The 8 bytes are filled with zeros",
+        "The 8 bytes already hold a copy of argv[1]",
+        "The 8 bytes are on the heap"
+      ],
+      "answer": 0,
+      "explain": "Declaring buf only reserves space. Setting the contents is left to the code, so the space starts out uninitialized (gray)."
+    },
+    {
+      "type": "mc",
+      "category": "Trivial strcpy example",
+      "q": "In this example, which return address does the strcpy() overflow overwrite?",
+      "choices": [
+        "The saved return address out of main(), back to whatever function called main()",
+        "strcpy()'s own return address",
+        "The return address saved inside argv[0]",
+        "None, because strcpy() stops after 8 bytes"
+      ],
+      "answer": 0,
+      "explain": "buf sits just below main()'s saved return address. The copy moves upward, replaces that address with ACID bytes, and main() then returns to an arbitrary location the attacker controls."
+    },
+    {
+      "type": "num",
+      "category": "Trivial strcpy example",
+      "q": "argv[1] is a 20-character string. strcpy() copies it, plus its NULL terminator, into the 8-byte buf. How many bytes are written past the end of buf?",
+      "answer": 13,
+      "explain": "20 characters + 1 NULL = 21 bytes written. 21 - 8 = 13 bytes land beyond buf, moving up toward the saved return address."
+    },
+    {
+      "type": "tf",
+      "category": "Trivial strcpy example",
+      "q": "strcpy() stops copying once the destination buffer is full.",
+      "answer": false,
+      "explain": "strcpy() has no bound. It copies an arbitrary number of bytes from the source, however small the destination is. That is why an arbitrary-length argv[1] overflows the 8-byte buf."
+    },
+    {
+      "type": "mc",
+      "category": "History and perspective",
+      "q": "Which self-propagating program, released onto the ARPANet in 1988, spread by exploiting a stack buffer overflow?",
+      "choices": [
+        "The Morris worm",
+        "Code Red",
+        "ILOVEYOU",
+        "Stuxnet"
+      ],
+      "answer": 0,
+      "explain": "Robert Morris Jr. released the Morris worm onto the ARPANet in 1988. It was the first worm on that proto-internet."
+    },
+    {
+      "type": "mc",
+      "category": "History and perspective",
+      "q": "The Morris worm moved between systems by exploiting a stack buffer overflow in which program?",
+      "choices": [
+        "The finger daemon, which answered queries about users on a system",
+        "The telnet client",
+        "The DNS resolver",
+        "The C compiler"
+      ],
+      "answer": 0,
+      "explain": "It exploited a stack overflow in the finger daemon (fingerd), which usually ran on Unix systems to answer queries about other users."
+    },
+    {
+      "type": "num",
+      "category": "History and perspective",
+      "q": "In what year was the Morris worm released?",
+      "answer": 1988,
+      "explain": "1988. That is years before the well-known 1996 'Smashing the Stack for Fun and Profit'."
+    },
+    {
+      "type": "tf",
+      "category": "History and perspective",
+      "q": "Stack buffer overflows were first described in the 1996 article 'Smashing the Stack for Fun and Profit'.",
+      "answer": false,
+      "explain": "They are much older. The Morris worm exploited one in 1988, and there are references going back to the 1970s."
+    },
+    {
+      "type": "mc",
+      "category": "History and perspective",
+      "q": "The same exploitable bugs are still being written more than three decades later. According to the material, where does the fault lie?",
+      "choices": [
+        "In the programming language",
+        "In careless individual programmers",
+        "In operating system vendors",
+        "In attackers who publish exploits"
+      ],
+      "answer": 0,
+      "explain": "'The fault lies neither in them, nor the stars: the fault lies in the language!' Most people were never taught about these bugs, so the focus is on recognizing and avoiding them, not on blaming whoever wrote them."
+    },
+    {
+      "type": "mc",
+      "category": "History and perspective",
+      "q": "What makes a piece of malware a 'worm'?",
+      "choices": [
+        "It spreads itself, moving from system to system on its own",
+        "It only runs inside the kernel",
+        "It needs a user to open an email attachment",
+        "It only damages files on the disk"
+      ],
+      "answer": 0,
+      "explain": "A worm is self-propagating malware. The Morris worm spread from system to system on its own by exploiting the finger daemon's stack buffer overflow."
+    }
+  ]
+}

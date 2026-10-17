@@ -1,0 +1,565 @@
+{
+  "title": "Setup, Running Binaries and Breakpoints",
+  "course": "OST2-DBG1012",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Setup and compiling",
+      "q": "What does the -ggdb option do in `gcc -ggdb fibber.c -o fibber_bin`?",
+      "choices": [
+        "Optimizes the binary so it runs faster under GDB",
+        "Adds GDB debugging symbols to the binary",
+        "Automatically launches GDB on the compiled program",
+        "Names the output file fibber_bin"
+      ],
+      "answer": 1,
+      "explain": "-ggdb adds debugging symbols for GDB. The output file is named by -o fibber_bin."
+    },
+    {
+      "type": "mc",
+      "category": "Setup and compiling",
+      "q": "Which command compiles echo.c into an executable named echo_bin with GDB debugging symbols?",
+      "choices": [
+        "gdb -ggdb echo.c -o echo_bin",
+        "gcc -ggdb echo_bin -o echo.c",
+        "gcc -ggdb echo.c -o echo_bin",
+        "gcc -q echo.c -o echo_bin"
+      ],
+      "answer": 2,
+      "explain": "gcc is the compiler and gdb is the debugger. The source file is the input and -o names the output. Swapping them would treat echo_bin as the input and overwrite echo.c."
+    },
+    {
+      "type": "text",
+      "category": "Setup and compiling",
+      "q": "What shell command checks whether gdb is installed by printing its version?",
+      "answer": ["gdb --version"],
+      "explain": "Likewise, `gcc --version` checks gcc. If either one says 'command not found', install both with `sudo apt-get install -y gcc gdb`."
+    },
+    {
+      "type": "multi",
+      "category": "Setup and compiling",
+      "q": "Which gcc flags build debugging symbols into a binary so that GDB's list command can show its source?",
+      "choices": ["-g", "-ggdb", "-o", "-q"],
+      "answer": [0, 1],
+      "explain": "-g and -ggdb both enable symbols. -o names the output file, and -q is a gdb option (quiet), not a gcc one."
+    },
+    {
+      "type": "mc",
+      "category": "Setup and compiling",
+      "q": "When GDB loads a binary it prints '(No debugging symbols found in ./fibber_bin)'. What is the most likely explanation?",
+      "choices": [
+        "The binary was compiled without -g or -ggdb",
+        "The program has not been run yet",
+        "GDB was started with --quiet",
+        "The path to the binary is wrong"
+      ],
+      "answer": 0,
+      "explain": "Debugging symbols come from compiling with -g or -ggdb. Symbols are read when the file is loaded, before anything runs. --quiet only hides the startup banner, and a wrong path gives a 'No such file' error."
+    },
+    {
+      "type": "mc",
+      "category": "Setup and compiling",
+      "q": "Which GDB output shows that the binary was built with debugging symbols?",
+      "choices": [
+        "Breakpoint 1 at 0x11a9",
+        "Temporary breakpoint 1, 0x0000555555555189 in main ()",
+        "Breakpoint 1 at 0x71a: file ./fibber.c, line 13.",
+        "Starting program: /home/user/fibber_bin"
+      ],
+      "answer": 2,
+      "explain": "With debug info, GDB can map an address to a source file and line number. Without it, GDB reports only addresses and function names."
+    },
+    {
+      "type": "tf",
+      "category": "Loading and quitting GDB",
+      "q": "The gdb command-line options --quiet and -q are equivalent.",
+      "answer": true,
+      "explain": "-q is the short form of --quiet."
+    },
+    {
+      "type": "multi",
+      "category": "Loading and quitting GDB",
+      "q": "Which of these load fibber_bin into GDB so it's ready to run?",
+      "choices": [
+        "gdb --quiet ./fibber_bin",
+        "gdb ./fibber_bin -q",
+        "gdb -q, then at the (gdb) prompt: file ./fibber_bin",
+        "gdb -q, then at the (gdb) prompt: run ./fibber_bin"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "You can give the path on the command line, before or after -q, or load it later with `file <path>`. Anything after run is passed to the program as command-line arguments. It does not choose which executable to load."
+    },
+    {
+      "type": "text",
+      "category": "Loading and quitting GDB",
+      "q": "You started GDB with just `gdb -q`. What one-word command loads an executable at the (gdb) prompt (it's followed by the path)?",
+      "answer": ["file"],
+      "explain": "For example: `file ./fibber_bin`. GDB then prints 'Reading symbols from ./fibber_bin...'."
+    },
+    {
+      "type": "multi",
+      "category": "Loading and quitting GDB",
+      "q": "Which commands exit GDB from the (gdb) prompt?",
+      "choices": ["quit", "q", "c", "d"],
+      "answer": [0, 1],
+      "explain": "q is short for quit. c is short for continue, and d is short for delete."
+    },
+    {
+      "type": "mc",
+      "category": "Loading and quitting GDB",
+      "q": "You type quit while the program you're debugging is stopped at a breakpoint. What does GDB do?",
+      "choices": [
+        "It exits immediately and leaves the program running in the background",
+        "It warns that a debugging session is active and the inferior process will be killed, then asks you to confirm",
+        "It refuses to quit until the program has run to completion",
+        "It continues the program to completion and then exits"
+      ],
+      "answer": 1,
+      "explain": "GDB prints 'A debugging session is active. Inferior 1 [process N] will be killed. Quit anyway? (y or n)'."
+    },
+    {
+      "type": "mc",
+      "category": "run, start, continue",
+      "q": "What does the run (r) command do?",
+      "choices": [
+        "It resumes a program that is stopped at a breakpoint",
+        "It runs the program and always stops at its entry point",
+        "It runs the loaded program as if you had invoked it from the command line, stopping only if it hits a breakpoint",
+        "It compiles the source file and runs the result"
+      ],
+      "answer": 2,
+      "explain": "With no breakpoints, fibber_bin prints its full output and GDB reports that the inferior exited. Resuming is continue, and stopping at the entry point is start."
+    },
+    {
+      "type": "text",
+      "category": "run, start, continue",
+      "q": "echo_bin is loaded in GDB. What command runs it with hi as argv[1]?",
+      "answer": ["run hi", "r hi"],
+      "explain": "Arguments after run are passed to the program exactly as they would be on the command line. The program then prints 'You entered hi for argv[1]'."
+    },
+    {
+      "type": "mc",
+      "category": "run, start, continue",
+      "q": "How does start differ from run?",
+      "choices": [
+        "start sets a temporary breakpoint on the program's entry point, so execution stops there",
+        "start cannot take command-line arguments",
+        "start only loads the program and doesn't execute any of it",
+        "start restarts GDB itself"
+      ],
+      "answer": 0,
+      "explain": "start works like run, but it stops right away at a temporary breakpoint. In the examples GDB prints 'Temporary breakpoint 1, 0x0000555555555189 in main ()'."
+    },
+    {
+      "type": "tf",
+      "category": "run, start, continue",
+      "q": "Like run, start accepts command-line arguments for the program, for example `start hi`.",
+      "answer": true,
+      "explain": "`start hi` runs echo_bin with hi as argv[1] and stops at the temporary breakpoint."
+    },
+    {
+      "type": "text",
+      "category": "run, start, continue",
+      "q": "The program is stopped at the temporary breakpoint that start set. What one-letter command resumes execution?",
+      "answer": ["c", "continue"],
+      "explain": "c is short for continue. GDB prints 'Continuing.', and the program runs until it hits another breakpoint or exits."
+    },
+    {
+      "type": "num",
+      "category": "run, start, continue",
+      "q": "fibber_bin has a breakpoint on fibbonacci, and you keep typing c. main's loop calls fibbonacci(i) for i = 0, 1, 2, ... The first three hits show n=0, n=1 and n=2. The disassembly shows that fibbonacci computes n-1 and makes that recursive call before the n-2 call. What value of n will the fourth hit show?",
+      "answer": 1,
+      "explain": "fibbonacci(0) and fibbonacci(1) return immediately because n <= 1, so the first three hits are main's loop calls for i = 0, 1 and 2. fibbonacci(2) then calls fibbonacci(1) recursively, and the breakpoint fires on recursive calls too."
+    },
+    {
+      "type": "mc",
+      "category": "run, start, continue",
+      "q": "With no breakpoints set, you run fibber_bin under GDB and the output ends with '[Inferior 1 (process 60848) exited normally]'. What does that mean?",
+      "choices": [
+        "The program ran to completion and exited",
+        "GDB itself crashed",
+        "The program is paused at its last instruction",
+        "The program could not be loaded"
+      ],
+      "answer": 0,
+      "explain": "The 'inferior' is the program being debugged. With nothing to stop it, it ran all the way through."
+    },
+    {
+      "type": "text",
+      "category": "Setting and listing breakpoints",
+      "q": "What is the short form of the break command?",
+      "answer": ["b"],
+      "explain": "`break main` and `b main` do the same thing."
+    },
+    {
+      "type": "text",
+      "category": "Setting and listing breakpoints",
+      "q": "What command sets a breakpoint at the start of the function fibbonacci?",
+      "answer": ["b fibbonacci", "break fibbonacci"],
+      "explain": "A breakpoint can be set by symbol name. GDB replies with something like 'Breakpoint 2 at 0x1169'."
+    },
+    {
+      "type": "multi",
+      "category": "Setting and listing breakpoints",
+      "q": "Which commands list the current breakpoints?",
+      "choices": ["info breakpoints", "info break", "info b", "list b"],
+      "answer": [0, 1, 2],
+      "explain": "info break and info b are shorter forms of info breakpoints. list shows source code, not breakpoints."
+    },
+    {
+      "type": "text",
+      "category": "Setting and listing breakpoints",
+      "q": "disas shows an instruction at 0x000055555555520e. What command sets a breakpoint exactly at that address?",
+      "answer": [
+        "b *0x000055555555520e",
+        "break *0x000055555555520e",
+        "b *0x55555555520e",
+        "break *0x55555555520e"
+      ],
+      "explain": "The * in front of a number tells GDB it's a memory address, not a symbol name or line number. GDB confirms with 'Breakpoint 3 at 0x55555555520e'."
+    },
+    {
+      "type": "mc",
+      "category": "Setting and listing breakpoints",
+      "q": "In info b output, the line 'breakpoint already hit 3 times' appears under breakpoint 2. What does it mean?",
+      "choices": [
+        "Breakpoint 2 has been set three times",
+        "Execution has stopped at breakpoint 2 three times so far",
+        "Breakpoint 2 will be deleted after three more hits",
+        "Three breakpoints share the same address"
+      ],
+      "answer": 1,
+      "explain": "info b keeps a hit count for each breakpoint, for example after you've continued into fibbonacci three times."
+    },
+    {
+      "type": "mc",
+      "category": "Removing breakpoints",
+      "q": "What is the difference between clear and delete?",
+      "choices": [
+        "clear removes every breakpoint; delete removes one",
+        "clear disables a breakpoint; delete removes it",
+        "clear takes a location (a symbol name, or * followed by an address); delete takes a breakpoint number from info b",
+        "They are identical aliases"
+      ],
+      "answer": 2,
+      "explain": "Two examples: `clear fibbonacci` or `clear *0x00000000000011a9` versus `delete 3`. Disabling is done with disable."
+    },
+    {
+      "type": "mc",
+      "category": "Removing breakpoints",
+      "q": "Which command uses clear to remove the breakpoint at absolute address 0x00000000000011a9?",
+      "choices": [
+        "clear 0x00000000000011a9",
+        "delete *0x00000000000011a9",
+        "clear &0x00000000000011a9",
+        "clear *0x00000000000011a9"
+      ],
+      "answer": 3,
+      "explain": "clear takes a symbol name or * followed by an absolute address. delete takes a breakpoint number, not an address."
+    },
+    {
+      "type": "text",
+      "category": "Removing breakpoints",
+      "q": "info b lists your breakpoint on main as number 3. What command deletes it by its number?",
+      "answer": ["delete 3", "d 3"],
+      "explain": "d is short for delete. Afterward, info b shows 'No breakpoints or watchpoints.' if it was the only breakpoint."
+    },
+    {
+      "type": "text",
+      "category": "Removing breakpoints",
+      "q": "What command removes the breakpoint on fibbonacci by naming the function, without looking up its breakpoint number?",
+      "answer": ["clear fibbonacci"],
+      "explain": "clear accepts a symbol name, so you don't need the number from info b."
+    },
+    {
+      "type": "mc",
+      "category": "Breakpoint addresses and ASLR",
+      "q": "Before running, `b main` reports 'Breakpoint 1 at 0x11a9'. After r, the same breakpoint is listed at 0x00005555555551a9. Why?",
+      "choices": [
+        "GDB moved the breakpoint to a different function when the program started",
+        "Before the program runs, the address is only an offset into the executable; GDB learns the real address once the program is loaded into memory",
+        "0x11a9 was a breakpoint number, not an address",
+        "The program recompiled itself when it started"
+      ],
+      "answer": 1,
+      "explain": "The debugger can't know where the program will be loaded until it actually runs. The OS may also randomize the load address (ASLR)."
+    },
+    {
+      "type": "text",
+      "category": "Breakpoint addresses and ASLR",
+      "q": "Before running, the breakpoints were at main = 0x11a9 and fibbonacci = 0x1169. After r, main's breakpoint shows 0x5555555551a9. What address (in hex) does fibbonacci's breakpoint show now?",
+      "answer": ["0x555555555169", "0x0000555555555169", "555555555169"],
+      "explain": "The load base is 0x5555555551a9 - 0x11a9 = 0x555555554000, and every offset shifts by that amount: 0x555555554000 + 0x1169 = 0x555555555169."
+    },
+    {
+      "type": "mc",
+      "category": "Breakpoint addresses and ASLR",
+      "q": "What is Address Space Layout Randomization (ASLR)?",
+      "choices": [
+        "GDB randomizing the numbers it assigns to breakpoints",
+        "The compiler shuffling the order of functions in the source",
+        "The OS randomizing where an executable is loaded in memory, to help mitigate some security vulnerabilities",
+        "A GDB feature that picks a random entry point"
+      ],
+      "answer": 2,
+      "explain": "Because the load location can change, a breakpoint's run-time address isn't known until the program has been started."
+    },
+    {
+      "type": "tf",
+      "category": "Breakpoint addresses and ASLR",
+      "q": "If you repeat the same steps on your own machine, the run-time breakpoint addresses will always exactly match the ones in the examples.",
+      "answer": false,
+      "explain": "Where an executable is loaded can differ between systems and between runs, partly because of ASLR. The offsets within the binary stay the same, but the absolute addresses can change."
+    },
+    {
+      "type": "mc",
+      "category": "Disabling and enabling breakpoints",
+      "q": "What does `disable 2` do?",
+      "choices": [
+        "Breakpoint 2 stays in the list but no longer stops execution",
+        "It deletes breakpoint 2",
+        "It disables every breakpoint except number 2",
+        "It makes breakpoint 2 stop execution twice"
+      ],
+      "answer": 0,
+      "explain": "info b still lists the breakpoint, with n in the Enb column. `enable 2` turns it back on."
+    },
+    {
+      "type": "text",
+      "category": "Disabling and enabling breakpoints",
+      "q": "Breakpoint 1 is disabled. What command turns it back on?",
+      "answer": ["enable 1"],
+      "explain": "Afterward, info b shows y in the Enb column for breakpoint 1."
+    },
+    {
+      "type": "mc",
+      "category": "Disabling and enabling breakpoints",
+      "q": "Which column of the info b output tells you whether a breakpoint is currently active?",
+      "choices": ["Num", "Disp", "What", "Enb"],
+      "answer": 3,
+      "explain": "Enb means enabled: y or n. Num is the number used by delete, disable and enable. Address and What show where the breakpoint is."
+    },
+    {
+      "type": "tf",
+      "category": "Disabling and enabling breakpoints",
+      "q": "A disabled breakpoint disappears from the info b output.",
+      "answer": false,
+      "explain": "It stays listed, with n in the Enb column. Only delete or clear removes it."
+    },
+    {
+      "type": "mc",
+      "category": "Disabling and enabling breakpoints",
+      "q": "Breakpoint 1 is on main and breakpoint 2 is on fibbonacci. You've already stopped in fibbonacci three times. You type `disable 2` and then c. What happens?",
+      "choices": [
+        "It stops at the next call to fibbonacci",
+        "The program prints the rest of its output and exits normally without stopping again",
+        "It stops at main again",
+        "GDB deletes breakpoint 1"
+      ],
+      "answer": 1,
+      "explain": "Execution is already past main's breakpoint, and fibbonacci's breakpoint is disabled, so nothing stops the program before it exits."
+    },
+    {
+      "type": "tf",
+      "category": "Disabling and enabling breakpoints",
+      "q": "Disabled breakpoints are automatically re-enabled when you restart the program with r.",
+      "answer": false,
+      "explain": "In the example, after re-running, info b still showed breakpoint 2 with Enb n until `enable 2` was entered."
+    },
+    {
+      "type": "mc",
+      "category": "Disabling and enabling breakpoints",
+      "q": "Why would you disable a breakpoint instead of deleting it?",
+      "choices": [
+        "Disabled breakpoints use less memory",
+        "delete only works on temporary breakpoints",
+        "Disabled breakpoints still stop the program but print less output",
+        "To keep it from firing for now while keeping it around so you can turn it back on later with enable"
+      ],
+      "answer": 3,
+      "explain": "One example: switch off a breakpoint in a heavily called function like fibbonacci, let the program run, then re-enable it without having to set it again."
+    },
+    {
+      "type": "mc",
+      "category": "Examining source code",
+      "q": "When the program is stopped, what does list (with no arguments) show?",
+      "choices": [
+        "All breakpoints",
+        "Source code around the current location",
+        "The assembly of the current function",
+        "The files GDB has loaded"
+      ],
+      "answer": 1,
+      "explain": "For example, stopped at line 13 of fibber.c, list shows the lines around line 13."
+    },
+    {
+      "type": "text",
+      "category": "Examining source code",
+      "q": "What command shows the source code before and after the function fibbonacci?",
+      "answer": ["list fibbonacci"],
+      "explain": "The form is `list <function name>`."
+    },
+    {
+      "type": "text",
+      "category": "Examining source code",
+      "q": "What command shows the source code around line 13 of fibber.c?",
+      "answer": ["list fibber.c:13"],
+      "explain": "The form is `list <source file name>:<line number>`."
+    },
+    {
+      "type": "mc",
+      "category": "Examining source code",
+      "q": "In which situation is the list command of no use?",
+      "choices": [
+        "Debugging fibber_bin that you compiled from fibber.c with -ggdb",
+        "Debugging echo_bin that you compiled from echo.c with -g",
+        "Reverse engineering an opaque binary you have no source code for",
+        "Debugging a program you built from source with symbols enabled"
+      ],
+      "answer": 2,
+      "explain": "list needs both the source code and a binary built with symbols (-g or -ggdb). An opaque binary has neither."
+    },
+    {
+      "type": "mc",
+      "category": "Examining source code",
+      "q": "Right after a list command, you press Enter at an empty (gdb) prompt. What happens?",
+      "choices": [
+        "GDB lists the next lines of source",
+        "Nothing; GDB needs a command",
+        "GDB shows the same lines again",
+        "The program starts running"
+      ],
+      "answer": 0,
+      "explain": "Pressing Enter repeats list, which continues from where the last listing ended. At the end of the file, GDB says something like 'Line number 23 out of range; ./fibber.c has 22 lines.'"
+    },
+    {
+      "type": "text",
+      "category": "Disassembling code",
+      "q": "What is the short form of the disassemble command?",
+      "answer": ["disas"],
+      "explain": "For example, `disas main` or `disas` on its own."
+    },
+    {
+      "type": "mc",
+      "category": "Disassembling code",
+      "q": "What does disas show when you give it no arguments?",
+      "choices": [
+        "Assembly of the whole binary",
+        "Assembly of main, no matter where you're stopped",
+        "Assembly around the current location, i.e. the function you're stopped in",
+        "Only the raw bytes of the current instruction"
+      ],
+      "answer": 2,
+      "explain": "To disassemble something else, give it an address or symbol name, for example `disas main`."
+    },
+    {
+      "type": "mc",
+      "category": "Disassembling code",
+      "q": "Which option to disassemble also shows the raw bytes that make up each instruction?",
+      "choices": ["/m", "/r", "/b", "/x"],
+      "answer": 1,
+      "explain": "/r stands for raw bytes. For example, `disas /r fibbonacci` shows lines like '79 71   addi sp,sp,-48'."
+    },
+    {
+      "type": "mc",
+      "category": "Disassembling code",
+      "q": "Which option to disassemble mixes source code lines with the assembly?",
+      "choices": ["/r", "/i", "/m", "/x"],
+      "answer": 2,
+      "explain": "/m stands for mix. Each source line is printed above the instructions generated for it. This requires a binary built with symbols."
+    },
+    {
+      "type": "mc",
+      "category": "Disassembling code",
+      "q": "How do you get both raw bytes and mixed source code in a single disassembly of fibbonacci?",
+      "choices": [
+        "disas /r fibbonacci",
+        "disas /rm fibbonacci",
+        "disas /m fibbonacci",
+        "disas fibbonacci /rm"
+      ],
+      "answer": 1,
+      "explain": "The two options must be combined as /rm, written right after disassemble. /r alone gives only the bytes, and /m alone gives only the source mix."
+    },
+    {
+      "type": "mc",
+      "category": "Disassembling code",
+      "q": "What does the => marker in disas output indicate?",
+      "choices": [
+        "The instruction at the current location, i.e. the next one to execute",
+        "An instruction that has a breakpoint on it",
+        "The target of a jump",
+        "The first instruction of the function"
+      ],
+      "answer": 0,
+      "explain": "For example, after stopping at a breakpoint at main+101, disas puts => next to <+101>."
+    },
+    {
+      "type": "mc",
+      "category": "Disassembling code",
+      "q": "main starts at 0x5555555551a9. After `b *0x000055555555520e`, info b shows that breakpoint's location as <main+101>. What does +101 mean?",
+      "choices": [
+        "It's the 101st instruction in main",
+        "It's on source line 101",
+        "The instruction is 101 bytes past the start of main",
+        "The breakpoint has been hit 101 times"
+      ],
+      "answer": 2,
+      "explain": "0x5555555551a9 + 101 (0x65) = 0x55555555520e. Instructions vary in size, so a byte offset is not the same as an instruction count."
+    },
+    {
+      "type": "mc",
+      "category": "Displaying instructions: x and display",
+      "q": "What does `x/10i fibbonacci` do?",
+      "choices": [
+        "It sets 10 breakpoints inside fibbonacci",
+        "It prints 10 instructions starting at the address of fibbonacci, once",
+        "It prints fibbonacci's instructions every time the program stops",
+        "It runs fibbonacci 10 times"
+      ],
+      "answer": 1,
+      "explain": "x examines memory, and the i format shows that memory as instructions. 10 is the count. It accepts any address or symbol."
+    },
+    {
+      "type": "mc",
+      "category": "Displaying instructions: x and display",
+      "q": "How does `display/10i $rip` differ from `x/10i $rip`?",
+      "choices": [
+        "display reprints the 10 instructions every time the program stops; x prints them once",
+        "display shows source code while x shows assembly",
+        "x updates automatically while display prints once",
+        "There is no difference"
+      ],
+      "answer": 0,
+      "explain": "After display/10i $rip, each stop prints '1: x/10i $rip' followed by the next 10 instructions, so you always see what's about to execute."
+    },
+    {
+      "type": "mc",
+      "category": "Displaying instructions: x and display",
+      "q": "On 64-bit x86, which command prints the next 10 instructions to execute every time the program stops?",
+      "choices": [
+        "display/10i $eip",
+        "x/10i $rip",
+        "display/10i rip",
+        "display/10i $rip"
+      ],
+      "answer": 3,
+      "explain": "In 64-bit x86 code the instruction pointer is RIP, written $rip in GDB. $eip is the 32-bit name. x prints only once. Without the $, GDB treats rip as a symbol name instead of a register."
+    },
+    {
+      "type": "text",
+      "category": "Displaying instructions: x and display",
+      "q": "On RISC-V or ARM, what register expression completes `display/10i ___` so that it follows the next instruction to execute?",
+      "answer": ["$pc"],
+      "explain": "On ARM and RISC-V this register is called the program counter, so the command is `display/10i $pc`."
+    },
+    {
+      "type": "mc",
+      "category": "Displaying instructions: x and display",
+      "q": "In 32-bit x86 code, what is the instruction pointer register called?",
+      "choices": ["RIP", "EIP", "PC", "SP"],
+      "answer": 1,
+      "explain": "EIP is the 32-bit name and RIP is the 64-bit name. PC (program counter) is the name used on ARM and RISC-V. SP is the stack pointer."
+    }
+  ]
+}

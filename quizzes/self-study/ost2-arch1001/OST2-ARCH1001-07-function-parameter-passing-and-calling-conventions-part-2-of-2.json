@@ -1,0 +1,387 @@
+{
+  "title": "Function Parameter Passing and Calling Conventions (part 2 of 2)",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "32-bit calling conventions",
+      "q": "In 32-bit cdecl/stdcall code, main calls func(11, 22, 33, 44, 55). Which push instruction runs first?",
+      "choices": ["push 11", "push 55", "push 33", "None. The first arguments go in ecx and edx, so only 33, 44, 55 are pushed"],
+      "answer": 1,
+      "explain": "32-bit cdecl and stdcall push arguments from right to left (push 55, push 44, push 33, ...). That leaves the first argument at the lowest address, right next to the return address."
+    },
+    {
+      "type": "tf",
+      "category": "32-bit calling conventions",
+      "q": "In 32-bit code, a run of push instructions right before a call usually tells you how many arguments the callee takes and what their values are.",
+      "answer": true,
+      "explain": "That's a useful heuristic. In more complicated code, some arguments may be computed and moved onto the stack with mov instead of push, so it isn't always exactly one push per argument."
+    },
+    {
+      "type": "mc",
+      "category": "32-bit calling conventions",
+      "q": "A 32-bit function begins with 'push ecx' and never pops ecx before returning. What is the best conclusion?",
+      "choices": [
+        "It is a callee-save of ecx, so ecx will be restored by the caller",
+        "It is not a register save: there is no matching pop, and ecx is a caller-save register anyway",
+        "It sets up the stack frame linkage",
+        "It pushes the function's own first argument"
+      ],
+      "answer": 1,
+      "explain": "A callee-save shows up as a balanced pair: save at the start and restore at the end. Here there's no matching pop ecx, and ecx isn't callee-save in the 32-bit conventions, which use the same caller/callee split as 64-bit but with e-registers."
+    },
+    {
+      "type": "mc",
+      "category": "32-bit calling conventions",
+      "q": "Which two-instruction prologue (Intel syntax) creates explicit stack frame linkage in 32-bit cdecl/stdcall code?",
+      "choices": ["push ebp / mov ebp, esp", "mov ebp, esp / push ebp", "push esp / mov esp, ebp", "push ebp / mov esp, ebp"],
+      "answer": 0,
+      "explain": "First save the caller's frame base (push ebp). Then copy the current top of stack into ebp (mov ebp, esp; Intel syntax puts the destination first). ebp now marks the base of the new frame."
+    },
+    {
+      "type": "mc",
+      "category": "32-bit calling conventions",
+      "q": "Right after 'push ebp; mov ebp, esp' in a 32-bit callee, what is stored at the memory address held in ebp?",
+      "choices": [
+        "The caller's saved ebp, which points at the caller's frame base",
+        "The return address",
+        "The function's first argument",
+        "The function's first local variable"
+      ],
+      "answer": 0,
+      "explain": "ebp points at the slot where the old ebp was just pushed. Each saved ebp points back to the previous frame's base, which links the frames together like a linked list."
+    },
+    {
+      "type": "num",
+      "category": "32-bit calling conventions",
+      "q": "In a 32-bit cdecl function, after the standard 'push ebp; mov ebp, esp' prologue, the first argument is at [ebp + N]. What is N (decimal)?",
+      "answer": 8,
+      "explain": "[ebp] = saved ebp (4 bytes), [ebp+4] = return address (4 bytes), [ebp+8] = first argument. The arguments were pushed right to left, so the first one is closest to the return address."
+    },
+    {
+      "type": "text",
+      "category": "32-bit calling conventions",
+      "q": "What is the name for the short sequence of assembly at the start of a function that sets up its stack frame (for example, push ebp; mov ebp, esp)? The function ____.",
+      "answer": ["prologue", "prolog", "function prologue", "function prolog"],
+      "explain": "This sequence is called the function prologue."
+    },
+    {
+      "type": "tf",
+      "category": "32-bit calling conventions",
+      "q": "Like Microsoft x64 code, 32-bit cdecl code reserves 0x20 bytes of shadow space and pads the stack for alignment before each call.",
+      "answer": false,
+      "explain": "In the 32-bit example there's no padding and no alignment adjustment. The pushed arguments look a lot like the x64 shadow space diagram, but they're just the 32-bit stack-based way of passing parameters."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frame layout",
+      "q": "In the 'maximum' 32-bit stack frame for a non-leaf function, which order do the items appear in, from higher to lower addresses, starting just below the return address into this function?",
+      "choices": [
+        "saved ebp, local variables, callee-save registers, caller-save registers, function arguments, return address",
+        "local variables, saved ebp, caller-save registers, callee-save registers, return address, function arguments",
+        "saved ebp, callee-save registers, function arguments, local variables, caller-save registers, return address",
+        "function arguments, return address, saved ebp, local variables, callee-save registers, caller-save registers"
+      ],
+      "answer": 0,
+      "explain": "The saved ebp always comes first in the frame. Then come locals and callee-saves (if any). Before making a call, the function saves any caller-save registers and pushes arguments, and the call instruction pushes the return address."
+    },
+    {
+      "type": "multi",
+      "category": "Stack frame layout",
+      "q": "A 32-bit leaf function (it calls nothing) uses the standard ebp linkage. Which of these could appear in its stack frame?",
+      "choices": ["Saved ebp", "Local variables", "Callee-save registers", "Caller-save registers", "Outgoing function arguments", "A return address pushed by its own call"],
+      "answer": [0, 1, 2],
+      "explain": "A leaf function never calls anything, so it has no reason to save caller-save registers, push arguments, or push a return address. Its frame can only hold the saved ebp, locals, and callee-saves."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frame layout",
+      "q": "In 32-bit code, 'mov eax, [ebp+0Ch]' most likely reads what?",
+      "choices": ["A function argument", "A local variable", "The saved ebp", "A callee-save register"],
+      "answer": 0,
+      "explain": "Rule of thumb: ebp+something means a function argument and ebp-something means a local. Here [ebp+8] is the first argument and [ebp+0Ch] is the second."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frame layout",
+      "q": "In 32-bit code, 'mov [ebp-4], eax' most likely writes to what?",
+      "choices": ["A local variable", "A function argument", "The return address", "The caller's saved ebp"],
+      "answer": 0,
+      "explain": "Locals sit below the saved ebp at the base of the frame, so they're reached as ebp minus an offset."
+    },
+    {
+      "type": "tf",
+      "category": "Stack frame layout",
+      "q": "All compilers access 32-bit local variables as ebp minus an offset.",
+      "answer": false,
+      "explain": "Depending on the compiler and its options, locals may be accessed as esp plus an offset. Some code mixes the two (ebp+ for arguments, esp+ for locals), and some uses esp+ for everything."
+    },
+    {
+      "type": "mc",
+      "category": "Stack frame layout",
+      "q": "A calls B, B calls C, and all three use 32-bit ebp linkage. Execution is inside C. How can you find A's frame base by walking memory?",
+      "choices": [
+        "Read the value at [ebp] to get B's frame base, then read the value stored at that address to get A's frame base",
+        "Read [ebp+4] twice",
+        "Read [esp] to get A's frame base directly",
+        "You can't. Frame bases aren't stored on the stack"
+      ],
+      "answer": 0,
+      "explain": "Each frame's saved ebp points to the previous frame's base, so you can follow the chain one frame at a time. [ebp+4] is a return address, not a frame base."
+    },
+    {
+      "type": "mc",
+      "category": "Frame pointers: Microsoft x64 vs System V",
+      "q": "Why did the GCC and Clang Hello World builds have a balanced push rbp / pop rbp (plus mov rsp to rbp) while Visual Studio's didn't?",
+      "choices": [
+        "The System V x86-64 ABI uses 32-bit-style frame pointers unless compiler options turn them off, while the Microsoft x64 ABI generally doesn't use a frame pointer",
+        "rbp is a caller-save register on Linux but not on Windows",
+        "Visual Studio uses the shadow space as its frame pointer",
+        "It's only an AT&T vs Intel syntax display difference. The machine code is the same"
+      ],
+      "answer": 0,
+      "explain": "The difference comes from the two ABIs. System V keeps the saved-rbp linkage by default, and Microsoft x64 code usually doesn't use a frame pointer."
+    },
+    {
+      "type": "mc",
+      "category": "Frame pointers: Microsoft x64 vs System V",
+      "q": "GCC prints 'mov %rsp, %rbp' in AT&T syntax. Which Intel-syntax instruction is equivalent?",
+      "choices": ["mov rbp, rsp", "mov rsp, rbp", "push rbp", "lea rsp, [rbp]"],
+      "answer": 0,
+      "explain": "AT&T syntax puts the source first and the destination second. Intel syntax is the reverse. Both forms copy rsp into rbp, the same linkage step as 32-bit mov ebp, esp."
+    },
+    {
+      "type": "multi",
+      "category": "Frame pointers: Microsoft x64 vs System V",
+      "q": "In a typical Visual Studio x64 stack frame for a non-leaf function that doesn't use alloca, which of these may appear?",
+      "choices": [
+        "Local variables",
+        "Callee-save (non-volatile) registers",
+        "Caller-save registers",
+        "Shadow space for rcx, rdx, r8, r9",
+        "Stack-passed arguments beyond the first four",
+        "A saved rbp at the very base of the frame linking to the caller's frame"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "Microsoft x64 code generally doesn't use a frame pointer, so there's no saved rbp linkage at the base of each frame. The other items can all appear (each one 'if any')."
+    },
+    {
+      "type": "mc",
+      "category": "Frame pointers: Microsoft x64 vs System V",
+      "q": "According to Microsoft's x64 stack documentation, when a frame pointer is used, where does it generally point?",
+      "choices": [
+        "Partway into the frame: below the local variables and saved non-volatile registers, above any alloca space and the outgoing parameter area",
+        "At the very base of the frame, just below the return address, like 32-bit ebp",
+        "At the start of the shadow space",
+        "At the return address"
+      ],
+      "answer": 0,
+      "explain": "Unlike the 32-bit and System V style, the Microsoft x64 frame pointer doesn't mark the frame base. It sits in the middle of the frame, after the locals and non-volatile registers."
+    },
+    {
+      "type": "mc",
+      "category": "Frame pointers: Microsoft x64 vs System V",
+      "q": "Which situation, per Microsoft's documentation, requires x64 code to use a frame pointer?",
+      "choices": [
+        "The function dynamically allocates stack space with alloca",
+        "The function takes more than four parameters",
+        "The function calls printf",
+        "The function is a leaf function with local variables"
+      ],
+      "answer": 0,
+      "explain": "alloca allocates space on the stack (not the heap) at run time, and that space must be 16-byte aligned. When a function does this, a non-volatile register must be used as a frame pointer."
+    },
+    {
+      "type": "tf",
+      "category": "Frame pointers: Microsoft x64 vs System V",
+      "q": "When Microsoft x64 code must use a frame pointer, that register has to be rbp.",
+      "answer": false,
+      "explain": "The documentation only says a non-volatile register must be used as the frame pointer. Some of Microsoft's example prologues use r13."
+    },
+    {
+      "type": "tf",
+      "category": "Frame pointers: Microsoft x64 vs System V",
+      "q": "In default System V x86-64 code, each stack frame starts with a saved rbp right below the return address, followed by mov rbp, rsp, just like 32-bit code.",
+      "answer": true,
+      "explain": "System V keeps 32-bit-style frame linkage unless compiler options turn it off. The rest of the frame (locals, callee-saves, caller-saves, arguments, return address) follows the same pattern as 32-bit."
+    },
+    {
+      "type": "mc",
+      "category": "LEA",
+      "q": "rbx = 0x2 and rdx = 0x1000. After 'lea rax, [rdx+rbx*8+5]', what is in rax?",
+      "choices": ["0x1015", "The 8-byte value stored in memory at 0x1015", "0x1021", "0x1000"],
+      "answer": 0,
+      "explain": "0x1000 + 2*8 + 5 = 0x1000 + 0x10 + 0x5 = 0x1015. LEA loads the computed address itself and never reads memory at that address. (0x1021 comes from treating decimal 21 as hex.)"
+    },
+    {
+      "type": "text",
+      "category": "LEA",
+      "q": "rdx = 0x2000 and rbx = 3. What value (in hex) does 'lea rax, [rdx+rbx*4+10h]' put in rax?",
+      "answer": ["0x201C", "0x201c", "201C", "201c", "201Ch", "201ch", "0x0000201C", "0x000000000000201C"],
+      "explain": "0x2000 + 3*4 + 0x10 = 0x2000 + 0xC + 0x10 = 0x201C. No memory is read."
+    },
+    {
+      "type": "tf",
+      "category": "LEA",
+      "q": "In Intel syntax, square brackets always mean the CPU reads memory at the address inside them.",
+      "answer": false,
+      "explain": "That's usually true, but LEA is the exception. It uses the bracketed form (just 'm' in the manual) only to compute an address, which it stores in the destination register without dereferencing it."
+    },
+    {
+      "type": "multi",
+      "category": "LEA",
+      "q": "Which values are allowed as the scale X in the [base + index*X + displacement] form that LEA uses?",
+      "choices": ["1", "2", "3", "4", "8", "16"],
+      "answer": [0, 1, 3, 4],
+      "explain": "The scale can only be 1, 2, 4, or 8. The displacement can be 1 byte or 4 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "LEA",
+      "q": "Which expression can NOT be computed by a single LEA of the form a + b*X + Y?",
+      "choices": ["a + b*2 + 7", "a + b*8", "a + b*4 + 0x1000", "a + b*5"],
+      "answer": 3,
+      "explain": "X must be 1, 2, 4, or 8, so a scale of 5 isn't encodable. The other three fit the base + index*scale + displacement form."
+    },
+    {
+      "type": "mc",
+      "category": "LEA",
+      "q": "Why would a compiler turn 'return 2*argc + a;' into one 'lea eax, [rax+rbx*2]' instead of using IMUL and ADD?",
+      "choices": [
+        "Math in the form a + b*X + Y with X in {1,2,4,8} is faster to compute with a single LEA",
+        "LEA reads the operands from memory faster than registers",
+        "The calling convention requires LEA for return values",
+        "IMUL can't multiply a 32-bit register"
+      ],
+      "answer": 0,
+      "explain": "When the arithmetic fits the r/mX addressing shape, the compiler can get the result from one LEA instead of separate multiply and add instructions."
+    },
+    {
+      "type": "multi",
+      "category": "LEA",
+      "q": "Which of these are typical uses of LEA?",
+      "choices": [
+        "Pointer arithmetic (for example, advancing a pointer by the size of what it points to)",
+        "Computing the address of an array element (base + index*element size)",
+        "General arithmetic that fits the form a + b*X + Y",
+        "Loading the 8-byte value stored at a memory address",
+        "Putting the address of a string into rcx to pass it to printf"
+      ],
+      "answer": [0, 1, 2, 4],
+      "explain": "LEA produces an address or value without accessing memory. To fetch the value stored at an address you need a real memory read, such as mov rax, [addr]."
+    },
+    {
+      "type": "text",
+      "category": "LEA",
+      "q": "What does the mnemonic LEA stand for?",
+      "answer": ["Load Effective Address", "load effective address"],
+      "explain": "LEA stands for Load Effective Address. It computes the 'effective address' of the memory operand and loads that address into a register."
+    },
+    {
+      "type": "mc",
+      "category": "SpecialMaths.c and Hello World",
+      "q": "SpecialMaths.c: int main(int argc, char **argv){ int a; a = atoi(argv[1]); return 2*argc + a; }. MSVC x64 compiles it to: push rbx; sub rsp,20h; mov ebx,ecx; mov rcx,qword ptr [rdx+8]; call atoi; lea eax,[rax+rbx*2]; add rsp,20h; pop rbx; ret. What does 'mov ebx, ecx' save?",
+      "choices": ["argc", "argv", "argv[1]", "atoi's return value"],
+      "answer": 0,
+      "explain": "On Microsoft x64, the first argument (argc) arrives in rcx. Because argc is an int, the compiler uses the 32-bit ecx/ebx. It copies argc into rbx, which is callee-save, so argc is still there after the atoi call."
+    },
+    {
+      "type": "mc",
+      "category": "SpecialMaths.c and Hello World",
+      "q": "In SpecialMaths.c's main, what does 'mov rcx, qword ptr [rdx+8]' load into rcx?",
+      "choices": [
+        "argv[1], the pointer to the first command-line argument string, passed as atoi's first argument",
+        "argv[0], the program name pointer",
+        "argc multiplied by 8",
+        "The integer value of the command-line argument"
+      ],
+      "answer": 0,
+      "explain": "rdx holds argv (the second argument). Pointers are 8 bytes on x64, so [rdx+8] is argv[1]. Loading it into rcx makes it atoi's first argument. The string-to-integer conversion happens inside atoi."
+    },
+    {
+      "type": "mc",
+      "category": "SpecialMaths.c and Hello World",
+      "q": "SpecialMaths.c's main starts with 'push rbx' and ends with 'pop rbx'. What kind of register save is this?",
+      "choices": [
+        "A callee-save: main is about to use rbx, so it saves and restores the caller's value",
+        "A caller-save: main protects rbx before calling atoi",
+        "Frame-pointer linkage",
+        "Pushing an argument to atoi"
+      ],
+      "answer": 0,
+      "explain": "rbx is callee-save (non-volatile). main stores argc in it, so main has to preserve the caller's rbx with a balanced push/pop. The same property means atoi has to preserve rbx too, which is why argc survives the call."
+    },
+    {
+      "type": "mc",
+      "category": "SpecialMaths.c and Hello World",
+      "q": "Hello World used 'sub rsp, 28h', but SpecialMaths.c's main uses only 'sub rsp, 20h'. Why?",
+      "choices": [
+        "The 8-byte return address plus the 8-byte push rbx already total 16 bytes, so 0x20 of shadow space keeps rsp 16-byte aligned with no extra padding",
+        "atoi takes only one parameter, so it needs less shadow space",
+        "main has no local variables, so it skips the alignment padding and half the shadow space",
+        "The push rbx takes the place of the shadow space"
+      ],
+      "answer": 0,
+      "explain": "Hello World needs 0x20 for shadow space plus 8 bytes of padding to make up for the return address. In SpecialMaths, the push rbx does that balancing job, so only the 0x20 shadow space is subtracted."
+    },
+    {
+      "type": "num",
+      "category": "SpecialMaths.c and Hello World",
+      "q": "SpecialMaths.c (return 2*argc + atoi(argv[1])) is run with the single command-line argument 16. What does main return (decimal)?",
+      "answer": 20,
+      "explain": "argc = 2 (argv[0] is the program, argv[1] is \"16\") and a = 16. lea eax,[rax+rbx*2] computes 16 + 2*2 = 20."
+    },
+    {
+      "type": "mc",
+      "category": "SpecialMaths.c and Hello World",
+      "q": "In SpecialMaths.c, how does 'lea eax, [rax+rbx*2]' map to the C code?",
+      "choices": [
+        "rax holds a (atoi's return value), rbx holds argc, and the result in eax is the return value a + 2*argc",
+        "rax holds argc, rbx holds a, and the result is argc + 2*a",
+        "It loads the int stored at address a + 2*argc",
+        "It computes the address of argv[2]"
+      ],
+      "answer": 0,
+      "explain": "atoi's result comes back in rax/eax, and argc was saved in rbx earlier. LEA computes a + argc*2 without reading memory and leaves it in eax, which is the return-value register."
+    },
+    {
+      "type": "mc",
+      "category": "SpecialMaths.c and Hello World",
+      "q": "MSVC x64 Hello World: sub rsp,28h; lea rcx,[__NULL_IMPORT_DESCRIPTOR+15C0h (0140006000h)]; call printf; mov eax,1234h; add rsp,28h; ret. What does the lea put in rcx?",
+      "choices": [
+        "The address 0x140006000, a pointer to the \"Hello World\" string, passed as printf's first argument",
+        "The first 8 bytes of the \"Hello World\" string",
+        "The address of printf",
+        "The value 0x15C0"
+      ],
+      "answer": 0,
+      "explain": "LEA doesn't dereference, so rcx gets the address itself. On Microsoft x64, rcx carries the first argument, so printf receives a pointer to the string."
+    },
+    {
+      "type": "mc",
+      "category": "SpecialMaths.c and Hello World",
+      "q": "In MSVC x64 Hello World, what makes up the 0x28 bytes in 'sub rsp, 28h'?",
+      "choices": [
+        "0x20 bytes of shadow space for printf plus 8 bytes of padding to restore 16-byte alignment after the return address",
+        "0x28 bytes of local variables",
+        "0x20 bytes for the string plus 8 bytes for the return value",
+        "Space for five stack-passed printf arguments"
+      ],
+      "answer": 0,
+      "explain": "The caller must provide 0x20 bytes of shadow space for rcx, rdx, r8, and r9. The extra 8 bytes offset the 8-byte return address so rsp is 16-byte aligned at the call. add rsp,28h undoes the subtraction before ret."
+    },
+    {
+      "type": "mc",
+      "category": "SpecialMaths.c and Hello World",
+      "q": "Why does Hello World execute 'mov eax, 1234h' after the call to printf?",
+      "choices": [
+        "To set main's return value, because rax/eax is the return-value register",
+        "To pass 0x1234 as an argument to the next function",
+        "To restore a callee-save register",
+        "To realign the stack before ret"
+      ],
+      "answer": 0,
+      "explain": "By convention, a C function returns its value in rax/eax, so this line implements 'return 0x1234;'."
+    }
+  ]
+}

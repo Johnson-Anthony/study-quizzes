@@ -1,0 +1,363 @@
+{
+  "title": "Boolean Logic: and, or, xor, not, inc/dec, test",
+  "course": "OST2-ARCH1001",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Boolean logic and C operators",
+      "q": "For which inputs is A XOR B = 1 while A AND B = 0?",
+      "choices": ["A = 0, B = 0", "A = 1, B = 0", "A = 1, B = 1", "No such inputs exist"],
+      "answer": 1,
+      "explain": "XOR is true when exactly one input is true, and AND is true only when both are. A=1, B=0 gives XOR 1 and AND 0. With 1,1 XOR is 0, and with 0,0 both are 0."
+    },
+    {
+      "type": "tf",
+      "category": "Boolean logic and C operators",
+      "q": "1 OR 1 = 1, but 1 XOR 1 = 0.",
+      "answer": true,
+      "explain": "OR is true if either input is true, so it includes the both-true case. Exclusive-OR is true only when exactly one input is true."
+    },
+    {
+      "type": "mc",
+      "category": "Boolean logic and C operators",
+      "q": "Which C operator is the bitwise NOT, the one that flips every bit?",
+      "choices": ["!", "~", "^", "-"],
+      "answer": 1,
+      "explain": "~ is bitwise NOT (one's complement). ! is logical NOT, ^ is bitwise XOR, and - is arithmetic negation."
+    },
+    {
+      "type": "multi",
+      "category": "Boolean logic and C operators",
+      "q": "Which of these C operators are bitwise operators, meaning they compute the operation separately on each bit position?",
+      "choices": ["&", "&&", "|", "||", "^", "~", "!"],
+      "answer": [0, 2, 4, 5],
+      "explain": "The bitwise operators are & (AND), | (OR), ^ (XOR) and ~ (NOT). The logical operators are &&, || and !, and they treat a whole value as true (non-zero) or false (zero)."
+    },
+    {
+      "type": "mc",
+      "category": "Boolean logic and C operators",
+      "q": "In C, consider `if (2 & 1) {...}` and `if (2 && 1) {...}`. Which body or bodies run?",
+      "choices": ["Both bodies run", "Only the `2 & 1` body runs", "Only the `2 && 1` body runs", "Neither body runs"],
+      "answer": 2,
+      "explain": "2 = 10b and 1 = 01b. They share no set bits, so 2 & 1 = 0, which is false. Logical && only asks whether each side is non-zero, and both are, so 2 && 1 is true."
+    },
+    {
+      "type": "mc",
+      "category": "Boolean logic and C operators",
+      "q": "What is 1100b XOR 1010b?",
+      "choices": ["1000b", "1110b", "0110b", "0001b"],
+      "answer": 2,
+      "explain": "Go one bit at a time: 1^1=0, 1^0=1, 0^1=1, 0^0=0, which gives 0110b. 1000b is the AND and 1110b is the OR."
+    },
+    {
+      "type": "tf",
+      "category": "Boolean logic and C operators",
+      "q": "C's logical operators (&&, ||, !) treat any non-zero value as true and zero as false.",
+      "answer": true,
+      "explain": "A logical operation looks at the whole value: non-zero is true and zero is false. Bitwise operators work on individual bits instead."
+    },
+    {
+      "type": "mc",
+      "category": "and / or / xor / not instructions",
+      "q": "al = 0x33 and bl = 0x55. What is al after `and al, bl`?",
+      "choices": ["0x11", "0x77", "0x66", "0x88"],
+      "answer": 0,
+      "explain": "00110011b AND 01010101b = 00010001b = 0x11. 0x77 would be the OR and 0x66 the XOR."
+    },
+    {
+      "type": "mc",
+      "category": "and / or / xor / not instructions",
+      "q": "al = 0x33. What is al after `or al, 0x42`?",
+      "choices": ["0x02", "0x73", "0x71", "0x75"],
+      "answer": 1,
+      "explain": "00110011b OR 01000010b = 01110011b = 0x73. 0x02 is the AND and 0x71 is the XOR."
+    },
+    {
+      "type": "mc",
+      "category": "and / or / xor / not instructions",
+      "q": "al = 0x33. What is al after `xor al, 0x42`?",
+      "choices": ["0x73", "0x02", "0x71", "0x0C"],
+      "answer": 2,
+      "explain": "00110011b XOR 01000010b = 01110001b = 0x71. Bit 1 is set in both operands, so XOR clears it. That's why the answer is 0x71 rather than the OR result 0x73."
+    },
+    {
+      "type": "text",
+      "category": "and / or / xor / not instructions",
+      "q": "al = 0x33. What is al (in hex) after `not al`?",
+      "answer": ["0xCC", "0xcc", "CC", "cc", "CCh", "cch", "0CCh", "0cch"],
+      "explain": "not flips every bit: 00110011b becomes 11001100b = 0xCC."
+    },
+    {
+      "type": "multi",
+      "category": "and / or / xor / not instructions",
+      "q": "Which of these are valid operand forms for the x86 `and` instruction? (The same rules apply to `or` and `xor`.)",
+      "choices": ["and eax, ebx", "and dword ptr [rsp], eax", "and eax, dword ptr [rsp]", "and dword ptr [rsp], dword ptr [rsp+4]", "and eax, 0x42", "and 0x42, eax"],
+      "answer": [0, 1, 2, 4],
+      "explain": "The destination can be a register or r/mX. The source can be a register, r/mX or an immediate. The source and destination can't both be memory, because x86 doesn't support memory-to-memory for basic instructions. An immediate can't be a destination."
+    },
+    {
+      "type": "mc",
+      "category": "and / or / xor / not instructions",
+      "q": "Disassembly often contains `xor eax, eax` even where the C source has no ^ operator. Why?",
+      "choices": [
+        "The compiler uses it to set the register to 0, since anything XORed with itself is 0 and it is faster than a mov",
+        "It checks whether eax equals itself before a conditional jump",
+        "It flips every bit of eax to prepare a negative number",
+        "It clears only the flags and leaves eax unchanged"
+      ],
+      "answer": 0,
+      "explain": "Every bit XORed with itself is 0, so `xor reg, reg` zeroes the register. Compilers emit it on their own for zeroing, for example to set a return value of 0. That's one reason xor is more common in real code than and/or."
+    },
+    {
+      "type": "mc",
+      "category": "and / or / xor / not instructions",
+      "q": "eax = 5. Which sequence leaves eax = -5 (0xFFFFFFFB)?",
+      "choices": ["not eax", "not eax, then inc eax", "xor eax, eax", "not eax, then dec eax"],
+      "answer": 1,
+      "explain": "not is one's complement: it flips all bits, so 5 becomes 0xFFFFFFFA, which is -6. Two's complement negation is one's complement plus 1, so you also need inc to reach 0xFFFFFFFB = -5."
+    },
+    {
+      "type": "tf",
+      "category": "and / or / xor / not instructions",
+      "q": "Like `and`, the `not` instruction takes a separate source operand and destination operand.",
+      "answer": false,
+      "explain": "not has a single source/destination operand (r/mX). It flips all the bits of that operand in place."
+    },
+    {
+      "type": "mc",
+      "category": "and / or / xor / not instructions",
+      "q": "After `not rax`, rax = 0x7E55E11A7ED70AD5. What was rax before the instruction?",
+      "choices": ["0x81AA1EE58128F52A", "0x81AA1EE58128F52B", "0x7E55E11A7ED70AD5", "0x81AA1EE57ED70AD5"],
+      "answer": 0,
+      "explain": "Flipping all bits twice gives back the original, so take the NOT of the result one hex digit at a time (each digit d becomes F-d): 7->8, E->1, 5->A, ... giving 0x81AA1EE58128F52A. 0x...52B would be the two's complement (NOT plus 1), which is not what `not` does."
+    },
+    {
+      "type": "tf",
+      "category": "and / or / xor / not instructions",
+      "q": "If an `and` produces 0, the zero flag (ZF) is set. If an `or` produces a result whose most significant bit is 1, the sign flag (SF) is set.",
+      "answer": true,
+      "explain": "Boolean instructions set most of the status flags from their result. A zero result sets ZF, and a result with the top bit set sets SF."
+    },
+    {
+      "type": "mc",
+      "category": "BooleanBecause.c: C to assembly",
+      "q": "BooleanBecause.c computes `k ^= ~(i & j) | 0x7ab00;`. In what order do the boolean instructions appear in its assembly?",
+      "choices": ["and, not, or, xor", "xor, or, not, and", "not, and, or, xor", "and, or, not, xor"],
+      "answer": 0,
+      "explain": "The innermost operation comes first: (i & j) gives `and ecx, eax`. Then ~ gives `not eax`, then | 0x7ab00 gives `or eax, 7AB00h`, and the k ^= assignment gives `xor rcx, rax`."
+    },
+    {
+      "type": "mc",
+      "category": "BooleanBecause.c: C to assembly",
+      "q": "Which part of `k ^= ~(i & j) | 0x7ab00;` does the instruction `not eax` implement?",
+      "choices": ["The ~ applied to (i & j)", "A logical ! applied to (i & j)", "The ^= into k", "The | 0x7ab00"],
+      "answer": 0,
+      "explain": "C's bitwise ~ maps directly to the not instruction (one's complement). Logical ! would not compile to `not`, because it produces true or false rather than flipping every bit."
+    },
+    {
+      "type": "text",
+      "category": "BooleanBecause.c: C to assembly",
+      "q": "In BooleanBecause.c, i = 0x50da and j = 0xc0ffee. What is ecx (in hex) after `and ecx, eax` computes i & j?",
+      "answer": ["0x50CA", "0x50ca", "50CA", "50ca", "50CAh", "50cah", "0x000050CA", "0x000050ca"],
+      "explain": "i has nothing above bit 15, so only the low 16 bits matter: 0x50DA & 0xFFEE. Low byte: 0xDA & 0xEE = 11011010b & 11101110b = 11001010b = 0xCA. High byte: 0x50 & 0xFF = 0x50. The result is 0x50CA."
+    },
+    {
+      "type": "mc",
+      "category": "BooleanBecause.c: C to assembly",
+      "q": "In BooleanBecause.c, eax = 0x000050CA just before `not eax`. What is eax afterward?",
+      "choices": ["0xFFFFAF35", "0x0000AF35", "0xFFFFAF36", "0x000050CA"],
+      "answer": 0,
+      "explain": "not flips all 32 bits. The upper 0x0000 becomes 0xFFFF and 0x50CA becomes 0xAF35 (each hex digit d becomes F-d). 0x0000AF35 forgets that the upper bits flip too, and 0x...AF36 is two's complement (NOT plus 1)."
+    },
+    {
+      "type": "tf",
+      "category": "BooleanBecause.c: C to assembly",
+      "q": "With BooleanBecause.c's values, eax = 0xFFFFAF35 before `or eax, 7AB00h`, and the or leaves eax unchanged.",
+      "answer": true,
+      "explain": "0x0007AB00 only sets bits that are already 1 in 0xFFFFAF35: the upper half 0xFFFF already covers 0x0007, A|A = A and F|B = F. OR can only turn bits on, so eax stays 0xFFFFAF35."
+    },
+    {
+      "type": "mc",
+      "category": "BooleanBecause.c: C to assembly",
+      "q": "BooleanBecause.c has k = 0x7ee707a11ed (64-bit). The 32-bit result of ~(i & j) | 0x7ab00 is 0xFFFFAF35, and it is zero-extended to 64 bits before `xor rcx, rax`. What value of k does main return?",
+      "choices": ["0x000007EE8F85BED8", "0xFFFFF8118F85BED8", "0x000007EE707DEA27", "0x000007EE707DBAED"],
+      "answer": 0,
+      "explain": "Zero extension makes rax = 0x00000000FFFFAF35, so the upper half of k (0x000007EE) stays the same. Low half: 0x707A11ED ^ 0xFFFFAF35 = 0x8F85BED8. 0xFFFFF811... is what sign extension would give. 0x...707DEA27 drops the ~, and 0x...707DBAED uses logical ! instead of ~."
+    },
+    {
+      "type": "tf",
+      "category": "BooleanBecause.c: C to assembly",
+      "q": "C's bitwise operators map one-to-one onto x86 instructions: & to and, | to or, ^ to xor, and ~ to not.",
+      "answer": true,
+      "explain": "That's the main point of BooleanBecause.c: each bitwise operator in the C source shows up as the matching boolean instruction in the assembly."
+    },
+    {
+      "type": "mc",
+      "category": "inc / dec and ForLoopNoRet.c",
+      "q": "rax = 0x70ad57001. What is rax after `mov rax, 0` and then `dec rax`?",
+      "choices": ["0xFFFFFFFFFFFFFFFF", "0x0", "0x70ad57000", "0x00000000FFFFFFFF"],
+      "answer": 0,
+      "explain": "mov sets rax to 0. Decrementing 0 wraps around (integer underflow) to all ones across the full 64-bit register."
+    },
+    {
+      "type": "mc",
+      "category": "inc / dec and ForLoopNoRet.c",
+      "q": "rax = 0xbe5077ed. What is rax after `xor rax, rax` and then `inc rax`?",
+      "choices": ["0x1", "0xbe5077ee", "0x0", "0xFFFFFFFFFFFFFFFF"],
+      "answer": 0,
+      "explain": "XORing rax with itself zeroes it, and inc adds 1, so rax ends at 0x1."
+    },
+    {
+      "type": "tf",
+      "category": "inc / dec and ForLoopNoRet.c",
+      "q": "Seeing inc or dec in disassembly can hint that the code is unoptimized or hand-written, because the Intel optimization guide tells compilers not to use them.",
+      "answer": true,
+      "explain": "Optimizing compilers tend to avoid inc/dec as Intel's guide directs. When you do see them, the code may be unoptimized, hand-written, or from a compiler that doesn't follow that guidance."
+    },
+    {
+      "type": "mc",
+      "category": "inc / dec and ForLoopNoRet.c",
+      "q": "In ForLoopNoRet.c (`for(i = 0; i < 10; i++)`), right after `mov dword ptr [rsp+20h], 0` there is `jmp 0x140001018` (the cmp). What is that jump for?",
+      "choices": [
+        "It skips the i++ code so the loop condition is checked before the first iteration",
+        "It exits the loop",
+        "It jumps straight to the printf call",
+        "It jumps back to the top of the loop for the next iteration"
+      ],
+      "answer": 0,
+      "explain": "The increment code (0x14000100E: mov / inc / mov) sits above the condition check. On entry, i = 0 must be tested against 10 without being incremented first, so the code jumps over the increment to the cmp."
+    },
+    {
+      "type": "mc",
+      "category": "inc / dec and ForLoopNoRet.c",
+      "q": "The loop condition is `i < 10`, but the assembly is `cmp dword ptr [rsp+20h], 0Ah` followed by `jge 0x140001031`. Why jge?",
+      "choices": [
+        "The jump exits the loop, so it tests the opposite condition (i >= 10), and a signed jump is used because i is a signed int",
+        "jge is the unsigned version of jl",
+        "It is a compiler bug, and it should be jl",
+        "jge tests whether i > 10"
+      ],
+      "answer": 0,
+      "explain": "The conditional jump is the loop's exit check: when i >= 10, it jumps past the body to 0x140001031. i is declared int (signed), so the compiler uses the signed greater-or-equal jump instead of jae."
+    },
+    {
+      "type": "num",
+      "category": "inc / dec and ForLoopNoRet.c",
+      "q": "How many times does ForLoopNoRet.c call printf?",
+      "answer": 10,
+      "explain": "The body runs for i = 0 through 9. When i reaches 10, jge exits the loop."
+    },
+    {
+      "type": "num",
+      "category": "inc / dec and ForLoopNoRet.c",
+      "q": "In ForLoopNoRet.c, how many times does `cmp dword ptr [rsp+20h], 0Ah` execute?",
+      "answer": 11,
+      "explain": "It runs once for each value i = 0, 1, ..., 9, where the loop continues, and once more for i = 10, where jge exits. That's 11 times."
+    },
+    {
+      "type": "num",
+      "category": "inc / dec and ForLoopNoRet.c",
+      "q": "In ForLoopNoRet.c, what value does i ([rsp+20h]) hold just before `xor eax, eax` executes?",
+      "answer": 9,
+      "explain": "The loop exits with i = 10. Then the stray `i--` (mov eax, [rsp+20h] / dec eax / mov [rsp+20h], eax) stores 9."
+    },
+    {
+      "type": "mc",
+      "category": "inc / dec and ForLoopNoRet.c",
+      "q": "Why does ForLoopNoRet.c's main end with `xor eax, eax` before `add rsp, 38h` / `ret`?",
+      "choices": [
+        "main has no return statement, so the compiler returns 0 by default",
+        "To clear i before the function exits",
+        "To reset the loop counter for another pass",
+        "To set the zero flag so that ret works"
+      ],
+      "answer": 0,
+      "explain": "The programmer left out a return value. With no explicit return, both Visual Studio and GCC default main's return value to 0, which they do by zeroing eax with xor."
+    },
+    {
+      "type": "tf",
+      "category": "inc / dec and ForLoopNoRet.c",
+      "q": "A for loop typically compiles to a conditional jump (Jcc) that checks the exit condition, plus an unconditional jmp at the end of the body that goes back to the increment and condition-check code.",
+      "answer": true,
+      "explain": "In ForLoopNoRet.c, `jge` exits when i >= 10, and `jmp 0x14000100E` after the printf call jumps backward to the i++ code, which then falls into the cmp."
+    },
+    {
+      "type": "mc",
+      "category": "test and BitmaskExample.c",
+      "q": "What does the `test` instruction do?",
+      "choices": [
+        "Computes the bitwise AND of its two operands, sets SF, ZF and PF from the result, and throws the result away",
+        "Subtracts the second operand from the first, sets flags, and throws the result away",
+        "Computes the bitwise AND and stores the result in the first operand",
+        "Compares two operands and jumps if they are equal"
+      ],
+      "answer": 0,
+      "explain": "test is a logical compare. It computes an AND only to set the flags and doesn't store the result. The second choice describes cmp, and the third describes and."
+    },
+    {
+      "type": "mc",
+      "category": "test and BitmaskExample.c",
+      "q": "test relates to and the way cmp relates to which instruction?",
+      "choices": ["sub", "add", "xor", "jmp"],
+      "answer": 0,
+      "explain": "cmp is effectively a sub that sets flags and throws away the result. test is an and that sets flags and throws away the result."
+    },
+    {
+      "type": "mc",
+      "category": "test and BitmaskExample.c",
+      "q": "BitmaskExample.c sets a = 0x1301 and b = 0x0100, then runs `if(a & b) return 0x70dd1e; else return 0x707;`. What does main return?",
+      "choices": ["0x70DD1E", "0x707", "0x100", "0x0"],
+      "answer": 0,
+      "explain": "0x1301 & 0x0100 = 0x0100 because bit 8 is set in both. The result is non-zero, so the condition is true and main returns 0x70DD1E."
+    },
+    {
+      "type": "mc",
+      "category": "test and BitmaskExample.c",
+      "q": "`test eax, eax` is followed by `je 0x14000102B`. When is the jump taken?",
+      "choices": ["When eax is 0", "When eax is non-zero", "When eax is negative", "Always"],
+      "answer": 0,
+      "explain": "eax AND eax equals eax, so ZF is set exactly when eax is 0, and je jumps when ZF = 1. In BitmaskExample.c the je goes to the else branch (mov eax, 707h), which is right when a & b == 0."
+    },
+    {
+      "type": "mc",
+      "category": "test and BitmaskExample.c",
+      "q": "In BitmaskExample.c, suppose b were 0x0400 instead of 0x0100, with a still 0x1301. What would main return?",
+      "choices": ["0x70DD1E", "0x707", "0x400", "0x1301"],
+      "answer": 1,
+      "explain": "0x1301 has bits 12, 9, 8 and 0 set, and 0x0400 has only bit 10 set. They share no bits, so a & b = 0. test then sets ZF, je is taken, and main returns 0x707."
+    },
+    {
+      "type": "tf",
+      "category": "test and BitmaskExample.c",
+      "q": "`test eax, eax` writes the value eax AND eax back into eax.",
+      "answer": false,
+      "explain": "test only updates the flags (SF, ZF, PF) and throws the AND result away. Neither operand is modified."
+    },
+    {
+      "type": "mc",
+      "category": "test and BitmaskExample.c",
+      "q": "BitmaskExample.c's assembly has `jmp 0x140001030` at 0x140001027 and another `jmp 0x140001030` right after it at 0x140001029. Why does the second jmp exist?",
+      "choices": [
+        "It is unreachable: an artifact of unoptimized code generation, where the compiler follows simple construction rules",
+        "It runs when the je is taken",
+        "It is the loop-back jump for the if statement",
+        "It handles the case where a & b is negative"
+      ],
+      "answer": 0,
+      "explain": "Nothing jumps to 0x140001029, and the jmp just before it always jumps over it, so it can never execute. Unoptimized compilation emits code by simple patterns and leaves artifacts like this."
+    },
+    {
+      "type": "mc",
+      "category": "test and BitmaskExample.c",
+      "q": "Why does test fit conditions like `if (a & b)` well?",
+      "choices": [
+        "The code only needs to know whether the AND result is zero and never stores it, so an instruction that sets flags without overwriting an operand is enough",
+        "test can compare two memory operands directly, unlike and",
+        "test computes a logical && rather than a bitwise &",
+        "test also jumps, so no Jcc is needed afterward"
+      ],
+      "answer": 0,
+      "explain": "Bit-test conditions only need ZF/SF for the following Jcc. test does an AND, sets the flags, and leaves the operands alone. It doesn't jump by itself, and like and it can't take two memory operands."
+    }
+  ]
+}
