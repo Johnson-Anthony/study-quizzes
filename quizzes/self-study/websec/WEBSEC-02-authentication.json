@@ -1,0 +1,390 @@
+{
+  "title": "WEBSEC 02: Authentication Vulnerabilities",
+  "course": "WEBSEC",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "q": "Which question does authorization (as opposed to authentication) answer?",
+      "choices": [
+        "Is this user allowed to perform this action?",
+        "Is this user really who they claim to be?",
+        "Was this password typed by a human rather than a script?",
+        "Has this session cookie expired?"
+      ],
+      "answer": 0,
+      "explain": "Authentication verifies identity. Authorization decides what that authenticated user may do, so permissions are checked after authentication."
+    },
+    {
+      "type": "multi",
+      "category": "Fundamentals",
+      "q": "Which of these are inherence factors (\"something you are or do\")?",
+      "choices": [
+        "A fingerprint scan",
+        "Typing or behavior patterns",
+        "A hardware security token",
+        "The answer to a security question"
+      ],
+      "answer": [0, 1],
+      "explain": "Inherence factors are biometrics and behavior patterns. A security token is a possession factor, and a security question answer is a knowledge factor."
+    },
+    {
+      "type": "mc",
+      "category": "Fundamentals",
+      "q": "A phone that receives or generates a one-time login code is an example of which factor type?",
+      "choices": [
+        "Possession factor",
+        "Knowledge factor",
+        "Inherence factor",
+        "Authorization factor"
+      ],
+      "answer": 0,
+      "explain": "It is \"something you have\", which makes it a possession factor."
+    },
+    {
+      "type": "tf",
+      "category": "Fundamentals",
+      "q": "Compromising a low-privilege account has no security impact beyond that one user's own data.",
+      "answer": false,
+      "explain": "Even a low-privilege account can expose sensitive business data. It also gives the attacker extra attack surface, because internal pages allow attacks that public pages don't."
+    },
+    {
+      "type": "text",
+      "category": "Fundamentals",
+      "q": "Logic flaws or poor coding that let an attacker bypass the authentication mechanism entirely are commonly called ________.",
+      "answer": ["broken authentication", "broken auth"],
+      "explain": "Auth vulnerabilities come from either weak brute-force protection or logic flaws that allow a bypass. The second kind is called broken authentication."
+    },
+    {
+      "type": "mc",
+      "category": "Password-based login",
+      "q": "A site requires a minimum length, mixed case and a special character. Why can targeted guesses like \"Mypassword1!\" still succeed?",
+      "choices": [
+        "Users bend a memorable password to fit the policy in predictable ways",
+        "Complexity policies are never enforced on the server",
+        "Special characters are stripped before hashing",
+        "Mixed case is ignored when passwords are compared"
+      ],
+      "answer": 0,
+      "explain": "The policy gives high entropy only in theory. People turn \"mypassword\" into \"Mypassword1!\" or \"Myp4$$w0rd\" and make small edits when forced to change it, so educated guesses beat trying every combination."
+    },
+    {
+      "type": "multi",
+      "category": "Password-based login",
+      "q": "When a login attempt uses a valid username but a wrong password, which differences in the response could reveal that the username exists?",
+      "choices": [
+        "A different HTTP status code",
+        "A different error message, even by one character",
+        "A noticeably different response time",
+        "Whether the login form is submitted with POST"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Status codes, error messages and response times can all leak username validity. The form's HTTP method is the same no matter which username is entered."
+    },
+    {
+      "type": "tf",
+      "category": "Password-based login",
+      "q": "Two error messages that differ by one character that isn't visible on the rendered page can still allow username enumeration.",
+      "answer": true,
+      "explain": "Any difference in the response, even a typo or an invisible character, can be detected and used to tell valid usernames from invalid ones."
+    },
+    {
+      "type": "mc",
+      "category": "Password-based login",
+      "q": "When testing for username enumeration through response times, why submit an excessively long password?",
+      "choices": [
+        "It makes the extra processing for valid usernames take noticeably longer",
+        "It overflows the username field",
+        "It forces the server to return a different status code",
+        "It bypasses account locking"
+      ],
+      "answer": 0,
+      "explain": "If the password is only checked when the username is valid, a very long password makes that extra work take longer, so the timing difference stands out."
+    },
+    {
+      "type": "text",
+      "category": "Password-based login",
+      "q": "In HTTP basic authentication, the username and password are joined with a colon and then encoded with which scheme?",
+      "answer": ["Base64", "base 64", "b64"],
+      "explain": "The Base64 token is sent in the \"Authorization: Basic <token>\" header on every request. Base64 is an encoding, not encryption."
+    },
+    {
+      "type": "multi",
+      "category": "Password-based login",
+      "q": "Why is HTTP basic authentication generally considered insecure?",
+      "choices": [
+        "Credentials go with every request, so they can be captured in transit unless the site uses HSTS",
+        "It often has no brute-force protection, and the token is just static values",
+        "It provides no CSRF protection on its own",
+        "It stores a salted one-way hash that is slow to verify"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Basic auth resends static, reversible credentials with every request, often lacks brute-force protection and has no CSRF protection. It does not use salted hashing."
+    },
+    {
+      "type": "mc",
+      "category": "Brute-force protection",
+      "q": "A site blocks an IP after too many failed logins, but the failed-attempt counter resets after any successful login from that IP. Why is this a weakness?",
+      "choices": [
+        "An attacker can mix logins to their own valid account into the guesses to keep resetting the counter",
+        "Successful logins reveal the victim's password",
+        "The block applies to the victim instead of the attacker",
+        "It causes the server to return a different status code for valid usernames"
+      ],
+      "answer": 0,
+      "explain": "Adding the attacker's own valid credentials to the guess list at regular intervals stops the counter from ever reaching the limit, so the defense does nothing."
+    },
+    {
+      "type": "mc",
+      "category": "Brute-force protection",
+      "q": "Account locking mainly protects against which kind of attack?",
+      "choices": [
+        "Targeted brute-forcing of one specific account",
+        "Trying a few common passwords against many accounts",
+        "Credential stuffing with leaked username/password pairs",
+        "Session hijacking with a stolen cookie"
+      ],
+      "answer": 0,
+      "explain": "Locking stops many guesses against one account. It does not stop an attacker who tries only a few passwords per account across many usernames, staying under the limit."
+    },
+    {
+      "type": "tf",
+      "category": "Brute-force protection",
+      "q": "An \"account locked\" response can itself help an attacker enumerate valid usernames.",
+      "answer": true,
+      "explain": "Only existing accounts can be locked, so a lock message confirms the username is valid."
+    },
+    {
+      "type": "mc",
+      "category": "Brute-force protection",
+      "q": "Why doesn't account locking stop credential stuffing?",
+      "choices": [
+        "Each username is tried only once, with its leaked password",
+        "Credential stuffing uses only the admin account",
+        "Locked accounts are automatically unlocked by a CAPTCHA",
+        "Credential stuffing targets the registration form instead of login"
+      ],
+      "answer": 0,
+      "explain": "Credential stuffing replays real username/password pairs from data breaches, relying on password reuse. One attempt per username never trips a lock, and one automated run can compromise many accounts."
+    },
+    {
+      "type": "tf",
+      "category": "Brute-force protection",
+      "q": "User rate limiting is sometimes preferred over account locking because it is less prone to username enumeration and denial of service.",
+      "answer": true,
+      "explain": "Rate limiting blocks the requester's IP instead of locking the account, so legitimate users aren't locked out and no lock message reveals which accounts exist."
+    },
+    {
+      "type": "multi",
+      "category": "Brute-force protection",
+      "q": "Under typical user rate limiting, how can a blocked IP become unblocked?",
+      "choices": [
+        "Automatically, after some time passes",
+        "Manually, by an administrator",
+        "By the user completing a CAPTCHA",
+        "By submitting the login form with a different username"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Blocks are lifted by time passing, an admin, or a CAPTCHA. Changing the username doesn't help because the block applies to the IP."
+    },
+    {
+      "type": "mc",
+      "category": "Multi-factor authentication",
+      "q": "Why is a password followed by a code sent by email not true two-factor authentication?",
+      "choices": [
+        "It checks the knowledge factor twice, because getting the code only takes the email login credentials",
+        "Email codes are always too short",
+        "Email cannot carry numeric codes reliably",
+        "It checks the inherence factor instead of the possession factor"
+      ],
+      "answer": 0,
+      "explain": "Real MFA must verify different factors. Access to the code depends on knowing the email credentials, so it is another knowledge factor."
+    },
+    {
+      "type": "multi",
+      "category": "Multi-factor authentication",
+      "q": "Why are SMS verification codes weaker than codes generated by a dedicated authenticator app or device?",
+      "choices": [
+        "The code is transmitted to the phone instead of generated on it, so it can be intercepted",
+        "SIM swapping lets an attacker receive the victim's SMS messages",
+        "SMS codes are a knowledge factor rather than a possession factor",
+        "SMS codes cannot expire"
+      ],
+      "answer": [0, 1],
+      "explain": "SMS is technically \"something you have\", but sending the code opens it to interception, and SIM swapping hands the victim's number to the attacker."
+    },
+    {
+      "type": "tf",
+      "category": "Multi-factor authentication",
+      "q": "When the password and the verification code are entered on separate pages, a site may treat the user as logged in before the second step is completed.",
+      "answer": true,
+      "explain": "If logged-in-only pages don't check that the second step was completed, the 2FA step can be skipped entirely. This should be tested."
+    },
+    {
+      "type": "mc",
+      "category": "Multi-factor authentication",
+      "q": "After step 1 of login, a site sets a cookie like account=carlos, and step 2 uses that cookie to decide which account the verification code is for. What is the core flaw?",
+      "choices": [
+        "The server doesn't check that the same user who passed step 1 is completing step 2",
+        "The verification code is too long",
+        "The cookie is sent over HTTPS",
+        "Step 1 uses POST instead of GET"
+      ],
+      "answer": 0,
+      "explain": "Because step 2 trusts a client-controlled cookie, the second factor isn't tied to the user who passed the first. Combined with weak code protection, the password check becomes meaningless."
+    },
+    {
+      "type": "tf",
+      "category": "Multi-factor authentication",
+      "q": "Logging the user out after a few wrong verification codes reliably stops automated guessing of 2FA codes.",
+      "answer": false,
+      "explain": "Tools can automate the multi-step re-login, for example Burp Intruder macros or Turbo Intruder, so the logout only slows the attack."
+    },
+    {
+      "type": "num",
+      "category": "Multi-factor authentication",
+      "q": "How many possible values does a 4-digit numeric verification code have?",
+      "answer": 10000,
+      "explain": "10^4 = 10,000 (0000 to 9999). Without proper limits, that is a trivially small space to guess through."
+    },
+    {
+      "type": "mc",
+      "category": "Other authentication mechanisms",
+      "q": "A \"remember me\" cookie is the Base64 encoding of the username and a timestamp. Why is this insecure?",
+      "choices": [
+        "Base64 is reversible encoding, so the structure is easy to recover and forge for other users",
+        "Base64 cookies cannot be persistent",
+        "Timestamps make the cookie expire too quickly",
+        "Browsers refuse to send Base64 cookies over HTTPS"
+      ],
+      "answer": 0,
+      "explain": "The cookie bypasses login entirely, so it must be impractical to guess. A predictable mix of static values plus reversible encoding gives no protection."
+    },
+    {
+      "type": "mc",
+      "category": "Other authentication mechanisms",
+      "q": "Why does salting matter if a hashed password ends up in a cookie?",
+      "choices": [
+        "Without a salt, the hash can be matched against precomputed hashes of common passwords to recover the cleartext",
+        "Salt makes the hash reversible for the server",
+        "Salt shortens the cookie so it fits in the header",
+        "Unsalted hashes cannot be stored in cookies"
+      ],
+      "answer": 0,
+      "explain": "Hashes of common passwords are widely available online, so an unsalted hash of a common password can often be cracked offline just by looking it up."
+    },
+    {
+      "type": "multi",
+      "category": "Other authentication mechanisms",
+      "q": "Which properties should a password-reset URL token have?",
+      "choices": [
+        "High entropy, so it is hard to guess",
+        "It gives no hint of which user it belongs to",
+        "It expires quickly and is destroyed right after the reset",
+        "It contains the username so the back end can find the account"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The back end should look up which user a token belongs to. The token itself shouldn't reveal or be built from the username, as in /reset-password?user=victim-user."
+    },
+    {
+      "type": "mc",
+      "category": "Other authentication mechanisms",
+      "q": "A site checks the reset token when the reset page is loaded but not when the new-password form is submitted. Why is this dangerous?",
+      "choices": [
+        "The token can be removed from the submission, letting the form reset other users' passwords",
+        "The new password will be stored in plaintext",
+        "The token will expire too early",
+        "The user will be logged out of all sessions"
+      ],
+      "answer": 0,
+      "explain": "The token must be re-validated when the form is submitted. Otherwise the check that protects the reset can simply be skipped."
+    },
+    {
+      "type": "text",
+      "category": "Other authentication mechanisms",
+      "q": "What is the attack called in which a dynamically generated password-reset URL is manipulated (for example through the Host header) so that the victim's reset token is sent to the attacker?",
+      "answer": ["password reset poisoning", "reset poisoning"],
+      "explain": "Password reset poisoning abuses how the reset link is built, so the attacker can capture the token and change the victim's password."
+    },
+    {
+      "type": "tf",
+      "category": "Other authentication mechanisms",
+      "q": "Emailing users a newly generated password is safe as long as the password is random.",
+      "answer": false,
+      "explain": "It is a persistent password sent over an insecure channel. Inboxes are persistent and often synced over insecure channels, so it is risky unless the password expires very quickly or must be changed right away."
+    },
+    {
+      "type": "mc",
+      "category": "Other authentication mechanisms",
+      "q": "A password-change form carries the target username in a hidden field and can be used without being logged in as that user. What does this expose?",
+      "choices": [
+        "Username enumeration and password brute-forcing for any account, through the change form",
+        "Only the attacker's own account",
+        "Nothing, because hidden fields cannot be edited",
+        "Cross-site scripting in the password field"
+      ],
+      "answer": 0,
+      "explain": "Hidden fields are client-controlled. The change form runs the same username/password check as login, so it can be aimed at any user."
+    },
+    {
+      "type": "text",
+      "category": "Defenses",
+      "q": "Name the JavaScript real-time password strength estimator developed by Dropbox.",
+      "answer": ["zxcvbn"],
+      "explain": "Rather than relying on traditional composition rules, accept only passwords that a strength checker like zxcvbn rates highly."
+    },
+    {
+      "type": "multi",
+      "category": "Defenses",
+      "q": "Which measures help prevent username enumeration on a login page?",
+      "choices": [
+        "Truly identical, generic error messages",
+        "The same HTTP status code for every failed login",
+        "Response times that can't be told apart",
+        "A specific \"username not found\" message to help legitimate users"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Any observable difference, whether in message, status code or timing, leaks whether an account exists."
+    },
+    {
+      "type": "mc",
+      "category": "Defenses",
+      "q": "What is the recommended way to make sure login credentials are never sent over an unencrypted connection?",
+      "choices": [
+        "Redirect all HTTP requests to HTTPS",
+        "Base64-encode the password before sending it",
+        "Use HTTP basic authentication",
+        "Hash the password in a cookie"
+      ],
+      "answer": 0,
+      "explain": "Forcing HTTPS with redirects protects credentials in transit. Encoding like Base64 gives no confidentiality."
+    },
+    {
+      "type": "tf",
+      "category": "Defenses",
+      "q": "Robust IP-based rate limiting with CAPTCHAs completely eliminates the risk of brute-force attacks.",
+      "answer": false,
+      "explain": "It won't eliminate brute-forcing. The goal is to make it tedious and manual enough that attackers move to a softer target."
+    },
+    {
+      "type": "mc",
+      "category": "Defenses",
+      "q": "Which second factor is considered the ideal choice for MFA?",
+      "choices": [
+        "A dedicated device or app that generates the code itself",
+        "A code sent by email",
+        "A code sent by SMS",
+        "A second security question"
+      ],
+      "answer": 0,
+      "explain": "Email codes are long-winded single-factor auth, SMS is vulnerable to SIM swapping, and a second security question is the same factor again."
+    },
+    {
+      "type": "tf",
+      "category": "Defenses",
+      "q": "In some applications, merely revealing that a particular person has an account is sensitive information.",
+      "answer": true,
+      "explain": "This is one reason preventing username enumeration matters beyond making brute-forcing harder."
+    }
+  ]
+}
