@@ -1,0 +1,573 @@
+{
+  "title": "MATH2010 Module 10: Eigenvalues, Eigenvectors & the Characteristic Equation",
+  "course": "MATH2010",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Definitions and the zero rules",
+      "q": "Let A be an n×n matrix. Which of these is the definition of an eigenvector of A?",
+      "choices": [
+        "A nonzero vector x such that Ax = λx for some scalar λ",
+        "Any vector x, including the zero vector, such that Ax = λx for some scalar λ",
+        "A nonzero vector x such that Ax = x",
+        "A nonzero vector x such that Ax = 0"
+      ],
+      "answer": 0,
+      "explain": "An eigenvector must be nonzero, and multiplying by A only scales it by some scalar λ. The zero vector is excluded because A0 = λ0 holds for every λ, so it would tell you nothing. Ax = x is only the special case λ = 1, and Ax = 0 is only the special case λ = 0."
+    },
+    {
+      "type": "mc",
+      "category": "Definitions and the zero rules",
+      "q": "Which equation is equivalent to Ax = λx and is the one you actually solve to find eigenvectors?",
+      "choices": [
+        "(A - λI)x = 0",
+        "(A - λ)x = 0",
+        "(A - λI)x = λx",
+        "det(A)x = λx"
+      ],
+      "answer": 0,
+      "explain": "Ax = λx becomes Ax - λIx = 0, which is (A - λI)x = 0. You need the identity matrix I, because 'A - λ' (a matrix minus a number) is not defined."
+    },
+    {
+      "type": "multi",
+      "category": "Definitions and the zero rules",
+      "q": "Let A be an n×n matrix and λ a scalar. Which statements are each equivalent to 'λ is an eigenvalue of A'?",
+      "choices": [
+        "(A - λI)x = 0 has a nontrivial solution",
+        "det(A - λI) = 0",
+        "A - λI is not invertible",
+        "A - λI has a pivot in every column",
+        "(A - λI)x = 0 has only the trivial solution",
+        "det A = λ"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "λ is an eigenvalue exactly when some nonzero x solves (A - λI)x = 0. That happens exactly when A - λI is not invertible, which is the same as det(A - λI) = 0. A pivot in every column, or only the trivial solution, means λ is NOT an eigenvalue. det A is the product of the eigenvalues, not an eigenvalue itself."
+    },
+    {
+      "type": "tf",
+      "category": "Definitions and the zero rules",
+      "q": "True or false: if A0 = 5·0, then 5 is an eigenvalue of A.",
+      "answer": false,
+      "explain": "A0 = λ0 is true for every scalar λ, so it proves nothing. An eigenvalue needs a NONZERO vector x with Ax = λx."
+    },
+    {
+      "type": "tf",
+      "category": "Definitions and the zero rules",
+      "q": "True or false: 0 can be an eigenvalue of a square matrix, and this happens exactly when the matrix is not invertible.",
+      "answer": true,
+      "explain": "λ = 0 is an eigenvalue exactly when Ax = 0x = 0 has a nontrivial solution, which means A is not invertible (det A = 0). For example, [1 1; 1 1] (rows separated by semicolons) sends (3, -3) to (0, 0), so 0 is an eigenvalue. The zero VECTOR can never be an eigenvector, but the zero NUMBER can be an eigenvalue."
+    },
+    {
+      "type": "mc",
+      "category": "Definitions and the zero rules",
+      "q": "Let λ be an eigenvalue of A. What is the eigenspace E_λ?",
+      "choices": [
+        "Nul(A - λI): every solution of (A - λI)x = 0, including the zero vector",
+        "The set of all eigenvectors for λ, with the zero vector left out",
+        "Col(A - λI)",
+        "The span of the columns of A"
+      ],
+      "answer": 0,
+      "explain": "E_λ = Nul(A - λI). It contains every eigenvector for λ plus the zero vector. Because it is a null space, it is a subspace and has a basis. The eigenvectors alone do not form a subspace, because a subspace must contain 0."
+    },
+    {
+      "type": "num",
+      "category": "Definitions and the zero rules",
+      "q": "What is the degree of the characteristic polynomial det(A - λI) of a 5×5 matrix A?",
+      "answer": 5,
+      "explain": "For an n×n matrix, det(A - λI) is a polynomial in λ of degree n. Here n = 5."
+    },
+    {
+      "type": "tf",
+      "category": "Definitions and the zero rules",
+      "q": "True or false: a 3×3 matrix can have at most 3 distinct eigenvalues.",
+      "answer": true,
+      "explain": "The eigenvalues are the roots of the characteristic polynomial, which has degree 3. A degree-3 polynomial has at most 3 roots."
+    },
+    {
+      "type": "mc",
+      "category": "Testing a given eigenvalue",
+      "q": "Let A = [-7 4; -2 -1] (rows separated by semicolons). Which of the numbers λ = 1 and λ = 3 are eigenvalues of A?",
+      "choices": [
+        "Neither",
+        "Only 1",
+        "Only 3",
+        "Both"
+      ],
+      "answer": 0,
+      "explain": "A - 1I = [-8 4; -2 -2] has det = (-8)(-2) - (4)(-2) = 16 + 8 = 24 ≠ 0. A - 3I = [-10 4; -2 -4] has det = 40 + 8 = 48 ≠ 0. Neither matrix is singular, so neither number is an eigenvalue. The actual eigenvalues are -3 and -5."
+    },
+    {
+      "type": "mc",
+      "category": "Testing a given eigenvalue",
+      "q": "Let A = [-7 4; -2 -1] (rows separated by semicolons). What is A - 3I?",
+      "choices": [
+        "[-10 4; -2 -4]",
+        "[-10 1; -5 -4]",
+        "[-4 4; -2 2]",
+        "[-4 7; 1 2]"
+      ],
+      "answer": 0,
+      "explain": "Subtract 3 from the diagonal entries only: -7 - 3 = -10 and -1 - 3 = -4, and the off-diagonal entries stay the same. [-10 1; -5 -4] subtracts 3 from every entry. [-4 4; -2 2] is A + 3I. [-4 7; 1 2] adds 3 to every entry."
+    },
+    {
+      "type": "num",
+      "category": "Testing a given eigenvalue",
+      "q": "Let A = [-7 4; -2 -1] (rows separated by semicolons). Compute det(A - 1I).",
+      "answer": 24,
+      "explain": "A - 1I = [-8 4; -2 -2]. det = (-8)(-2) - (4)(-2) = 16 + 8 = 24. Because this is not 0, λ = 1 is not an eigenvalue of A."
+    },
+    {
+      "type": "multi",
+      "category": "Testing a given eigenvalue",
+      "q": "Which of these numbers are eigenvalues of A = [-7 4; -2 -1] (rows separated by semicolons)?",
+      "choices": [
+        "1",
+        "3",
+        "-3",
+        "-5",
+        "5",
+        "15"
+      ],
+      "answer": [2, 3],
+      "explain": "tr A = -8 and det A = 7 + 8 = 15, so det(A - λI) = λ² + 8λ + 15 = (λ + 3)(λ + 5). The eigenvalues are -3 and -5. Check: A(1, 1) = (-3, -3) and A(2, 1) = (-10, -5). Watch the signs: -3 is an eigenvalue but 3 is not. 15 is det A, not an eigenvalue."
+    },
+    {
+      "type": "mc",
+      "category": "Testing a given eigenvalue",
+      "q": "Let A be the 3×3 matrix with every entry equal to 1. Is λ = 3 an eigenvalue of A? If so, which vector is a corresponding eigenvector?",
+      "choices": [
+        "Yes; (1, 1, 1)",
+        "Yes; (1, -1, 0)",
+        "Yes; (1, 0, 0)",
+        "No; A - 3I row reduces to the identity matrix"
+      ],
+      "answer": 0,
+      "explain": "A - 3I = [-2 1 1; 1 -2 1; 1 1 -2] row reduces to [1 0 -1; 0 1 -1; 0 0 0]. x3 is free, so 3 is an eigenvalue, and x = x3(1, 1, 1). Check: A(1, 1, 1) = (3, 3, 3). A(1, -1, 0) = (0, 0, 0), so that vector belongs to eigenvalue 0. A(1, 0, 0) = (1, 1, 1), which is not a multiple of (1, 0, 0)."
+    },
+    {
+      "type": "tf",
+      "category": "Testing a given eigenvalue",
+      "q": "True or false: λ = 4 is an eigenvalue of [3 1; 1 3] (rows separated by semicolons).",
+      "answer": true,
+      "explain": "A - 4I = [-1 1; 1 -1] has det = 1 - 1 = 0, so it is singular and 4 is an eigenvalue. An eigenvector is (1, 1): A(1, 1) = (4, 4)."
+    },
+    {
+      "type": "mc",
+      "category": "Testing a given eigenvalue",
+      "q": "You row reduce A - λI for a 3×3 matrix A and a specific number λ. Which result shows that λ is NOT an eigenvalue of A?",
+      "choices": [
+        "Every column has a pivot",
+        "The echelon form has a row of zeros",
+        "There is at least one free variable",
+        "det(A - λI) turns out to be 0"
+      ],
+      "answer": 0,
+      "explain": "A pivot in every column means (A - λI)x = 0 has only the trivial solution, so no eigenvector exists and λ is not an eigenvalue. A zero row, a free variable, or det(A - λI) = 0 all mean λ IS an eigenvalue."
+    },
+    {
+      "type": "multi",
+      "category": "Testing a given eigenvalue",
+      "q": "Which of these numbers are eigenvalues of B = [5 2; 2 2] (rows separated by semicolons)?",
+      "choices": [
+        "1",
+        "2",
+        "6",
+        "-6",
+        "7"
+      ],
+      "answer": [0, 2],
+      "explain": "tr B = 7 and det B = 10 - 4 = 6, so det(B - λI) = λ² - 7λ + 6 = (λ - 1)(λ - 6). Direct test: B - I = [4 2; 2 1] has det 4 - 4 = 0, and B - 6I = [-1 2; 2 -4] has det 4 - 4 = 0. B - 2I = [3 2; 2 0] has det -4 ≠ 0. 7 is the trace, not an eigenvalue."
+    },
+    {
+      "type": "multi",
+      "category": "Testing a given eigenvector",
+      "q": "Let A = [1 1; 1 1] (rows separated by semicolons). Which of these vectors are eigenvectors of A?",
+      "choices": [
+        "v = (3, -3)",
+        "u = (5, 5)",
+        "w = (2, -5)"
+      ],
+      "answer": [0, 1],
+      "explain": "Av = (0, 0) = 0·v, so v is an eigenvector with eigenvalue 0 (allowed, because v itself is nonzero). Au = (10, 10) = 2u, so u is an eigenvector with eigenvalue 2. Aw = (-3, -3), and no single scalar c gives c(2, -5) = (-3, -3), so w is not an eigenvector."
+    },
+    {
+      "type": "num",
+      "category": "Testing a given eigenvector",
+      "q": "Let A = [1 1; 1 1] (rows separated by semicolons). The vector v = (3, -3) is an eigenvector of A. What is its eigenvalue?",
+      "answer": 0,
+      "explain": "Av = (3 - 3, 3 - 3) = (0, 0) = 0·v. The eigenvalue is 0. This is fine: v is nonzero, and A is singular (det A = 0)."
+    },
+    {
+      "type": "num",
+      "category": "Testing a given eigenvector",
+      "q": "Let A = [1 1; 1 1] (rows separated by semicolons). The vector u = (5, 5) is an eigenvector of A. What is its eigenvalue?",
+      "answer": 2,
+      "explain": "Au = (5 + 5, 5 + 5) = (10, 10) = 2u, so the eigenvalue is 2."
+    },
+    {
+      "type": "mc",
+      "category": "Testing a given eigenvector",
+      "q": "Let A = [1 1; 1 1] (rows separated by semicolons) and w = (2, -5). Then Aw = (-3, -3). Why is w not an eigenvector of A?",
+      "choices": [
+        "No single scalar c gives (-3, -3) = c(2, -5): the first entry needs c = -3/2 and the second needs c = 3/5",
+        "Because Aw has negative entries",
+        "Because A is not invertible, so A has no eigenvectors",
+        "Because the entries of w are not equal"
+      ],
+      "answer": 0,
+      "explain": "An eigenvector needs Aw = cw for ONE scalar c that works in every entry. Here 2c = -3 gives c = -3/2, but -5c = -3 gives c = 3/5. Negative entries do not matter. A singular matrix still has eigenvectors (for example (3, -3) with eigenvalue 0). (3, -3) has unequal entries and is still an eigenvector."
+    },
+    {
+      "type": "multi",
+      "category": "Testing a given eigenvector",
+      "q": "Let A = [4 -2; 1 1] (rows separated by semicolons). Which of these vectors are eigenvectors of A?",
+      "choices": [
+        "(2, 2)",
+        "(2, 1)",
+        "(1, 2)",
+        "(0, 0)"
+      ],
+      "answer": [0, 1],
+      "explain": "A(2, 2) = (8 - 4, 2 + 2) = (4, 4) = 2(2, 2), eigenvalue 2. A(2, 1) = (8 - 2, 2 + 1) = (6, 3) = 3(2, 1), eigenvalue 3. A(1, 2) = (4 - 4, 1 + 2) = (0, 3), which is not a multiple of (1, 2). The zero vector is never an eigenvector."
+    },
+    {
+      "type": "multi",
+      "category": "Testing a given eigenvector",
+      "q": "Let A = [2 3 0; 3 -1 3; 0 3 2] (rows separated by semicolons). Which of these vectors are eigenvectors of A?",
+      "choices": [
+        "(1, 1, 1)",
+        "(1, -2, 1)",
+        "(1, 0, 1)",
+        "(-1, 0, 1)"
+      ],
+      "answer": [0, 1, 3],
+      "explain": "A(1, 1, 1) = (5, 5, 5), eigenvalue 5. A(1, -2, 1) = (2 - 6, 3 + 2 + 3, -6 + 2) = (-4, 8, -4), eigenvalue -4. A(-1, 0, 1) = (-2, 0, 2), eigenvalue 2. A(1, 0, 1) = (2, 6, 2), which is not a multiple of (1, 0, 1)."
+    },
+    {
+      "type": "tf",
+      "category": "Testing a given eigenvector",
+      "q": "True or false: to decide whether a given vector v is an eigenvector of A, you must first find the characteristic polynomial of A.",
+      "answer": false,
+      "explain": "Just compute Av. If Av = cv for a single scalar c, then v is an eigenvector with eigenvalue c. If not, it is not an eigenvector. You do not need the characteristic polynomial."
+    },
+    {
+      "type": "mc",
+      "category": "Characteristic equation",
+      "q": "Let A = [2 3; 5 7] (rows separated by semicolons). What is the characteristic polynomial det(A - λI)?",
+      "choices": [
+        "λ² - 9λ - 1",
+        "λ² - 9λ + 29",
+        "λ² + 9λ - 1",
+        "λ² - 9λ + 14"
+      ],
+      "answer": 0,
+      "explain": "(2 - λ)(7 - λ) - (3)(5) = λ² - 9λ + 14 - 15 = λ² - 9λ - 1. Shortcut: tr A = 9 and det A = 14 - 15 = -1. +29 comes from adding bc instead of subtracting it. +9λ has the wrong sign on the trace. +14 forgets the bc term."
+    },
+    {
+      "type": "mc",
+      "category": "Characteristic equation",
+      "q": "What are the eigenvalues of A = [2 3; 5 7] (rows separated by semicolons)?",
+      "choices": [
+        "(9 ± √85)/2",
+        "(9 ± √77)/2",
+        "(-9 ± √85)/2",
+        "9 and -1"
+      ],
+      "answer": 0,
+      "explain": "Solve λ² - 9λ - 1 = 0. The quadratic formula gives λ = (9 ± √(81 + 4))/2 = (9 ± √85)/2. √77 comes from computing 81 - 4, a sign error with c = -1. 9 and -1 are the trace and the determinant, not the eigenvalues. Eigenvalues do not have to be integers."
+    },
+    {
+      "type": "num",
+      "category": "Characteristic equation",
+      "q": "Let A = [2 3; 5 7] (rows separated by semicolons). Give the larger eigenvalue of A, rounded to two decimal places.",
+      "answer": 9.11,
+      "tolerance": 0.01,
+      "explain": "The eigenvalues are (9 ± √85)/2. √85 ≈ 9.2195, so the larger one is (9 + 9.2195)/2 ≈ 9.11. The other is about -0.11."
+    },
+    {
+      "type": "mc",
+      "category": "Characteristic equation",
+      "q": "For a 2×2 matrix A = [a b; c d] (rows separated by semicolons), which expression equals det(A - λI)?",
+      "choices": [
+        "λ² - (a + d)λ + (ad - bc)",
+        "λ² + (a + d)λ + (ad - bc)",
+        "λ² - (a + d)λ + (ad + bc)",
+        "λ² - (ad - bc)λ + (a + d)"
+      ],
+      "answer": 0,
+      "explain": "(a - λ)(d - λ) - bc = λ² - (a + d)λ + (ad - bc). In words: λ² - (tr A)λ + det A."
+    },
+    {
+      "type": "multi",
+      "category": "Characteristic equation",
+      "q": "Which of these numbers are eigenvalues of A = [1 2; 3 2] (rows separated by semicolons)?",
+      "choices": [
+        "4",
+        "-1",
+        "1",
+        "-4",
+        "3"
+      ],
+      "answer": [0, 1],
+      "explain": "tr A = 3 and det A = 2 - 6 = -4, so det(A - λI) = λ² - 3λ - 4 = (λ - 4)(λ + 1). Check: A(2, 3) = (8, 12) = 4(2, 3), and A(1, -1) = (-1, 1) = -1(1, -1)."
+    },
+    {
+      "type": "mc",
+      "category": "Characteristic equation",
+      "q": "What are the eigenvalues of [1 1; 1 3] (rows separated by semicolons)?",
+      "choices": [
+        "2 ± √2",
+        "1 and 3",
+        "2 ± √6",
+        "4 ± √2"
+      ],
+      "answer": 0,
+      "explain": "tr = 4 and det = 3 - 1 = 2, so λ² - 4λ + 2 = 0 and λ = (4 ± √(16 - 8))/2 = (4 ± 2√2)/2 = 2 ± √2. The diagonal entries 1 and 3 are not the eigenvalues here, because the off-diagonal entries also matter. 2 ± √6 comes from using -2 as the constant term instead of +2. 4 ± √2 comes from a mistake in dividing by 2."
+    },
+    {
+      "type": "multi",
+      "category": "Characteristic equation",
+      "q": "Which of these numbers are eigenvalues of A = [2 3 0; 3 -1 3; 0 3 2] (rows separated by semicolons)?",
+      "choices": [
+        "2",
+        "5",
+        "-4",
+        "4",
+        "-5",
+        "-1"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Expanding along row 1: det(A - λI) = (2 - λ)[(-1 - λ)(2 - λ) - 9] - 3[3(2 - λ)] = (2 - λ)(λ² - λ - 11) - 9(2 - λ) = (2 - λ)(λ² - λ - 20) = (2 - λ)(λ - 5)(λ + 4). The eigenvalues are 2, 5 and -4. Check: 2 + 5 - 4 = 3 = tr A, and 2·5·(-4) = -40 = det A."
+    },
+    {
+      "type": "mc",
+      "category": "Characteristic equation",
+      "q": "While expanding det(A - λI) for A = [2 3 0; 3 -1 3; 0 3 2] (rows separated by semicolons) along row 1, you reach (2 - λ)[(-1 - λ)(2 - λ) - 9] - 9(2 - λ). What is the most efficient next step?",
+      "choices": [
+        "Factor out (2 - λ) to get (2 - λ)(λ² - λ - 20), then factor the quadratic",
+        "Multiply everything out into a cubic and search for roots by trial",
+        "Set the bracket [(-1 - λ)(2 - λ) - 9] equal to zero and ignore the second term",
+        "Divide both terms by (2 - λ) and conclude that λ = 2 is not an eigenvalue"
+      ],
+      "answer": 0,
+      "explain": "Both terms contain (2 - λ), so factor it out: (2 - λ)[λ² - λ - 11 - 9] = (2 - λ)(λ² - λ - 20) = (2 - λ)(λ - 5)(λ + 4). This avoids factoring a cubic. You cannot drop the second term, and dividing by (2 - λ) would lose the root λ = 2."
+    },
+    {
+      "type": "mc",
+      "category": "Characteristic equation",
+      "q": "What are the eigenvalues of the 3×3 matrix with every entry equal to 1?",
+      "choices": [
+        "0 (a double root) and 3",
+        "1 only",
+        "3 only",
+        "0, 1 and 3"
+      ],
+      "answer": 0,
+      "explain": "Expanding along row 1 gives det(A - λI) = (1 - λ)(λ² - 2λ) + λ + λ = -λ³ + 3λ² = -λ²(λ - 3). So λ = 0 with multiplicity 2, and λ = 3. Check: 0 + 0 + 3 = 3 = tr A, and the product 0 matches det A = 0."
+    },
+    {
+      "type": "tf",
+      "category": "Characteristic equation",
+      "q": "True or false: if every entry of a matrix is an integer, then all of its eigenvalues are integers.",
+      "answer": false,
+      "explain": "[2 3; 5 7] (rows separated by semicolons) has integer entries, but its eigenvalues are (9 ± √85)/2. Do not force a factorization. Use the quadratic formula and leave the answer in exact form."
+    },
+    {
+      "type": "mc",
+      "category": "Eigenspace bases",
+      "q": "Let A be the 3×3 matrix with every entry equal to 1. Which set is a basis for the eigenspace E_0?",
+      "choices": [
+        "{(-1, 1, 0), (-1, 0, 1)}",
+        "{(-1, 1, 0)}",
+        "{(1, 1, 1)}",
+        "{(1, 0, 0), (0, 1, 0)}"
+      ],
+      "answer": 0,
+      "explain": "A - 0I = A row reduces to [1 1 1; 0 0 0; 0 0 0], so x1 = -x2 - x3 with x2 and x3 free: x = x2(-1, 1, 0) + x3(-1, 0, 1). Two free variables give two basis vectors, so {(-1, 1, 0)} alone does not span E_0. (1, 1, 1) spans E_3. (1, 0, 0) is not in E_0 at all, since A(1, 0, 0) = (1, 1, 1)."
+    },
+    {
+      "type": "num",
+      "category": "Eigenspace bases",
+      "q": "Let A be the 3×3 matrix with every entry equal to 1. What is the dimension of the eigenspace E_0?",
+      "answer": 2,
+      "explain": "E_0 = Nul A. A has rank 1, so dim Nul A = 3 - 1 = 2. Geometrically, E_0 is the plane x1 + x2 + x3 = 0, with basis {(-1, 1, 0), (-1, 0, 1)}."
+    },
+    {
+      "type": "multi",
+      "category": "Eigenspace bases",
+      "q": "Let A be the 3×3 matrix with every entry equal to 1. Which of these vectors belong to the eigenspace E_0?",
+      "choices": [
+        "(2, -1, -1)",
+        "(0, 0, 0)",
+        "(1, 1, 1)",
+        "(3, 0, -3)",
+        "(1, -1, 1)"
+      ],
+      "answer": [0, 1, 3],
+      "explain": "E_0 = Nul A is the set of solutions of x1 + x2 + x3 = 0. (2, -1, -1) and (3, 0, -3) satisfy it. (0, 0, 0) is in every eigenspace, because an eigenspace is a subspace, even though it is not an eigenvector. (1, 1, 1) has sum 3 (it is in E_3), and (1, -1, 1) has sum 1."
+    },
+    {
+      "type": "mc",
+      "category": "Eigenspace bases",
+      "q": "Let A = [2 3 0; 3 -1 3; 0 3 2] (rows separated by semicolons). To find the eigenspace E_(-4), which matrix do you row reduce?",
+      "choices": [
+        "[6 3 0; 3 3 3; 0 3 6]",
+        "[-2 3 0; 3 -5 3; 0 3 -2]",
+        "[6 7 4; 7 3 7; 4 7 6]",
+        "[-2 -1 -4; -1 -5 -1; -4 -1 -2]"
+      ],
+      "answer": 0,
+      "explain": "A - (-4)I = A + 4I, so ADD 4 to each diagonal entry: 2 + 4 = 6, -1 + 4 = 3, 2 + 4 = 6. [-2 3 0; 3 -5 3; 0 3 -2] is A - 4I, a sign error. The other two change every entry instead of only the diagonal."
+    },
+    {
+      "type": "mc",
+      "category": "Eigenspace bases",
+      "q": "Let A = [2 3 0; 3 -1 3; 0 3 2] (rows separated by semicolons). Which vector forms a basis for the eigenspace E_(-4)?",
+      "choices": [
+        "(1, -2, 1)",
+        "(1, 2, 1)",
+        "(-1, 0, 1)",
+        "(1, 1, 1)"
+      ],
+      "answer": 0,
+      "explain": "A + 4I = [6 3 0; 3 3 3; 0 3 6] row reduces to [1 0 -1; 0 1 2; 0 0 0], so x1 = x3 and x2 = -2x3, giving x = x3(1, -2, 1). Check: A(1, -2, 1) = (-4, 8, -4). A(1, 2, 1) = (8, 4, 8), which is not a multiple of (1, 2, 1). (-1, 0, 1) spans E_2, and (1, 1, 1) spans E_5."
+    },
+    {
+      "type": "mc",
+      "category": "Eigenspace bases",
+      "q": "You have written the general solution of (A - λI)x = 0 in parametric vector form. How do you read off a basis for E_λ?",
+      "choices": [
+        "Take the vectors that multiply the free variables",
+        "Take the pivot columns of A - λI",
+        "Take the nonzero rows of the RREF of A - λI",
+        "Take the columns of A"
+      ],
+      "answer": 0,
+      "explain": "E_λ = Nul(A - λI). In the parametric vector form x = s·v1 + t·v2 + ..., the vectors attached to the free variables span the null space and are linearly independent, so they form a basis. There is one basis vector for each free variable."
+    },
+    {
+      "type": "tf",
+      "category": "Eigenspace bases",
+      "q": "True or false: if λ really is an eigenvalue of A and you row reduce A - λI correctly, you must get at least one free variable.",
+      "answer": true,
+      "explain": "An eigenvalue makes A - λI singular, so (A - λI)x = 0 has a nontrivial solution, which needs a free variable (a zero row in the echelon form). If you get a pivot in every column, there is an arithmetic error, either in the eigenvalue or in the row reduction."
+    },
+    {
+      "type": "multi",
+      "category": "Eigenspace bases",
+      "q": "Let B = [0 1 1; 1 0 1; 1 1 0] (rows separated by semicolons). Which statements are true?",
+      "choices": [
+        "The eigenvalues of B are 2 and -1",
+        "{(1, 1, 1)} is a basis for E_2",
+        "E_(-1) has dimension 2",
+        "0 is an eigenvalue of B",
+        "{(1, 1, 1)} is a basis for E_(-1)"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "B is the all-ones matrix minus I, so its eigenvalues are 3 - 1 = 2 and 0 - 1 = -1 (double), with the same eigenspaces. B(1, 1, 1) = (2, 2, 2), so E_2 has basis {(1, 1, 1)}. B + I is the all-ones matrix, whose null space x1 + x2 + x3 = 0 has basis {(-1, 1, 0), (-1, 0, 1)}, so dim E_(-1) = 2. det B = 2 ≠ 0, so 0 is not an eigenvalue."
+    },
+    {
+      "type": "mc",
+      "category": "Eigenspace bases",
+      "q": "Let A = [1 2 0; 2 -1 2; 0 2 1] (rows separated by semicolons). Its eigenvalues are 1, 3 and -3. Which vector forms a basis for E_(-3)?",
+      "choices": [
+        "(1, -2, 1)",
+        "(-1, 0, 1)",
+        "(1, 1, 1)",
+        "(1, 2, 1)"
+      ],
+      "answer": 0,
+      "explain": "A(1, -2, 1) = (1 - 4, 2 + 2 + 2, -4 + 1) = (-3, 6, -3) = -3(1, -2, 1). A(-1, 0, 1) = (-1, 0, 1), so that vector spans E_1. A(1, 1, 1) = (3, 3, 3), so it spans E_3. A(1, 2, 1) = (5, 2, 5), which is not a multiple of (1, 2, 1)."
+    },
+    {
+      "type": "num",
+      "category": "Eigenspace bases",
+      "q": "A 4×4 matrix A has rank 1. What is the dimension of the eigenspace E_0 = Nul A?",
+      "answer": 3,
+      "explain": "dim Nul A = n - rank A = 4 - 1 = 3. Since this is greater than 0, 0 is an eigenvalue, and E_0 needs 3 basis vectors."
+    },
+    {
+      "type": "num",
+      "category": "Checks and common mistakes",
+      "q": "A 3×3 matrix has diagonal entries 2, -1 and 2. Two of its eigenvalues are 2 and 5. Use the trace check to find the third eigenvalue.",
+      "answer": -4,
+      "explain": "The eigenvalues (counted with multiplicity) add up to the trace: 2 + (-1) + 2 = 3. So the third eigenvalue is 3 - 2 - 5 = -4."
+    },
+    {
+      "type": "num",
+      "category": "Checks and common mistakes",
+      "q": "The eigenvalues of A = [2 3; 5 7] (rows separated by semicolons) are (9 + √85)/2 and (9 - √85)/2. What is their product?",
+      "answer": -1,
+      "explain": "((9 + √85)/2)((9 - √85)/2) = (81 - 85)/4 = -1. This matches det A = 14 - 15 = -1, as the determinant check says it should."
+    },
+    {
+      "type": "mc",
+      "category": "Checks and common mistakes",
+      "q": "A student claims the eigenvalues of A = [2 3 0; 3 -1 3; 0 3 2] (rows separated by semicolons) are 2, 5 and 4. What is the fastest way to see that this is wrong?",
+      "choices": [
+        "Their sum is 11, but tr A = 2 - 1 + 2 = 3",
+        "An eigenvalue can never equal a diagonal entry of A",
+        "Every 3×3 matrix must have a negative eigenvalue",
+        "Nothing is wrong; these are the eigenvalues"
+      ],
+      "answer": 0,
+      "explain": "The eigenvalues must sum to the trace, 3, but 2 + 5 + 4 = 11. The product check fails too: 2·5·4 = 40, but det A = -40. The correct eigenvalues are 2, 5 and -4. An eigenvalue can equal a diagonal entry (2 does here), and there is no rule that a negative eigenvalue must exist."
+    },
+    {
+      "type": "tf",
+      "category": "Checks and common mistakes",
+      "q": "A student computes Av = (6, 4) for v = (3, 1) and concludes that v is an eigenvector with eigenvalue 2, because 6 = 2·3. True or false: the conclusion is correct.",
+      "answer": false,
+      "explain": "Every entry must use the same scalar. 6 = 2·3 works for the first entry, but the second entry would need 4 = 2·1, which is false. (6, 4) is not a multiple of (3, 1), so v is not an eigenvector."
+    },
+    {
+      "type": "tf",
+      "category": "Checks and common mistakes",
+      "q": "True or false: for the eigenvalue 3 of the 3×3 matrix with every entry equal to 1, the vector (2, 2, 2) is just as correct an eigenvector as (1, 1, 1).",
+      "answer": true,
+      "explain": "Any nonzero multiple of an eigenvector is an eigenvector for the same eigenvalue: A(2, 2, 2) = (6, 6, 6) = 3(2, 2, 2). (1, 1, 1), (2, 2, 2) and (-1, -1, -1) all describe the same eigenspace."
+    },
+    {
+      "type": "mc",
+      "category": "Checks and common mistakes",
+      "q": "What is the most reliable way to check a claimed eigenvalue-eigenvector pair (λ, v) for a matrix A?",
+      "choices": [
+        "Compute Av and confirm that it equals λv",
+        "Check that λ equals the trace of A",
+        "Check that v has no zero entries",
+        "Check that det A = λ"
+      ],
+      "answer": 0,
+      "explain": "The definition is Av = λv with v ≠ 0, so computing Av checks the claim directly. The trace is the SUM of the eigenvalues and det A is their PRODUCT, not single eigenvalues. Eigenvectors can have zero entries; for example (-1, 0, 1) is an eigenvector of [2 3 0; 3 -1 3; 0 3 2]."
+    },
+    {
+      "type": "multi",
+      "category": "Checks and common mistakes",
+      "q": "A student is finding the eigenvalues and eigenspaces of a matrix A. Which of these steps are errors?",
+      "choices": [
+        "Writing A - λ instead of A - λI",
+        "Subtracting λ from every entry of A instead of only the diagonal entries",
+        "For λ = -4, adding 4 to each diagonal entry of A",
+        "Reporting λ = 0 as an eigenvalue of a singular matrix",
+        "Giving only one basis vector for an eigenspace whose equation has two free variables",
+        "Listing the zero vector as an eigenvector"
+      ],
+      "answer": [0, 1, 4, 5],
+      "explain": "A - λ is undefined, and λ is subtracted from the diagonal only. Each free variable contributes one basis vector, so two free variables need two vectors. The zero vector is never an eigenvector. Adding 4 to the diagonal is correct for λ = -4, because A - (-4)I = A + 4I. A singular matrix really does have eigenvalue 0."
+    },
+    {
+      "type": "mc",
+      "category": "Checks and common mistakes",
+      "q": "Without computing the characteristic polynomial, which number must be an eigenvalue of [1 2 3; 2 4 6; 1 1 1] (rows separated by semicolons)?",
+      "choices": [
+        "0",
+        "1",
+        "6",
+        "None can be identified without the characteristic polynomial"
+      ],
+      "answer": 0,
+      "explain": "Row 2 is 2 times row 1, so the rows are dependent and det A = 0. A singular matrix has Ax = 0 = 0·x for some nonzero x, so 0 is an eigenvalue."
+    }
+  ]
+}
