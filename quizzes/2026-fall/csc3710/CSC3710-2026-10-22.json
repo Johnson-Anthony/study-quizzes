@@ -1,0 +1,329 @@
+{
+  "title": "CSC3710 2026-10-22: Context-Free Grammars and DFA-to-Regular-Grammar Conversion",
+  "course": "CSC3710",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Grammar vocabulary",
+      "q": "In a context-free grammar G = (N, Σ, P, S), what is N?",
+      "choices": ["The set of non-terminal symbols (variables)", "The set of terminal symbols (the alphabet)", "The set of rules (productions)", "The number of derivation steps allowed"],
+      "answer": 0,
+      "explain": "N is the set of non-terminals, Σ is the set of terminals, P is the set of rules, and S is the start symbol, which is a special non-terminal."
+    },
+    {
+      "type": "tf",
+      "category": "Grammar vocabulary",
+      "q": "The start symbol S on its own counts as a sentential form of the grammar.",
+      "answer": true,
+      "explain": "A sentential form is anything you can derive from S in zero or more steps. S comes from S in zero steps."
+    },
+    {
+      "type": "tf",
+      "category": "Grammar vocabulary",
+      "q": "Every sentential form of a grammar is also a sentence of that grammar.",
+      "answer": false,
+      "explain": "It's the other way around. A sentence is a sentential form made only of terminals, so every sentence is a sentential form. A sentential form that still contains non-terminals, such as aSb, is not a sentence."
+    },
+    {
+      "type": "multi",
+      "category": "Grammar vocabulary",
+      "q": "Let G be S → aSb | λ. Which of these are sentential forms of G?",
+      "choices": ["S", "aSb", "aabb", "abab", "λ"],
+      "answer": [0, 1, 2, 4],
+      "explain": "You can derive S (zero steps), aSb (one step), aabb (S ⇒ aSb ⇒ aaSbb ⇒ aabb), and λ (S ⇒ λ). You can't derive abab, because every string from G has all of its a's before all of its b's."
+    },
+    {
+      "type": "mc",
+      "category": "Grammar vocabulary",
+      "q": "Let G be S → aSb | λ. Which of these is a sentence of G?",
+      "choices": ["aaSbb", "aabb", "S", "aab"],
+      "answer": 1,
+      "explain": "A sentence can be derived from S and contains only terminals. aabb qualifies. aaSbb and S still contain a non-terminal, and aab can't be derived because the numbers of a's and b's must match."
+    },
+    {
+      "type": "mc",
+      "category": "Grammar vocabulary",
+      "q": "Which of these describes L(G), the language of a grammar G?",
+      "choices": ["All strings made only of terminal symbols (λ allowed) that can be derived from S in zero or more steps", "All sentential forms of G, including those with non-terminals", "All strings over Σ, whether or not they can be derived", "The set of rules P"],
+      "answer": 0,
+      "explain": "L(G) = { w ∈ Σ* | S ⇒* w }. It contains only the sentences, which are terminal strings, and λ may be one of them."
+    },
+    {
+      "type": "tf",
+      "category": "Grammar vocabulary",
+      "q": "A set of strings over an alphabet is a context-free language if some context-free grammar generates it.",
+      "answer": true,
+      "explain": "That's the definition. Whatever a context-free grammar generates is its language, and that language is context-free."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion and infinite languages",
+      "q": "What kind of rule is U → uUv?",
+      "choices": ["Direct recursion", "Indirect recursion", "A λ-rule", "An unreachable rule"],
+      "answer": 0,
+      "explain": "The rule defines U in terms of U itself, so the recursion is direct. Applying it twice gives U ⇒ uUv ⇒ uuUvv."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion and infinite languages",
+      "q": "A grammar has the rules U → xBy and B → zUw. U refers to B, and B refers back to U. What is this called?",
+      "choices": ["Indirect recursion", "Direct recursion", "No recursion, since neither rule mentions its own variable", "A regular grammar"],
+      "answer": 0,
+      "explain": "The recursion passes through another variable. It works like function F1 calling F2, which then calls F1 again."
+    },
+    {
+      "type": "tf",
+      "category": "Recursion and infinite languages",
+      "q": "If a grammar contains a recursive rule, its language must be infinite.",
+      "answer": false,
+      "explain": "Recursion is necessary but not enough. The start symbol must be able to reach the recursive rule, and you must still be able to finish the derivation into a sentence."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion and infinite languages",
+      "q": "Let G have the rules S → a | b and A → aA | a. Is L(G) infinite?",
+      "choices": ["No. A is unreachable from S, so L(G) = {a, b}", "Yes. A → aA is recursive", "Yes. Any grammar with two non-terminals is infinite", "No. Only grammars with a λ-rule can be infinite"],
+      "answer": 0,
+      "explain": "A → aA is recursive, but no derivation from S ever produces A, so the rule is never used. The language is {a, b}, which is finite."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion and infinite languages",
+      "q": "In a grammar, a recursive rule makes the language infinite only if the start symbol can reach it. What is the matching condition for a DFA?",
+      "choices": ["It has a cycle on a path from the initial state to some final state", "It has at least one final state", "It has more states than alphabet symbols", "Every state has a self-loop"],
+      "answer": 0,
+      "explain": "A cycle gives arbitrarily long accepted strings only if you can reach it from the initial state and then continue to a final state. Recursive rules in a grammar work the same way."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion and infinite languages",
+      "q": "In the English-sentence grammar from lecture (start symbol SENTENCE), which rule makes the language infinite?",
+      "choices": ["ADJECTIVE-LIST → ADJECTIVE ADJECTIVE-LIST", "PROPER-NOUN → John | Jill", "VERB → drives | eats", "SENTENCE → NOUN-PHRASE VERB-PHRASE"],
+      "answer": 0,
+      "explain": "This rule is recursive, and SENTENCE reaches it through VERB-PHRASE → DIRECT-OBJECT-PHRASE → ADJECTIVE-LIST. That allows sentences like 'John eats juicy juicy juicy ... John'."
+    },
+    {
+      "type": "mc",
+      "category": "Recursion and infinite languages",
+      "q": "Why is Java an infinite language in theory?",
+      "choices": ["STATEMENT can become IF-THEN-STATEMENT → if ( EXPRESSION ) STATEMENT, so if-statements can nest inside if-statements with no limit", "The Java grammar has infinitely many rules", "Java has infinitely many keywords", "A Java parser accepts any string of characters"],
+      "answer": 0,
+      "explain": "STATEMENT leads to IF-THEN-STATEMENT, which contains STATEMENT again. The start symbol can reach this recursion, so nesting can go on forever. The grammar itself is finite: only a few pages of the textbook."
+    },
+    {
+      "type": "num",
+      "category": "Designing grammars",
+      "q": "How many strings does the grammar S → a | b | λ generate?",
+      "answer": 3,
+      "explain": "It generates exactly λ, a, and b. The grammar has no recursion, so the language is finite."
+    },
+    {
+      "type": "mc",
+      "category": "Designing grammars",
+      "q": "Which grammar generates exactly the set of all palindromes over {a, b}?",
+      "choices": ["S → aSa | bSb | a | b | λ", "S → aSa | b | λ", "S → aS | bS | λ", "S → aSa | bSb"],
+      "answer": 0,
+      "explain": "aSa and bSb wrap matching symbols around the middle, and a, b, and λ are the possible middles for odd and even lengths. S → aSa | b | λ misses palindromes like abba and bab. S → aS | bS | λ generates every string, not only palindromes. S → aSa | bSb can never finish, so it generates no strings at all."
+    },
+    {
+      "type": "text",
+      "category": "Designing grammars",
+      "q": "L = { a^n b^m c^m d^(2n) | n ≥ 0, m ≥ 1 }. What is the shortest string in L?",
+      "answer": ["bc"],
+      "explain": "Take n = 0 and m = 1. Since m ≥ 1, λ is not in L."
+    },
+    {
+      "type": "mc",
+      "category": "Designing grammars",
+      "q": "Which string is in L = { a^n b^m c^m d^(2n) | n ≥ 0, m ≥ 1 }?",
+      "choices": ["abbccdd", "abcd", "aabcdd", "abcbcdd"],
+      "answer": 0,
+      "explain": "abbccdd has n = 1 (one a matched by dd) and m = 2. abcd has one d instead of dd. aabcdd has two a's, so it needs four d's. abcbcdd has the b's and c's out of order."
+    },
+    {
+      "type": "mc",
+      "category": "Designing grammars",
+      "q": "Why is S → aSdd | bSc | bc NOT a correct grammar for L = { a^n b^m c^m d^(2n) | n ≥ 0, m ≥ 1 }?",
+      "choices": ["The rules can interleave and produce strings like ababcddcdd, with an a after a b", "It can't generate bc", "It generates λ", "It generates only finitely many strings"],
+      "answer": 0,
+      "explain": "S ⇒ aSdd ⇒ abScdd ⇒ abaSddcdd ⇒ ababcddcdd, and that string is not in L. One counterexample is enough to show a grammar is wrong."
+    },
+    {
+      "type": "mc",
+      "category": "Designing grammars",
+      "q": "For L = { a^n b^m c^m d^(2n) | n ≥ 0, m ≥ 1 }, what is wrong with the grammar S → aSdd | B, B → bBc | λ?",
+      "choices": ["B can finish without any b's or c's, so the grammar generates λ and strings like add, which are not in L", "S and B can interleave and put a's after b's", "It can't generate bc", "Nothing. It generates exactly L"],
+      "answer": 0,
+      "explain": "Because m ≥ 1, every string needs at least one b and one c. Replacing B → λ with B → bc fixes the grammar: S → aSdd | B, B → bBc | bc."
+    },
+    {
+      "type": "multi",
+      "category": "Designing grammars",
+      "q": "Which grammars generate exactly L = { a^n b^m c^m d^(2n) | n ≥ 0, m ≥ 1 }?",
+      "choices": ["S → aSdd | B;  B → bBc | bc", "S → aSdd | bBc;  B → bBc | λ", "S → aSdd | B;  B → bBc | λ", "S → aSdd | bSc | bc"],
+      "answer": [0, 1],
+      "explain": "The first two both work. In the second, the only way out of S is S → bBc, which guarantees at least one b and one c, so B can then finish with λ. The third generates λ. The fourth lets a's and b's interleave."
+    },
+    {
+      "type": "tf",
+      "category": "Designing grammars",
+      "q": "Each context-free language has exactly one correct grammar.",
+      "answer": false,
+      "explain": "Many different grammars can generate the same language. Just as a DFA can have more states than it needs, a grammar can have extra non-terminals or rules."
+    },
+    {
+      "type": "mc",
+      "category": "Describing languages",
+      "q": "Which set-builder description gives the language of S → aSa | b | λ?",
+      "choices": ["{ a^n b^m a^n | n ≥ 0, m ∈ {0, 1} }", "{ a^n b a^n | n ≥ 0 }", "{ a^n b^m a^n | n ≥ 0, m ≥ 0 }", "All palindromes over {a, b}"],
+      "answer": 0,
+      "explain": "The a's wrap around a middle that is either b or λ, so a string has at most one b. The second option leaves out strings with no b, such as λ and aa. The third allows strings like abba. The fourth includes palindromes like bab, which this grammar can't produce."
+    },
+    {
+      "type": "multi",
+      "category": "Describing languages",
+      "q": "In { a^n b^m a^n | n ≥ 0, ... }, which of these conditions correctly say that m is 0 or 1?",
+      "choices": ["m ∈ {0, 1}", "0 ≤ m ≤ 1", "m is either zero or one", "m ≥ 0"],
+      "answer": [0, 1, 2],
+      "explain": "The first three all say the same thing. m ≥ 0 would allow any number of b's in the middle."
+    },
+    {
+      "type": "mc",
+      "category": "Describing languages",
+      "q": "L = { (ab)^n c b^(m0) c b^(m1) ... c b^(m(n-1)) | n ≥ 1, each mi ≥ 1 }. Which string is in L?",
+      "choices": ["ababcbbbcb", "ababcbbb", "abcbcb", "ababcbc"],
+      "answer": 0,
+      "explain": "ababcbbbcb is the case n = 2 with m0 = 3 and m1 = 1. ababcbbb has two ab's but only one c. abcbcb has one ab but two c's. ababcbc has a c with no b after it."
+    },
+    {
+      "type": "tf",
+      "category": "Describing languages",
+      "q": "In L = { (ab)^n c b^(m0) c b^(m1) ... c b^(m(n-1)) | n ≥ 1, each mi ≥ 1 }, every c must be followed by the same number of b's.",
+      "answer": false,
+      "explain": "Each mi is chosen independently: one c can be followed by 1 b, another by 5, another by 7. What must match is the number of ab's and the number of c's."
+    },
+    {
+      "type": "mc",
+      "category": "Describing languages",
+      "q": "What is wrong, as notation, with writing { (ab)^n (cb+)^n | n > 0 }?",
+      "choices": ["It mixes set-builder notation with regular-expression notation, since + is a regex operator", "It describes a different language than intended", "It should say n ≥ 0", "Nothing. It is standard set-builder notation"],
+      "answer": 0,
+      "explain": "The intended meaning is clear, but b+ comes from regular expressions, and someone working only with set notation wouldn't know what it means. The proper way is to give each c its own exponent m0, ..., m(n-1), each ≥ 1."
+    },
+    {
+      "type": "tf",
+      "category": "Derivations",
+      "q": "When a sentential form contains several non-terminals, the next derivation step must replace the leftmost one.",
+      "answer": false,
+      "explain": "No rule fixes the order. In ababcBcBcB, for example, you can expand any of the B's next."
+    },
+    {
+      "type": "mc",
+      "category": "Derivations",
+      "q": "What happens in a single derivation step?",
+      "choices": ["One non-terminal is replaced by the right side of one of its rules, and everything else is copied unchanged", "Every non-terminal is replaced at the same time", "Only the last symbol can change", "Terminals can be replaced by other terminals"],
+      "answer": 0,
+      "explain": "Each step rewrites exactly one non-terminal and copies the rest of the sentential form as it is. Terminals are never rewritten."
+    },
+    {
+      "type": "mc",
+      "category": "Derivations",
+      "q": "In the English-sentence grammar, Σ includes words such as John, Jill, drives, eats, big, juicy, and brown. How is the word 'eats' treated?",
+      "choices": ["As one indivisible terminal symbol", "As the terminal 'eat' followed by the terminal 's'", "As a non-terminal that expands into letters", "As a sentential form, not a symbol"],
+      "answer": 0,
+      "explain": "Each word is a single, indivisible symbol of the alphabet. The grammar does not see 'eats' as 'eat' plus a suffix."
+    },
+    {
+      "type": "mc",
+      "category": "Derivations",
+      "q": "A derivation has reached: John eats ADJECTIVE ADJECTIVE-LIST PROPER-NOUN. The rules are ADJECTIVE → big | juicy | brown, ADJECTIVE-LIST → ADJECTIVE ADJECTIVE-LIST | λ, and PROPER-NOUN → John | Jill. Which sentence can it lead to?",
+      "choices": ["John eats juicy John", "John eats John", "John juicy eats John", "John eats juicy"],
+      "answer": 0,
+      "explain": "ADJECTIVE becomes juicy, ADJECTIVE-LIST → λ ends the list, and PROPER-NOUN becomes John. Since the form already contains one ADJECTIVE, the sentence needs at least one adjective, and it must end with a proper noun."
+    },
+    {
+      "type": "tf",
+      "category": "Derivations",
+      "q": "'John eats juicy John' sounds strange, but the lecture grammar still generates it, because a grammar describes structure (syntax), not meaning.",
+      "answer": true,
+      "explain": "The grammar generates anything its rules can derive, whether or not the result makes sense."
+    },
+    {
+      "type": "mc",
+      "category": "Regular grammars and DFA conversion",
+      "q": "Which languages do regular grammars generate?",
+      "choices": ["Exactly the regular languages, which are also the ones described by regular expressions and accepted by DFAs", "Every context-free language", "Only finite languages", "Only languages that contain λ"],
+      "answer": 0,
+      "explain": "Regular expressions, DFAs, and regular grammars are three ways to describe the same class: the regular languages."
+    },
+    {
+      "type": "mc",
+      "category": "Regular grammars and DFA conversion",
+      "q": "When you convert a DFA to a regular grammar, which state gets the start symbol S?",
+      "choices": ["The initial state, whatever it is named", "The state named q0, even if it isn't the initial state", "The first final state", "The state with the most incoming arrows"],
+      "answer": 0,
+      "explain": "The start symbol represents the initial state. State names like q2 don't matter; S goes to whichever state is initial."
+    },
+    {
+      "type": "mc",
+      "category": "Regular grammars and DFA conversion",
+      "q": "In the DFA-to-grammar algorithm, a transition from state X to state Y on symbol a becomes which rule?",
+      "choices": ["X → aY", "Y → aX", "X → Ya", "X → a"],
+      "answer": 0,
+      "explain": "Each arrow gives one rule: the source state's non-terminal produces the symbol followed by the target state's non-terminal."
+    },
+    {
+      "type": "mc",
+      "category": "Regular grammars and DFA conversion",
+      "q": "In the converted grammar, how do you record that state X is a final state of the DFA?",
+      "choices": ["Add the rule X → λ", "Make X the start symbol", "Add the rule X → aX for each symbol a", "Remove every rule with X on the left side"],
+      "answer": 0,
+      "explain": "Without the λ-rules, nothing in the grammar marks which states are final, and no derivation could ever end."
+    },
+    {
+      "type": "multi",
+      "category": "Regular grammars and DFA conversion",
+      "q": "Which rule shapes can the DFA-to-grammar algorithm produce? (X and Y are non-terminals, a is a terminal.)",
+      "choices": ["X → aY", "X → λ", "X → aYb", "X → XY"],
+      "answer": [0, 1],
+      "explain": "Transitions become X → aY and final states become X → λ. The algorithm never produces any other shape."
+    },
+    {
+      "type": "mc",
+      "category": "Regular grammars and DFA conversion",
+      "q": "A DFA over {a, b, c} accepts strings whose number of a's is a multiple of 5. It has states q0 to q4, and q0 is both the initial state and the only final state. Reading a moves to the next state (q4 goes back to q0), and b and c loop on the current state. If q4 is named W and q0 is named S, which rules come from q4?",
+      "choices": ["W → aS | bW | cW", "W → aS | bW | cW | λ", "W → aW | bS | cS", "W → aT | bW | cW"],
+      "answer": 0,
+      "explain": "On a, q4 goes to q0 (S). On b and c it stays at q4 (W). q4 isn't final, so it gets no λ-rule."
+    },
+    {
+      "type": "num",
+      "category": "Regular grammars and DFA conversion",
+      "q": "Apply the DFA-to-grammar algorithm to the multiple-of-5 DFA (5 states, alphabet {a, b, c}, one final state). How many rules does the grammar have?",
+      "answer": 16,
+      "explain": "5 states · 3 symbols = 15 transition rules, plus 1 λ-rule for q0, for 16 in total."
+    },
+    {
+      "type": "multi",
+      "category": "Regular grammars and DFA conversion",
+      "q": "Which strings does the grammar for the multiple-of-5 DFA generate?",
+      "choices": ["λ", "baaaaa", "aaaaab", "aaaba", "aaaaaaaaaa", "aaa"],
+      "answer": [0, 1, 2, 4],
+      "explain": "Only the number of a's matters, and it must be 0, 5, 10, and so on. aaaba has 4 a's and aaa has 3."
+    },
+    {
+      "type": "num",
+      "category": "Regular grammars and DFA conversion",
+      "q": "A DFA has 5 states, 4 alphabet symbols, and 2 final states, and each state has exactly one transition on every symbol. How many rules does the DFA-to-grammar algorithm produce?",
+      "answer": 22,
+      "explain": "|Q|·|Σ| + |F| = 5·4 + 2 = 22: one rule per transition plus one λ-rule per final state."
+    },
+    {
+      "type": "num",
+      "category": "Regular grammars and DFA conversion",
+      "q": "A DFA has Σ = {a, b}, states q0 (initial) and q1 (final), and δ(q0,a) = q1, δ(q0,b) = q0, δ(q1,a) = q1, δ(q1,b) = q0. How many rules does the resulting regular grammar have?",
+      "answer": 5,
+      "explain": "With q0 = S and q1 = T, the rules are S → aT | bS, T → aT | bS, and T → λ. That's 2·2 + 1 = 5."
+    }
+  ]
+}

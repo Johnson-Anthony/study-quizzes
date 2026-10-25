@@ -1,0 +1,458 @@
+{
+  "title": "CSC3710 2026-10-20: Context-Free Grammars, Derivations, and Regular Grammars",
+  "course": "CSC3710",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "CFG definition",
+      "q": "A context-free grammar is a quadruple G = (N, Σ, P, S). What is Σ?",
+      "choices": ["A finite set of terminal symbols (the alphabet)", "A finite set of non-terminal symbols (variables)", "A finite set of rules", "The start symbol"],
+      "answer": 0,
+      "explain": "N is the set of non-terminals (variables), P is the set of rules, and S ∈ N is the start symbol. Σ is the alphabet of terminal symbols."
+    },
+    {
+      "type": "mc",
+      "category": "CFG definition",
+      "q": "In G = (N, Σ, P, S), which statement about S is correct?",
+      "choices": ["S is a special non-terminal: S ∈ N", "S is a terminal: S ∈ Σ", "S is one of the rules in P", "S is the set of all sentences of the grammar"],
+      "answer": 0,
+      "explain": "The start symbol is a special non-terminal. Every derivation of a sentence in L(G) begins with it."
+    },
+    {
+      "type": "tf",
+      "category": "CFG definition",
+      "q": "In a context-free grammar, the same symbol may be used both as a terminal and as a non-terminal.",
+      "answer": false,
+      "explain": "The definition requires N ∩ Σ = ∅. Terminals and non-terminals must be different symbols."
+    },
+    {
+      "type": "mc",
+      "category": "CFG definition",
+      "q": "In a context-free grammar rule u → w, what can u be?",
+      "choices": ["Exactly one non-terminal symbol", "Any string of terminals and non-terminals", "A single terminal symbol", "Any non-empty string of non-terminals"],
+      "answer": 0,
+      "explain": "The left-hand side of a CFG rule is a single non-terminal. The right-hand side w can be any string over N ∪ Σ, including λ."
+    },
+    {
+      "type": "tf",
+      "category": "CFG definition",
+      "q": "In a context-free grammar rule u → w, the right-hand side w may be λ, the empty string.",
+      "answer": true,
+      "explain": "w may be λ. A rule such as B → λ is called a λ-rule."
+    },
+    {
+      "type": "multi",
+      "category": "CFG definition",
+      "q": "Let N = {S, A} and Σ = {a, b}. Which of these are valid context-free grammar rules?",
+      "choices": ["S → aSb", "A → λ", "aS → b", "S → AA", "a → S", "SA → a"],
+      "answer": [0, 1, 3],
+      "explain": "The left side must be exactly one non-terminal. aS, a, and SA are not single non-terminals. The right side can be any string over N ∪ Σ, including λ or AA."
+    },
+    {
+      "type": "mc",
+      "category": "CFG definition",
+      "q": "What does the notation A → x | y mean in a grammar?",
+      "choices": ["Two separate rules, A → x and A → y, written on one line", "One rule whose right side is the set union of x and y", "A rewrites to x only if y cannot be applied", "A rewrites to x followed by y"],
+      "answer": 0,
+      "explain": "The vertical bar is shorthand that puts several rules with the same left side on one line. It is not a set union."
+    },
+    {
+      "type": "text",
+      "category": "CFG definition",
+      "q": "What is a rule whose right-hand side is λ called?",
+      "answer": ["lambda rule", "lambda-rule", "λ-rule", "λ rule"],
+      "explain": "A rule like B → λ is a λ-rule because λ is on its right-hand side."
+    },
+    {
+      "type": "mc",
+      "category": "CFG definition",
+      "q": "The rule B → bB is called a 'B rule'. Why?",
+      "choices": ["B is on its left-hand side", "B is the last symbol on its right-hand side", "It produces the terminal b", "B is the start symbol"],
+      "answer": 0,
+      "explain": "A u-rule is named after its left-hand side, the non-terminal it rewrites."
+    },
+    {
+      "type": "mc",
+      "category": "Derivations",
+      "q": "In a grammar, what is a sentence?",
+      "choices": ["A derived string that contains only terminal symbols", "Any string of terminals and non-terminals", "A string that still contains at least one non-terminal", "A single rule of the grammar"],
+      "answer": 0,
+      "explain": "No rule can be applied to a sentence, so the derivation stops there. L(G) is the set of sentences derivable from the start symbol."
+    },
+    {
+      "type": "text",
+      "category": "Derivations",
+      "q": "Apply the rule S → aSbb once to the string aSb. What string do you get? (Write it with no spaces.)",
+      "answer": "aaSbbb",
+      "explain": "Replace the S in aSb with aSbb: a + aSbb + b = aaSbbb."
+    },
+    {
+      "type": "text",
+      "category": "Derivations",
+      "q": "Apply the rule A → aAbb once to the string bbbAb. What string do you get? (Write it with no spaces.)",
+      "answer": "bbbaAbbb",
+      "explain": "Replace the A with aAbb: bbb + aAbb + b = bbbaAbbb. A rule can be applied to any string that contains its left-hand-side variable."
+    },
+    {
+      "type": "mc",
+      "category": "Derivations",
+      "q": "What does v ⇒* u mean?",
+      "choices": ["u can be obtained from v by zero or more rule applications", "u can be obtained from v by exactly one rule application", "u can be obtained from v by one or more rule applications", "v → u is a rule of the grammar"],
+      "answer": 0,
+      "explain": "The star means zero or more steps, so v ⇒* v always holds. A single ⇒ means one step."
+    },
+    {
+      "type": "mc",
+      "category": "Derivations",
+      "q": "What does a number above the derivation arrow mean, as in v ⇒⁴ u?",
+      "choices": ["u is obtained from v in exactly 4 rule applications", "u is obtained from v in at most 4 rule applications", "u is 4 symbols longer than v", "Rule number 4 is applied to v"],
+      "answer": 0,
+      "explain": "A number above ⇒ gives the exact number of derivation steps."
+    },
+    {
+      "type": "mc",
+      "category": "Derivations",
+      "q": "What is the difference between A → aA and aAB ⇒ aaAB?",
+      "choices": ["A → aA is a rule in P; aAB ⇒ aaAB is a derivation step that applies that rule to a string", "They mean exactly the same thing", "A → aA is a derivation step; aAB ⇒ aaAB is a rule", "→ means logical implication and ⇒ means concatenation"],
+      "answer": 0,
+      "explain": "→ appears inside a rule. ⇒ shows one rule being applied to a string. Neither one means logical implication."
+    },
+    {
+      "type": "tf",
+      "category": "Derivations",
+      "q": "Under the recursive definition of derivability, every string v is derivable from itself.",
+      "answer": true,
+      "explain": "This is the basis step: v is derivable from v using zero rule applications."
+    },
+    {
+      "type": "mc",
+      "category": "Derivations",
+      "q": "In the recursive definition of the set of strings derivable from v, what does the closure condition say?",
+      "choices": ["A string is derivable from v only if it can be obtained from v by finitely many rule applications", "Every string over N ∪ Σ is derivable from v", "v is derivable from v", "If xAy is derivable from v and A → w is a rule, then xwy is derivable from v"],
+      "answer": 0,
+      "explain": "The third choice is the basis and the fourth is the recursive step. Closure says nothing else is derivable."
+    },
+    {
+      "type": "mc",
+      "category": "Derivations",
+      "q": "The grammar notation ⇒* (zero or more derivation steps) corresponds to which notation for automata?",
+      "choices": ["⊢* (zero or more transitions between machine configurations)", "δ (the transition function)", "Σ* (all strings over the alphabet)", "F (the set of accepting states)"],
+      "answer": 0,
+      "explain": "For machines, ⊢ is one transition between configurations and ⊢* is zero or more. ⇒ and ⇒* are the grammar versions."
+    },
+    {
+      "type": "tf",
+      "category": "Derivations",
+      "q": "Every string in L(G) has exactly one sequence of rule applications that derives it from the start symbol.",
+      "answer": false,
+      "explain": "Derivations need not be unique. In S → aSb | aSbb | λ, the string aaSbbb is reached by applying rule 1 then rule 2, or rule 2 then rule 1. This leads to the topic of ambiguity."
+    },
+    {
+      "type": "mc",
+      "category": "Generating a language",
+      "q": "What language does the grammar S → aSb | aSbb | λ generate?",
+      "choices": ["{ aⁿbᵐ | n ≥ 0 and n ≤ m ≤ 2n }", "{ aⁿbᵐ | n ≥ 0 and 0 < m ≤ 2n }", "{ aⁿbⁿ | n ≥ 0 }", "{ aⁿbᵐ | n ≥ 0 and m ≥ n }"],
+      "answer": 0,
+      "explain": "Each a comes with one or two b's. If rule 1 is used i times and rule 2 is used j times, then n = i + j and m = i + 2j, so n ≤ m ≤ 2n."
+    },
+    {
+      "type": "multi",
+      "category": "Generating a language",
+      "q": "Which strings are generated by S → aSb | aSbb | λ?",
+      "choices": ["λ (the empty string)", "abb", "aabbbb", "aaabb", "aabbbbb", "abab"],
+      "answer": [0, 1, 2],
+      "explain": "Generated strings are aⁿbᵐ with n ≤ m ≤ 2n. aaabb has too few b's (needs at least 3), aabbbbb has too many (at most 4), and abab does not have all a's before all b's."
+    },
+    {
+      "type": "num",
+      "category": "Generating a language",
+      "q": "How many sentences of length at most 4 does S → aSb | aSbb | λ generate?",
+      "answer": 4,
+      "explain": "They are λ, ab, abb, and aabb."
+    },
+    {
+      "type": "num",
+      "category": "Generating a language",
+      "q": "In the language of S → aSb | aSbb | λ, how many different sentences have exactly 3 a's?",
+      "answer": 4,
+      "explain": "With n = 3, m ranges from 3 to 6: aaabbb, aaabbbb, aaabbbbb, aaabbbbbb."
+    },
+    {
+      "type": "tf",
+      "category": "Generating a language",
+      "q": "{ aⁿbᵐ | n ≥ 0, 0 < m ≤ 2n } correctly describes the language of S → aSb | aSbb | λ.",
+      "answer": false,
+      "explain": "The lower bound on m must be n, not 0. This version wrongly allows strings like aaab and wrongly excludes λ."
+    },
+    {
+      "type": "mc",
+      "category": "Generating a language",
+      "q": "Why does the language of S → aSb | aSbb | λ use the condition n ≥ 0 rather than n ≥ 1?",
+      "choices": ["Because λ is in the language: S ⇒ λ gives n = m = 0", "Because the rule S → aSb always adds at least one a", "Because every derivation must use S → aSbb at least once", "Because exponents in set notation can never start at 1"],
+      "answer": 0,
+      "explain": "Applying S → λ immediately derives the empty string, so zero a's must be allowed."
+    },
+    {
+      "type": "tf",
+      "category": "Generating a language",
+      "q": "When building a derivation tree level by level, if the same string appears on two branches, you only need to expand one of them.",
+      "answer": true,
+      "explain": "Identical strings have identical subtrees, so a repeat adds no new sentences and can be dropped."
+    },
+    {
+      "type": "mc",
+      "category": "Generating a language",
+      "q": "Consider the grammar ⟨dedication⟩ → ⟨parents⟩, ⟨parents⟩ → ⟨firstname⟩⟨lastname⟩, ⟨firstname⟩ → Donald | Mary, ⟨lastname⟩ → Sue, with start symbol ⟨dedication⟩. What is its set of terminal symbols Σ?",
+      "choices": ["{Donald, Mary, Sue}", "{⟨dedication⟩, ⟨parents⟩, ⟨firstname⟩, ⟨lastname⟩}", "{Donald, Mary, Sue, ⟨lastname⟩}", "{⟨firstname⟩, ⟨lastname⟩}"],
+      "answer": 0,
+      "explain": "The bracketed names are non-terminals. Donald, Mary, and Sue never appear on the left of a rule, so they are terminals."
+    },
+    {
+      "type": "num",
+      "category": "Generating a language",
+      "q": "Consider the grammar ⟨dedication⟩ → ⟨parents⟩, ⟨parents⟩ → ⟨firstname⟩⟨lastname⟩, ⟨firstname⟩ → Donald | Mary, ⟨lastname⟩ → Sue, with start symbol ⟨dedication⟩. How many sentences are in its language?",
+      "answer": 2,
+      "explain": "L(G) = { Donald Sue, Mary Sue }. The only choice in any derivation is which ⟨firstname⟩ rule to use."
+    },
+    {
+      "type": "text",
+      "category": "Generating a language",
+      "q": "Consider the grammar S → aSa | aBa, B → bB | b, with start symbol S. What is the shortest string it generates?",
+      "answer": "aba",
+      "explain": "S ⇒ aBa ⇒ aba, using S → aBa and then B → b."
+    },
+    {
+      "type": "mc",
+      "category": "Generating a language",
+      "q": "What language does S → aSa | aBa, B → bB | b (start symbol S) generate?",
+      "choices": ["{ aⁿbᵐaⁿ | n ≥ 1, m ≥ 1 }", "{ aⁿbᵐaⁿ | n ≥ 0, m ≥ 0 }", "{ aⁿbᵐaᵏ | n ≥ 1, k ≥ 1, m ≥ 1 }", "{ aⁿbaⁿ | n ≥ 1 }"],
+      "answer": 0,
+      "explain": "Both S rules add one a on each side, so the counts match. S → aBa guarantees n ≥ 1, and B produces one or more b's."
+    },
+    {
+      "type": "mc",
+      "category": "Set notation and exponents",
+      "q": "What language does S → abScd | λ generate?",
+      "choices": ["{ (ab)ⁿ(cd)ⁿ | n ≥ 0 }", "{ abⁿcdⁿ | n ≥ 0 }", "{ (ab)ⁿ(cd)ᵐ | n, m ≥ 0 }", "{ (abcd)ⁿ | n ≥ 0 }"],
+      "answer": 0,
+      "explain": "Each use of rule 1 adds one ab on the left and one cd on the right, for example S ⇒ abScd ⇒ ababScdcd. Parentheses are needed to repeat a block."
+    },
+    {
+      "type": "text",
+      "category": "Set notation and exponents",
+      "q": "What is the shortest string in { a bⁿ c dⁿ | n ≥ 0 }?",
+      "answer": "ac",
+      "explain": "With n = 0, b and d disappear, but a and c are not affected by the exponent."
+    },
+    {
+      "type": "mc",
+      "category": "Set notation and exponents",
+      "q": "Which string belongs to { a bⁿ c dⁿ | n ≥ 0 }?",
+      "choices": ["abbcdd", "ababcdcd", "abcdcd", "aabccdd"],
+      "answer": 0,
+      "explain": "abbcdd is the n = 2 case. The exponent applies only to b and to d, so a and c each appear exactly once."
+    },
+    {
+      "type": "tf",
+      "category": "Set notation and exponents",
+      "q": "In { a bⁿ c dⁿ | n ≥ 0 }, each exponent n applies only to the single symbol directly before it (b or d), not to a or c.",
+      "answer": true,
+      "explain": "An exponent binds to one symbol, just as in arithmetic. To repeat a block such as ab, you must write (ab)ⁿ."
+    },
+    {
+      "type": "mc",
+      "category": "Set notation and exponents",
+      "q": "What is the shortest string in { (ab)ⁿ(cd)ⁿ | n ≥ 0 }?",
+      "choices": ["λ (the empty string)", "ac", "abcd", "ab"],
+      "answer": 0,
+      "explain": "With n = 0 both blocks disappear, which leaves λ."
+    },
+    {
+      "type": "text",
+      "category": "Set notation and exponents",
+      "q": "What is the shortest string in { aⁿ bᵐ cᵐ d²ⁿ | n ≥ 0, m > 0 }?",
+      "answer": "bc",
+      "explain": "Use the minimum exponents: n = 0 and m = 1."
+    },
+    {
+      "type": "mc",
+      "category": "Set notation and exponents",
+      "q": "Which grammar generates { aⁿ bᵐ cᵐ d²ⁿ | n ≥ 0, m > 0 }?",
+      "choices": ["S → aSdd | A,   A → bAc | bc", "S → aSd | A,   A → bAc | bc", "S → aSdd | A,   A → bAc | λ", "S → aaSd | A,   A → bAc | bc"],
+      "answer": 0,
+      "explain": "Each a must be matched by two d's, and the middle needs at least one b...c pair. The second grammar gives one d per a, the third allows m = 0, and the fourth gives two a's per d."
+    },
+    {
+      "type": "mc",
+      "category": "Set notation and exponents",
+      "q": "What language does S → aSbb | λ generate?",
+      "choices": ["{ aⁿb²ⁿ | n ≥ 0 }", "{ aⁿbⁿ | n ≥ 0 }", "{ a²ⁿbⁿ | n ≥ 0 }", "{ aⁿbᵐ | n ≥ 0, m ≥ 2n }"],
+      "answer": 0,
+      "explain": "Each use of S → aSbb adds one a and exactly two b's."
+    },
+    {
+      "type": "tf",
+      "category": "Set notation and exponents",
+      "q": "Every language has exactly one correct way to be written in set-builder notation.",
+      "answer": false,
+      "explain": "The same set can often be written in several correct ways. For example, a⁺b* = aa*b* = { aⁿbᵐ | n ≥ 1, m ≥ 0 }."
+    },
+    {
+      "type": "tf",
+      "category": "Language hierarchy",
+      "q": "Every regular language is a context-free language.",
+      "answer": true,
+      "explain": "Regular languages are a subset of context-free languages, which are a subset of all languages P(Σ*)."
+    },
+    {
+      "type": "tf",
+      "category": "Language hierarchy",
+      "q": "Every context-free language is a regular language.",
+      "answer": false,
+      "explain": "The converse fails. For example, { aⁱbⁱ | i ≥ 0 } is context-free but not regular."
+    },
+    {
+      "type": "tf",
+      "category": "Language hierarchy",
+      "q": "{ aⁱbⁱ | i ≥ 0 } is context-free but not regular.",
+      "answer": true,
+      "explain": "A context-free grammar generates it (S → aSb | λ). Showing that it is not regular takes a proof."
+    },
+    {
+      "type": "mc",
+      "category": "Language hierarchy",
+      "q": "Where does { aⁿbᵐ | n ≥ 0, n ≤ m ≤ 2n } sit in the language hierarchy?",
+      "choices": ["Context-free but not regular", "Regular", "Not context-free", "Nowhere: an infinite set of strings is not a language"],
+      "answer": 0,
+      "explain": "S → aSb | aSbb | λ generates it, so it is context-free. It is not regular, though proving that takes a separate argument."
+    },
+    {
+      "type": "mc",
+      "category": "Language hierarchy",
+      "q": "Which formalism can generate context-free languages that are not regular?",
+      "choices": ["Context-free grammars", "DFAs", "Regular expressions", "Regular grammars"],
+      "answer": 0,
+      "explain": "DFAs, regular expressions, and regular grammars all describe only regular languages. Context-free grammars generate context-free languages."
+    },
+    {
+      "type": "tf",
+      "category": "Language hierarchy",
+      "q": "If a language is generated by a grammar that is not a regular grammar, that proves the language is not regular.",
+      "answer": false,
+      "explain": "A non-regular grammar can still generate a regular language. G1 (S → AB, A → aA | a, B → bB | λ) is not a regular grammar, yet it generates a⁺b*. Showing that a language is not regular requires a proof."
+    },
+    {
+      "type": "mc",
+      "category": "Language hierarchy",
+      "q": "What does P(Σ*) denote?",
+      "choices": ["The set of all languages over Σ, including the empty language", "The set of all strings over Σ", "The set of all context-free languages over Σ", "The set of all grammars over Σ"],
+      "answer": 0,
+      "explain": "Σ* is the set of all strings. A language is a subset of Σ*, so the power set P(Σ*) is the set of all languages."
+    },
+    {
+      "type": "mc",
+      "category": "Equivalent grammars",
+      "q": "What language does the grammar S → AB, A → aA | a, B → bB | λ generate?",
+      "choices": ["a⁺b*", "a*b*", "a*b⁺", "(ab)*"],
+      "answer": 0,
+      "explain": "A produces one or more a's (A → aA repeats, A → a ends). B produces zero or more b's (B → bB repeats, B → λ ends)."
+    },
+    {
+      "type": "text",
+      "category": "Equivalent grammars",
+      "q": "What is the shortest sentence generated by S → AB, A → aA | a, B → bB | λ?",
+      "answer": "a",
+      "explain": "S ⇒ AB ⇒ aB ⇒ a, using S → AB, then A → a, then B → λ."
+    },
+    {
+      "type": "mc",
+      "category": "Equivalent grammars",
+      "q": "For the grammar S → aS | aA, A → bA | λ, which derivation produces the shortest sentence?",
+      "choices": ["S ⇒ aA ⇒ a", "S ⇒ bA ⇒ b", "S ⇒ aS ⇒ aaA ⇒ aa", "S ⇒ λ"],
+      "answer": 0,
+      "explain": "There are no rules S → bA or S → λ. A → bA is an A rule, so it cannot be applied to S. The shortest path is S → aA followed by A → λ."
+    },
+    {
+      "type": "mc",
+      "category": "Equivalent grammars",
+      "q": "What language does the grammar S → aS | aA, A → bA | λ generate?",
+      "choices": ["a⁺b*", "a*b*", "a*b⁺", "(ab)*"],
+      "answer": 0,
+      "explain": "S → aS piles up a's, S → aA adds one final a and switches to A, A → bA adds b's, and A → λ finishes."
+    },
+    {
+      "type": "tf",
+      "category": "Equivalent grammars",
+      "q": "Two grammars with different rules and different numbers of non-terminals can generate exactly the same language.",
+      "answer": true,
+      "explain": "S → AB, A → aA | a, B → bB | λ (3 non-terminals, 5 rules) and S → aS | aA, A → bA | λ (2 non-terminals, 4 rules) both generate a⁺b*."
+    },
+    {
+      "type": "tf",
+      "category": "Equivalent grammars",
+      "q": "In the grammar S → AB, A → aA | a, B → bB | λ, once S → AB has been applied, S never appears again in the derivation.",
+      "answer": true,
+      "explain": "No rule has S on its right side. After the first step, only A rules and B rules apply, in any order."
+    },
+    {
+      "type": "multi",
+      "category": "Regular grammars",
+      "q": "A regular grammar is a context-free grammar in which every rule has an allowed form. Which forms are allowed? (A, B are non-terminals; a is a terminal.)",
+      "choices": ["A → a", "A → aB", "A → λ", "A → AB", "A → aBa", "A → Ba"],
+      "answer": [0, 1, 2],
+      "explain": "The allowed forms are a single terminal, a terminal followed by one non-terminal, or λ."
+    },
+    {
+      "type": "mc",
+      "category": "Regular grammars",
+      "q": "Which rule keeps the grammar S → AB, A → aA | a, B → bB | λ from being a regular grammar?",
+      "choices": ["S → AB", "A → aA", "A → a", "B → λ"],
+      "answer": 0,
+      "explain": "Its right side is two non-terminals concatenated, which matches none of A → a, A → aB, or A → λ. All the other rules have an allowed form."
+    },
+    {
+      "type": "tf",
+      "category": "Regular grammars",
+      "q": "The grammar S → aS | aA, A → bA | λ is a regular grammar.",
+      "answer": true,
+      "explain": "S → aS, S → aA, and A → bA have the form A → aB, and A → λ is a λ-rule."
+    },
+    {
+      "type": "tf",
+      "category": "Regular grammars",
+      "q": "A grammar that is not a regular grammar can still generate a regular language.",
+      "answer": true,
+      "explain": "S → AB, A → aA | a, B → bB | λ is not regular but generates a⁺b*. Because that language is regular, a regular grammar for it also exists."
+    },
+    {
+      "type": "tf",
+      "category": "Regular grammars",
+      "q": "Every regular grammar generates a regular language.",
+      "answer": true,
+      "explain": "Regular grammars generate regular languages. In the other direction, every regular language has a regular grammar."
+    },
+    {
+      "type": "tf",
+      "category": "Regular grammars",
+      "q": "In the regular-grammar form A → aB, the non-terminal B is allowed to be A itself, as in A → aA.",
+      "answer": true,
+      "explain": "B can be any non-terminal, including A. Rules such as S → aS are allowed."
+    },
+    {
+      "type": "mc",
+      "category": "Regular grammars",
+      "q": "Which of these is a regular grammar (rules only of the forms A → a, A → aB, A → λ) that generates a*b?",
+      "choices": ["S → aS | b", "S → Sa | b", "S → aSb | λ", "S → AB,  A → aA | λ,  B → b"],
+      "answer": 0,
+      "explain": "S → aS | b gives zero or more a's followed by one b, and both rules have allowed forms. S → Sa | b generates ba*. S → aSb | λ generates aⁿbⁿ. The last grammar generates a*b, but S → AB is not an allowed form."
+    },
+    {
+      "type": "multi",
+      "category": "Regular grammars",
+      "q": "In the grammar S → aSa | aBa, B → bB | b, which rules violate the regular-grammar forms?",
+      "choices": ["S → aSa", "S → aBa", "B → bB", "B → b"],
+      "answer": [0, 1],
+      "explain": "A terminal after the non-terminal is not allowed, so aSa and aBa break the form. B → bB has the form A → aB, and B → b has the form A → a."
+    }
+  ]
+}

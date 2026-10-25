@@ -1,0 +1,373 @@
+{
+  "title": "CSC 2400 - Module 10: Greedy Algorithms and Minimum Spanning Trees",
+  "course": "CSC2400",
+  "questions": [
+    {
+      "type": "num",
+      "category": "Definitions & Applications",
+      "q": "A connected, undirected graph has 15 vertices and 40 edges. How many edges does every spanning tree of this graph contain?",
+      "answer": 14,
+      "explain": "Every spanning tree of a connected graph with n vertices has exactly n - 1 edges: 15 - 1 = 14. The graph's edge count (40) doesn't matter."
+    },
+    {
+      "type": "multi",
+      "category": "Definitions & Applications",
+      "q": "A set of edges T, a subset of E, is a spanning tree of a connected graph G = (V, E). Which conditions must T satisfy?",
+      "choices": [
+        "T contains no cycles",
+        "Every pair of vertices is joined by a path that uses only edges in T",
+        "T has the minimum possible total edge weight",
+        "T contains every edge of G",
+        "T contains the minimum-weight edge of G"
+      ],
+      "answer": [0, 1],
+      "explain": "A spanning tree is acyclic and spans (connects) all vertices. Having minimum total weight is what makes it a *minimum* spanning tree, and that isn't required of every spanning tree."
+    },
+    {
+      "type": "mc",
+      "category": "Definitions & Applications",
+      "q": "What quantity does a minimum spanning tree minimize?",
+      "choices": [
+        "The sum of the weights of its edges",
+        "The number of edges in the tree",
+        "The path cost from a chosen root vertex to every other vertex",
+        "The number of leaves in the tree"
+      ],
+      "answer": 0,
+      "explain": "An MST minimizes total edge weight. Every spanning tree already has n - 1 edges, and minimizing distances from a root is the shortest-path problem, which is a different problem."
+    },
+    {
+      "type": "tf",
+      "category": "Definitions & Applications",
+      "q": "If two spanning trees of the same graph have the same number of edges, they must have the same total cost.",
+      "answer": false,
+      "explain": "All spanning trees of a connected graph have n - 1 edges, but their total weights can differ. Edge count can't tell spanning trees apart."
+    },
+    {
+      "type": "mc",
+      "category": "Definitions & Applications",
+      "q": "A graph has vertices A, B, C, D and edges A-B (1), B-D (2), A-D (3), A-C (4), C-D (5). Which edge set is a spanning tree?",
+      "choices": [
+        "{A-B, B-D, A-D}",
+        "{A-B, A-C, C-D}",
+        "{A-B, B-D}",
+        "{A-B, B-D, A-D, A-C}"
+      ],
+      "answer": 1,
+      "explain": "{A-B, A-C, C-D} reaches all 4 vertices with 3 edges and has no cycle, so it is a spanning tree (cost 10, but not minimum: {A-B, B-D, A-C} costs 7). {A-B, B-D, A-D} is a cycle and misses C, {A-B, B-D} misses C, and the 4-edge set contains a cycle."
+    },
+    {
+      "type": "num",
+      "category": "Definitions & Applications",
+      "q": "A triangle graph has edges A-B (3), B-C (4), A-C (5). Find its MST. What is the cost of the path from A to C that uses only MST edges?",
+      "answer": 7,
+      "explain": "The MST is {A-B, B-C} with cost 7. The only A-to-C path in the tree is A-B-C, which costs 3 + 4 = 7, but the direct edge A-C costs only 5. An MST does not necessarily give shortest paths."
+    },
+    {
+      "type": "mc",
+      "category": "Definitions & Applications",
+      "q": "An undirected weighted graph has three connected components. What is the appropriate minimum-cost structure for it?",
+      "choices": [
+        "A minimum spanning forest: one MST for each connected component",
+        "A single MST that uses zero-weight edges to join the components",
+        "A shortest-path tree from an arbitrary vertex",
+        "No structure exists; the cost is undefined"
+      ],
+      "answer": 0,
+      "explain": "A disconnected graph has no spanning tree, because no set of its edges reaches every vertex. The analogue is a minimum spanning forest, with one MST per component."
+    },
+    {
+      "type": "tf",
+      "category": "Definitions & Applications",
+      "q": "The Spanning Tree Protocol (STP), used in networking to prevent switching loops, is a minimum-weight spanning tree algorithm.",
+      "answer": false,
+      "explain": "STP prevents switching loops by building a spanning tree, but it is not itself a minimum-weight spanning tree algorithm."
+    },
+    {
+      "type": "mc",
+      "category": "Prim's Algorithm",
+      "q": "Let X be the set of vertices already in Prim's tree. Which edge does Prim's algorithm add next?",
+      "choices": [
+        "A minimum-cost edge with one endpoint in X and the other endpoint outside X",
+        "The minimum-cost edge remaining anywhere in the graph that does not form a cycle",
+        "A minimum-cost edge with both endpoints in X",
+        "The edge incident to the start vertex with the next-smallest weight"
+      ],
+      "answer": 0,
+      "explain": "Prim's always picks the cheapest edge crossing the cut between X and V \\ X. Choosing the cheapest non-cycle edge anywhere in the graph is Kruskal's rule."
+    },
+    {
+      "type": "text",
+      "category": "Prim's Algorithm",
+      "q": "In Prim's algorithm, the split of the vertices into the current tree's vertex set X and the remaining vertices V \\ X is called a ____. (one word)",
+      "answer": ["cut", "a cut", "the cut"],
+      "explain": "The partition (X, V \\ X) is a cut, and every edge Prim's picks must cross it."
+    },
+    {
+      "type": "mc",
+      "category": "Prim's Algorithm",
+      "q": "Undirected graph edges: A-B 6, A-C 3, B-C 4, B-D 2, C-D 7, C-E 5, D-E 1. Run Prim's algorithm starting at A. What is the SECOND edge added?",
+      "choices": ["B-D", "B-C", "D-E", "A-B"],
+      "answer": 1,
+      "explain": "Step 1: from {A}, the crossing edges are A-B 6 and A-C 3, so it adds A-C. Step 2: from {A, C}, the crossing edges are A-B 6, B-C 4, C-D 7, C-E 5, so it adds B-C. B-D and D-E are cheaper, but neither touches X yet."
+    },
+    {
+      "type": "mc",
+      "category": "Prim's Algorithm",
+      "q": "Undirected graph edges: A-B 6, A-C 3, B-C 4, B-D 2, C-D 7, C-E 5, D-E 1. Run Prim's algorithm starting at A. Which edge is added LAST?",
+      "choices": ["A-C", "B-C", "B-D", "D-E", "C-E"],
+      "answer": 3,
+      "explain": "Order: A-C (3), B-C (4), B-D (2), then from {A, B, C, D} the crossing edges are C-E 5 and D-E 1, so D-E is last. The cheapest edge in the whole graph is added last because it didn't cross the cut until D joined the tree."
+    },
+    {
+      "type": "num",
+      "category": "Prim's Algorithm",
+      "q": "Undirected graph edges: A-B 6, A-C 3, B-C 4, B-D 2, C-D 7, C-E 5, D-E 1. What is the total cost of the MST that Prim's algorithm produces?",
+      "answer": 10,
+      "explain": "From A, Prim's adds A-C (3), B-C (4), B-D (2), D-E (1), so the total is 10. Kruskal's finds the same edges in the order D-E, B-D, A-C, B-C."
+    },
+    {
+      "type": "tf",
+      "category": "Prim's Algorithm",
+      "q": "Prim's algorithm may add an edge whose endpoints are both already in X, as long as it is the cheapest remaining edge.",
+      "answer": false,
+      "explain": "An edge with both endpoints in X doesn't cross the cut, and adding it would create a cycle. Prim's only considers edges with exactly one endpoint in X."
+    },
+    {
+      "type": "tf",
+      "category": "Prim's Algorithm",
+      "q": "The first edge Prim's algorithm adds is always the minimum-weight edge in the entire graph.",
+      "answer": false,
+      "explain": "The first edge is the cheapest edge incident to the start vertex. For example, with A-B 9 and B-C 1, starting at A forces Prim's to take A-B (9) first."
+    },
+    {
+      "type": "tf",
+      "category": "Prim's Algorithm",
+      "q": "Running Prim's algorithm from a different starting vertex can change the total cost of the tree it returns.",
+      "answer": false,
+      "explain": "The start vertex can change the order edges are added in, and with tied weights it can change which tree is returned. The total cost is always the minimum."
+    },
+    {
+      "type": "mc",
+      "category": "Kruskal's Algorithm",
+      "q": "In what order does Kruskal's algorithm consider the edges?",
+      "choices": [
+        "Nondecreasing order of cost (cheapest first)",
+        "Nonincreasing order of cost (most expensive first)",
+        "Breadth-first order from a starting vertex",
+        "Alphabetical order of endpoint labels"
+      ],
+      "answer": 0,
+      "explain": "Kruskal's sorts all edges by nondecreasing cost and considers them in that order. It adds each edge unless doing so would create a cycle."
+    },
+    {
+      "type": "mc",
+      "category": "Kruskal's Algorithm",
+      "q": "During Kruskal's algorithm with union-find, the edge (u, v) is considered and find(u) == find(v). What happens?",
+      "choices": [
+        "The edge is rejected, because u and v are already connected and adding it would create a cycle",
+        "The edge is accepted and union(u, v) is called",
+        "The edge is accepted only if its weight is smaller than the last accepted edge",
+        "The algorithm terminates"
+      ],
+      "answer": 0,
+      "explain": "find(u) == find(v) means u and v are already in the same component, so the edge would close a cycle. When the components differ, the edge is accepted and union(u, v) merges them."
+    },
+    {
+      "type": "text",
+      "category": "Kruskal's Algorithm",
+      "q": "Name the data structure that Kruskal's algorithm uses to check efficiently whether two vertices are already in the same component.",
+      "answer": ["union-find", "union find", "unionfind", "disjoint-set union", "disjoint set union", "disjoint-set", "disjoint set", "disjoint sets", "disjoint-set forest", "DSU"],
+      "explain": "Union-find, also called disjoint-set union (DSU), supports find(u) to identify a component and union(u, v) to merge two components."
+    },
+    {
+      "type": "num",
+      "category": "Kruskal's Algorithm",
+      "q": "Undirected graph on vertices A-F with edges A-B 1, B-C 2, A-C 3, C-D 4, B-D 5, D-E 6, E-F 7, D-F 8, C-E 9. Run Kruskal's algorithm. What is the MST's total cost?",
+      "answer": 20,
+      "explain": "Accept A-B (1), accept B-C (2), reject A-C (cycle A-B-C), accept C-D (4), reject B-D (cycle B-C-D), accept D-E (6), accept E-F (7). That makes n - 1 = 5 edges, with cost 1 + 2 + 4 + 6 + 7 = 20."
+    },
+    {
+      "type": "multi",
+      "category": "Kruskal's Algorithm",
+      "q": "Undirected graph on vertices A-F with edges A-B 1, B-C 2, A-C 3, C-D 4, B-D 5, D-E 6, E-F 7, D-F 8, C-E 9. Run Kruskal's algorithm, stopping as soon as n - 1 edges have been accepted. Which edges are considered and rejected?",
+      "choices": ["A-C", "B-D", "C-D", "D-F", "C-E", "E-F"],
+      "answer": [0, 1],
+      "explain": "A-C is rejected because A and C are already connected through B. B-D is rejected because B and D are already connected through C. After E-F the tree has 5 = n - 1 edges, so D-F and C-E are never considered."
+    },
+    {
+      "type": "tf",
+      "category": "Kruskal's Algorithm",
+      "q": "Kruskal's algorithm rejects an edge only when its endpoints are already in the same component, no matter how small the edge's weight is.",
+      "answer": true,
+      "explain": "Weight decides when an edge is considered. Whether it is accepted depends only on whether it would create a cycle. If A-B and B-C are already selected, A-C is rejected even if its weight is tiny."
+    },
+    {
+      "type": "num",
+      "category": "Kruskal's Algorithm",
+      "q": "Kruskal's algorithm runs on a connected graph with 20 vertices and 75 edges, stopping once it has a spanning tree. How many edges has it accepted when it stops?",
+      "answer": 19,
+      "explain": "It stops once |T| = |V| - 1 = 19 edges have been accepted."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime Analysis",
+      "q": "What is the runtime of the straightforward Prim's algorithm that rescans all m edges on every iteration to find the cheapest crossing edge?",
+      "choices": ["O(mn)", "O(m log n)", "O(n^2)", "O(m + n)"],
+      "answer": 0,
+      "explain": "There are n - 1 iterations, and each one scans all m edges, so the total is O(n) * O(m) = O(mn)."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime Analysis",
+      "q": "Why is the simple edge-rescanning version of Prim's algorithm O(mn)?",
+      "choices": [
+        "It runs about n iterations, one per added vertex, and each scans all m edges for the cheapest crossing edge",
+        "It sorts all m edges once for each of the n vertices",
+        "It performs n union-find operations for each of the m edges",
+        "It runs the whole algorithm once from each of the n possible start vertices"
+      ],
+      "answer": 0,
+      "explain": "The expensive part is the repeated full edge scan: n iterations times m edges per scan."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime Analysis",
+      "q": "What is the typical runtime of Prim's algorithm using an adjacency matrix and a linear scan to select the next vertex?",
+      "choices": ["O(n^2)", "O(mn)", "O((n + m) log n)", "O(m log m)"],
+      "answer": 0,
+      "explain": "Each of the n iterations does an O(n) linear scan to find the next vertex, giving O(n^2)."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime Analysis",
+      "q": "What is the typical runtime of Prim's algorithm using an adjacency list and a binary min-heap?",
+      "choices": ["O((n + m) log n)", "O(n^2)", "O(mn)", "O(m * alpha(n))"],
+      "answer": 0,
+      "explain": "Heap operations cost O(log n) each, and there are O(n + m) of them, giving O((n + m) log n)."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime Analysis",
+      "q": "For a simple graph, what is the runtime of Kruskal's algorithm implemented with sorting and an efficient union-find?",
+      "choices": ["O(m log n)", "O(mn)", "O(n^2)", "O(m + n)"],
+      "answer": 0,
+      "explain": "Sorting plus union-find costs O(m log m + m * alpha(n)) = O(m log m), which is O(m log n) for a simple graph."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime Analysis",
+      "q": "In Kruskal's algorithm with an efficient union-find, O(m log m + m * alpha(n)), which part dominates the running time?",
+      "choices": [
+        "Sorting the edges, O(m log m)",
+        "The union-find operations, O(m * alpha(n))",
+        "Choosing a start vertex",
+        "Scanning all edges once per accepted edge"
+      ],
+      "answer": 0,
+      "explain": "alpha(n) is the inverse Ackermann function, which grows so slowly that the union-find work is effectively linear. Sorting dominates."
+    },
+    {
+      "type": "mc",
+      "category": "Runtime Analysis",
+      "q": "Why is O(m log m) the same as O(m log n) for a simple graph?",
+      "choices": [
+        "In a simple graph m = O(n^2), so log m <= log(n^2) = 2 log n",
+        "In a simple graph m <= n, so log m <= log n",
+        "Union-find removes the log m factor",
+        "Sorting m items always takes O(m log n) time"
+      ],
+      "answer": 0,
+      "explain": "A simple graph has at most n(n - 1)/2 edges, so log m is at most about 2 log n = O(log n)."
+    },
+    {
+      "type": "tf",
+      "category": "Runtime Analysis",
+      "q": "Kruskal's algorithm still runs in O(m log n) if it checks for cycles by scanning all previously selected edges each time.",
+      "answer": false,
+      "explain": "The O(m log n) bound assumes efficient component tracking such as union-find. Naive cycle detection makes each check expensive, so the algorithm can be much slower."
+    },
+    {
+      "type": "tf",
+      "category": "Correctness & Comparison",
+      "q": "On the same graph, Prim's and Kruskal's algorithms can return different MSTs when some edge weights are tied.",
+      "answer": true,
+      "explain": "With ties there can be several MSTs, and the two algorithms may pick different ones. They may also add edges in a different order."
+    },
+    {
+      "type": "tf",
+      "category": "Correctness & Comparison",
+      "q": "On the same connected graph, Prim's and Kruskal's algorithms can return trees with different total costs.",
+      "answer": false,
+      "explain": "Both are correct MST algorithms, so they always reach the same minimum total weight, even if the trees differ."
+    },
+    {
+      "type": "mc",
+      "category": "Correctness & Comparison",
+      "q": "Which algorithm requires a starting vertex?",
+      "choices": ["Prim's only", "Kruskal's only", "Both", "Neither"],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Prim's grows one tree from a start vertex, and any vertex works. Kruskal's starts with every vertex as its own component and needs no start vertex."
+    },
+    {
+      "type": "mc",
+      "category": "Correctness & Comparison",
+      "q": "Partway through execution, which description of the selected edges is correct?",
+      "choices": [
+        "Prim's selected edges always form one connected tree; Kruskal's may form a forest of several components",
+        "Both always form one connected tree",
+        "Prim's may form a forest of several components; Kruskal's always forms one connected tree",
+        "Both may contain cycles that are removed at the end"
+      ],
+      "answer": 0,
+      "explain": "Prim's grows a single tree outward from the start vertex. Kruskal's begins with n separate components and merges them until one tree remains. Neither algorithm ever selects a cycle."
+    },
+    {
+      "type": "mc",
+      "category": "Correctness & Comparison",
+      "q": "How does each algorithm avoid creating a cycle?",
+      "choices": [
+        "Prim's only adds edges with exactly one endpoint in the current tree; Kruskal's rejects edges whose endpoints are already in the same component",
+        "Both avoid cycles simply by sorting edges by weight",
+        "Prim's rejects any edge heavier than the previous one; Kruskal's only adds edges incident to the start vertex",
+        "Both add cycle-forming edges, then delete the heaviest edge of each cycle at the end"
+      ],
+      "answer": 0,
+      "explain": "Prim's new edge always reaches a vertex not yet in the tree, so it can't close a cycle. Kruskal's explicitly checks whether the endpoints are already connected, for example with union-find."
+    },
+    {
+      "type": "mc",
+      "category": "Correctness & Comparison",
+      "q": "Which statement is the cut property that justifies both Prim's and Kruskal's greedy choices?",
+      "choices": [
+        "For any cut of the vertices, a minimum-weight edge crossing the cut can belong to an MST",
+        "For any cut of the vertices, a maximum-weight edge crossing the cut belongs to every MST",
+        "Every edge that crosses some cut belongs to some MST",
+        "The minimum-weight edge incident to the start vertex is the only safe edge"
+      ],
+      "answer": 0,
+      "explain": "Prim's picks the cheapest edge crossing (X, V \\ X). When Kruskal's joins two different components, its edge is a minimum edge crossing a cut around one of those components."
+    },
+    {
+      "type": "mc",
+      "category": "Correctness & Comparison",
+      "q": "Exchange argument: e is a minimum-weight edge crossing a cut, and some MST T does not contain e. Adding e to T creates a cycle. Why must that cycle contain another edge f that also crosses the cut, and what does swapping f for e give?",
+      "choices": [
+        "A cycle that crosses the cut on e must cross back on some other edge f; since c_e <= c_f, replacing f with e gives a spanning tree of no greater weight",
+        "Every cycle contains the heaviest edge in the graph; removing it gives a strictly cheaper tree",
+        "T had n edges before e was added; removing any edge gives a tree of equal weight",
+        "f must share an endpoint with e; swapping them always increases the weight, a contradiction"
+      ],
+      "answer": 0,
+      "explain": "The cycle leaves one side of the cut on e, so it must return to that side on another crossing edge f. Since e is a minimum crossing edge, c_e <= c_f, and T - f + e is a spanning tree that is no heavier than T. So some MST contains e."
+    },
+    {
+      "type": "num",
+      "category": "Correctness & Comparison",
+      "q": "Vertices A, B, C, D with edges A-B 1, B-C 1, A-C 1, B-D 3, C-D 3. How many distinct minimum spanning trees does this graph have?",
+      "answer": 6,
+      "explain": "Every MST costs 5: it uses any 2 of the 3 weight-1 triangle edges (3 ways) plus one of B-D or C-D to reach D (2 ways), so there are 3 * 2 = 6 MSTs. Tied weights can produce multiple MSTs, all with the same cost."
+    }
+  ]
+}
