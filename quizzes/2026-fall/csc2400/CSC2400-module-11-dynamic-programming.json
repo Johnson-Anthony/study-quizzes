@@ -1,0 +1,587 @@
+{
+  "title": "CSC 2400 Module 11: Dynamic Programming - Maximum-Weight Independent Set",
+  "course": "CSC2400",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "DP fundamentals",
+      "q": "What feature of a problem makes dynamic programming pay off compared with plain recursion?",
+      "choices": [
+        "Overlapping subproblems whose answers can be stored and reused",
+        "Subproblems that never repeat and can be solved fully independently",
+        "Inputs that are already sorted by weight",
+        "A locally best choice that is always globally optimal"
+      ],
+      "answer": 0,
+      "explain": "DP solves problems by reusing solutions to overlapping subproblems. Independent, non-overlapping subproblems are typical of divide and conquer. A locally best choice that is always globally optimal is the property greedy algorithms need."
+    },
+    {
+      "type": "mc",
+      "category": "DP fundamentals",
+      "q": "Which statement best contrasts dynamic programming with divide and conquer?",
+      "choices": [
+        "DP reuses subproblem results because different recursive branches ask the same question; divide and conquer usually works on independent, non-overlapping subproblems",
+        "DP always splits the input into equal halves; divide and conquer peels off one element at a time",
+        "Divide and conquer stores every subproblem answer in a table; DP never stores answers",
+        "They are the same technique under two names"
+      ],
+      "answer": 0,
+      "explain": "Both break a problem into smaller ones. The usual difference is that DP records and reuses the answers to overlapping subproblems, while divide and conquer typically splits into subproblems that don't overlap."
+    },
+    {
+      "type": "mc",
+      "category": "DP fundamentals",
+      "q": "How does dynamic programming make a decision differently from a greedy algorithm?",
+      "choices": [
+        "DP explicitly compares the relevant alternatives (such as include vs. exclude) using optimal answers to smaller subproblems",
+        "DP always takes the heaviest available item first",
+        "DP tries every subset of the input",
+        "DP commits immediately to the option that looks best locally"
+      ],
+      "answer": 0,
+      "explain": "Greedy commits right away to the locally attractive option. DP compares all the relevant choices, each built from an optimal smaller answer. Trying every subset is brute force, which takes exponential time."
+    },
+    {
+      "type": "tf",
+      "category": "DP fundamentals",
+      "q": "Dynamic programming must be implemented bottom-up with loops; a recursive implementation does not count as dynamic programming.",
+      "answer": false,
+      "explain": "DP can be implemented with top-down memoized recursion or with bottom-up iteration. Both evaluate each distinct subproblem only once."
+    },
+    {
+      "type": "multi",
+      "category": "DP fundamentals",
+      "q": "Which of these are steps of a typical dynamic programming algorithm?",
+      "choices": [
+        "Describe a family of smaller subproblems",
+        "Write a recurrence relating larger subproblems to smaller ones",
+        "Record subproblem answers so no subproblem is solved repeatedly",
+        "Reconstruct the decisions that achieved the optimum, when needed",
+        "Commit immediately to the locally best option at each step",
+        "Sort the vertices by weight before processing"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The DP recipe: define subproblems, write a recurrence, store answers, then read off the optimum and reconstruct the decisions if needed. Committing to the locally best option is greedy, and sorting by weight is not part of the method."
+    },
+    {
+      "type": "text",
+      "category": "DP fundamentals",
+      "q": "What is the name of the top-down technique in which a recursive function stores each subproblem's answer the first time it is computed and looks it up on later calls?",
+      "answer": ["memoization", "memoisation", "memoized recursion", "top-down memoization", "memoize"],
+      "explain": "Memoization makes a recursive function evaluate each distinct subproblem only once. For path-graph MWIS that brings the time from exponential down to O(n)."
+    },
+    {
+      "type": "mc",
+      "category": "Independent sets",
+      "q": "In an undirected graph G = (V, E), which of these describes an independent set?",
+      "choices": [
+        "A subset S of V in which no two vertices are joined by an edge",
+        "A subset S of V in which every pair of vertices is joined by an edge",
+        "A subset that must contain every vertex of the graph",
+        "A subset of edges, no two of which share an endpoint"
+      ],
+      "answer": 0,
+      "explain": "An independent set is a set of vertices S with (u, v) not in E for all u, v in S. It does not have to contain every vertex. It only has to avoid picking two neighbors."
+    },
+    {
+      "type": "multi",
+      "category": "Independent sets",
+      "q": "On the path v1 -- v2 -- v3 -- v4 -- v5 -- v6, which of these sets are independent?",
+      "choices": [
+        "{v1, v3, v6}",
+        "{v2, v3}",
+        "{v1, v4, v6}",
+        "The empty set",
+        "{v2, v4, v5}"
+      ],
+      "answer": [0, 2, 3],
+      "explain": "On a path, only consecutive indices are adjacent. {v2, v3} contains the edge v2-v3, and {v2, v4, v5} contains the edge v4-v5. The empty set is always independent."
+    },
+    {
+      "type": "tf",
+      "category": "Independent sets",
+      "q": "The empty set counts as an independent set.",
+      "answer": true,
+      "explain": "The empty set contains no pair of adjacent vertices, so it is independent. It is included when counting independent sets, for example I(2) = 3 for a 2-vertex path."
+    },
+    {
+      "type": "num",
+      "category": "Independent sets",
+      "q": "Let I(n) be the number of independent sets of an n-vertex path, including the empty set. Using I(0) = 1, I(1) = 2 and I(n) = I(n-1) + I(n-2), what is I(6)?",
+      "answer": 21,
+      "explain": "I(2) = 3, I(3) = 5, I(4) = 8, I(5) = 13, I(6) = 21. These Fibonacci-style numbers grow exponentially, so brute-force enumeration is impractical."
+    },
+    {
+      "type": "num",
+      "category": "Independent sets",
+      "q": "How many independent sets, including the empty set, does a cycle on 5 vertices have?",
+      "answer": 11,
+      "explain": "Empty set (1) + singletons (5) + non-adjacent pairs (5) = 11. No three vertices of a 5-cycle are pairwise non-adjacent. A 5-vertex path has 13; the extra edge v1-v5 rules out {v1, v5} and {v1, v3, v5}."
+    },
+    {
+      "type": "mc",
+      "category": "Independent sets",
+      "q": "The counting recurrence I(n) = I(n-1) + I(n-2) and the MWIS recurrence A[i] = max(A[i-1], A[i-2] + w_i) both split on whether the last vertex is chosen. How do they differ?",
+      "choices": [
+        "Counting adds the two cases; MWIS keeps the better of the two",
+        "Counting takes the max of the two cases; MWIS adds them",
+        "Counting splits on the first vertex; MWIS splits on the last",
+        "They are the same recurrence with different base cases"
+      ],
+      "answer": 0,
+      "explain": "Either the last vertex is left out (use the first n-1 vertices) or it is chosen (its neighbor is forced out, so use the first n-2). Counting adds the number of sets in each case. MWIS takes the maximum weight."
+    },
+    {
+      "type": "mc",
+      "category": "Independent sets",
+      "q": "On the path v1 -- v2 -- v3 with weights 1, 10, 1, which describes the set {v1, v3}? (A maximal independent set is one to which no vertex can be added without breaking independence.)",
+      "choices": [
+        "Independent and maximal, but not maximum-weight",
+        "Not independent",
+        "A maximum-weight independent set",
+        "Independent but not maximal, because v2 could still be added"
+      ],
+      "answer": 0,
+      "explain": "Adding v2 would create an edge with both v1 and v3, so {v1, v3} is maximal. Its weight is 2, but {v2} has weight 10, so it is not maximum-weight."
+    },
+    {
+      "type": "mc",
+      "category": "Greedy failure",
+      "q": "On the path 4 -- 7 -- 4, how does the rule 'pick the heaviest available vertex, discard its neighbors, repeat' compare with the optimum?",
+      "choices": [
+        "Greedy gets 7; the optimum is 8",
+        "Greedy gets 8; the optimum is 8",
+        "Greedy gets 7; the optimum is 7",
+        "Greedy gets 15; the optimum is 15"
+      ],
+      "answer": 0,
+      "explain": "Greedy takes the middle vertex (7), which blocks both ends. The two outer vertices are not adjacent, so they form an independent set worth 4 + 4 = 8."
+    },
+    {
+      "type": "num",
+      "category": "Greedy failure",
+      "q": "On the path v1 -- v2 -- v3 -- v4 -- v5 with weights 1, 8, 9, 8, 1, what total weight does heaviest-first greedy (pick the heaviest available vertex, discard its neighbors, repeat) produce?",
+      "answer": 11,
+      "explain": "Greedy takes v3 (9), which removes v2 and v4. Then it takes v1 (1) and v5 (1). Total = 11."
+    },
+    {
+      "type": "num",
+      "category": "Greedy failure",
+      "q": "On the path v1 -- v2 -- v3 -- v4 -- v5 with weights 1, 8, 9, 8, 1, what is the maximum weight of an independent set?",
+      "answer": 16,
+      "explain": "{v2, v4} = 8 + 8 = 16. DP confirms it: A = 0, 1, 8, 10, 16, 16."
+    },
+    {
+      "type": "mc",
+      "category": "Greedy failure",
+      "q": "What is the core reason heaviest-first greedy can fail on MWIS?",
+      "choices": [
+        "A heavy vertex blocks its neighbors, whose combined weight can be larger; greedy never accounts for what a choice prevents later",
+        "Greedy can select two adjacent vertices",
+        "Greedy takes exponential time",
+        "Greedy cannot handle vertices with equal weights"
+      ],
+      "answer": 0,
+      "explain": "Greedy's output is always independent, because it discards neighbors. It just isn't always the heaviest. A locally large weight ignores the weight it rules out."
+    },
+    {
+      "type": "tf",
+      "category": "Greedy failure",
+      "q": "Because every vertex of a path has at most two neighbors, heaviest-first greedy always finds a maximum-weight independent set on a path graph.",
+      "answer": false,
+      "explain": "The path 4 -- 5 -- 4 is a counterexample: greedy takes 5, but {v1, v3} has weight 8."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and correctness",
+      "q": "In path-graph MWIS, what does A[i] represent?",
+      "choices": [
+        "The maximum weight of an independent set among the first i vertices, whether or not v_i is used",
+        "The maximum weight of an independent set that must include v_i",
+        "The weight of vertex v_i",
+        "The number of independent sets among the first i vertices"
+      ],
+      "answer": 0,
+      "explain": "G_i is the subpath of the first i vertices, and A[i] is the best weight of any independent set in G_i. The best set may leave out v_i."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and correctness",
+      "q": "Which is the correct MWIS recurrence for a path graph (for i >= 2)?",
+      "choices": [
+        "A[i] = max(A[i-1], A[i-2] + w_i)",
+        "A[i] = max(A[i-1] + w_i, A[i-2])",
+        "A[i] = A[i-1] + A[i-2]",
+        "A[i] = max(A[i-1], A[i-1] + w_i)"
+      ],
+      "answer": 0,
+      "explain": "Exclude v_i: A[i-1]. Include v_i: v_(i-1) must be excluded, giving A[i-2] + w_i. Take the larger. The base cases are A[0] = 0 and A[1] = w_1."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and correctness",
+      "q": "In the 'include v_i' case, why does the recurrence use A[i-2] + w_i instead of A[i-1] + w_i?",
+      "choices": [
+        "v_(i-1) is adjacent to v_i, so it must be excluded, leaving only the first i-2 vertices",
+        "A[i-1] might be negative",
+        "A[i-2] is always larger than A[i-1]",
+        "The algorithm processes vertices two at a time"
+      ],
+      "answer": 0,
+      "explain": "On a path, v_i's only earlier neighbor is v_(i-1). Choosing v_i forces v_(i-1) out, and the best you can do with the rest is A[i-2]."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and correctness",
+      "q": "The base case A[1] = w_1 relies on which assumption?",
+      "choices": [
+        "All weights are nonnegative, so taking v1 is never worse than leaving it out",
+        "All weights are distinct",
+        "The path has at least two vertices",
+        "w_1 is the largest weight on the path"
+      ],
+      "answer": 0,
+      "explain": "With one vertex the options are {} (weight 0) and {v1} (weight w_1). w_1 is the max only when w_1 >= 0. The problem assumes nonnegative weights."
+    },
+    {
+      "type": "tf",
+      "category": "Recurrence and correctness",
+      "q": "If an optimal independent set of G_i contains v_i, then removing v_i leaves an independent set of G_(i-2).",
+      "answer": true,
+      "explain": "A set containing v_i cannot contain v_(i-1), so its other vertices are all among v1..v_(i-2). That is why its weight is at most A[i-2] + w_i."
+    },
+    {
+      "type": "mc",
+      "category": "Recurrence and correctness",
+      "q": "In a proof by induction on i that A[i] equals the true MWIS weight of the first i vertices, what does the inductive step rely on?",
+      "choices": [
+        "That A[j] is correct for every j < i, in particular A[i-1] and A[i-2]",
+        "That A[i+1] is already known to be correct",
+        "That the greedy choice is optimal on the first i vertices",
+        "That every independent set of G_i contains v_i"
+      ],
+      "answer": 0,
+      "explain": "Base cases: i = 0 and i = 1. Inductive step: every solution either excludes v_i (at most A[i-1]) or includes it (at most A[i-2] + w_i). Both values can be reached, and the hypothesis makes A[i-1] and A[i-2] correct."
+    },
+    {
+      "type": "num",
+      "category": "Filling the DP array",
+      "q": "For the path with weights 3, 2, 1, 6, 4, 5 (v1 to v6), what is A[6]?",
+      "answer": 14,
+      "explain": "A = 0, 3, 3, 4, 9, 9, 14. For example, A[4] = max(4, 3 + 6) = 9 and A[6] = max(9, 9 + 5) = 14."
+    },
+    {
+      "type": "mc",
+      "category": "Filling the DP array",
+      "q": "For the path with weights 2, 5, 3, 6, what are A[0] through A[4]?",
+      "choices": [
+        "0, 2, 5, 5, 11",
+        "0, 2, 5, 8, 11",
+        "0, 2, 7, 10, 16",
+        "0, 2, 5, 5, 8"
+      ],
+      "answer": 0,
+      "explain": "A[1] = 2; A[2] = max(2, 0 + 5) = 5; A[3] = max(5, 2 + 3) = 5; A[4] = max(5, 5 + 6) = 11. One optimal set is {v2, v4}."
+    },
+    {
+      "type": "num",
+      "category": "Filling the DP array",
+      "q": "For the path with weights 5, 1, 4, 8, 2, 7, what is the maximum weight of an independent set?",
+      "answer": 20,
+      "explain": "A = 0, 5, 5, 9, 13, 13, 20. One optimal set is {v1, v4, v6} = 5 + 8 + 7 = 20."
+    },
+    {
+      "type": "num",
+      "category": "Filling the DP array",
+      "q": "For the path with weights 6, 1, 2, 7, 3, what is A[3]?",
+      "answer": 8,
+      "explain": "A[1] = 6; A[2] = max(6, 0 + 1) = 6; A[3] = max(A[2], A[1] + 2) = max(6, 8) = 8."
+    },
+    {
+      "type": "num",
+      "category": "Filling the DP array",
+      "q": "For the path with weights 1, 8, 9, 8, 1, what is A[3]?",
+      "answer": 10,
+      "explain": "A[1] = 1; A[2] = max(1, 0 + 8) = 8; A[3] = max(A[2], A[1] + 9) = max(8, 10) = 10."
+    },
+    {
+      "type": "num",
+      "category": "Filling the DP array",
+      "q": "For the path with weights 0, 0, 5, 0, 5, what is the maximum weight of an independent set?",
+      "answer": 10,
+      "explain": "A = 0, 0, 0, 5, 5, 10, from the set {v3, v5}. Adding a weight-0 vertex never changes the total, so it is never needed to reach the optimal weight."
+    },
+    {
+      "type": "mc",
+      "category": "Reconstruction and ties",
+      "q": "For the path with weights 3, 2, 1, 6, 4, 5 and A = 0, 3, 3, 4, 9, 9, 14, which set does the backward pass return? (Rule: exclude v_i if A[i-1] >= A[i-2] + w_i, otherwise include it.)",
+      "choices": [
+        "{v1, v4, v6}",
+        "{v2, v4, v6}",
+        "{v1, v3, v5}",
+        "{v4, v6}"
+      ],
+      "answer": 0,
+      "explain": "i=6: 9 < 9 + 5, include v6, go to 4. i=4: 4 < 3 + 6, include v4, go to 2. i=2: 3 >= 0 + 2, exclude v2, go to 1. i=1: include v1. 3 + 6 + 5 = 14."
+    },
+    {
+      "type": "mc",
+      "category": "Reconstruction and ties",
+      "q": "For the path with weights 6, 1, 2, 7, 3, which set does the backward pass return? (Rule: exclude v_i if A[i-1] >= A[i-2] + w_i, otherwise include it.)",
+      "choices": [
+        "{v1, v4}",
+        "{v1, v3, v5}",
+        "{v2, v4}",
+        "{v1, v4, v5}"
+      ],
+      "answer": 0,
+      "explain": "A = 0, 6, 6, 8, 13, 13. i=5: 13 >= 8 + 3, exclude. i=4: 8 < 6 + 7, include v4, go to 2. i=2: 6 >= 0 + 1, exclude. i=1: include v1. Weight 13. {v1, v4, v5} isn't independent (v4-v5)."
+    },
+    {
+      "type": "mc",
+      "category": "Reconstruction and ties",
+      "q": "In the backward pass, when v_i is included, the index jumps from i to i - 2. Why?",
+      "choices": [
+        "v_(i-1) is adjacent to v_i, so it cannot be chosen and does not need to be examined",
+        "Every other vertex is always part of an optimal set",
+        "A[i-1] always equals A[i-2]",
+        "To make reconstruction run in O(log n) time"
+      ],
+      "answer": 0,
+      "explain": "Including v_i means the 'include' case of the recurrence won, which builds on A[i-2]. Its neighbor v_(i-1) is excluded automatically."
+    },
+    {
+      "type": "tf",
+      "category": "Reconstruction and ties",
+      "q": "The final value A[n] tells you which vertices belong to an optimal independent set.",
+      "answer": false,
+      "explain": "A[n] is only the optimal weight. You need a backward pass over the whole A array to recover the vertices."
+    },
+    {
+      "type": "multi",
+      "category": "Reconstruction and ties",
+      "q": "On the path v1 -- v2 -- v3 -- v4 with weights 2, 2, 2, 2, which sets are maximum-weight independent sets?",
+      "choices": [
+        "{v1, v3}",
+        "{v2, v4}",
+        "{v1, v4}",
+        "{v1, v2}",
+        "{v1, v3, v4}",
+        "{v2}"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A = 0, 2, 2, 4, 4, so the optimum is 4. {v1, v3}, {v2, v4} and {v1, v4} are all independent with weight 4. {v1, v2} and {v1, v3, v4} contain adjacent vertices, and {v2} weighs only 2. The optimum need not be unique."
+    },
+    {
+      "type": "mc",
+      "category": "Reconstruction and ties",
+      "q": "For the path with weights 2, 2, 2, 2, the backward pass uses 'exclude on ties' (exclude v_i when A[i-1] >= A[i-2] + w_i). Which set does it return?",
+      "choices": [
+        "{v1, v3}",
+        "{v2, v4}",
+        "{v1, v4}",
+        "{v3}"
+      ],
+      "answer": 0,
+      "explain": "A = 0, 2, 2, 4, 4. i=4: 4 vs 2 + 2 is a tie, so exclude and go to 3. i=3: 2 < 2 + 2, include v3, go to 1. i=1: include v1. With 'include on ties' you would get {v2, v4} instead. Both are optimal."
+    },
+    {
+      "type": "mc",
+      "category": "Reconstruction and ties",
+      "q": "During reconstruction, A[i-1] = A[i-2] + w_i. What is true?",
+      "choices": [
+        "Both choices lead to an optimal set; the algorithm needs a consistent tie-breaking rule and returns one optimum",
+        "The DP array contains an error and must be recomputed",
+        "v_i must be included",
+        "No optimal set excludes v_i"
+      ],
+      "answer": 0,
+      "explain": "A tie means excluding and including v_i give the same best weight. There can be several optimal sets, and any one of them is a correct answer."
+    },
+    {
+      "type": "mc",
+      "category": "Complexity",
+      "q": "What is the running time of evaluating A[i] = max(A[i-1], A[i-2] + w_i) by naive recursion that stores no answers?",
+      "choices": [
+        "Exponential, growing roughly like the Fibonacci numbers",
+        "O(n)",
+        "O(n log n)",
+        "O(n^2)"
+      ],
+      "answer": 0,
+      "explain": "Each call branches into two, and the same subproblems are recomputed many times in different branches. The number of calls grows at a Fibonacci rate."
+    },
+    {
+      "type": "num",
+      "category": "Complexity",
+      "q": "Naive recursion (no memoization) computes MWIS(6) by calling MWIS(5) and MWIS(4), and each of those recurses the same way. How many times in total is MWIS(2) called?",
+      "answer": 5,
+      "explain": "MWIS(6) runs once, MWIS(5) once, MWIS(4) twice, MWIS(3) three times, and MWIS(2) five times. The counts are Fibonacci numbers."
+    },
+    {
+      "type": "mc",
+      "category": "Complexity",
+      "q": "What are the time and space costs of memoized or bottom-up MWIS on an n-vertex path when the full array is kept for reconstruction?",
+      "choices": [
+        "O(n) time and O(n) space",
+        "O(n) time and O(1) space",
+        "O(n^2) time and O(n) space",
+        "Exponential time and O(n) space"
+      ],
+      "answer": 0,
+      "explain": "There are n + 1 subproblems, each solved once in constant time, and storing them takes O(n) space. Reconstruction adds another O(n) time."
+    },
+    {
+      "type": "mc",
+      "category": "Complexity",
+      "q": "A bottom-up version keeps only the previous two DP values instead of the whole array. What does it give up?",
+      "choices": [
+        "The ability to reconstruct which vertices are in the optimal set",
+        "Correctness of the optimal weight",
+        "Linear running time",
+        "The ability to handle n = 1"
+      ],
+      "answer": 0,
+      "explain": "It still returns the correct weight in O(n) time with O(1) auxiliary space. But the backward pass compares A[i-1] with A[i-2] + w_i for every i, and those values have been thrown away."
+    },
+    {
+      "type": "mc",
+      "category": "Complexity",
+      "q": "Why can the weight-only bottom-up algorithm use O(1) auxiliary space?",
+      "choices": [
+        "Each A[i] depends only on A[i-1] and A[i-2]",
+        "The weights are nonnegative",
+        "An optimal set never has more than two vertices",
+        "The answer is always A[1] or A[2]"
+      ],
+      "answer": 0,
+      "explain": "The recurrence looks back only two steps, so two variables (playing the roles of A[i-2] and A[i-1]) are enough to compute each new value."
+    },
+    {
+      "type": "tf",
+      "category": "Complexity",
+      "q": "Even on a path, the number of independent sets grows exponentially with n, so finding the MWIS by listing every independent set is impractical for large n.",
+      "answer": true,
+      "explain": "I(n) follows a Fibonacci-style recurrence (3, 5, 8, 13, 21, ...), so brute-force enumeration takes exponential time. DP reaches O(n)."
+    },
+    {
+      "type": "text",
+      "category": "Path vs. general graphs",
+      "q": "Fill in the blank with a complexity term: on arbitrary undirected graphs, the maximum-weight independent set problem is ______.",
+      "answer": ["NP-hard", "NP hard", "np-hard", "np hard", "NPhard"],
+      "explain": "The O(n) algorithm applies only to path graphs. MWIS on general graphs is NP-hard and needs different techniques."
+    },
+    {
+      "type": "mc",
+      "category": "Path vs. general graphs",
+      "q": "Why can't A[i] = max(A[i-1], A[i-2] + w_i) be applied directly to an arbitrary undirected graph?",
+      "choices": [
+        "v_i may be adjacent to several earlier vertices anywhere in the order, so including it removes an arbitrary set and what remains is not a prefix G_j described by a single A[j]",
+        "Arbitrary graphs always have negative weights",
+        "The max operation is undefined when a vertex has more than two neighbors",
+        "Arbitrary graphs have no independent sets"
+      ],
+      "answer": 0,
+      "explain": "On a path, v_i's only earlier neighbor is v_(i-1), so 'include v_i' just means 'use A[i-2]'. In a general graph, the vertices left after including v_i don't form a prefix of the ordering."
+    },
+    {
+      "type": "mc",
+      "category": "Path vs. general graphs",
+      "q": "The vertices v1, ..., vn form a cycle, so v1 and vn are also adjacent. Which approach correctly solves MWIS?",
+      "choices": [
+        "Solve the path v1..v(n-1) and the path v2..vn separately and take the larger answer, since no solution contains both v1 and vn",
+        "Run the path recurrence on v1..vn unchanged",
+        "Run the path recurrence, then drop the lighter of v1 and vn if both were chosen",
+        "Always delete the lightest vertex and solve the remaining path"
+      ],
+      "answer": 0,
+      "explain": "Every independent set of the cycle leaves out vn or leaves out v1, and each case is a path problem. Patching the path answer, or deleting a fixed vertex, can miss the optimum."
+    },
+    {
+      "type": "num",
+      "category": "Path vs. general graphs",
+      "q": "Vertices v1, v2, v3, v4 form a cycle (v4 is also adjacent to v1) with weights 5, 1, 1, 5. What is the maximum weight of an independent set?",
+      "answer": 6,
+      "explain": "Leave out v4: path 5, 1, 1 gives 6. Leave out v1: path 1, 1, 5 gives 6. The answer is 6. The plain path recurrence would report 10 using {v1, v4}, which are adjacent on the cycle."
+    },
+    {
+      "type": "tf",
+      "category": "Path vs. general graphs",
+      "q": "Running the path recurrence on a cycle's vertices in order (ignoring the edge between v1 and vn) can return a set that is not independent in the cycle.",
+      "answer": true,
+      "explain": "On the cycle with weights 5, 1, 1, 5, the path recurrence picks {v1, v4} for 10, but v1 and v4 are adjacent on the cycle."
+    },
+    {
+      "type": "mc",
+      "category": "C++ implementation",
+      "q": "A C++ MWIS program stores weights in a zero-indexed std::vector named weights, but uses one-indexed DP: A[i] = std::max(A[i - 1], A[i - 2] + weights[i - 1]). Why weights[i - 1] and not weights[i]?",
+      "choices": [
+        "Vertex i (one-indexed) is stored at position i - 1 of the zero-indexed vector",
+        "To skip the vertex adjacent to v_i",
+        "To avoid integer overflow",
+        "Because A[0] holds the first vertex's weight"
+      ],
+      "answer": 0,
+      "explain": "A follows the one-indexed math convention (A[0] is the empty prefix), while weights is zero-indexed. Mixing them up is a classic off-by-one bug."
+    },
+    {
+      "type": "mc",
+      "category": "C++ implementation",
+      "q": "In that C++ program, the DP vector is declared std::vector<int> A(n + 1, 0). Why does it have n + 1 entries?",
+      "choices": [
+        "It holds A[0] through A[n], where A[0] = 0 for the empty prefix",
+        "The extra slot is a sentinel that prevents overflow",
+        "The extra entry stores how many vertices were selected",
+        "C++ vectors must be one element larger than the data"
+      ],
+      "answer": 0,
+      "explain": "There is one subproblem per prefix length from 0 to n. A[1] is set to weights[0] only when n >= 1, so empty input also works."
+    },
+    {
+      "type": "mc",
+      "category": "C++ implementation",
+      "q": "The C++ reconstruction loop is: if (A[i - 1] >= A[i - 2] + weights[i - 1]) { --i; } else { selected.push_back(i); i -= 2; }. What happens when the two sides are equal?",
+      "choices": [
+        "Vertex i is excluded and i decreases by 1",
+        "Vertex i is included and i decreases by 2",
+        "Vertex i is included and i decreases by 1",
+        "The loop terminates"
+      ],
+      "answer": 0,
+      "explain": "Because the test uses >=, ties go to exclusion. This is a consistent tie-breaking rule that still yields an optimal set."
+    },
+    {
+      "type": "mc",
+      "category": "C++ implementation",
+      "q": "Why does the C++ program call std::reverse on the selected vertices before printing them?",
+      "choices": [
+        "The backward pass collects vertices from n down to 1, so they are stored in decreasing order",
+        "To undo the zero-indexing of the weights vector",
+        "To turn the optimal set into a maximal set",
+        "To break ties in favor of smaller indices"
+      ],
+      "answer": 0,
+      "explain": "Reconstruction starts at i = n and moves toward 1, so push_back records vertices in decreasing order. Reversing prints them in increasing order (1 4 6 for weights 3, 2, 1, 6, 4, 5)."
+    },
+    {
+      "type": "tf",
+      "category": "C++ implementation",
+      "q": "In the C++ program the last step is if (i == 1 && A[1] > 0) selected.push_back(1). For a single vertex of weight 0, the program selects no vertices, and that empty set is still a valid optimum.",
+      "answer": true,
+      "explain": "Both {} and {v1} have weight 0, so either is optimal. The A[1] > 0 check simply leaves out a weight-0 v1."
+    },
+    {
+      "type": "mc",
+      "category": "C++ implementation",
+      "q": "If the vertex weights can be very large, what change to the int-based C++ program reduces the risk of a wrong answer?",
+      "choices": [
+        "Use long long for the weights and the DP values to reduce the risk of integer overflow",
+        "Use float so large values round instead of overflowing",
+        "Sort the weights in descending order first",
+        "Switch to naive recursion"
+      ],
+      "answer": 0,
+      "explain": "A[n] can be the sum of many weights and may exceed the range of int. A wider integer type like long long avoids overflow without the precision loss of floating point."
+    }
+  ]
+}
