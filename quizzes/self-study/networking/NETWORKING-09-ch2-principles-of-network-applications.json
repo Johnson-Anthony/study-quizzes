@@ -1,0 +1,771 @@
+{
+  "title": "Ch. 2.1 Principles of Network Applications",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Creating network apps",
+      "q": "You are writing a new network application. On which devices do you need to write and run your application's software?",
+      "choices": [
+        "Only on the end systems that run the application, such as the client and server hosts",
+        "On the end systems and on every router along the path between them",
+        "Only on the routers in the network core, which forward the application's messages",
+        "On the link-layer switches, which must parse each application message"
+      ],
+      "answer": 0,
+      "explain": "Network applications are programs that run on (different) end systems and communicate over the network, e.g., web server software talking to browser software. Network-core devices such as routers do not run user applications, so you never write software for them."
+    },
+    {
+      "type": "tf",
+      "category": "Creating network apps",
+      "q": "Because network-core devices do not run user applications, a new application can be deployed without changing any routers, which allows rapid app development and propagation.",
+      "answer": true,
+      "explain": "Keeping applications on end systems means only the hosts running the app need new software. That is why new applications can be developed and spread quickly."
+    },
+    {
+      "type": "mc",
+      "category": "Creating network apps",
+      "q": "Which description of a network application matches the lecture?",
+      "choices": [
+        "A single program that is compiled and run on one host",
+        "A distributed set of interacting processes, on different end systems, that exchange messages",
+        "A set of forwarding rules installed in the routers of the network core",
+        "An operating-system service for inter-process communication within one host"
+      ],
+      "answer": 1,
+      "explain": "A network application is not one standalone program. It is several programs (client/server or peers) running as processes on different hosts and exchanging messages."
+    },
+    {
+      "type": "multi",
+      "category": "Creating network apps",
+      "q": "Writing a network application is easier than it sounds because the complexity inside the network can be abstracted away. Which two things does the developer mainly need to understand?",
+      "choices": [
+        "What services the transport layer provides",
+        "How the socket API gives the application access to those transport services",
+        "How routers in the network core compute their forwarding tables",
+        "How bits are encoded as signals on each physical link along the path"
+      ],
+      "answer": [0, 1],
+      "explain": "The application can only do what the transport layer's services allow, and it reaches those services through the socket API. Everything below (network, link, physical) is hidden from the developer."
+    },
+    {
+      "type": "mc",
+      "category": "Creating network apps",
+      "q": "Ray Tomlinson's network email needed an address that named both the user and the machine the user was on. Why did he choose the @ sign as the separator?",
+      "choices": [
+        "The ARPANET routing protocol required @ to mark a destination host",
+        "It was the only character that could be sent over the network without encoding",
+        "It was a keyboard character not already used by operating systems, and it reads naturally as user at host",
+        "The designers of the World Wide Web later picked it to link email addresses to web pages"
+      ],
+      "answer": 2,
+      "explain": "Tomlinson had to separate the user's identity from the machine's identity. @ was the one keyboard character the operating systems weren't already using, and user@host reads as user at host."
+    },
+    {
+      "type": "mc",
+      "category": "Creating network apps",
+      "q": "According to Vint Cerf, what lets people build new applications, such as smartphone apps, without knowing how the layers beneath them work?",
+      "choices": [
+        "Requiring every developer to understand each layer down to the physical link",
+        "Patents on the core protocols, so one company wrote all the applications",
+        "Building each new application directly into the routers of the network core",
+        "Stable, long-lived interfaces, such as protocol interfaces and APIs, that isolate knowledge of the lower layers"
+      ],
+      "answer": 3,
+      "explain": "Layering and abstraction: HTTP sits on TCP, and phone APIs sit on top of the mobile system. Because these interfaces are stable and last a long time, developers can invent new things without knowing much, if anything, about what lies underneath. Cerf also notes that the Internet's design was deliberately offered free, without patents, to encourage adoption."
+    },
+    {
+      "type": "tf",
+      "category": "Creating network apps",
+      "q": "Most of today's popular network applications, such as social media, video streaming and video conferencing, were developed long after the Internet's layered architecture and transport-layer abstractions were defined.",
+      "answer": true,
+      "explain": "Except for things like email and remote login, today's applications came much later. The architecture supported applications its designers could not have imagined, which suggests the layered design and abstractions were well chosen."
+    },
+    {
+      "type": "mc",
+      "category": "Creating network apps",
+      "q": "Tim Berners-Lee's World Wide Web at CERN drew little attention at first. What made the general public notice it?",
+      "choices": [
+        "The Mosaic graphical browser from NCSA, which showed pages like a magazine, with formatted text and images",
+        "The invention of network email at BBN",
+        "The introduction of UDP as an alternative to TCP",
+        "The opening of the first commercial packet-switch vendors"
+      ],
+      "answer": 0,
+      "explain": "Marc Andreessen and Eric Bina at the National Center for Supercomputing Applications built Mosaic, a graphical browser. It made the Web look like a magazine, so it got widely noticed, and the general public could easily publish and find content."
+    },
+    {
+      "type": "mc",
+      "category": "Client-server and P2P",
+      "q": "Which of the following describes a server in the client-server paradigm?",
+      "choices": [
+        "A host that is connected only some of the time and gets a new IP address each time",
+        "An always-on host with a permanent IP address",
+        "A host that only requests services and never provides them",
+        "Any end system that happens to be online at the moment"
+      ],
+      "answer": 1,
+      "explain": "A server is an always-on host with a permanent IP address. It is often placed in a data center for scaling, but it can also run at a home, company or university."
+    },
+    {
+      "type": "multi",
+      "category": "Client-server and P2P",
+      "q": "Which of the following are true of clients in the client-server paradigm?",
+      "choices": [
+        "They contact and communicate with a server",
+        "They may be intermittently connected",
+        "They may have dynamic IP addresses",
+        "They communicate directly with other clients",
+        "They must have a permanent IP address so servers can find them"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Clients contact the server, may be connected only some of the time (e.g., a phone or laptop), and may have dynamic IP addresses. They do not communicate directly with each other. Instead, they interact through the server."
+    },
+    {
+      "type": "tf",
+      "category": "Client-server and P2P",
+      "q": "In the client-server paradigm, two clients (for example, two web browsers) communicate directly with each other.",
+      "answer": false,
+      "explain": "Clients do not communicate directly with each other. Each client communicates with the server."
+    },
+    {
+      "type": "mc",
+      "category": "Client-server and P2P",
+      "q": "Why does a server in the client-server paradigm have a permanent IP address?",
+      "choices": [
+        "So that clients know where to contact it",
+        "So that it can exchange messages with other servers only",
+        "Because TCP refuses connections from hosts with dynamic addresses",
+        "So that it can run without a transport layer"
+      ],
+      "answer": 0,
+      "explain": "Clients start the communication, so they need a fixed, known address for the always-on server they want to reach."
+    },
+    {
+      "type": "mc",
+      "category": "Client-server and P2P",
+      "q": "Why are servers often placed in data centers?",
+      "choices": [
+        "Because a server can only run inside a commercial data center",
+        "So that clients in the data center can talk directly to each other",
+        "For scaling, so the service can handle requests from very many clients",
+        "Because hosts in data centers never need an IP address"
+      ],
+      "answer": 2,
+      "explain": "Data centers are used for scaling. A server can still run at a home, company or university. The data center just makes it possible to serve huge numbers of clients."
+    },
+    {
+      "type": "multi",
+      "category": "Client-server and P2P",
+      "q": "Which of these are examples of client-server protocols?",
+      "choices": [
+        "HTTP",
+        "IMAP",
+        "FTP",
+        "BitTorrent file sharing"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "HTTP (browser to web server), IMAP and FTP are client-server protocols. BitTorrent is the standard example of a P2P architecture."
+    },
+    {
+      "type": "mc",
+      "category": "Client-server and P2P",
+      "q": "Which statement describes a peer-to-peer (P2P) architecture?",
+      "choices": [
+        "All peers contact a single always-on server that relays their messages",
+        "Peers have permanent IP addresses so others can always find them",
+        "Peers only request services and never provide them",
+        "There is no always-on server, and arbitrary end systems communicate directly"
+      ],
+      "answer": 3,
+      "explain": "P2P has no always-on server. Arbitrary end systems (peers) talk directly to each other, requesting services from other peers and providing services to them in return."
+    },
+    {
+      "type": "mc",
+      "category": "Client-server and P2P",
+      "q": "In a P2P file-sharing system such as BitTorrent, what does a typical peer do?",
+      "choices": [
+        "Requests files from other peers and also provides files to other peers",
+        "Downloads files only from one central always-on server",
+        "Only uploads files and never downloads them",
+        "Forwards other peers' packets like a router, without requesting anything itself"
+      ],
+      "answer": 0,
+      "explain": "Peers both request services from other peers and provide services to them in return. In file sharing, a peer downloads from other peers and uploads to them."
+    },
+    {
+      "type": "text",
+      "category": "Client-server and P2P",
+      "q": "In a P2P architecture, each new peer brings new service capacity as well as new service demands. What is this property called?",
+      "answer": ["self scalability", "self-scalability", "self scaling", "self-scaling"],
+      "explain": "Self scalability: as peers join, they add to the demand, and they also add capacity because they serve other peers."
+    },
+    {
+      "type": "mc",
+      "category": "Client-server and P2P",
+      "q": "Why is managing a P2P application more complex than managing a client-server application?",
+      "choices": [
+        "Every peer must be located in the same data center",
+        "Peers are intermittently connected and change IP addresses",
+        "Peers cannot create sockets",
+        "P2P applications are not allowed to use a transport layer"
+      ],
+      "answer": 1,
+      "explain": "Peers come and go and their IP addresses change. Keeping track of who is available, and where, is much harder than contacting one always-on server at a permanent address."
+    },
+    {
+      "type": "mc",
+      "category": "Processes and sockets",
+      "q": "In the context of network applications, what is a process?",
+      "choices": [
+        "A program running within a host",
+        "A message sent between two hosts",
+        "A router's forwarding table entry",
+        "A transport-layer connection between two sockets"
+      ],
+      "answer": 0,
+      "explain": "A process is the running instance of a program on a host. Processes are what actually communicate in a network application."
+    },
+    {
+      "type": "mc",
+      "category": "Processes and sockets",
+      "q": "How do two processes communicate?",
+      "choices": [
+        "Within one host, they must exchange messages over the Internet. Across hosts, they use the OS's inter-process communication.",
+        "Within one host, they use inter-process communication defined by the OS. Across hosts, they exchange messages over the network.",
+        "Both within one host and across hosts, they use inter-process communication defined by the OS.",
+        "They can only communicate if they run on different hosts."
+      ],
+      "answer": 1,
+      "explain": "On the same host, processes use inter-process communication (IPC), which the operating system defines. Processes on different hosts communicate by exchanging messages across the network, and that is the case network applications care about."
+    },
+    {
+      "type": "mc",
+      "category": "Processes and sockets",
+      "q": "When two processes start a communication session, which one is called the client process?",
+      "choices": [
+        "The one that waits to be contacted",
+        "The one with more data to send",
+        "The one that initiates the communication",
+        "The one running on an always-on host in a data center"
+      ],
+      "answer": 2,
+      "explain": "The client process initiates communication. The server process waits to be contacted. The roles depend on who starts the session, not on the type of host."
+    },
+    {
+      "type": "tf",
+      "category": "Processes and sockets",
+      "q": "Applications with P2P architectures have no client processes or server processes, because all peers are equal.",
+      "answer": false,
+      "explain": "P2P applications still have client processes and server processes. In any given exchange, the peer that initiates communication acts as the client and the peer that is contacted acts as the server."
+    },
+    {
+      "type": "mc",
+      "category": "Processes and sockets",
+      "q": "A socket is often compared to a door. Using that analogy, what happens when a process sends a message?",
+      "choices": [
+        "The process routes the message hop by hop to the destination host itself",
+        "The operating system hands the message straight to the receiving application, skipping its socket",
+        "The message waits behind the door until the receiving process walks over and fetches it",
+        "The process shoves the message out its socket and relies on the transport infrastructure on the other side to deliver it to the receiving process's socket"
+      ],
+      "answer": 3,
+      "explain": "The process just pushes the message out its door (socket). Delivering it to the socket at the receiving process is up to the transport, network and link layers on the other side of the door."
+    },
+    {
+      "type": "num",
+      "category": "Processes and sockets",
+      "q": "How many sockets are involved when a sending process communicates with a receiving process?",
+      "answer": 2,
+      "explain": "Two sockets are involved, one on each side of the communication: one at the sending process and one at the receiving process."
+    },
+    {
+      "type": "mc",
+      "category": "Processes and sockets",
+      "q": "In a host's protocol stack, which part is controlled by the application developer?",
+      "choices": [
+        "The application process, on the application side of the socket",
+        "The transport layer and everything below it",
+        "Only the network and link layers",
+        "The whole stack, from the application down to the physical layer"
+      ],
+      "answer": 0,
+      "explain": "The developer controls the application process above the socket. The transport, network, link and physical layers below the socket are controlled by the operating system."
+    },
+    {
+      "type": "text",
+      "category": "Processes and sockets",
+      "q": "A process sends messages into the network and receives messages from it through a software interface that is often compared to a door. What is this interface called?",
+      "answer": ["socket", "a socket", "sockets"],
+      "explain": "The socket is the interface between the application process and the transport layer. It is the main abstraction the Internet uses for communication between processes."
+    },
+    {
+      "type": "tf",
+      "category": "Addressing processes",
+      "q": "The IP address of the host a process runs on is enough to identify that process.",
+      "answer": false,
+      "explain": "Many processes can run on the same host, so the IP address alone cannot tell them apart. A port number is also needed."
+    },
+    {
+      "type": "mc",
+      "category": "Addressing processes",
+      "q": "To receive messages, a process must have an identifier. What does that identifier include?",
+      "choices": [
+        "Only the host's IP address",
+        "Only a port number",
+        "The host's IP address and a port number associated with the process",
+        "The host's name and the name of the application program"
+      ],
+      "answer": 2,
+      "explain": "The IP address identifies the host. The port number identifies the process on that host. Together they identify the process."
+    },
+    {
+      "type": "num",
+      "category": "Addressing processes",
+      "q": "What is the well-known port number of an HTTP (web) server?",
+      "answer": 80,
+      "explain": "HTTP servers listen on port 80, so connecting to port 80 on a host reaches its web server."
+    },
+    {
+      "type": "num",
+      "category": "Addressing processes",
+      "q": "What is the well-known port number of a mail server (SMTP)?",
+      "answer": 25,
+      "explain": "Mail servers listen on port 25."
+    },
+    {
+      "type": "num",
+      "category": "Addressing processes",
+      "q": "How many bits long is the unique IP address of a host device, as described in this section (e.g., 128.119.245.12)?",
+      "answer": 32,
+      "explain": "Each host has a unique 32-bit IP address, written as four decimal numbers (8 bits each) separated by dots."
+    },
+    {
+      "type": "mc",
+      "category": "Addressing processes",
+      "q": "If a host's IP address is like the street address of an apartment building, what plays the role of the apartment number?",
+      "choices": [
+        "The host name, such as gaia.cs.umass.edu",
+        "The port number",
+        "The transport protocol, TCP or UDP",
+        "The application-layer protocol's message type"
+      ],
+      "answer": 1,
+      "explain": "The IP address gets a message to the right host (the building). The port number picks the right process within that host (the apartment). A phone extension inside a company works the same way."
+    },
+    {
+      "type": "mc",
+      "category": "Addressing processes",
+      "q": "To send an HTTP message to the web server on gaia.cs.umass.edu, what must the sender know?",
+      "choices": [
+        "Only the server host's IP address",
+        "Only the port number 80",
+        "The server host's IP address and port number 25",
+        "The server host's IP address and port number 80"
+      ],
+      "answer": 3,
+      "explain": "You need both parts of the process identifier: the host's IP address (128.119.245.12 in the example) and the web server's port, 80. Port 25 is the mail server port."
+    },
+    {
+      "type": "multi",
+      "category": "Application-layer protocols",
+      "q": "Which of the following does an application-layer protocol define?",
+      "choices": [
+        "The types of messages exchanged, e.g., request and response",
+        "Message syntax: what fields are in messages and how they are delineated",
+        "Message semantics: the meaning of the information in the fields",
+        "Rules for when and how processes send and respond to messages",
+        "The path that packets take through the routers of the network core"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "An application-layer protocol defines message types, syntax, semantics, and the rules for sending and responding. Routing through the network core belongs to the network layer, not the application-layer protocol."
+    },
+    {
+      "type": "mc",
+      "category": "Application-layer protocols",
+      "q": "A protocol specification says each header line is a field name, a colon, and a value, ending with a carriage return and line feed. Which part of the protocol definition is this?",
+      "choices": [
+        "Message syntax",
+        "Message semantics",
+        "Types of messages exchanged",
+        "Rules for when and how processes send and respond"
+      ],
+      "answer": 0,
+      "explain": "Syntax covers what fields a message has and how the fields are delineated. It describes the format, not the meaning."
+    },
+    {
+      "type": "mc",
+      "category": "Application-layer protocols",
+      "q": "A protocol specification says a status value of 1 in a response means the request succeeded, and 2 means the requested item does not exist. Which part of the protocol definition is this?",
+      "choices": [
+        "Message syntax",
+        "Types of messages exchanged",
+        "Message semantics",
+        "Rules for when and how processes send and respond"
+      ],
+      "answer": 2,
+      "explain": "Semantics is the meaning of the information in the fields, here what each status value means."
+    },
+    {
+      "type": "mc",
+      "category": "Application-layer protocols",
+      "q": "A protocol specification says that after a client sends a request, the server must reply with exactly one response before the client sends another request. Which part of the protocol definition is this?",
+      "choices": [
+        "Message syntax",
+        "Message semantics",
+        "Types of messages exchanged",
+        "Rules for when and how processes send and respond to messages"
+      ],
+      "answer": 3,
+      "explain": "This specifies the actions processes take and the order of messages, so it belongs to the rules for when and how processes send and respond."
+    },
+    {
+      "type": "mc",
+      "category": "Application-layer protocols",
+      "q": "Which of these is an example of a proprietary application-layer protocol?",
+      "choices": [
+        "HTTP",
+        "SMTP",
+        "The protocol used by Zoom",
+        "FTP"
+      ],
+      "answer": 2,
+      "explain": "Zoom (and Skype) use proprietary protocols that a company owns and does not publish. HTTP, SMTP and FTP are open protocols defined in RFCs."
+    },
+    {
+      "type": "mc",
+      "category": "Application-layer protocols",
+      "q": "What is a key benefit of open protocols such as HTTP and SMTP?",
+      "choices": [
+        "They guarantee low delay for real-time applications",
+        "Their definitions are public, so independently written implementations can interoperate",
+        "They encrypt all data automatically",
+        "They need no transport-layer service"
+      ],
+      "answer": 1,
+      "explain": "Open protocols are defined in publicly available RFCs. Because everyone can read the definition, anyone can implement the protocol, and their software will interoperate."
+    },
+    {
+      "type": "text",
+      "category": "Application-layer protocols",
+      "q": "Open Internet protocols such as HTTP and SMTP are specified in publicly available documents called RFCs. What does RFC stand for?",
+      "answer": ["Request for Comments", "Request for Comment", "Requests for Comments"],
+      "explain": "RFC = Request for Comments. For example, FTP is RFC 959 and SMTP is RFC 5321."
+    },
+    {
+      "type": "tf",
+      "category": "Application-layer protocols",
+      "q": "A proprietary application-layer protocol's message syntax, semantics and rules are published in RFCs so anyone can implement it.",
+      "answer": false,
+      "explain": "Proprietary protocols are usually owned by a company and their operation is not public. Only open protocols are published in RFCs."
+    },
+    {
+      "type": "multi",
+      "category": "Transport service requirements",
+      "q": "Which of the following are transport services an application might need?",
+      "choices": [
+        "Data integrity (reliable data transfer)",
+        "Timing (low delay)",
+        "Throughput (a minimum rate)",
+        "Security (e.g., encryption, data integrity)",
+        "Choosing which routers in the network core carry its packets"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The four needs are data integrity, timing, throughput and security. Routing decisions are made by the network layer and are not a transport service offered to applications."
+    },
+    {
+      "type": "mc",
+      "category": "Transport service requirements",
+      "q": "What is an elastic application?",
+      "choices": [
+        "One that uses whatever throughput it gets",
+        "One that needs a minimum throughput to be effective",
+        "One that can tolerate some data loss",
+        "One that needs delays of only tens of milliseconds"
+      ],
+      "answer": 0,
+      "explain": "Elastic apps (file transfer, email, web documents, text messaging) make use of whatever throughput is available. Multimedia apps instead need a minimum throughput to be effective."
+    },
+    {
+      "type": "tf",
+      "category": "Transport service requirements",
+      "q": "An application that needs a minimum amount of throughput to be effective, such as multimedia, is called an elastic application.",
+      "answer": false,
+      "explain": "That describes a throughput-sensitive application. Elastic applications are the opposite: they use whatever throughput they get."
+    },
+    {
+      "type": "multi",
+      "category": "Transport service requirements",
+      "q": "In the transport-requirements table for common applications, which applications cannot tolerate data loss?",
+      "choices": [
+        "File transfer/download",
+        "E-mail",
+        "Web documents",
+        "Real-time audio/video",
+        "Interactive games",
+        "Text messaging"
+      ],
+      "answer": [0, 1, 2, 5],
+      "explain": "File transfer, email, web documents and text messaging need no loss. Real-time and streaming audio/video and interactive games are loss-tolerant, because losing some packets only slightly degrades the experience."
+    },
+    {
+      "type": "mc",
+      "category": "Transport service requirements",
+      "q": "Which application is time-sensitive at the scale of a few seconds, rather than tens of milliseconds?",
+      "choices": [
+        "Real-time audio/video",
+        "Streaming (stored) audio/video",
+        "Interactive games",
+        "File transfer"
+      ],
+      "answer": 1,
+      "explain": "Streaming stored audio/video can buffer ahead, so a few seconds of delay is acceptable. Real-time audio/video and interactive games need delays in the tens of milliseconds. File transfer is not time-sensitive."
+    },
+    {
+      "type": "mc",
+      "category": "Transport service requirements",
+      "q": "Internet telephony and interactive games both need low delay to be effective. Which transport service need is this?",
+      "choices": [
+        "Data integrity",
+        "Throughput",
+        "Timing",
+        "Security"
+      ],
+      "answer": 2,
+      "explain": "Timing is the need for low delay from the sending process to the receiving process."
+    },
+    {
+      "type": "mc",
+      "category": "Transport service requirements",
+      "q": "A new app backs up a user's photo library to a server. Based on the requirements of similar apps (file transfer), which profile fits it best?",
+      "choices": [
+        "Loss-tolerant, needs 10 Kbps-5 Mbps, time-sensitive to tens of milliseconds",
+        "Loss-tolerant, elastic, time-sensitive to a few seconds",
+        "No loss, needs a guaranteed minimum throughput, time-sensitive to tens of milliseconds",
+        "No loss, elastic, not time-sensitive"
+      ],
+      "answer": 3,
+      "explain": "Like file transfer, a backup must arrive 100% intact, can use whatever throughput is available, and has no tight deadline."
+    },
+    {
+      "type": "mc",
+      "category": "Transport service requirements",
+      "q": "According to the requirements table, which profile fits an interactive multiplayer game?",
+      "choices": [
+        "Loss-tolerant, needs Kbps+ of throughput, time-sensitive to tens of milliseconds",
+        "No loss, elastic, not time-sensitive",
+        "Loss-tolerant, elastic, time-sensitive to a few seconds",
+        "No loss, elastic, time-sensitive to tens of milliseconds"
+      ],
+      "answer": 0,
+      "explain": "Interactive games tolerate some loss, need throughput on the order of Kbps and up, and need delays in the tens of milliseconds to feel responsive."
+    },
+    {
+      "type": "mc",
+      "category": "Transport service requirements",
+      "q": "Which application needs 100% reliable data transfer?",
+      "choices": [
+        "Live Internet audio",
+        "Web transactions",
+        "Real-time video conferencing",
+        "Interactive games"
+      ],
+      "answer": 1,
+      "explain": "Applications like file transfer and web transactions need 100% reliable data transfer. Audio and video can tolerate some loss."
+    },
+    {
+      "type": "multi",
+      "category": "TCP and UDP services",
+      "q": "Which services does TCP provide?",
+      "choices": [
+        "Reliable transport between sending and receiving processes",
+        "Flow control",
+        "Congestion control",
+        "Connection-oriented setup between client and server processes",
+        "A minimum throughput guarantee",
+        "Encryption of the data"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "TCP gives reliable transport, flow control, congestion control and connection setup. It does not provide timing, a minimum throughput guarantee, or security."
+    },
+    {
+      "type": "mc",
+      "category": "TCP and UDP services",
+      "q": "A TCP sender holds back because the receiver's buffers are almost full. Which TCP service is at work?",
+      "choices": [
+        "Congestion control",
+        "Flow control",
+        "Connection setup",
+        "Reliable transport"
+      ],
+      "answer": 1,
+      "explain": "Flow control keeps the sender from overwhelming the receiver, so the sender doesn't send more than the receiver has buffer space for."
+    },
+    {
+      "type": "mc",
+      "category": "TCP and UDP services",
+      "q": "A TCP sender slows down because the network between it and the receiver is overloaded. Which TCP service is at work?",
+      "choices": [
+        "Flow control",
+        "Connection setup",
+        "Congestion control",
+        "Reliable transport"
+      ],
+      "answer": 2,
+      "explain": "Congestion control throttles the sender when the network is overloaded. Flow control instead protects the receiver."
+    },
+    {
+      "type": "mc",
+      "category": "TCP and UDP services",
+      "q": "What does it mean that TCP is connection-oriented?",
+      "choices": [
+        "A dedicated physical circuit is reserved between the two hosts",
+        "Every packet takes the same path through the network",
+        "The connection guarantees a fixed delay",
+        "Setup (handshaking) between the client and server processes is required before data flows"
+      ],
+      "answer": 3,
+      "explain": "Before data begins to flow, the client and server processes must do a setup handshake. UDP has no connection setup."
+    },
+    {
+      "type": "mc",
+      "category": "TCP and UDP services",
+      "q": "Which describes UDP's service?",
+      "choices": [
+        "Unreliable data transfer between sending and receiving processes, with no flow control, congestion control or connection setup",
+        "Reliable data transfer with flow control but no congestion control",
+        "Connection-oriented transfer with a guaranteed minimum throughput",
+        "Encrypted transfer with end-point authentication"
+      ],
+      "answer": 0,
+      "explain": "UDP offers only best-effort, unreliable data transfer between processes. It provides no reliability, flow control, congestion control, timing, throughput guarantee, security or connection setup."
+    },
+    {
+      "type": "mc",
+      "category": "TCP and UDP services",
+      "q": "UDP provides even fewer services than TCP. Why is it still useful?",
+      "choices": [
+        "UDP guarantees lower delay than TCP",
+        "UDP encrypts data, which TCP does not",
+        "An application can build just the extra services it needs on top of UDP, in the application layer",
+        "UDP is required by all client-server applications"
+      ],
+      "answer": 2,
+      "explain": "Applications can add whatever services they need on top of UDP in the application layer, without TCP's built-in behavior. UDP itself gives no timing guarantee and no security."
+    },
+    {
+      "type": "mc",
+      "category": "TCP and UDP services",
+      "q": "Which of these services does neither TCP nor UDP provide?",
+      "choices": [
+        "Reliable delivery",
+        "Flow control",
+        "Congestion control",
+        "A minimum throughput guarantee"
+      ],
+      "answer": 3,
+      "explain": "Neither Internet transport protocol guarantees timing, minimum throughput or security. TCP provides reliable delivery, flow control and congestion control. UDP provides none of them."
+    },
+    {
+      "type": "multi",
+      "category": "TCP and UDP services",
+      "q": "In the table of Internet applications and their transport protocols, which applications may run over UDP?",
+      "choices": [
+        "File transfer (FTP)",
+        "E-mail (SMTP)",
+        "Web documents (HTTP)",
+        "Internet telephony (SIP, RTP, or proprietary)",
+        "Interactive games (e.g., WOW, FPS, proprietary)"
+      ],
+      "answer": [3, 4],
+      "explain": "FTP, SMTP and HTTP use TCP because they need reliable transfer. Internet telephony uses TCP or UDP, and interactive games use UDP or TCP."
+    },
+    {
+      "type": "tf",
+      "category": "TCP and UDP services",
+      "q": "Streaming audio/video using HTTP and DASH runs over TCP, even though streaming media can tolerate some loss.",
+      "answer": true,
+      "explain": "The table lists streaming audio/video (HTTP, DASH) over TCP. Overall, TCP is by far the most widely used transport service."
+    },
+    {
+      "type": "mc",
+      "category": "TCP and UDP services",
+      "q": "Which transport protocol should a file transfer application use, and why?",
+      "choices": [
+        "UDP, because file transfer is time-sensitive",
+        "TCP, because file transfer needs 100% reliable data transfer",
+        "UDP, because file transfer needs a minimum throughput guarantee",
+        "TCP, because TCP guarantees low delay"
+      ],
+      "answer": 1,
+      "explain": "File transfer cannot tolerate loss, so it uses TCP's reliable transport (FTP runs over TCP). TCP gives no delay or throughput guarantees, and file transfer is elastic and not time-sensitive anyway."
+    },
+    {
+      "type": "tf",
+      "category": "Securing TCP: TLS",
+      "q": "Plain (vanilla) TCP and UDP sockets encrypt data, so a password sent into a socket is protected as it crosses the Internet.",
+      "answer": false,
+      "explain": "Vanilla TCP and UDP sockets do no encryption. A cleartext password sent into the socket crosses the Internet in cleartext. The original 1980s socket abstraction had no security concepts, so applications had to build security in themselves."
+    },
+    {
+      "type": "multi",
+      "category": "Securing TCP: TLS",
+      "q": "Which services does Transport Layer Security (TLS) provide?",
+      "choices": [
+        "Encrypted TCP connections",
+        "Data integrity",
+        "End-point authentication",
+        "A guaranteed minimum throughput",
+        "Low-delay timing guarantees"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "TLS provides encryption, data integrity and end-point authentication over TCP. It adds no timing or throughput guarantees."
+    },
+    {
+      "type": "mc",
+      "category": "Securing TCP: TLS",
+      "q": "Where is TLS implemented?",
+      "choices": [
+        "In the network core, where routers encrypt packets as they forward them",
+        "In the operating system's UDP implementation",
+        "In the application layer: apps use TLS libraries, which in turn use TCP",
+        "In the physical layer, by scrambling signals on each link"
+      ],
+      "answer": 2,
+      "explain": "TLS is a shim implemented in application (user) space on top of TCP sockets. Applications call TLS libraries, and those libraries use TCP."
+    },
+    {
+      "type": "mc",
+      "category": "Securing TCP: TLS",
+      "q": "An application using TLS writes a password in cleartext into its TLS socket. How does the password cross the Internet?",
+      "choices": [
+        "Encrypted",
+        "In cleartext, because the application did not encrypt it itself",
+        "Encrypted only if UDP is used underneath",
+        "It is never sent, because TLS refuses to carry passwords"
+      ],
+      "answer": 0,
+      "explain": "With TLS, cleartext sent into the socket crosses the Internet encrypted. The TLS layer does the encryption for the application."
+    },
+    {
+      "type": "text",
+      "category": "Securing TCP: TLS",
+      "q": "What does TLS stand for?",
+      "answer": ["Transport Layer Security"],
+      "explain": "TLS = Transport Layer Security. It provides encrypted TCP connections with data integrity and end-point authentication."
+    },
+    {
+      "type": "mc",
+      "category": "Securing TCP: TLS",
+      "q": "What does end-point authentication mean?",
+      "choices": [
+        "Proving to the other side that you are who you say you are",
+        "Making sure the data was not changed in transit",
+        "Hiding the contents of messages from eavesdroppers",
+        "Guaranteeing that the other side has enough buffer space"
+      ],
+      "answer": 0,
+      "explain": "End-point authentication lets each side verify the other's identity. Detecting changes is data integrity, hiding contents is encryption, and buffer space is TCP flow control."
+    }
+  ]
+}

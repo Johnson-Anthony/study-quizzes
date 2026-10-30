@@ -1,0 +1,563 @@
+{
+  "title": "Ch 6: Link Layer Introduction and Error Detection",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "text",
+      "category": "Link layer basics",
+      "q": "In link-layer terminology, what is a layer-2 packet called?",
+      "answer": ["frame", "a frame", "frames"],
+      "explain": "A layer-2 packet is a frame. It encapsulates a network-layer datagram."
+    },
+    {
+      "type": "mc",
+      "category": "Link layer basics",
+      "q": "What is the link layer responsible for?",
+      "choices": [
+        "Transferring a datagram from one node to a physically adjacent node over a link",
+        "Delivering a segment from a process on one host to a process on another host",
+        "Choosing the end-to-end path a datagram takes from source to destination",
+        "Translating hostnames into IP addresses"
+      ],
+      "answer": 0,
+      "explain": "The link layer works one hop at a time. It moves a datagram across a single link between physically adjacent nodes. End-to-end path selection is routing, which is a network-layer job."
+    },
+    {
+      "type": "tf",
+      "category": "Link layer basics",
+      "q": "In link-layer terminology, both hosts and routers are called nodes, and the communication channels connecting adjacent nodes along the path are called links.",
+      "answer": true,
+      "explain": "Hosts and routers are nodes. Links are the channels that connect adjacent nodes along a communication path, and they can be wired, wireless, or LANs."
+    },
+    {
+      "type": "mc",
+      "category": "Link layer basics",
+      "q": "A trip from Princeton to Lausanne uses a limo to JFK, a plane to Geneva, and a train to Lausanne. In the analogy to the link layer, what does the mode of transportation on each leg (limo, plane, train) correspond to?",
+      "choices": ["A link-layer protocol", "A datagram", "A routing algorithm", "A communication link"],
+      "answer": 0,
+      "explain": "Transportation mode = link-layer protocol. Tourist = datagram, each transport segment = communication link, travel agent = routing algorithm."
+    },
+    {
+      "type": "mc",
+      "category": "Link layer basics",
+      "q": "In the same travel analogy (limo, plane, train from Princeton to Lausanne), what does the travel agent who plans the whole trip correspond to?",
+      "choices": ["A routing algorithm", "A link-layer protocol", "A frame", "A network interface card"],
+      "answer": 0,
+      "explain": "The travel agent plans the whole route, just as a routing algorithm decides the end-to-end path. Each leg is then carried out by its own transport mode, which corresponds to a link-layer protocol."
+    },
+    {
+      "type": "tf",
+      "category": "Link layer basics",
+      "q": "A datagram has to be carried by the same link-layer protocol on every link along its path.",
+      "answer": false,
+      "explain": "Different link protocols can carry the datagram over different links. For example, it might use WiFi on the first link and Ethernet on the next."
+    },
+    {
+      "type": "tf",
+      "category": "Link layer basics",
+      "q": "Every link-layer protocol provides reliable data transfer over its link.",
+      "answer": false,
+      "explain": "Each link protocol provides different services. Some provide reliable data transfer over the link and some do not."
+    },
+    {
+      "type": "multi",
+      "category": "Link layer services",
+      "q": "Which of the following are services that a link-layer protocol may provide?",
+      "choices": [
+        "Framing: encapsulating a datagram with a header and trailer",
+        "Choosing the route a datagram takes from the source host to the destination host",
+        "Error detection",
+        "Flow control between adjacent sending and receiving nodes",
+        "Reliable delivery between adjacent nodes",
+        "Error correction"
+      ],
+      "answer": [0, 2, 3, 4, 5],
+      "explain": "Link-layer services include framing and link access, reliable delivery between adjacent nodes, flow control, error detection, error correction, and half/full-duplex operation. End-to-end route selection is a network-layer (routing) function."
+    },
+    {
+      "type": "mc",
+      "category": "Link layer services",
+      "q": "Link-layer frame headers carry \"MAC\" addresses. What do these addresses do?",
+      "choices": [
+        "Identify the frame's source and destination; they are different from IP addresses",
+        "Give the datagram's source and destination IP addresses",
+        "Identify the application process that sent the data",
+        "Identify the router that computed the end-to-end route"
+      ],
+      "answer": 0,
+      "explain": "MAC addresses in frame headers identify the source and destination at the link layer. They are not the same as IP addresses."
+    },
+    {
+      "type": "mc",
+      "category": "Link layer services",
+      "q": "Besides framing, the link layer may need to provide channel (link) access. When is that needed?",
+      "choices": [
+        "When the medium is shared by multiple nodes",
+        "Only when the link uses fiber",
+        "Only when the frame carries a TCP segment",
+        "Whenever the frame has a bit error"
+      ],
+      "answer": 0,
+      "explain": "Framing and link access includes channel access when the medium is shared, so nodes must coordinate their use of the channel."
+    },
+    {
+      "type": "mc",
+      "category": "Link layer services",
+      "q": "Why is link-level reliable delivery seldom used on some links but common on wireless links?",
+      "choices": [
+        "Links with low bit-error rates rarely need it, while wireless links have high error rates",
+        "Wireless links cannot carry frame headers",
+        "Wired links already correct every error in hardware, so errors never occur",
+        "Reliable delivery only works when the medium is not shared"
+      ],
+      "answer": 0,
+      "explain": "Reliable delivery between adjacent nodes is seldom used on low bit-error links. Wireless links have high error rates, so it is worthwhile there."
+    },
+    {
+      "type": "mc",
+      "category": "Link layer services",
+      "q": "Why can it make sense to have both link-level reliability (for example, on a wireless hop) and end-to-end reliability?",
+      "choices": [
+        "On a high-error link, fixing errors at that hop avoids relying only on slower end-to-end retransmission, but other links on the path may not provide reliability, so the endpoints still need it",
+        "Link-level reliability guarantees that no errors can occur anywhere on the path, so end-to-end reliability only adds overhead",
+        "End-to-end reliability works only on wired links, so wireless links must replace it",
+        "The two are the same mechanism implemented twice for redundancy, with no difference in scope"
+      ],
+      "answer": 0,
+      "explain": "Link-level reliability covers only one link, and each link protocol may or may not provide it. So it cannot replace end-to-end reliability. On a high-error link such as wireless, though, retransmitting at that hop recovers locally and quickly."
+    },
+    {
+      "type": "mc",
+      "category": "Link layer services",
+      "q": "What distinguishes error correction from error detection?",
+      "choices": [
+        "With error correction, the receiver identifies and corrects bit errors without a retransmission",
+        "Error correction only checks the header, not the data",
+        "Error correction always requires the sender to retransmit the frame",
+        "Error correction drops the frame instead of signaling a retransmission"
+      ],
+      "answer": 0,
+      "explain": "With error detection, the receiver finds errors and then signals for a retransmission or drops the frame. With error correction, the receiver identifies and fixes the bit errors itself, without a retransmission."
+    },
+    {
+      "type": "multi",
+      "category": "Link layer services",
+      "q": "A receiver detects a bit error in a frame that it cannot correct. What may it do?",
+      "choices": [
+        "Signal the sender to retransmit",
+        "Drop the frame",
+        "Re-route the frame along a different path",
+        "Pass the datagram up as if it were valid"
+      ],
+      "answer": [0, 1],
+      "explain": "When a receiver detects errors, it either signals a retransmission or drops the frame."
+    },
+    {
+      "type": "mc",
+      "category": "Link layer services",
+      "q": "What causes the bit errors that link-layer error detection is designed to catch?",
+      "choices": ["Signal attenuation and noise", "Routing loops", "Incorrect MAC addresses in the header", "Full transport-layer receive buffers"],
+      "answer": 0,
+      "explain": "Bit errors on a link are caused by signal attenuation and noise."
+    },
+    {
+      "type": "mc",
+      "category": "Link layer services",
+      "q": "What does link-layer flow control do?",
+      "choices": [
+        "Paces transmission between adjacent sending and receiving nodes",
+        "Picks the least congested end-to-end path",
+        "Corrects flipped bits in the frame",
+        "Assigns MAC addresses to interfaces"
+      ],
+      "answer": 0,
+      "explain": "Link-layer flow control paces the sender so it doesn't overwhelm the receiving node at the other end of the link."
+    },
+    {
+      "type": "mc",
+      "category": "Link layer services",
+      "q": "On a half-duplex link, which statement is true?",
+      "choices": [
+        "Nodes at both ends can transmit, but not at the same time",
+        "Only one end of the link can ever transmit",
+        "Both ends can transmit at the same time",
+        "Each frame must be sent twice"
+      ],
+      "answer": 0,
+      "explain": "With half duplex, both ends can transmit, but they take turns. With full duplex, both can transmit at the same time."
+    },
+    {
+      "type": "mc",
+      "category": "Host implementation",
+      "q": "Where is the link layer implemented in a host?",
+      "choices": [
+        "On-chip or in a network interface card (NIC)",
+        "Only in the router the host is attached to",
+        "Only in the application",
+        "Only in the host's transport-layer code"
+      ],
+      "answer": 0,
+      "explain": "Every host has a link layer, implemented on-chip or in a network interface card (NIC)."
+    },
+    {
+      "type": "multi",
+      "category": "Host implementation",
+      "q": "Which layers does a network interface card (NIC) implement?",
+      "choices": ["Application", "Transport", "Network", "Link", "Physical"],
+      "answer": [3, 4],
+      "fixed": true,
+      "explain": "The NIC (its controller plus physical-layer hardware) implements the link and physical layers. The CPU and memory run the upper layers."
+    },
+    {
+      "type": "tf",
+      "category": "Host implementation",
+      "q": "The link layer in a host is implemented purely in hardware.",
+      "answer": false,
+      "explain": "The link layer is a combination of hardware, software, and firmware."
+    },
+    {
+      "type": "tf",
+      "category": "Host implementation",
+      "q": "The link layer is implemented in every host, not only in routers.",
+      "answer": true,
+      "explain": "Every host has a link layer, either on-chip or in a NIC."
+    },
+    {
+      "type": "mc",
+      "category": "Host implementation",
+      "q": "How does a host's network interface connect to the rest of the host?",
+      "choices": [
+        "It attaches to the host's system bus (e.g., PCI), which connects to the CPU and memory",
+        "It connects directly to the application through a socket",
+        "It attaches only to the physical cable and has no connection to the CPU",
+        "It is part of the CPU's instruction set"
+      ],
+      "answer": 0,
+      "explain": "The network interface (controller plus physical layer) attaches to the host's system bus, such as PCI, which connects it to the CPU and memory."
+    },
+    {
+      "type": "multi",
+      "category": "Host implementation",
+      "q": "When two interfaces communicate, which of these tasks belong to the SENDING side?",
+      "choices": [
+        "Encapsulates the datagram in a frame",
+        "Adds error-checking bits (plus reliable data transfer, flow control, etc.)",
+        "Extracts the datagram and passes it to the upper layer",
+        "Looks for errors in the incoming frame"
+      ],
+      "answer": [0, 1],
+      "explain": "The sender encapsulates the datagram in a frame and adds error-checking bits, reliable data transfer, flow control, etc. The receiver looks for errors and handles reliable transfer and flow control, then extracts the datagram and passes it up."
+    },
+    {
+      "type": "mc",
+      "category": "Host implementation",
+      "q": "After the receiving interface has checked a frame for errors, what does it do with a good frame?",
+      "choices": [
+        "Extracts the datagram and passes it to the upper layer",
+        "Adds a new frame header and sends it back to the sender",
+        "Passes the whole frame, header included, to the application",
+        "Discards the datagram and keeps only the header"
+      ],
+      "answer": 0,
+      "explain": "The receiving side looks for errors (and handles reliable data transfer, flow control, etc.), then extracts the datagram and passes it up to the network layer."
+    },
+    {
+      "type": "mc",
+      "category": "Error detection basics",
+      "q": "In error-detection notation, what does EDC stand for?",
+      "choices": [
+        "Error detection and correction bits (redundancy added to the data)",
+        "Encapsulated datagram content",
+        "End-to-end delivery confirmation",
+        "Ethernet destination code"
+      ],
+      "answer": 0,
+      "explain": "EDC is the redundant error detection and correction bits sent along with the protected data D."
+    },
+    {
+      "type": "tf",
+      "category": "Error detection basics",
+      "q": "The data D protected by error checking may include header fields, not just the payload.",
+      "answer": true,
+      "explain": "D is the data protected by error checking, and it may include header fields."
+    },
+    {
+      "type": "mc",
+      "category": "Error detection basics",
+      "q": "The sender transmits D and EDC, and the receiver works with D' and EDC'. Why the primes?",
+      "choices": [
+        "They are the received versions, which may differ from what was sent because the link is bit-error prone",
+        "They are the corrected versions produced by the sender",
+        "They are copies the sender keeps for retransmission",
+        "They are the header fields only"
+      ],
+      "answer": 0,
+      "explain": "The link can flip bits, so what arrives (D', EDC') may differ from what was sent (D, EDC). The receiver checks whether all bits in D' are OK."
+    },
+    {
+      "type": "tf",
+      "category": "Error detection basics",
+      "q": "If the receiver's error check on D' and EDC' passes, the received data is guaranteed to be error-free.",
+      "answer": false,
+      "explain": "Error detection is not 100% reliable. The protocol can occasionally miss errors."
+    },
+    {
+      "type": "mc",
+      "category": "Error detection basics",
+      "q": "What is the general effect of using a larger EDC field?",
+      "choices": [
+        "Better error detection and correction",
+        "Errors become impossible to miss",
+        "Less overhead per frame",
+        "No effect; only the algorithm matters"
+      ],
+      "answer": 0,
+      "explain": "A larger EDC field gives better detection and correction, though detection still isn't 100% reliable."
+    },
+    {
+      "type": "mc",
+      "category": "Parity checking",
+      "q": "What can a single parity bit detect?",
+      "choices": [
+        "Single bit errors",
+        "Any number of bit errors",
+        "Single bit errors, and it can also correct them",
+        "All burst errors up to the length of the data"
+      ],
+      "answer": 0,
+      "explain": "A single parity bit detects single bit errors. Detecting and correcting single bit errors takes two-dimensional parity."
+    },
+    {
+      "type": "num",
+      "category": "Parity checking",
+      "q": "Using EVEN parity, what parity bit should be appended to the data bits 11010011?",
+      "answer": 1,
+      "explain": "11010011 contains five 1s. Even parity needs an even total number of 1s, so the parity bit is 1."
+    },
+    {
+      "type": "num",
+      "category": "Parity checking",
+      "q": "Using ODD parity, what parity bit should be appended to the data bits 01100111?",
+      "answer": 0,
+      "explain": "01100111 contains five 1s, which is already odd, so the parity bit is 0."
+    },
+    {
+      "type": "mc",
+      "category": "Parity checking",
+      "q": "Even parity is in use. A receiver gets the data bits 1001101 followed by the parity bit 1. What should it conclude?",
+      "choices": [
+        "An error is detected",
+        "No error is detected",
+        "The error is detected and the flipped bit can be identified",
+        "Nothing; the parity bit is ignored at the receiver"
+      ],
+      "answer": 0,
+      "explain": "The data has four 1s, so even parity should give a parity bit of 0. The receiver computes parity over the received data bits and compares it with the received parity bit. They differ, so an error is detected. A single parity bit can't tell which bit flipped."
+    },
+    {
+      "type": "tf",
+      "category": "Parity checking",
+      "q": "With single-bit even parity, if exactly two bits flip in transit, the receiver will detect the error.",
+      "answer": false,
+      "explain": "Two flips change the count of 1s by 0 or 2, so the count stays even and the parity check still passes. That is why single parity is described as detecting single bit errors."
+    },
+    {
+      "type": "tf",
+      "category": "Parity checking",
+      "q": "Two-dimensional parity can both detect and correct a single bit error without a retransmission.",
+      "answer": true,
+      "explain": "In two-dimensional parity, the data is arranged in rows and columns with a parity bit for each row and each column. A single flipped bit causes exactly one row check and one column check to fail, which pinpoints the bit so it can be flipped back."
+    },
+    {
+      "type": "mc",
+      "category": "Parity checking",
+      "q": "In two-dimensional parity, how does the receiver find a single flipped bit?",
+      "choices": [
+        "It is at the intersection of the row and the column whose parity checks fail",
+        "It is always the last bit of the row that fails",
+        "It is found by dividing the block by a generator",
+        "It can't be found; the frame must be retransmitted"
+      ],
+      "answer": 0,
+      "explain": "One row parity error plus one column parity error identifies a single cell, and that cell holds the flipped bit."
+    },
+    {
+      "type": "mc",
+      "category": "Parity checking",
+      "q": "Two-dimensional EVEN parity, 3 rows x 4 data columns. Each row is shown as data|row-parity, and the last line is the column-parity row. Received: row 1 = 1100|0, row 2 = 0101|1, row 3 = 1010|0, column parity = 0001|1. Which data bit is in error?",
+      "choices": ["Row 2, column 3", "Row 2, column 2", "Row 3, column 3", "Row 1, column 4"],
+      "answer": 0,
+      "explain": "Row checks: row 1 has two 1s (ok), row 2 has 0+1+0+1+1 = three 1s (fails), row 3 has two 1s (ok). Column checks: column 3 has 0+0+1 plus parity 0 = one 1 (fails), and all other columns are even. The error is at row 2, column 3, so the received 0 should be 1."
+    },
+    {
+      "type": "mc",
+      "category": "Internet checksum",
+      "q": "When computing the Internet checksum, how does the sender treat the contents of the segment?",
+      "choices": [
+        "As a sequence of 16-bit integers",
+        "As a sequence of 8-bit characters",
+        "As one large binary number to be divided by a generator",
+        "As a 2-D array of bits with row and column parity"
+      ],
+      "answer": 0,
+      "explain": "The sender treats the segment contents as a sequence of 16-bit integers and adds them up."
+    },
+    {
+      "type": "mc",
+      "category": "Internet checksum",
+      "q": "How is the Internet checksum computed?",
+      "choices": [
+        "Addition (one's complement sum) of the segment content",
+        "Modulo-2 polynomial division by a generator G",
+        "Computing a parity bit for each row and column",
+        "XOR of the source and destination MAC addresses"
+      ],
+      "answer": 0,
+      "explain": "The checksum is a one's complement sum of the segment content, and the result goes into the UDP checksum field. Division by a generator is how CRC works."
+    },
+    {
+      "type": "multi",
+      "category": "Internet checksum",
+      "q": "For UDP, which of the following are included when the sender computes the checksum?",
+      "choices": ["The UDP segment's data", "The UDP header fields", "The IP addresses", "The link-layer frame trailer"],
+      "answer": [0, 1, 2],
+      "explain": "The sender treats the contents of the UDP segment, including the UDP header fields and the IP addresses, as 16-bit integers. The link-layer trailer is added later, at a lower layer."
+    },
+    {
+      "type": "mc",
+      "category": "Internet checksum",
+      "q": "The receiver computes the checksum of a received segment, and it does NOT equal the value in the checksum field. What does this mean?",
+      "choices": [
+        "An error has been detected",
+        "No error has been detected",
+        "The error has been corrected",
+        "The checksum field should be ignored"
+      ],
+      "answer": 0,
+      "explain": "If the values are not equal, an error has been detected. If they are equal, no error is detected, but errors might still be present."
+    },
+    {
+      "type": "tf",
+      "category": "Internet checksum",
+      "q": "If the receiver's computed checksum equals the checksum field, the segment definitely contains no errors.",
+      "answer": false,
+      "explain": "A match only means no error was detected. Some errors can leave the checksum unchanged."
+    },
+    {
+      "type": "mc",
+      "category": "CRC",
+      "q": "A CRC uses r CRC bits. How many bits long is the generator G?",
+      "choices": ["r + 1", "r", "r - 1", "2r"],
+      "answer": 0,
+      "explain": "G is a bit pattern of r+1 bits, specified in the CRC standard. It produces r CRC bits."
+    },
+    {
+      "type": "num",
+      "category": "CRC",
+      "q": "A CRC uses the generator G = 10011. How many CRC bits (r) does the sender append to the data?",
+      "answer": 4,
+      "explain": "G has r+1 bits. G is 5 bits, so r = 4."
+    },
+    {
+      "type": "mc",
+      "category": "CRC",
+      "q": "In the formula <D,R> = D·2^r XOR R, what does multiplying D by 2^r do?",
+      "choices": [
+        "Shifts D left by r bit positions, leaving r zero bits at the end where R goes",
+        "Doubles each bit of D",
+        "Appends a copy of D to itself r times",
+        "Converts D to a one's complement number"
+      ],
+      "answer": 0,
+      "explain": "D·2^r is D with r zeros appended. XORing with R then fills those r positions with the CRC bits, giving the d+r bits that are sent."
+    },
+    {
+      "type": "mc",
+      "category": "CRC",
+      "q": "How does the sender choose the r CRC bits R?",
+      "choices": [
+        "So that <D,R> is exactly divisible by G using modulo-2 arithmetic",
+        "So that the number of 1s in <D,R> is even",
+        "So that R is the one's complement sum of D",
+        "So that D + R equals G"
+      ],
+      "answer": 0,
+      "explain": "The sender picks R so that <D,R> divides exactly by G (mod 2). The receiver knows G and can check this."
+    },
+    {
+      "type": "mc",
+      "category": "CRC",
+      "q": "Starting from D·2^r XOR R = nG, which is equivalent to D·2^r = nG XOR R, how does the sender actually compute R?",
+      "choices": [
+        "R = remainder of (D·2^r) / G, using modulo-2 division",
+        "R = quotient of (D·2^r) / G",
+        "R = D XOR G",
+        "R = remainder of D / 2^r"
+      ],
+      "answer": 0,
+      "explain": "D·2^r = nG XOR R says that dividing D·2^r by G leaves R as the remainder. So the sender appends r zeros to D, divides by G mod 2 (XOR at each step, no carries), and takes the r-bit remainder."
+    },
+    {
+      "type": "mc",
+      "category": "CRC",
+      "q": "The receiver divides the received <D,R> by G. What does a non-zero remainder mean?",
+      "choices": [
+        "An error was detected",
+        "No error occurred",
+        "The error was corrected",
+        "The generator was wrong and should be replaced"
+      ],
+      "answer": 0,
+      "explain": "A correctly received <D,R> divides exactly by G. A non-zero remainder means an error was detected."
+    },
+    {
+      "type": "num",
+      "category": "CRC",
+      "q": "A CRC uses r = 8 CRC bits. What is the length, in bits, of the longest burst error it is guaranteed to detect?",
+      "answer": 8,
+      "explain": "A CRC detects all burst errors shorter than r+1 bits. With r = 8 that means bursts shorter than 9 bits, so up to 8 bits."
+    },
+    {
+      "type": "multi",
+      "category": "CRC",
+      "q": "Which of the following use CRC for error detection?",
+      "choices": ["Ethernet", "802.11 WiFi", "UDP's segment error check"],
+      "answer": [0, 1],
+      "explain": "CRC is widely used in link technologies such as Ethernet and 802.11 WiFi. UDP uses the Internet checksum (a one's complement sum)."
+    },
+    {
+      "type": "text",
+      "category": "CRC",
+      "q": "Compute the CRC bits R for data D = 101101 and generator G = 1101. Give R as a bit string of length r.",
+      "answer": ["010"],
+      "explain": "G has 4 bits, so r = 3. D·2^3 = 101101000. Mod-2 division by 1101: 1011 XOR 1101 = 0110; bring down 0: 1100 XOR 1101 = 0001; bring down 1: 0011 (leading 0, quotient bit 0); bring down 0: 0110 (quotient bit 0); bring down 0: 1100 XOR 1101 = 0001; bring down 0: 0010 (quotient bit 0). The remainder is R = 010."
+    },
+    {
+      "type": "text",
+      "category": "CRC",
+      "q": "For data D = 101101 and generator G = 1101, what full bit string <D,R> does the sender transmit?",
+      "answer": ["101101010"],
+      "explain": "r = 3 and R = remainder(101101000 / 1101) = 010. Sent bits = D followed by R = 101101010, which divides exactly by 1101."
+    },
+    {
+      "type": "text",
+      "category": "CRC",
+      "q": "Compute the CRC bits R for data D = 110101 and generator G = 101. Give R as a bit string of length r.",
+      "answer": ["11"],
+      "explain": "G has 3 bits, so r = 2. D·2^2 = 11010100. Mod-2 division by 101: 110 XOR 101 = 011; bring down 1: 111 XOR 101 = 010; bring down 0: 100 XOR 101 = 001; bring down 1: 011 (quotient bit 0); bring down 0: 110 XOR 101 = 011; bring down 0: 110 XOR 101 = 011. The remainder is R = 11, and the sender transmits 11010111."
+    },
+    {
+      "type": "mc",
+      "category": "CRC",
+      "q": "With generator G = 1001, a receiver gets the bits 101010011. What remainder does it get, and what does it conclude?",
+      "choices": [
+        "Remainder 100: error detected",
+        "Remainder 000: no error detected",
+        "Remainder 011: no error detected",
+        "Remainder 000: error detected"
+      ],
+      "answer": 0,
+      "explain": "Mod-2 division by 1001: 1010 XOR 1001 = 0011; bring down 1: 0111 (quotient bit 0); bring down 0: 1110 XOR 1001 = 0111; bring down 0: 1110 XOR 1001 = 0111; bring down 1: 1111 XOR 1001 = 0110; bring down 1: 1101 XOR 1001 = 0100. The remainder is 100, which is non-zero, so an error is detected. (The valid codeword for D = 101110 is 101110011; one bit flipped.)"
+    }
+  ]
+}

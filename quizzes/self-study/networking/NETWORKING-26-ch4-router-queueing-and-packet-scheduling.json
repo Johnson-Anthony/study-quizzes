@@ -1,0 +1,487 @@
+{
+  "title": "Ch4: Router Queueing and Packet Scheduling",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Input port queuing",
+      "q": "Queueing at a router's input ports can occur when:",
+      "choices": [
+        "datagrams reach an output port from the fabric faster than that output link can transmit them",
+        "the switch fabric is slower than the input ports combined",
+        "the forwarding table has more entries than an input buffer can hold",
+        "datagrams arrive at an input port out of order"
+      ],
+      "answer": 1,
+      "explain": "If the fabric can't move datagrams out of the input ports as fast as they arrive in total, they back up at the inputs. The result is queueing delay, and loss when an input buffer overflows. The first choice describes output port queuing."
+    },
+    {
+      "type": "mc",
+      "category": "Input port queuing",
+      "q": "What is Head-of-the-Line (HOL) blocking?",
+      "choices": [
+        "An output port drops the datagram at the head of its queue to make room for a new arrival",
+        "A high-priority queue keeps a low-priority queue from being served",
+        "A datagram at the front of an input queue keeps the other datagrams in that queue from moving forward",
+        "The switch fabric stops every input port while it transfers one datagram"
+      ],
+      "answer": 2,
+      "explain": "HOL blocking is an input-queue problem. The datagram at the front of the queue can't be transferred, often because of output port contention, so every datagram behind it waits too, even if they are headed to other outputs."
+    },
+    {
+      "type": "mc",
+      "category": "Input port queuing",
+      "q": "Input ports 1 and 3 each have a datagram at the front of their queue headed to output port X. Behind the head datagram, input port 3 also holds a datagram headed to output port Y, which is idle. This packet time, the fabric transfers port 1's datagram to X. What happens at input port 3?",
+      "choices": [
+        "Its Y-bound datagram moves ahead and is transferred to Y",
+        "Its X-bound datagram is dropped so the Y-bound datagram can go",
+        "Both of its datagrams are transferred, since port Y is idle",
+        "Both datagrams wait: the X-bound head loses the contention for X, and the Y-bound datagram is stuck behind it (HOL blocking)"
+      ],
+      "answer": 3,
+      "explain": "Only one datagram can go to X per packet time, so port 3's head datagram is blocked. The Y-bound datagram can't get around it, so it waits even though Y is free. This is the slide's example: the green packet experiences HOL blocking."
+    },
+    {
+      "type": "tf",
+      "category": "Input port queuing",
+      "q": "A datagram suffering HOL blocking can be stuck at an input port even though the output port it is headed to is idle.",
+      "answer": true,
+      "explain": "The blocked datagram is waiting behind the head of its input queue, not for its own output port. That's why HOL blocking wastes capacity."
+    },
+    {
+      "type": "mc",
+      "category": "Input port queuing",
+      "q": "Datagrams at the front of two different input queues are both headed to the same output port, and only one of them can be transferred across the fabric at a time. What is this situation called?",
+      "choices": [
+        "tail drop",
+        "output port contention",
+        "input buffer overflow",
+        "paid prioritization"
+      ],
+      "answer": 1,
+      "explain": "Output port contention: only one of the competing datagrams goes, and the other is blocked at its input. That blocked datagram then causes HOL blocking for whatever is queued behind it."
+    },
+    {
+      "type": "multi",
+      "category": "Input port queuing",
+      "q": "Which are consequences of queueing at the input ports?",
+      "choices": [
+        "queueing delay at the input ports",
+        "datagrams forwarded to the wrong output port",
+        "loss when an input buffer overflows",
+        "a lower transmission rate R on the output link"
+      ],
+      "answer": [0, 2],
+      "explain": "Input queuing causes delay and, once an input buffer fills, loss. It does not change forwarding decisions or the output link's rate."
+    },
+    {
+      "type": "mc",
+      "category": "Output port queuing",
+      "q": "Buffering at an output port is needed when:",
+      "choices": [
+        "the switch fabric is slower than the input ports combined",
+        "the datagram at the head of an input queue is blocked",
+        "datagrams arrive from the switch fabric faster than the output link's transmission rate",
+        "the link-layer protocol has to reorder datagrams"
+      ],
+      "answer": 2,
+      "explain": "When datagrams arrive through the switch faster than the output line can send them, the excess has to wait in the output buffer. The first two choices describe input port queuing."
+    },
+    {
+      "type": "tf",
+      "category": "Output port queuing",
+      "q": "If a router's switch fabric is fast enough (e.g., rate NR) that no queueing occurs at the input ports, then datagrams can't be lost at the output ports either.",
+      "answer": false,
+      "explain": "A fast fabric can deliver datagrams from many inputs to the same output in one packet time, but that output link still sends at only R. When arrivals via the switch exceed the output line speed, the output buffer grows and can overflow, causing delay and loss."
+    },
+    {
+      "type": "mc",
+      "category": "Output port queuing",
+      "q": "In what order does an outgoing datagram pass through the parts of an output port?",
+      "choices": [
+        "line termination → link layer protocol (send) → datagram buffer",
+        "datagram buffer (queueing) → link layer protocol (send) → line termination",
+        "link layer protocol (send) → datagram buffer → line termination",
+        "datagram buffer → line termination → link layer protocol (send)"
+      ],
+      "answer": 1,
+      "explain": "Datagrams coming from the fabric wait in the datagram buffer. Then the link layer protocol prepares them for sending, and line termination puts the bits on the link at rate R."
+    },
+    {
+      "type": "mc",
+      "category": "Output port queuing",
+      "q": "At an output port, which mechanism chooses which queued datagram is transmitted next?",
+      "choices": [
+        "the drop policy",
+        "the switch fabric",
+        "line termination",
+        "the scheduling discipline"
+      ],
+      "answer": 3,
+      "explain": "The scheduling discipline picks among queued datagrams for transmission. The drop policy decides which datagrams to drop when no buffers are free."
+    },
+    {
+      "type": "multi",
+      "category": "Output port queuing",
+      "q": "In one packet time, a fast switch fabric delivers one datagram from each of three input ports to the same output port. That output link can send only one datagram per packet time. Which outcomes are possible?",
+      "choices": [
+        "some of the datagrams wait in the output buffer (queueing delay)",
+        "the fabric refuses to transfer two of the three datagrams",
+        "datagrams are lost if the output buffer has no free space",
+        "the output link speeds up to 3R to keep up"
+      ],
+      "answer": [0, 2],
+      "explain": "Arrivals via the switch exceed the output line speed, so datagrams queue at the output, and they're lost if the buffer overflows. The link rate R is fixed."
+    },
+    {
+      "type": "num",
+      "category": "Buffer sizing",
+      "q": "Using the RFC 3439 rule of thumb with a typical RTT of 250 ms, how much buffering should a router have for a 40 Gbps link? Answer in Gbit.",
+      "answer": 10,
+      "tolerance": 0.01,
+      "explain": "Buffer = RTT × C = 0.25 s × 40 Gbps = 10 Gbit. The slide's example is 0.25 s × 10 Gbps = 2.5 Gbit."
+    },
+    {
+      "type": "num",
+      "category": "Buffer sizing",
+      "q": "Using the newer recommendation for N flows, how much buffering is suggested for a 10 Gbps link carrying 10,000 flows with an RTT of 250 ms? Answer in Mbit.",
+      "answer": 25,
+      "tolerance": 0.01,
+      "explain": "Buffer = RTT·C / √N = (0.25 s × 10 Gbps) / √10000 = 2.5 Gbit / 100 = 25 Mbit."
+    },
+    {
+      "type": "mc",
+      "category": "Buffer sizing",
+      "q": "Under the RTT·C/√N recommendation, what happens to the recommended buffer size if the number of flows on a link grows from 100 to 400, with RTT and C unchanged?",
+      "choices": [
+        "it is cut to a quarter",
+        "it doubles",
+        "it is halved",
+        "it stays the same"
+      ],
+      "answer": 2,
+      "explain": "The buffer scales as 1/√N. N grows by a factor of 4, so √N grows by a factor of 2 and the buffer is halved."
+    },
+    {
+      "type": "multi",
+      "category": "Buffer sizing",
+      "q": "Why can too much buffering hurt performance, especially in home routers?",
+      "choices": [
+        "longer queueing delays, so longer RTTs",
+        "worse performance for real-time applications",
+        "more packet loss at the output port",
+        "sluggish TCP response",
+        "more HOL blocking at the input ports"
+      ],
+      "answer": [0, 1, 3],
+      "explain": "Large buffers that fill up add delay. Long RTTs hurt real-time apps and make TCP slow to respond. Extra buffering means fewer drops, not more, and it has nothing to do with HOL blocking at the inputs."
+    },
+    {
+      "type": "mc",
+      "category": "Buffer sizing",
+      "q": "Which goal from delay-based congestion control also argues against oversized router buffers?",
+      "choices": [
+        "keep the buffer as full as possible so the link never goes idle",
+        "keep the bottleneck link just full enough (busy) but no fuller",
+        "keep every router buffer empty at all times",
+        "make each buffer large enough to hold every packet of every flow"
+      ],
+      "answer": 1,
+      "explain": "The aim is to keep the bottleneck link busy without building a standing queue. Packets beyond what keeps the link busy only add delay."
+    },
+    {
+      "type": "mc",
+      "category": "Buffer management",
+      "q": "Under tail drop, what happens when a packet arrives at a full buffer?",
+      "choices": [
+        "the arriving packet is dropped",
+        "the packet at the head of the queue is dropped",
+        "the lowest-priority queued packet is removed to make room",
+        "the arriving packet is marked to signal congestion and queued anyway"
+      ],
+      "answer": 0,
+      "explain": "Tail drop simply drops the arriving packet. Removing a queued packet based on priority is priority dropping."
+    },
+    {
+      "type": "mc",
+      "category": "Buffer management",
+      "q": "A full router buffer may remove an already-queued low-priority packet to make room for an arriving high-priority packet. Which buffer management policy is this?",
+      "choices": [
+        "tail drop",
+        "first come, first served",
+        "priority-based drop/remove",
+        "marking"
+      ],
+      "answer": 2,
+      "explain": "Priority-based dropping drops or removes packets according to priority. Tail drop would just discard whichever packet arrives at a full buffer."
+    },
+    {
+      "type": "mc",
+      "category": "Buffer management",
+      "q": "What is the purpose of marking in buffer management?",
+      "choices": [
+        "to decide which queued packet is transmitted next",
+        "to decide which output port a packet is forwarded to",
+        "to record which packets were lost so they can be retransmitted",
+        "to decide which packets to mark so they signal congestion"
+      ],
+      "answer": 3,
+      "explain": "Marking chooses packets to mark as a congestion signal, as in ECN and RED. Choosing the next packet to send is scheduling."
+    },
+    {
+      "type": "text",
+      "category": "Buffer management",
+      "q": "Name one of the two packet-marking schemes (by acronym) given as examples of signaling congestion through marking.",
+      "answer": ["ECN", "RED", "ecn", "red", "Explicit Congestion Notification", "Random Early Detection"],
+      "explain": "The examples given are ECN and RED."
+    },
+    {
+      "type": "mc",
+      "category": "Buffer management",
+      "q": "In the queue abstraction of an output port (packet arrivals → queue → server → departures), what plays the role of the server?",
+      "choices": [
+        "the switch fabric",
+        "the output link, transmitting at rate R",
+        "the datagram buffer",
+        "the traffic classifier"
+      ],
+      "answer": 1,
+      "explain": "Packets wait in the queue (the waiting area) and are served by the link, which sends them at rate R."
+    },
+    {
+      "type": "mc",
+      "category": "FCFS and priority scheduling",
+      "q": "Under FCFS (FIFO) scheduling, packets are transmitted:",
+      "choices": [
+        "in the order they arrived at the output port",
+        "in the reverse of their arrival order",
+        "one packet from each traffic class in turn",
+        "highest-priority class first"
+      ],
+      "answer": 0,
+      "explain": "First come, first served (also called first-in-first-out) sends packets in the order they arrived at the output port."
+    },
+    {
+      "type": "mc",
+      "category": "FCFS and priority scheduling",
+      "q": "A link uses priority scheduling with two classes. Each packet takes 1 time unit to send, and the link is idle at t = 0. Arrivals: A (high) at t = 0, B (low) at t = 0.3, C (high) at t = 0.6, D (high) at t = 2.5. In what order do the packets leave?",
+      "choices": [
+        "A, B, C, D",
+        "A, C, D, B",
+        "A, C, B, D",
+        "C, A, D, B"
+      ],
+      "answer": 2,
+      "explain": "A starts right away. At t = 1, B (low) and C (high) are both waiting, so C goes. At t = 2 only B is waiting, so B starts. D arrives at t = 2.5 while B is being sent. As in the slide's example, where high-priority packet 4 waits for low-priority packet 2, the packet already in service isn't interrupted, so D goes at t = 3."
+    },
+    {
+      "type": "mc",
+      "category": "FCFS and priority scheduling",
+      "q": "Under priority scheduling, when does a packet from the low-priority queue get transmitted?",
+      "choices": [
+        "every other turn, alternating with the high-priority queue",
+        "only when the high-priority queue has no buffered packets",
+        "in proportion to the low-priority class's weight",
+        "as soon as it has waited longer than every high-priority packet"
+      ],
+      "answer": 1,
+      "explain": "The scheduler always sends from the highest-priority queue that has buffered packets, so the low-priority queue is served only when the higher queue is empty."
+    },
+    {
+      "type": "mc",
+      "category": "FCFS and priority scheduling",
+      "q": "In priority scheduling, in what order are packets within a single priority class served?",
+      "choices": [
+        "round robin across flows",
+        "weighted fair queueing",
+        "shortest packet first",
+        "first come, first served"
+      ],
+      "answer": 3,
+      "explain": "Each class queue is FCFS. Priority only decides which class queue is served next."
+    },
+    {
+      "type": "tf",
+      "category": "FCFS and priority scheduling",
+      "q": "In priority scheduling, arriving traffic can be classified only by its IP source address.",
+      "answer": false,
+      "explain": "Any header fields can be used to classify arriving traffic into priority classes. The same is true for round robin and WFQ."
+    },
+    {
+      "type": "multi",
+      "category": "FCFS and priority scheduling",
+      "q": "Which of these are packet scheduling disciplines, i.e., ways of deciding which packet to send next on the link?",
+      "choices": [
+        "first come, first served",
+        "tail drop",
+        "priority",
+        "round robin",
+        "RED",
+        "weighted fair queueing"
+      ],
+      "answer": [0, 2, 3, 5],
+      "explain": "FCFS, priority, round robin and WFQ are scheduling disciplines. Tail drop is a drop policy and RED is a marking scheme; both are buffer management, not scheduling."
+    },
+    {
+      "type": "mc",
+      "category": "Round robin and WFQ",
+      "q": "In Round Robin (RR) scheduling, the server:",
+      "choices": [
+        "cyclically scans the class queues, sending one complete packet from each class (if available) in turn",
+        "sends all queued packets from one class before moving to the next",
+        "always serves the highest-priority class that has buffered packets",
+        "sends packets strictly in order of arrival, regardless of class"
+      ],
+      "answer": 0,
+      "explain": "RR classifies arrivals into class queues and repeatedly cycles through them, sending one whole packet from each non-empty queue per turn."
+    },
+    {
+      "type": "mc",
+      "category": "Round robin and WFQ",
+      "q": "A round robin scheduler visits classes in the order red, green, blue. Initially red holds R1, R2, R3; green holds G1; blue holds B1, B2. No more packets arrive. In what order are the packets transmitted?",
+      "choices": [
+        "R1, R2, R3, G1, B1, B2",
+        "R1, G1, B1, R2, B2, R3",
+        "R1, G1, B1, R2, R3, B2",
+        "R1, B1, G1, R2, B2, R3"
+      ],
+      "answer": 1,
+      "explain": "Round 1: R1, G1, B1. Round 2: R2, then green is empty and is skipped, then B2. Round 3: only red has a packet left, so R3."
+    },
+    {
+      "type": "num",
+      "category": "Round robin and WFQ",
+      "q": "A WFQ scheduler has three classes with weights w1 = 2, w2 = 3, w3 = 5 on a 100 Mbps link. What minimum bandwidth is guaranteed to class 2? Answer in Mbps.",
+      "answer": 30,
+      "tolerance": 0.01,
+      "explain": "Class 2's share is w2 / Σw = 3 / (2 + 3 + 5) = 0.3, and 0.3 × 100 Mbps = 30 Mbps."
+    },
+    {
+      "type": "num",
+      "category": "Round robin and WFQ",
+      "q": "A WFQ scheduler has four classes with weights 1, 1, 2 and 4. What fraction of the link's service per cycle is guaranteed to the weight-4 class? Answer as a decimal.",
+      "answer": 0.5,
+      "tolerance": 0.001,
+      "explain": "Share = w_i / Σw_j = 4 / (1 + 1 + 2 + 4) = 4/8 = 0.5."
+    },
+    {
+      "type": "tf",
+      "category": "Round robin and WFQ",
+      "q": "If every class in a WFQ scheduler has the same weight, it behaves like round robin.",
+      "answer": true,
+      "explain": "WFQ is a generalized round robin. With equal weights each class gets the same share of service per cycle, which is plain RR."
+    },
+    {
+      "type": "tf",
+      "category": "Round robin and WFQ",
+      "q": "Under WFQ, a class whose weight entitles it to 1/4 of the link can never send faster than 1/4 of the link rate, even when the other classes have nothing queued.",
+      "answer": false,
+      "explain": "WFQ gives a minimum bandwidth guarantee per class, not a cap. Like RR, it only serves classes that have packets available, so capacity left by idle classes goes to the busy ones."
+    },
+    {
+      "type": "mc",
+      "category": "Round robin and WFQ",
+      "q": "What does WFQ guarantee to each traffic class?",
+      "choices": [
+        "strict precedence over all lower classes",
+        "a maximum queueing delay of one RTT",
+        "that none of its packets will be dropped",
+        "a minimum bandwidth"
+      ],
+      "answer": 3,
+      "explain": "Each class i gets at least the fraction w_i / Σw_j of service per cycle, which is a per-traffic-class minimum bandwidth guarantee."
+    },
+    {
+      "type": "multi",
+      "category": "Network neutrality",
+      "q": "Which were the three \"clear, bright line\" rules in the 2015 US FCC Order on Protecting and Promoting an Open Internet?",
+      "choices": [
+        "no blocking",
+        "no buffering beyond one RTT of data",
+        "no throttling",
+        "no classification of traffic by header fields",
+        "no paid prioritization"
+      ],
+      "answer": [0, 2, 4],
+      "explain": "The three rules were no blocking and no throttling (both subject to reasonable network management) and no paid prioritization."
+    },
+    {
+      "type": "mc",
+      "category": "Network neutrality",
+      "q": "An ISP takes payment from a video company to put that company's packets in a high-priority queue ahead of other traffic. Which 2015 FCC rule does this break?",
+      "choices": [
+        "no blocking",
+        "no throttling",
+        "no paid prioritization",
+        "none, since priority scheduling is always allowed"
+      ],
+      "answer": 2,
+      "explain": "Selling better treatment is paid prioritization. Priority scheduling is the mechanism that decides who gets the best performance, which is why it is central to network neutrality."
+    },
+    {
+      "type": "mc",
+      "category": "Network neutrality",
+      "q": "Without blocking it, an ISP deliberately slows lawful traffic from one particular online game service. Which 2015 FCC rule does this break?",
+      "choices": [
+        "no throttling",
+        "no paid prioritization",
+        "no blocking",
+        "none, since the traffic still gets through"
+      ],
+      "answer": 0,
+      "explain": "Under the no throttling rule, an ISP \"shall not impair or degrade lawful Internet traffic on the basis of Internet content, application, or service\" (subject to reasonable network management)."
+    },
+    {
+      "type": "mc",
+      "category": "Network neutrality",
+      "q": "Technically, network neutrality is about how an ISP shares and allocates its resources. What are the mechanisms for doing that?",
+      "choices": [
+        "routing protocols and the forwarding table",
+        "packet scheduling and buffer management",
+        "the switch fabric and line termination",
+        "TCP congestion control at the end hosts"
+      ],
+      "answer": 1,
+      "explain": "Packet scheduling (who gets sent first) and buffer management (who gets dropped or marked) are the mechanisms an ISP uses to allocate resources among traffic."
+    },
+    {
+      "type": "mc",
+      "category": "Network neutrality",
+      "q": "Under the US Telecommunications Act of 1934 and 1996, what follows from classifying an ISP as a \"telecommunications service\" (Title II) rather than an \"information service\" (Title I)?",
+      "choices": [
+        "it has no common carrier duties and is not regulated",
+        "it is outside FCC authority entirely",
+        "it must use FCFS scheduling on all of its links",
+        "it has common carrier duties (reasonable rates, non-discrimination) and requires regulation"
+      ],
+      "answer": 3,
+      "explain": "Title II puts common carrier duties on telecommunications services. Title I information services have no common carrier duties and are not regulated, though Title I still gives the FCC authority \"as may be necessary in the execution of its functions.\""
+    },
+    {
+      "type": "mc",
+      "category": "Network neutrality",
+      "q": "Which sequence matches the history of the US FCC's 2015 Open Internet Order?",
+      "choices": [
+        "adopted in 2015, rolled back in 2017, and that rollback reversed in 2024",
+        "adopted in 2015 and unchanged since",
+        "adopted in 2015, then made stricter in 2017 and 2024",
+        "adopted in 2015 and rolled back in 2024"
+      ],
+      "answer": 0,
+      "explain": "The 2015 order was rolled back in 2017, and the 2017 rollback was itself rolled back in 2024."
+    },
+    {
+      "type": "multi",
+      "category": "Network neutrality",
+      "q": "Which are social/economic principles given in support of network neutrality?",
+      "choices": [
+        "protecting free speech",
+        "guaranteeing each traffic class a minimum bandwidth",
+        "encouraging innovation and competition",
+        "keeping router buffers small"
+      ],
+      "answer": [0, 2],
+      "explain": "The social/economic side of network neutrality is about protecting free speech and encouraging innovation and competition. Minimum bandwidth guarantees (WFQ) and buffer sizing are technical mechanisms, not principles."
+    }
+  ]
+}

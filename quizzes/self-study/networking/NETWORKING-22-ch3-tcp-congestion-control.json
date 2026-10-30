@@ -1,0 +1,678 @@
+{
+  "title": "Ch3: TCP Congestion Control",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "AIMD",
+      "q": "During the additive-increase part of TCP's AIMD congestion control, how does the sender change its sending rate?",
+      "choices": [
+        "Increases it by 1 MSS every RTT until a loss is detected",
+        "Doubles it every RTT until a loss is detected",
+        "Increases it by 1 MSS for every ACK received",
+        "Keeps it constant until the receiver advertises more buffer space"
+      ],
+      "answer": 0,
+      "explain": "Additive increase adds 1 maximum segment size per RTT, so the rate climbs linearly. Doubling every RTT (by adding 1 MSS per ACK) is slow start, not additive increase."
+    },
+    {
+      "type": "tf",
+      "category": "AIMD",
+      "q": "Under AIMD's multiplicative decrease, the sender cuts its sending rate in half at each loss event.",
+      "answer": true,
+      "explain": "Multiplicative decrease halves the rate on a loss event, which gives the sharp drops in the AIMD plot."
+    },
+    {
+      "type": "text",
+      "category": "AIMD",
+      "q": "Under AIMD, a TCP sender's rate climbs linearly, then drops sharply at each loss, over and over. What name describes the shape of this rate-versus-time plot?",
+      "answer": ["sawtooth", "saw tooth", "saw-tooth"],
+      "explain": "This is the AIMD sawtooth. It shows the sender probing for bandwidth: it keeps raising its rate until a loss shows it went too far, then backs off."
+    },
+    {
+      "type": "mc",
+      "category": "AIMD",
+      "q": "A TCP Reno sender detects a loss through a triple duplicate ACK. What happens to its sending rate under multiplicative decrease?",
+      "choices": [
+        "It is cut roughly in half",
+        "It is cut to 1 MSS",
+        "It stays the same; only the lost segment is retransmitted",
+        "It is reduced by exactly 1 MSS"
+      ],
+      "answer": 0,
+      "explain": "In Reno, a loss detected by triple duplicate ACK halves the rate. A loss detected by timeout (TCP Tahoe on the slide) cuts it all the way to 1 MSS. The exact FSM update is ssthresh = cwnd/2, cwnd = ssthresh + 3 MSS."
+    },
+    {
+      "type": "mc",
+      "category": "AIMD",
+      "q": "A loss is detected by a timeout (the TCP Tahoe behavior). To what value is the sending window cut?",
+      "choices": [
+        "1 MSS",
+        "Half its current value",
+        "Zero; the sender pauses until the next ACK",
+        "ssthresh + 3 MSS"
+      ],
+      "answer": 0,
+      "explain": "A loss detected by timeout cuts the window to 1 MSS (maximum segment size). Halving belongs to triple-duplicate-ACK loss in Reno. ssthresh + 3 MSS is the cwnd on entering fast recovery."
+    },
+    {
+      "type": "multi",
+      "category": "AIMD",
+      "q": "AIMD is a distributed, asynchronous algorithm. Which of these have been shown to be true of it?",
+      "choices": [
+        "It optimizes congested flow rates network-wide",
+        "It has desirable stability properties",
+        "It lets each sender learn its exact fair share from explicit router messages",
+        "It guarantees that no packets are lost once the sender reaches steady state"
+      ],
+      "answer": [0, 1],
+      "explain": "AIMD has been shown (Kelly) to optimize congested flow rates network-wide, and it has desirable stability properties. It gets no explicit share information from routers. It also causes occasional loss on purpose, because that loss is how it probes for bandwidth."
+    },
+    {
+      "type": "mc",
+      "category": "cwnd and sending rate",
+      "q": "What limit does TCP congestion control place on how much the sender transmits?",
+      "choices": [
+        "LastByteSent − LastByteAcked ≤ cwnd",
+        "LastByteSent ≤ cwnd",
+        "LastByteAcked − LastByteSent ≥ cwnd",
+        "LastByteSent + LastByteAcked ≤ cwnd"
+      ],
+      "answer": 0,
+      "explain": "LastByteSent − LastByteAcked is the amount of data sent but not yet ACKed (in flight). It may not exceed the congestion window cwnd."
+    },
+    {
+      "type": "num",
+      "category": "cwnd and sending rate",
+      "q": "A TCP sender has cwnd = 30,000 bytes and RTT = 60 ms. Using TCP rate ≈ cwnd/RTT, what is its approximate sending rate in bytes per second?",
+      "answer": 500000,
+      "tolerance": 1000,
+      "explain": "30,000 bytes / 0.060 s = 500,000 bytes/sec. Roughly, the sender sends cwnd bytes, waits one RTT for the ACKs, then sends more."
+    },
+    {
+      "type": "num",
+      "category": "cwnd and sending rate",
+      "q": "A sender has cwnd = 12,000 bytes, LastByteAcked = 50,000 and LastByteSent = 58,000. How many more bytes may it transmit right now, before any more ACKs arrive?",
+      "answer": 4000,
+      "explain": "In flight = 58,000 − 50,000 = 8,000 bytes. The rule LastByteSent − LastByteAcked ≤ cwnd allows 12,000 − 8,000 = 4,000 more bytes."
+    },
+    {
+      "type": "text",
+      "category": "cwnd and sending rate",
+      "q": "In the sender's sequence number space, what is the term for bytes that have been sent but not yet ACKed?",
+      "answer": ["in-flight", "in flight", "inflight", "in-flight data", "in flight data", "in-flight bytes"],
+      "explain": "Bytes in flight lie between LastByteAcked and LastByteSent. Bytes after LastByteSent that are still inside cwnd are available but not yet used."
+    },
+    {
+      "type": "mc",
+      "category": "cwnd and sending rate",
+      "q": "A sender's RTT doubles (for example, because of queueing) while its cwnd stays the same. What happens to its approximate sending rate?",
+      "choices": [
+        "It roughly halves",
+        "It roughly doubles",
+        "It stays the same, because cwnd is unchanged",
+        "It drops to 1 MSS per RTT"
+      ],
+      "answer": 0,
+      "explain": "Rate ≈ cwnd/RTT. With the same window and twice the RTT, the rate is about half."
+    },
+    {
+      "type": "tf",
+      "category": "cwnd and sending rate",
+      "q": "cwnd is set once when the connection opens and stays fixed for the life of the connection.",
+      "answer": false,
+      "explain": "cwnd is adjusted continually in response to observed network congestion. Making that adjustment is what TCP congestion control does."
+    },
+    {
+      "type": "mc",
+      "category": "Slow start and ssthresh",
+      "q": "When a TCP connection begins in slow start, what is the initial value of cwnd?",
+      "choices": [
+        "1 MSS",
+        "ssthresh",
+        "64 KB",
+        "The receiver's advertised window"
+      ],
+      "answer": 0,
+      "explain": "Slow start begins with cwnd = 1 MSS. 64 KB is the initial ssthresh in the FSM, not the initial cwnd."
+    },
+    {
+      "type": "mc",
+      "category": "Slow start and ssthresh",
+      "q": "In practice, how does slow start make cwnd double every RTT?",
+      "choices": [
+        "It increases cwnd by 1 MSS for every ACK received",
+        "It multiplies cwnd by 2 on every ACK received",
+        "It adds 1 MSS once per RTT",
+        "It doubles cwnd each time a retransmission timer expires"
+      ],
+      "answer": 0,
+      "explain": "When cwnd is n segments, about n ACKs return in one RTT. Adding 1 MSS for each ACK turns n into 2n, which is why the timeline goes 1 segment, then 2, then 4."
+    },
+    {
+      "type": "num",
+      "category": "Slow start and ssthresh",
+      "q": "A connection starts in slow start with cwnd = 1 MSS in transmission round 1. ssthresh is very large and no loss occurs. What is cwnd, in MSS, in round 5?",
+      "answer": 16,
+      "explain": "cwnd doubles each RTT: 1, 2, 4, 8, 16. The initial rate is slow, but it grows exponentially fast."
+    },
+    {
+      "type": "num",
+      "category": "Slow start and ssthresh",
+      "q": "ssthresh = 8 MSS, cwnd = 1 MSS in transmission round 1, and no loss occurs. cwnd doubles each round until it reaches ssthresh, then grows by 1 MSS per round. What is cwnd, in MSS, in round 7?",
+      "answer": 11,
+      "explain": "Rounds 1 to 4 give 1, 2, 4, 8. At 8, cwnd has reached ssthresh, so growth becomes linear. Rounds 5 to 7 give 9, 10, 11."
+    },
+    {
+      "type": "num",
+      "category": "Slow start and ssthresh",
+      "q": "A loss event occurs when cwnd = 12 MSS. What is the new value of ssthresh, in MSS?",
+      "answer": 6,
+      "explain": "On a loss event, ssthresh is set to 1/2 of cwnd just before the loss: 12/2 = 6 MSS."
+    },
+    {
+      "type": "mc",
+      "category": "Slow start and ssthresh",
+      "q": "When should slow start's exponential increase switch to linear increase?",
+      "choices": [
+        "When cwnd reaches 1/2 of its value just before the last loss event (the value stored in ssthresh)",
+        "When cwnd reaches the value it had just before the last loss event",
+        "After a fixed number of RTTs",
+        "Only when a timeout occurs"
+      ],
+      "answer": 0,
+      "explain": "The switch happens at half the window that last caused a loss. The variable ssthresh stores this value, and it is set to cwnd/2 on each loss event."
+    },
+    {
+      "type": "tf",
+      "category": "Slow start and ssthresh",
+      "q": "Slow start is named for the fact that the sending rate grows slowly (linearly) throughout the phase.",
+      "answer": false,
+      "explain": "Only the starting rate is slow (1 MSS per RTT). From there it ramps up exponentially, doubling every RTT."
+    },
+    {
+      "type": "mc",
+      "category": "Congestion control FSM",
+      "q": "In the TCP congestion control FSM, what event moves the sender from slow start to congestion avoidance?",
+      "choices": [
+        "cwnd ≥ ssthresh",
+        "A third duplicate ACK",
+        "A timeout",
+        "A new ACK arriving while dupACKcount > 0"
+      ],
+      "answer": 0,
+      "explain": "Slow start moves to congestion avoidance once cwnd ≥ ssthresh. A third duplicate ACK leads to fast recovery, and a timeout leads back to slow start."
+    },
+    {
+      "type": "num",
+      "category": "Congestion control FSM",
+      "q": "A Reno sender in congestion avoidance with cwnd = 20 MSS receives its third duplicate ACK (dupACKcount == 3). According to the FSM, what is the new cwnd, in MSS?",
+      "answer": 13,
+      "explain": "ssthresh = cwnd/2 = 10 MSS, then cwnd = ssthresh + 3 = 13 MSS. The sender retransmits the missing segment and enters fast recovery."
+    },
+    {
+      "type": "mc",
+      "category": "Congestion control FSM",
+      "q": "A sender in fast recovery receives a new (non-duplicate) ACK. According to the FSM, what happens?",
+      "choices": [
+        "cwnd = ssthresh, dupACKcount = 0, and the sender enters congestion avoidance",
+        "cwnd = 1 MSS and the sender enters slow start",
+        "cwnd = cwnd + MSS and the sender stays in fast recovery",
+        "ssthresh = cwnd/2 and the sender enters slow start"
+      ],
+      "answer": 0,
+      "explain": "A new ACK ends fast recovery. cwnd drops back to ssthresh, dupACKcount resets, and linear growth resumes in congestion avoidance."
+    },
+    {
+      "type": "mc",
+      "category": "Congestion control FSM",
+      "q": "What does the FSM do when a timeout occurs, in any of its three states?",
+      "choices": [
+        "ssthresh = cwnd/2, cwnd = 1 MSS, dupACKcount = 0, retransmit the missing segment, go to slow start",
+        "ssthresh = cwnd/2, cwnd = ssthresh + 3 MSS, retransmit the missing segment, go to fast recovery",
+        "cwnd = ssthresh, dupACKcount = 0, go to congestion avoidance",
+        "cwnd = cwnd/2, ssthresh unchanged, stay in the current state"
+      ],
+      "answer": 0,
+      "explain": "A timeout is treated as the most severe signal. Every state handles it the same way: halve ssthresh, reset cwnd to 1 MSS, retransmit, and restart slow start."
+    },
+    {
+      "type": "num",
+      "category": "Congestion control FSM",
+      "q": "In congestion avoidance, each new ACK sets cwnd = cwnd + MSS·(MSS/cwnd). With MSS = 1,000 bytes and cwnd = 10,000 bytes, by how many bytes does one new ACK grow cwnd?",
+      "answer": 100,
+      "explain": "1,000 × (1,000 / 10,000) = 100 bytes. About cwnd/MSS = 10 ACKs arrive per RTT, so the total growth is about 1 MSS per RTT. This is additive increase."
+    },
+    {
+      "type": "mc",
+      "category": "Congestion control FSM",
+      "q": "In fast recovery, what does the sender do for each additional duplicate ACK?",
+      "choices": [
+        "cwnd = cwnd + MSS, and transmit new segment(s) as allowed",
+        "Retransmit the missing segment again and halve cwnd",
+        "Set cwnd = ssthresh and move to congestion avoidance",
+        "Ignore it; only new ACKs and timeouts matter in fast recovery"
+      ],
+      "answer": 0,
+      "explain": "Each duplicate ACK in fast recovery inflates cwnd by 1 MSS, which may allow new segments to be sent. A new ACK, not a duplicate one, is what moves the sender to congestion avoidance."
+    },
+    {
+      "type": "multi",
+      "category": "Congestion control FSM",
+      "q": "Which of these transitions lead into the slow start state?",
+      "choices": [
+        "A timeout while in congestion avoidance",
+        "A timeout while in fast recovery",
+        "A third duplicate ACK while in slow start",
+        "A new ACK while in fast recovery",
+        "cwnd reaching ssthresh"
+      ],
+      "answer": [0, 1],
+      "explain": "A timeout from any state leads to slow start. A third duplicate ACK leads to fast recovery. A new ACK in fast recovery, and cwnd ≥ ssthresh, both lead to congestion avoidance."
+    },
+    {
+      "type": "mc",
+      "category": "Congestion control FSM",
+      "q": "In the FSM, what are the initial values when a connection starts?",
+      "choices": [
+        "cwnd = 1 MSS, ssthresh = 64 KB, dupACKcount = 0",
+        "cwnd = 64 KB, ssthresh = 1 MSS, dupACKcount = 0",
+        "cwnd = 1 MSS, ssthresh = 1 MSS, dupACKcount = 3",
+        "cwnd = ssthresh = 64 KB, dupACKcount = 0"
+      ],
+      "answer": 0,
+      "explain": "The sender starts in slow start with a 1 MSS window, a large initial ssthresh (64 KB) and no duplicate ACKs counted."
+    },
+    {
+      "type": "mc",
+      "category": "TCP CUBIC",
+      "q": "In TCP CUBIC, what is Wmax?",
+      "choices": [
+        "The sending rate (window) at which congestion loss was detected",
+        "The receiver's maximum advertised window",
+        "The largest cwnd that the TCP standard allows",
+        "The bottleneck link's transmission rate R"
+      ],
+      "answer": 0,
+      "explain": "Wmax is the window or rate at which the last congestion loss happened. CUBIC uses it as its estimate of where the bottleneck starts to overflow."
+    },
+    {
+      "type": "mc",
+      "category": "TCP CUBIC",
+      "q": "After cutting its window in half on a loss, how does CUBIC's growth back toward Wmax differ from classic TCP's?",
+      "choices": [
+        "It ramps toward Wmax faster at first, then approaches Wmax more slowly",
+        "It ramps toward Wmax slowly at first, then faster as it nears Wmax",
+        "It grows linearly by 1 MSS per RTT, the same as classic TCP",
+        "It restarts from 1 MSS and doubles every RTT"
+      ],
+      "answer": 0,
+      "explain": "CUBIC climbs quickly from Wmax/2 and then levels off near Wmax, so it spends more time close to Wmax. In the slide's example, this gives higher throughput than classic TCP's linear ramp."
+    },
+    {
+      "type": "mc",
+      "category": "TCP CUBIC",
+      "q": "CUBIC increases its window W as a function of the cube of what?",
+      "choices": [
+        "The distance between the current time and K, the time at which W will reach Wmax",
+        "The number of duplicate ACKs received",
+        "The current RTT",
+        "The number of segments in flight"
+      ],
+      "answer": 0,
+      "explain": "The window growth depends on (t − K) cubed. Increases are large when the current time is far from K and small, or cautious, when it is near K."
+    },
+    {
+      "type": "tf",
+      "category": "TCP CUBIC",
+      "q": "In CUBIC, window increases are largest when the current time is close to K and smallest when it is far from K.",
+      "answer": false,
+      "explain": "It is the reverse. Increases are larger farther from K and smaller (cautious) near K, which is around where the window reaches Wmax."
+    },
+    {
+      "type": "tf",
+      "category": "TCP CUBIC",
+      "q": "CUBIC's design rests on the intuition that the congestion state of the bottleneck link probably hasn't changed much since the last loss.",
+      "answer": true,
+      "explain": "Since the bottleneck is likely still congested around Wmax, CUBIC can safely move back toward Wmax quickly and then approach it carefully."
+    },
+    {
+      "type": "tf",
+      "category": "TCP CUBIC",
+      "q": "In CUBIC, K (the time at which the window will reach Wmax) is a fixed constant and cannot be tuned.",
+      "answer": false,
+      "explain": "K itself is tunable."
+    },
+    {
+      "type": "tf",
+      "category": "TCP CUBIC",
+      "q": "If no loss occurs once CUBIC's window reaches Wmax (time passes K), the window keeps growing, slowly at first and then increasingly fast.",
+      "answer": true,
+      "explain": "Just past K, the cube of (t − K) is small, so growth is cautious. As time moves away from K, the increases get larger and CUBIC probes aggressively for new bandwidth."
+    },
+    {
+      "type": "mc",
+      "category": "TCP CUBIC",
+      "q": "Which TCP congestion control variant was the default in Linux and the most popular TCP for popular Web servers until about 2024?",
+      "choices": [
+        "TCP CUBIC",
+        "TCP Tahoe",
+        "TCP Reno",
+        "BBR"
+      ],
+      "answer": 0,
+      "explain": "TCP CUBIC was the Linux default and the most widely used TCP on popular Web servers until about 2024."
+    },
+    {
+      "type": "mc",
+      "category": "Bottleneck link and bandwidth-delay product",
+      "q": "Loss-based TCP (classic and CUBIC) keeps increasing its sending rate until packet loss occurs where?",
+      "choices": [
+        "At some router's output: the bottleneck link",
+        "At the receiver's socket buffer",
+        "At the sender's network interface",
+        "At the destination's application layer"
+      ],
+      "answer": 0,
+      "explain": "Loss happens where a router's output queue overflows, at the bottleneck link. That link is almost always busy, and its queue is almost never empty."
+    },
+    {
+      "type": "multi",
+      "category": "Bottleneck link and bandwidth-delay product",
+      "q": "A TCP flow's bottleneck link is congested and already transmitting at its full rate R. If the sender increases its sending rate further, what happens?",
+      "choices": [
+        "End-to-end throughput stays about the same",
+        "Measured RTT increases because of more queueing delay at the bottleneck",
+        "End-to-end throughput increases in proportion to the sending rate",
+        "Measured RTT decreases because the link is kept busier"
+      ],
+      "answer": [0, 1],
+      "explain": "The bottleneck cannot transmit faster than R, so the extra data only waits in its queue. Throughput stays flat while RTT goes up."
+    },
+    {
+      "type": "num",
+      "category": "Bottleneck link and bandwidth-delay product",
+      "q": "A connection's share of the bottleneck bandwidth is 8 Mbps (8 × 10^6 bits/s), and its min_RTT is 40 ms. What is the ideal amount of in-flight data for this connection, in bytes?",
+      "answer": 40000,
+      "tolerance": 1,
+      "explain": "Ideal in-flight data = share of bottleneck bandwidth × min_RTT = 8 × 10^6 bits/s × 0.040 s = 320,000 bits = 40,000 bytes."
+    },
+    {
+      "type": "text",
+      "category": "Bottleneck link and bandwidth-delay product",
+      "q": "The ideal amount of in-flight data for a connection is its share of the bottleneck bandwidth × min_RTT. What is this product called?",
+      "answer": ["bandwidth-delay product", "bandwidth delay product", "BDP", "the bandwidth-delay product"],
+      "explain": "This is the connection's bandwidth-delay product. It is exactly enough data to keep its share of the bottleneck busy without building a queue."
+    },
+    {
+      "type": "mc",
+      "category": "Bottleneck link and bandwidth-delay product",
+      "q": "On a plot of RTT versus n_inflight, why does RTT stay flat while n_inflight is below the bandwidth-delay product?",
+      "choices": [
+        "Data arrives at the bottleneck more slowly than the link's transmission rate, so no queue builds",
+        "The bottleneck buffer is full, so extra packets are dropped instead of queued",
+        "The receiver delays its ACKs until the window fills",
+        "Routers give priority to flows with little data in flight"
+      ],
+      "answer": 0,
+      "explain": "Below the BDP, the arrival rate at the bottleneck is less than its transmission rate, so packets do not wait and RTT stays at its minimum. At the BDP, the arrival rate equals the transmission rate."
+    },
+    {
+      "type": "mc",
+      "category": "Bottleneck link and bandwidth-delay product",
+      "q": "What happens when n_inflight is above the bandwidth-delay product but the bottleneck buffer is not yet full?",
+      "choices": [
+        "Data arrives at the bottleneck faster than the link can send it, so a queue builds; RTT rises while throughput stays flat",
+        "Throughput keeps rising linearly with n_inflight while RTT stays flat",
+        "Packets are lost immediately, so throughput and RTT both drop",
+        "RTT falls because the link is fully used"
+      ],
+      "answer": 0,
+      "explain": "In this region, the extra in-flight data only adds queueing delay. RTT rises up to BDP + the queueing delay of a full bottleneck buffer, and throughput stays at its plateau."
+    },
+    {
+      "type": "mc",
+      "category": "Bottleneck link and bandwidth-delay product",
+      "q": "Which statement best describes the ideal way to use a congested bottleneck link?",
+      "choices": [
+        "Keep the end-to-end pipe just full, but not fuller",
+        "Keep the bottleneck buffer as full as possible to maximize throughput",
+        "Keep the pipe half full to leave room for bursts",
+        "Send as fast as possible until loss, then stop"
+      ],
+      "answer": 0,
+      "explain": "Just full means the bottleneck link stays busy transmitting, so throughput is maximal. No fuller means avoiding the high delays that come from extra buffering."
+    },
+    {
+      "type": "tf",
+      "category": "Bottleneck link and bandwidth-delay product",
+      "q": "Ideally, each of N flows sharing a congested bottleneck link of rate R receives a throughput of R/N.",
+      "answer": true,
+      "explain": "Multiple flows congest the bottleneck together, and each runs its own TCP congestion control. Ideally each flow gets an equal share, R/N."
+    },
+    {
+      "type": "mc",
+      "category": "BBR",
+      "q": "What does BBR stand for?",
+      "choices": [
+        "Bottleneck Bandwidth and RTT",
+        "Buffer-Based Rate control",
+        "Binary Backoff and Recovery",
+        "Bandwidth, Buffering and Retransmission"
+      ],
+      "answer": 0,
+      "explain": "BBR = Bottleneck Bandwidth and RTT. It regulates n_inflight using estimates of these two quantities, whose product is the bandwidth-delay product."
+    },
+    {
+      "type": "mc",
+      "category": "BBR",
+      "q": "On the throughput and RTT versus n_inflight graphs, where does each approach try to operate?",
+      "choices": [
+        "BBR at the bandwidth-delay product (full throughput, RTT not yet rising); loss-based TCP where the bottleneck buffer is full",
+        "BBR where the bottleneck buffer is full; loss-based TCP at the bandwidth-delay product",
+        "Both at the bandwidth-delay product",
+        "BBR well below the bandwidth-delay product to keep RTT minimal; loss-based TCP at the bandwidth-delay product"
+      ],
+      "answer": 0,
+      "explain": "Throughput is already at its maximum at the BDP. Loss-based TCP keeps pushing until the buffer overflows, which adds queueing delay without adding throughput. BBR stays at the BDP, keeping the pipe just full but no fuller."
+    },
+    {
+      "type": "mc",
+      "category": "BBR",
+      "q": "Which BBR behavior sends at the rate at which the network is delivering data, as shown by the ACKs it receives?",
+      "choices": [
+        "Cruising",
+        "Acceleration",
+        "Deceleration",
+        "Slow start"
+      ],
+      "answer": 0,
+      "explain": "Cruising matches the delivery rate shown by the ACKs. Acceleration raises n_inflight up to the throughput plateau. Deceleration lowers n_inflight to look for a lower min_RTT."
+    },
+    {
+      "type": "mc",
+      "category": "BBR",
+      "q": "Which BBR behavior deliberately reduces n_inflight to lower queue pressure, looking for a lower min_RTT?",
+      "choices": [
+        "Deceleration",
+        "Acceleration",
+        "Cruising",
+        "Fast recovery"
+      ],
+      "answer": 0,
+      "explain": "Deceleration drains some queued data. If RTT falls, the old min_RTT estimate was inflated by queueing."
+    },
+    {
+      "type": "tf",
+      "category": "BBR",
+      "q": "BBR's acceleration phase increases the sending rate until it detects packet loss.",
+      "answer": false,
+      "explain": "Acceleration increases n_inflight until throughput reaches a plateau, meaning the available per-flow link capacity is saturated. BBR does not wait for loss the way loss-based TCP does."
+    },
+    {
+      "type": "mc",
+      "category": "BBR",
+      "q": "Over longer time intervals, what does BBR do, and why?",
+      "choices": [
+        "Reduces n_inflight to drain the pipe so it can measure a new min_RTT",
+        "Cuts cwnd to 1 MSS to re-probe the bandwidth from scratch",
+        "Doubles n_inflight to check whether the bottleneck has moved",
+        "Stops sending until an ECN mark arrives"
+      ],
+      "answer": 0,
+      "explain": "min_RTT can only be measured when no queue is adding delay. So BBR periodically drains the pipe to get a fresh min_RTT, which it needs to compute the bandwidth-delay product."
+    },
+    {
+      "type": "mc",
+      "category": "Explicit congestion notification (ECN)",
+      "q": "ECN is an example of which kind of congestion control?",
+      "choices": [
+        "Network-assisted",
+        "End-to-end, inferred only from loss and delay",
+        "Receiver-window flow control",
+        "Application-level rate limiting"
+      ],
+      "answer": 0,
+      "explain": "With ECN, routers inside the network explicitly mark packets to signal congestion. That makes it network-assisted rather than inferred purely by the end hosts."
+    },
+    {
+      "type": "mc",
+      "category": "Explicit congestion notification (ECN)",
+      "q": "Where are the ECN bits that a router marks to indicate congestion?",
+      "choices": [
+        "Two bits in the IP header (ToS field)",
+        "The TCP header's receive window field",
+        "One bit in the Ethernet frame header",
+        "The TCP checksum field"
+      ],
+      "answer": 0,
+      "explain": "Routers mark two ECN bits in the IP header's ToS field. The TCP header carries the related C and E bits used between the end hosts."
+    },
+    {
+      "type": "mc",
+      "category": "Explicit congestion notification (ECN)",
+      "q": "How does the TCP sender learn that a router marked its datagrams to signal congestion?",
+      "choices": [
+        "The destination sets the ECE bit on a TCP ACK segment sent back to the sender",
+        "The router sends a separate congestion message directly to the sender",
+        "The sender sees the ECN bits on its own outgoing datagrams",
+        "The destination drops the next segment to force a timeout"
+      ],
+      "answer": 0,
+      "explain": "The congestion indication travels with the datagram to the destination. The destination's TCP then sets ECE = 1 on an ACK to notify the sender."
+    },
+    {
+      "type": "tf",
+      "category": "Explicit congestion notification (ECN)",
+      "q": "The network operator chooses the policy that decides when a router marks ECN bits.",
+      "answer": true,
+      "explain": "The marking policy is chosen by the network operator."
+    },
+    {
+      "type": "multi",
+      "category": "Explicit congestion notification (ECN)",
+      "q": "Which protocol headers does ECN involve?",
+      "choices": [
+        "The IP header (ECN bits marked by routers)",
+        "The TCP header (C and E bits)",
+        "The UDP header",
+        "The HTTP header"
+      ],
+      "answer": [0, 1],
+      "explain": "ECN uses both layers. Routers mark the IP header's ECN bits, and the TCP header's C and E bits carry the notification between the hosts."
+    },
+    {
+      "type": "mc",
+      "category": "Explicit congestion notification (ECN)",
+      "q": "In the slide's ECN example, a datagram leaves the source with ECN = 10. A congested router on the path marks it. What is its ECN value afterward?",
+      "choices": [
+        "11",
+        "00",
+        "01",
+        "10, because routers mark only the TCP header"
+      ],
+      "answer": 0,
+      "explain": "The router changes ECN from 10 to 11 to indicate congestion. The destination then returns an ACK with ECE = 1."
+    },
+    {
+      "type": "num",
+      "category": "TCP fairness",
+      "q": "Four TCP sessions share a bottleneck link of R = 1 Gbps (1000 Mbps). Under TCP's fairness goal, what average rate, in Mbps, should each session get?",
+      "answer": 250,
+      "explain": "Fairness goal: K sessions sharing bottleneck bandwidth R should each average R/K. Here that is 1000/4 = 250 Mbps."
+    },
+    {
+      "type": "multi",
+      "category": "TCP fairness",
+      "q": "TCP is fair only under certain idealized assumptions. Which are they?",
+      "choices": [
+        "All sessions have the same RTT",
+        "There is a fixed number of sessions, all only in congestion avoidance",
+        "All sessions use ECN",
+        "All sessions start at the same time"
+      ],
+      "answer": [0, 1],
+      "explain": "The idealized assumptions are the same RTT and a fixed number of sessions that are only in congestion avoidance. Equal start times are not needed: in the two-connection graph, the sessions start from an unequal point and still converge toward an equal share."
+    },
+    {
+      "type": "mc",
+      "category": "TCP fairness",
+      "q": "Two TCP sessions with the same RTT compete in congestion avoidance. Why do their throughputs move toward an equal share?",
+      "choices": [
+        "Additive increase raises both by the same amount (slope 1), while multiplicative decrease cuts each in proportion to its throughput, so the gap shrinks with every loss",
+        "Multiplicative decrease cuts only the faster session at each loss",
+        "The bottleneck router assigns each session R/2 directly",
+        "Additive increase raises the slower session faster than the faster one"
+      ],
+      "answer": 0,
+      "explain": "During additive increase, both throughputs rise equally (a 45-degree move), so the gap stays the same. Halving both on a loss halves the gap, so the pair is pulled toward the equal-bandwidth-share line."
+    },
+    {
+      "type": "num",
+      "category": "TCP fairness",
+      "q": "Connection 1 is at 60 Mbps and connection 2 is at 20 Mbps when both see a loss and halve their rates. What is the throughput gap between them, in Mbps, right after the decrease?",
+      "answer": 20,
+      "explain": "After halving, they are at 30 and 10 Mbps, so the gap goes from 40 to 20. Additive increase then raises both equally and keeps the gap at 20 until the next loss halves it again."
+    },
+    {
+      "type": "num",
+      "category": "TCP fairness",
+      "q": "A link of rate R = 100 Mbps carries 4 existing TCP connections. A new application opens 6 parallel TCP connections. If every connection gets an equal share, what total rate, in Mbps, does the new application get?",
+      "answer": 60,
+      "explain": "There are now 10 connections at 10 Mbps each, and the new app holds 6 of them: 60 Mbps. Fairness is per connection, so opening parallel connections gets an app more than its fair share. In the slide's example, with 9 existing connections, 1 new connection gets R/10 while 11 new connections get about R/2."
+    },
+    {
+      "type": "mc",
+      "category": "TCP fairness",
+      "q": "Why do multimedia apps often use UDP instead of TCP?",
+      "choices": [
+        "They don't want their rate throttled by congestion control; they send audio/video at a constant rate and tolerate packet loss",
+        "UDP has built-in congestion control that is fairer than TCP's",
+        "UDP guarantees reliable, in-order delivery of audio and video",
+        "Routers drop TCP segments that carry audio or video"
+      ],
+      "answer": 0,
+      "explain": "UDP has no congestion control, so the app keeps its constant rate and accepts some loss. Such apps do not back off when the bottleneck is congested."
+    },
+    {
+      "type": "tf",
+      "category": "TCP fairness",
+      "q": "An 'Internet police' enforces the use of congestion control, so applications cannot send faster than their TCP-fair share.",
+      "answer": false,
+      "explain": "Nothing polices the use of congestion control. UDP senders and apps that open many parallel TCP connections can take more than an equal per-app share."
+    },
+    {
+      "type": "mc",
+      "category": "TCP fairness",
+      "q": "On the two-connection fairness graph (connection 1 throughput on the x-axis, connection 2 throughput on the y-axis), what does the dashed 45-degree line through the origin represent?",
+      "choices": [
+        "Equal bandwidth share",
+        "Total throughput equal to R",
+        "The points where loss occurs",
+        "The path of slow start"
+      ],
+      "answer": 0,
+      "explain": "Points on the 45-degree line have equal throughput for both connections. AIMD moves the operating point toward this line. The line from (R, 0) to (0, R) is where the two throughputs add up to R."
+    }
+  ]
+}

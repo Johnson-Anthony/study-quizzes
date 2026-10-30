@@ -1,0 +1,618 @@
+{
+  "title": "Ch3: Principles of Reliable Data Transfer (rdt1.0 to rdt3.0)",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Service model & interfaces",
+      "q": "In the rdt interface model, which function does the application (the upper layer) call to hand data to the sender side of the reliable data transfer protocol?",
+      "choices": ["rdt_send()", "udt_send()", "rdt_rcv()", "deliver_data()"],
+      "answer": 0,
+      "explain": "rdt_send() is called from above (for example by the app) and is passed the data to deliver to the receiver's upper layer. udt_send() is what rdt itself calls to put a packet on the unreliable channel."
+    },
+    {
+      "type": "mc",
+      "category": "Service model & interfaces",
+      "q": "Which function does the rdt implementation call to transfer a packet over the unreliable channel?",
+      "choices": ["rdt_send()", "udt_send()", "rdt_rcv()", "deliver_data()"],
+      "answer": 1,
+      "explain": "udt_send() ('unreliable data transfer' send) is called by rdt to send a packet over the unreliable channel. It is used in both directions: for data packets from the sender and for ACK/NAK packets from the receiver."
+    },
+    {
+      "type": "mc",
+      "category": "Service model & interfaces",
+      "q": "Which sequence of calls correctly traces one chunk of data from the sending application to the receiving application?",
+      "choices": [
+        "rdt_send() -> udt_send() -> rdt_rcv() -> deliver_data()",
+        "udt_send() -> rdt_send() -> deliver_data() -> rdt_rcv()",
+        "rdt_send() -> rdt_rcv() -> udt_send() -> deliver_data()",
+        "deliver_data() -> udt_send() -> rdt_rcv() -> rdt_send()"
+      ],
+      "answer": 0,
+      "explain": "The app calls rdt_send(data). The sender side builds a packet and calls udt_send(). When the packet arrives on the receiver side of the channel, rdt_rcv() is invoked, and the receiver then calls deliver_data() to pass the data up."
+    },
+    {
+      "type": "mc",
+      "category": "Service model & interfaces",
+      "q": "In the rdt interface diagram, how does a 'packet' on the channel differ from the 'data' the application hands down?",
+      "choices": [
+        "The sender-side rdt adds a header to the data, so a packet is header + data",
+        "A packet is the data with its checksum removed",
+        "A packet is identical to the data; the names refer to the same bytes",
+        "A packet holds only control information; the data travels separately"
+      ],
+      "answer": 0,
+      "explain": "The transport layer adds a header to the application data to form a packet (segment). The receiver side processes the header and passes only the data up through deliver_data()."
+    },
+    {
+      "type": "tf",
+      "category": "Service model & interfaces",
+      "q": "Because rdt only considers unidirectional data transfer, nothing ever travels from the receiver side back to the sender side over the channel.",
+      "answer": false,
+      "explain": "Data flows one way only, but control information (ACKs, NAKs) flows in both directions. The communication between the two protocol sides over the unreliable channel is bidirectional."
+    },
+    {
+      "type": "mc",
+      "category": "Service model & interfaces",
+      "q": "What most strongly determines how complex the sender and receiver sides of a reliable data transfer protocol must be?",
+      "choices": [
+        "The size of each application message",
+        "How fast the sending application produces data",
+        "The characteristics of the underlying unreliable channel: whether it can lose, corrupt, or reorder data",
+        "How many application processes run on each host"
+      ],
+      "answer": 2,
+      "explain": "Protocol complexity depends strongly on what the unreliable channel can do. With a perfect channel (rdt1.0) the protocol is trivial. Bit errors need checksums, ACK/NAKs, retransmission and sequence numbers. Loss also needs timers."
+    },
+    {
+      "type": "mc",
+      "category": "Service model & interfaces",
+      "q": "The slides draw a curtain between the sender and receiver sides of the protocol. What point does this make?",
+      "choices": [
+        "Neither side knows the other's state (for example, whether a message was received) unless that is communicated through a message",
+        "The receiver cannot read the header fields the sender adds",
+        "The channel hides packet contents by encrypting them",
+        "The sender can observe the receiver's state directly, but not the other way around"
+      ],
+      "answer": 0,
+      "explain": "Each side can learn about the other only through messages sent over the channel. For example, the sender learns that a packet arrived correctly only when an ACK comes back. That is why a protocol is needed."
+    },
+    {
+      "type": "mc",
+      "category": "FSMs & rdt1.0",
+      "q": "In an FSM specification of a protocol, what does being in a particular 'state' mean?",
+      "choices": [
+        "The next state is uniquely determined by the next event",
+        "The protocol has finished sending all of its data",
+        "No events can occur until a timer expires",
+        "The sender and receiver must be in matching states"
+      ],
+      "answer": 0,
+      "explain": "When the machine is in a given state, the next state is uniquely determined by the next event. Transitions are triggered by events and may perform actions."
+    },
+    {
+      "type": "mc",
+      "category": "FSMs & rdt1.0",
+      "q": "An FSM transition is labeled with text above a horizontal line and text below it. What goes where?",
+      "choices": [
+        "Above: the event that causes the transition. Below: the actions taken on the transition",
+        "Above: the actions taken. Below: the event that causes the transition",
+        "Above: the current state. Below: the next state",
+        "Above: the sender's actions. Below: the receiver's actions"
+      ],
+      "answer": 0,
+      "explain": "Example: rdt_send(data) (the event) above the line, and packet = make_pkt(data); udt_send(packet) (the actions) below it."
+    },
+    {
+      "type": "text",
+      "category": "FSMs & rdt1.0",
+      "q": "Which Greek letter, written in the action position of an rdt FSM transition, means that no action is taken?",
+      "answer": ["Λ", "λ", "lambda", "Lambda", "capital lambda"],
+      "explain": "Λ (lambda) means no action. For example, when the rdt2.0 sender in 'Wait for ACK or NAK' receives an ACK, it returns to 'Wait for call from above' with Λ."
+    },
+    {
+      "type": "multi",
+      "category": "FSMs & rdt1.0",
+      "q": "Which assumptions does rdt1.0 make about the underlying channel?",
+      "choices": [
+        "No bit errors",
+        "No loss of packets",
+        "Bits may be flipped, but packets are never lost",
+        "Packets may be lost, but are never corrupted"
+      ],
+      "answer": [0, 1],
+      "explain": "rdt1.0 is reliable transfer over a perfectly reliable channel: no bit errors and no packet loss. Because of that, the sender just sends and the receiver just reads."
+    },
+    {
+      "type": "mc",
+      "category": "FSMs & rdt1.0",
+      "q": "What does the rdt1.0 receiver do when the event rdt_rcv(packet) occurs?",
+      "choices": [
+        "extract(packet, data), then deliver_data(data)",
+        "Verify the checksum, then send an ACK",
+        "Send a NAK if the packet is corrupted",
+        "Start a timer and wait to see whether a duplicate arrives"
+      ],
+      "answer": 0,
+      "explain": "The channel is perfect, so the receiver has a single state ('Wait for call from below'). It extracts the data and delivers it up. It sends no feedback at all."
+    },
+    {
+      "type": "num",
+      "category": "FSMs & rdt1.0",
+      "q": "How many states does the rdt1.0 sender FSM have?",
+      "answer": 1,
+      "explain": "One state, 'Wait for call from above'. On rdt_send(data) it does make_pkt and udt_send and stays in that state. The rdt1.0 receiver also has a single state, 'Wait for call from below'."
+    },
+    {
+      "type": "mc",
+      "category": "FSMs & rdt1.0",
+      "q": "In the light-bulb example used to introduce FSMs, which choice correctly identifies the states and the events?",
+      "choices": [
+        "States: on and off. Events: the switch being turned on or off",
+        "States: switch turned on and switch turned off. Events: light emitted and light stopped",
+        "State: emitting light. Events: on and off",
+        "One state (the bulb) and two actions (on and off)"
+      ],
+      "answer": 0,
+      "explain": "The bulb is in the on state or the off state. Flipping the switch is the event that causes a transition between them, and emitting or stopping light is the resulting action. A complete spec also says what happens if 'on' is pressed while the bulb is already on."
+    },
+    {
+      "type": "text",
+      "category": "rdt2.0: bit errors",
+      "q": "rdt2.0 assumes the channel may flip bits in a packet. What does it use to detect those bit errors?",
+      "answer": ["checksum", "a checksum", "checksums", "internet checksum", "the internet checksum"],
+      "explain": "A checksum (for example the Internet checksum) is included in each packet, via make_pkt(data, checksum), so the receiver can detect corruption."
+    },
+    {
+      "type": "multi",
+      "category": "rdt2.0: bit errors",
+      "q": "Which mechanisms does rdt2.0 use to deal with bit errors?",
+      "choices": [
+        "A checksum for error detection",
+        "Acknowledgements (ACKs)",
+        "Negative acknowledgements (NAKs)",
+        "Retransmission when a NAK is received",
+        "A sequence number on each packet",
+        "A countdown timer"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "rdt2.0 uses a checksum, ACKs (packet received OK), NAKs (packet had errors), and retransmission on NAK. Sequence numbers first appear in rdt2.1, and timers in rdt3.0."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.0: bit errors",
+      "q": "rdt2.0 is described as a 'stop-and-wait' protocol. What does that mean?",
+      "choices": [
+        "The sender sends one packet, then waits for the receiver's response before going on",
+        "The receiver stops accepting packets until the application reads the earlier ones",
+        "The sender stops transmitting whenever a timer expires",
+        "The channel stops delivering packets once it detects an error"
+      ],
+      "answer": 0,
+      "explain": "Stop-and-wait means the sender sends one packet, then waits for the receiver's response (ACK or NAK) before it accepts more data from above."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.0: bit errors",
+      "q": "The rdt2.0 sender is in 'Wait for ACK or NAK' and receives a NAK. What does it do?",
+      "choices": [
+        "Retransmits the same packet (udt_send(sndpkt)) and stays in 'Wait for ACK or NAK'",
+        "Drops the packet and returns to 'Wait for call from above'",
+        "Builds a new packet from the next chunk of application data",
+        "Sends a NAK back to the receiver"
+      ],
+      "answer": 0,
+      "explain": "On rdt_rcv(rcvpkt) && isNAK(rcvpkt), the sender resends the stored sndpkt and keeps waiting. Only an ACK returns it to 'Wait for call from above'."
+    },
+    {
+      "type": "tf",
+      "category": "rdt2.0: bit errors",
+      "q": "While in 'Wait for ACK or NAK', the rdt2.0 sender can accept new data from the application through rdt_send().",
+      "answer": false,
+      "explain": "rdt_send() is handled only in 'Wait for call from above'. While waiting for an ACK or NAK the sender cannot take new data. This is the stop-and-wait behavior."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.0: bit errors",
+      "q": "The rdt2.0 receiver gets a packet and the checksum shows it is corrupted. What does it do?",
+      "choices": [
+        "Sends a NAK and does not deliver the data",
+        "Delivers the data and sends a NAK",
+        "Discards the packet silently and sends nothing",
+        "Sends an ACK so the sender will move on to the next packet"
+      ],
+      "answer": 0,
+      "explain": "On rdt_rcv(rcvpkt) && corrupt(rcvpkt), the receiver does udt_send(NAK). Only an uncorrupted packet is extracted, delivered with deliver_data(), and answered with an ACK."
+    },
+    {
+      "type": "num",
+      "category": "rdt2.0: bit errors",
+      "q": "In rdt2.0, the first transmission of a data packet is corrupted and the retransmission arrives intact (ACKs and NAKs are not corrupted). Counting both data packets and ACK/NAK packets, how many packets cross the channel before the sender is back in 'Wait for call from above'?",
+      "answer": 4,
+      "explain": "Data packet (corrupted), then NAK, then the retransmitted data packet (OK), then ACK. That is 4 packets in total."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.0: bit errors",
+      "q": "In a conversation, a listener says 'I don't understand what you said,' and the speaker repeats the sentence. Which pair of rdt mechanisms does this correspond to?",
+      "choices": [
+        "A negative acknowledgement followed by a retransmission",
+        "An acknowledgement followed by a sequence number",
+        "A checksum followed by a timeout",
+        "A duplicate ACK followed by a timer restart"
+      ],
+      "answer": 0,
+      "explain": "Humans recover from errors with ACKs ('yes, I got it'), NAKs ('I didn't understand'), and retransmission (repeating the message). rdt2.0 is built on the same mechanisms."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.1: sequence numbers",
+      "q": "What is rdt2.0's 'fatal flaw'?",
+      "choices": [
+        "If an ACK or NAK is corrupted, the sender doesn't know what happened at the receiver",
+        "It cannot detect bit errors in data packets",
+        "It delivers packets out of order because it sends several at once",
+        "It sends so many NAKs that it wastes bandwidth"
+      ],
+      "answer": 0,
+      "explain": "rdt2.0 does not handle a garbled ACK or NAK. The sender can't tell whether the receiver got the packet, and it can't just retransmit, because that might create a duplicate."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.1: sequence numbers",
+      "q": "Suppose an rdt2.0-style sender simply retransmitted whenever an ACK or NAK arrived garbled, with nothing else added. What could go wrong?",
+      "choices": [
+        "If the garbled reply was really an ACK, the receiver would get a copy of data it already has and deliver it as new data",
+        "The receiver would answer every retransmission with a NAK, forever",
+        "The checksum of the retransmitted packet would be computed incorrectly",
+        "The sender would deadlock waiting for a timeout that never comes"
+      ],
+      "answer": 0,
+      "explain": "The receiver has no way to tell a retransmission from new data, so the old data would be passed to the application twice. Sequence numbers fix this."
+    },
+    {
+      "type": "multi",
+      "category": "rdt2.1: sequence numbers",
+      "q": "How does rdt2.1 handle a corrupted ACK or NAK without causing duplicate delivery?",
+      "choices": [
+        "The sender retransmits the current packet if the ACK/NAK is corrupted",
+        "The sender adds a sequence number to each packet",
+        "The receiver discards duplicate packets instead of delivering them up",
+        "The receiver delivers duplicates and leaves it to the application to discard them",
+        "The sender waits for a timeout before retransmitting"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Retransmit on a garbled ACK/NAK, number each packet, and have the receiver drop duplicates (not deliver them up). rdt2.1 has no timer; timers come in rdt3.0."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.1: sequence numbers",
+      "q": "Why are just two sequence numbers (0 and 1) enough for rdt2.1?",
+      "choices": [
+        "With stop-and-wait only one packet is outstanding, so the receiver only has to tell the next new packet apart from a retransmission of the previous one",
+        "The channel never reorders more than two packets",
+        "Sequence numbers are reused only after a timeout guarantees that old packets are gone",
+        "The checksum already identifies each packet uniquely, so the bit only marks ACK versus NAK"
+      ],
+      "answer": 0,
+      "explain": "The sender doesn't send a new packet until the current one is acknowledged. Any arriving packet is therefore either the expected new one or a resend of the last one, and a 1-bit sequence number tells them apart."
+    },
+    {
+      "type": "num",
+      "category": "rdt2.1: sequence numbers",
+      "q": "How many states does the rdt2.1 sender FSM have?",
+      "answer": 4,
+      "explain": "Four: 'Wait for call 0 from above', 'Wait for ACK or NAK 0', 'Wait for call 1 from above', and 'Wait for ACK or NAK 1'. That is twice rdt2.0's two states, because the state must remember whether the current packet has sequence number 0 or 1."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.1: sequence numbers",
+      "q": "The rdt2.1 receiver is in 'Wait for 1 from below' and receives an uncorrupted packet with sequence number 0. What does it do?",
+      "choices": [
+        "Sends an ACK, does not deliver the data, and stays in 'Wait for 1 from below'",
+        "Sends a NAK so the sender will transmit packet 1",
+        "Delivers the data and moves to 'Wait for 0 from below'",
+        "Delivers the data again and sends an ACK"
+      ],
+      "answer": 0,
+      "explain": "Packet 0 is a duplicate of data already delivered, so the sender evidently didn't get a good ACK for it. The receiver sends an ACK (not a NAK) so the sender can move on, and it does not deliver the data again."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.1: sequence numbers",
+      "q": "The rdt2.1 sender is in 'Wait for ACK or NAK 1' and receives a corrupted packet. What does it do?",
+      "choices": [
+        "Retransmits the packet with sequence number 1 and stays in the same state",
+        "Moves to 'Wait for call 0 from above'",
+        "Sends a NAK to the receiver",
+        "Sends a new packet with sequence number 0"
+      ],
+      "answer": 0,
+      "explain": "On rdt_rcv(rcvpkt) && (corrupt(rcvpkt) || isNAK(rcvpkt)), the sender resends sndpkt, which is the seq-1 packet, and keeps waiting."
+    },
+    {
+      "type": "tf",
+      "category": "rdt2.1: sequence numbers",
+      "q": "In rdt2.1, the receiver can tell whether its last ACK or NAK was received correctly by the sender.",
+      "answer": false,
+      "explain": "The receiver cannot know whether its last ACK/NAK arrived OK. It just responds to whatever arrives: NAK a corrupted packet, ACK a duplicate, and deliver and ACK the expected packet."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.1: sequence numbers",
+      "q": "rdt2.1: pkt0 arrives intact, the receiver delivers it and sends an ACK, but the ACK is corrupted on the way back. What happens next?",
+      "choices": [
+        "The sender retransmits pkt0. The receiver, now waiting for 1, sees a duplicate, doesn't deliver it, and sends an ACK",
+        "The sender assumes success and sends pkt1",
+        "The sender retransmits pkt0, and the receiver delivers it a second time and sends an ACK",
+        "The sender retransmits pkt0, and the receiver sends a NAK because it expected sequence number 1"
+      ],
+      "answer": 0,
+      "explain": "A garbled ACK/NAK makes the sender resend the current packet. The sequence number lets the receiver recognize the duplicate, discard it, and ACK it, and that ACK lets the sender move to pkt1."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.2: NAK-free",
+      "q": "How does rdt2.2 provide the same functionality as rdt2.1 without using NAKs?",
+      "choices": [
+        "Instead of a NAK, the receiver sends an ACK for the last packet received OK, explicitly including that packet's sequence number",
+        "The receiver stays silent on errors and the sender relies on a timer",
+        "The sender transmits every packet twice",
+        "The receiver signals an error by sending an ACK with an inverted checksum"
+      ],
+      "answer": 0,
+      "explain": "rdt2.2 uses ACKs only. Re-ACKing the last good packet tells the sender that the current packet was not received OK."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.2: NAK-free",
+      "q": "The rdt2.2 sender is in 'Wait for ACK 0' and receives an uncorrupted ACK carrying sequence number 1. What does it do?",
+      "choices": [
+        "Retransmits the current packet (sequence number 0)",
+        "Treats it as success and returns to wait for the next call from above",
+        "Ignores it and waits for a timeout",
+        "Sends a packet with sequence number 1"
+      ],
+      "answer": 0,
+      "explain": "A duplicate ACK (ACK1 while waiting for ACK0) has the same effect as a NAK, so the sender retransmits the current packet. The rdt2.2 sender has no timer to wait on."
+    },
+    {
+      "type": "tf",
+      "category": "rdt2.2: NAK-free",
+      "q": "In rdt2.2, the receiver must explicitly include the sequence number of the packet being ACKed.",
+      "answer": true,
+      "explain": "Without NAKs, the sender can tell 'got the current packet' from 'still stuck on the previous one' only by the sequence number in the ACK, for example isACK(rcvpkt,0) versus isACK(rcvpkt,1)."
+    },
+    {
+      "type": "mc",
+      "category": "rdt2.2: NAK-free",
+      "q": "The rdt2.2 receiver is in 'Wait for 0 from below' (it has just accepted pkt1) and receives a corrupted packet. What does it send?",
+      "choices": [
+        "ACK1 again: it re-sends its last ACK, for the last packet it received OK",
+        "A NAK",
+        "ACK0",
+        "Nothing"
+      ],
+      "answer": 0,
+      "explain": "On corrupt(rcvpkt) || has_seq1(rcvpkt), the receiver calls udt_send(sndpkt), which still holds ACK1 from when it accepted pkt1. The sender sees a duplicate ACK and retransmits pkt0."
+    },
+    {
+      "type": "tf",
+      "category": "rdt2.2: NAK-free",
+      "q": "rdt2.2 introduces a protocol mechanism that rdt2.1 does not have.",
+      "answer": false,
+      "explain": "rdt2.2 adds no new mechanism. It uses the existing ones (ACKs with sequence numbers, checksums, retransmission) differently, so that it can drop NAKs."
+    },
+    {
+      "type": "text",
+      "category": "rdt2.2: NAK-free",
+      "q": "Which real transport protocol uses rdt2.2's NAK-free approach, relying on ACKs along with sequence numbers, checksums, and retransmissions?",
+      "answer": ["TCP", "tcp", "Transmission Control Protocol"],
+      "explain": "TCP is NAK-free. A duplicate ACK signals that something after the acknowledged data was not received correctly."
+    },
+    {
+      "type": "mc",
+      "category": "rdt3.0: loss & timers",
+      "q": "What new assumption about the underlying channel does rdt3.0 add?",
+      "choices": [
+        "The channel can also lose packets, both data packets and ACKs",
+        "The channel can reorder packets arbitrarily",
+        "The channel can duplicate packets but never corrupt them",
+        "The channel is error-free but has variable delay"
+      ],
+      "answer": 0,
+      "explain": "rdt3.0 keeps bit errors and adds packet loss. Checksums, sequence numbers, ACKs and retransmissions help, but they are not enough on their own."
+    },
+    {
+      "type": "mc",
+      "category": "rdt3.0: loss & timers",
+      "q": "What mechanism does rdt3.0 add to cope with lost packets?",
+      "choices": [
+        "A countdown timer: the sender retransmits if no ACK arrives within a 'reasonable' amount of time",
+        "NAKs from the receiver whenever it notices a packet has gone missing",
+        "Multi-bit sequence numbers instead of a single bit",
+        "A second checksum covering only the header"
+      ],
+      "answer": 0,
+      "explain": "The sender waits a 'reasonable' time for an ACK and retransmits if none arrives. A countdown timer interrupts it when that time is up. The receiver can't send a NAK for a packet it never saw."
+    },
+    {
+      "type": "mc",
+      "category": "rdt3.0: loss & timers",
+      "q": "If a packet or ACK is only delayed (not lost), the sender's timeout causes an unnecessary retransmission. What keeps this from causing duplicate data to be delivered?",
+      "choices": [
+        "Sequence numbers let the receiver recognize the retransmission as a duplicate",
+        "The checksum marks the retransmitted packet as a duplicate",
+        "The timer is cancelled automatically when the delayed packet reaches the receiver",
+        "Nothing; rdt3.0 assumes packets are never delayed"
+      ],
+      "answer": 0,
+      "explain": "The retransmission will be a duplicate, but sequence numbers already handle that. The receiver also has to put the sequence number of the packet being ACKed in its ACK."
+    },
+    {
+      "type": "mc",
+      "category": "rdt3.0: loss & timers",
+      "q": "The rdt3.0 sender is in 'Wait for ACK0' and receives a corrupted packet or an ACK with sequence number 1. What does it do?",
+      "choices": [
+        "Nothing (Λ). It keeps waiting, and the timeout will cause the retransmission if one is needed",
+        "Retransmits packet 0 immediately",
+        "Stops the timer and returns to 'Wait for call 0 from above'",
+        "Sends packet 1"
+      ],
+      "answer": 0,
+      "explain": "In rdt3.0, rdt_rcv(rcvpkt) && (corrupt(rcvpkt) || isACK(rcvpkt,1)) has action Λ, and the timer handles recovery. This differs from rdt2.2, where a duplicate ACK triggers an immediate retransmission."
+    },
+    {
+      "type": "multi",
+      "category": "rdt3.0: loss & timers",
+      "q": "Which events make the rdt3.0 sender call start_timer?",
+      "choices": [
+        "Sending a new packet after rdt_send(data)",
+        "Retransmitting the packet after a timeout",
+        "Receiving a corrupted ACK",
+        "Receiving the ACK it was waiting for"
+      ],
+      "answer": [0, 1],
+      "explain": "Every udt_send(sndpkt) is followed by start_timer, both the first send and the resend on timeout. A corrupted or wrong ACK has action Λ, and the expected ACK leads to stop_timer."
+    },
+    {
+      "type": "mc",
+      "category": "rdt3.0: loss & timers",
+      "q": "When does the rdt3.0 sender call stop_timer?",
+      "choices": [
+        "When it receives an uncorrupted ACK with the expected sequence number",
+        "When it receives any ACK, even a corrupted one",
+        "Immediately after udt_send(sndpkt)",
+        "Only when the timeout fires"
+      ],
+      "answer": 0,
+      "explain": "rdt_rcv(rcvpkt) && notcorrupt(rcvpkt) && isACK(rcvpkt,0) in 'Wait for ACK0' (or ACK 1 in 'Wait for ACK1') triggers stop_timer and the move to wait for the next call from above."
+    },
+    {
+      "type": "tf",
+      "category": "rdt3.0: loss & timers",
+      "q": "If the rdt3.0 sender is in 'Wait for call 0 from above' and a packet arrives from the channel (for example a late, duplicate ACK), it takes no action.",
+      "answer": true,
+      "explain": "Both 'Wait for call from above' states have a self-loop rdt_rcv(rcvpkt) with action Λ. Packets arriving then are ignored."
+    },
+    {
+      "type": "tf",
+      "category": "rdt3.0: loss & timers",
+      "q": "In rdt3.0, the receiver detects that a packet was lost and notifies the sender.",
+      "answer": false,
+      "explain": "The receiver never learns about a packet it didn't get. The sender detects loss, of the packet or of its ACK, when its countdown timer expires without the expected ACK, and then retransmits."
+    },
+    {
+      "type": "mc",
+      "category": "rdt3.0 scenarios",
+      "q": "rdt3.0: the sender sends pkt1 and it is lost in the channel. What happens?",
+      "choices": [
+        "The sender's timer expires, it resends pkt1, and the receiver receives it and sends ack1",
+        "The receiver notices the gap and sends a NAK for pkt1",
+        "The receiver re-sends ack0, which makes the sender retransmit pkt1 immediately",
+        "The sender gives up on pkt1 and moves on to the next packet, pkt0"
+      ],
+      "answer": 0,
+      "explain": "This is the packet-loss case. Nothing comes back, the timeout fires, pkt1 is resent and acknowledged with ack1, and the sender then continues with pkt0."
+    },
+    {
+      "type": "mc",
+      "category": "rdt3.0 scenarios",
+      "q": "rdt3.0: pkt1 arrives intact and the receiver sends ack1, but ack1 is lost. What happens next?",
+      "choices": [
+        "The sender times out and resends pkt1. The receiver detects the duplicate, does not deliver it again, and sends ack1",
+        "The sender times out and moves on to send pkt0",
+        "The receiver times out and resends ack1 on its own",
+        "The sender times out and resends pkt1, and the receiver delivers it again and sends ack1"
+      ],
+      "answer": 0,
+      "explain": "This is the ACK-loss case. To the sender, a lost ACK looks the same as a lost packet, so it retransmits after the timeout. The sequence number lets the receiver detect the duplicate and just re-ACK it."
+    },
+    {
+      "type": "mc",
+      "category": "rdt3.0 scenarios",
+      "q": "rdt3.0 premature timeout: ack1 is delayed (not lost), so the sender times out and resends pkt1. The delayed ack1 then arrives and the sender sends pkt0. Later, a second ack1 (the receiver's reply to the duplicate pkt1) arrives while the sender is waiting for ack0. What does the sender do with it?",
+      "choices": [
+        "Ignores it",
+        "Retransmits pkt0",
+        "Retransmits pkt1",
+        "Stops the timer and waits for a call from above"
+      ],
+      "answer": 0,
+      "explain": "In 'Wait for ACK0', an isACK(rcvpkt,1) has action Λ, so the extra ack1 is ignored. The receiver has meanwhile detected the duplicate pkt1 and not delivered it, so the transfer continues correctly."
+    },
+    {
+      "type": "num",
+      "category": "rdt3.0 scenarios",
+      "q": "rdt3.0: pkt1 arrives intact, but its ack1 is lost. The sender times out and resends pkt1, which also arrives intact. How many times is pkt1's data delivered to the receiving application?",
+      "answer": 1,
+      "explain": "Once. The receiver delivers the first copy, recognizes the retransmission as a duplicate by its sequence number, and only re-sends ack1."
+    },
+    {
+      "type": "tf",
+      "category": "rdt3.0 scenarios",
+      "q": "In rdt3.0, a premature timeout (one that fires even though nothing was lost) breaks correctness, because the receiver ends up delivering duplicate data.",
+      "answer": false,
+      "explain": "A premature timeout costs extra transmissions but does not break correctness. Sequence numbers let the receiver discard the duplicate packet, and the sender ignores the resulting extra ACK."
+    },
+    {
+      "type": "num",
+      "category": "rdt3.0 scenarios",
+      "q": "rdt3.0: the sender sends pkt0 (ACKed), then pkt1, which is lost. After a timeout it resends pkt1, which is ACKed. What sequence number does the next new data packet carry?",
+      "answer": 0,
+      "explain": "The sequence number alternates only when a new packet is sent. A retransmission keeps the same number. After pkt1 is finally ACKed, the next new packet is pkt0."
+    },
+    {
+      "type": "mc",
+      "category": "Mechanisms overview",
+      "q": "Which mechanism lets the receiver tell that an arriving packet is a retransmission of data it has already delivered?",
+      "choices": ["Sequence numbers", "Checksum", "Countdown timer", "NAK"],
+      "answer": 0,
+      "explain": "Sequence numbers identify retransmitted packets, so duplicates can be discarded instead of delivered up."
+    },
+    {
+      "type": "mc",
+      "category": "Mechanisms overview",
+      "q": "Which mechanism lets the receiver detect that bits in a packet were flipped?",
+      "choices": ["Checksum", "Sequence numbers", "Countdown timer", "Duplicate ACKs"],
+      "answer": 0,
+      "explain": "Error-detection bits such as a checksum reveal changed bits in a packet."
+    },
+    {
+      "type": "mc",
+      "category": "Mechanisms overview",
+      "q": "Which mechanism lets the sender recover when a packet, or the ACK for it, disappears entirely?",
+      "choices": [
+        "A countdown timer: on timeout, retransmit",
+        "A NAK from the receiver",
+        "A stronger checksum",
+        "A 1-bit sequence number alone"
+      ],
+      "answer": 0,
+      "explain": "When something is lost, no reply ever arrives, so feedback-based mechanisms can't trigger recovery. The sender's timeout followed by retransmission handles loss (rdt3.0)."
+    },
+    {
+      "type": "mc",
+      "category": "Mechanisms overview",
+      "q": "Which is the first rdt version to use sequence numbers?",
+      "choices": ["rdt1.0", "rdt2.0", "rdt2.1", "rdt3.0"],
+      "fixed": true,
+      "answer": 2,
+      "explain": "rdt2.1 adds a 1-bit sequence number to fix rdt2.0's problem with garbled ACK/NAKs. rdt2.2 and rdt3.0 keep it."
+    },
+    {
+      "type": "multi",
+      "category": "Mechanisms overview",
+      "q": "Which of these appear in the rdt3.0 sender's FSM?",
+      "choices": [
+        "A checksum in each packet (make_pkt(..., checksum))",
+        "Sequence numbers 0 and 1",
+        "A countdown timer (start_timer / stop_timer / timeout)",
+        "Retransmission of the current packet",
+        "Handling of NAKs from the receiver"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "rdt3.0 builds on the NAK-free rdt2.2. It uses checksums, alternating 0/1 sequence numbers, ACKs that carry sequence numbers, retransmission, and a timer. It uses no NAKs: it checks isACK(rcvpkt,0) or isACK(rcvpkt,1)."
+    }
+  ]
+}

@@ -1,0 +1,510 @@
+{
+  "title": "Ch1: Delay, Loss and Throughput",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Four sources of nodal delay",
+      "q": "Which of the following is NOT one of the four components of nodal delay d_nodal?",
+      "choices": ["Processing delay", "Queueing delay", "Retransmission delay", "Propagation delay"],
+      "answer": 2,
+      "explain": "d_nodal = d_proc + d_queue + d_trans + d_prop. The fourth component is transmission delay. Retransmission is not one of them."
+    },
+    {
+      "type": "multi",
+      "category": "Four sources of nodal delay",
+      "q": "Which of these are part of a router's nodal processing delay (d_proc)?",
+      "choices": [
+        "Checking the packet for bit errors",
+        "Looking up the forwarding table to determine the output link",
+        "Waiting in the output buffer while packets ahead of it are sent",
+        "Pushing the packet's bits onto the outgoing link"
+      ],
+      "answer": [0, 1],
+      "explain": "Processing covers integrity (bit-error) checks and deciding the output link. Waiting in the buffer is queueing delay, and pushing bits onto the link is transmission delay."
+    },
+    {
+      "type": "mc",
+      "category": "Four sources of nodal delay",
+      "q": "What is the typical order of magnitude of nodal processing delay at a router?",
+      "choices": ["Microseconds or less", "Tens of milliseconds", "Hundreds of milliseconds", "Several seconds"],
+      "answer": 0,
+      "explain": "Forwarding lookups and integrity checks typically take microseconds or less."
+    },
+    {
+      "type": "mc",
+      "category": "Four sources of nodal delay",
+      "q": "Which delay component depends most directly on the congestion level at the router's output link?",
+      "choices": ["Processing delay", "Queueing delay", "Transmission delay", "Propagation delay"],
+      "answer": 1,
+      "explain": "Queueing delay is the time spent waiting at the output link for transmission. It depends on how many packets are already waiting, which is the router's congestion level."
+    },
+    {
+      "type": "text",
+      "category": "Four sources of nodal delay",
+      "q": "A packet waits in a router's output buffer while packets that arrived before it are transmitted. Name this component of delay.",
+      "answer": ["queueing delay", "queuing delay", "queueing", "queuing", "d_queue", "dqueue"],
+      "explain": "This is queueing delay (d_queue): time spent waiting at the output link for transmission."
+    },
+    {
+      "type": "num",
+      "category": "Four sources of nodal delay",
+      "q": "A 1,500-byte packet goes out a 100 Mbps link that is 2,000 km long (propagation speed 2x10^8 m/s). It waits 3 ms in the queue, and processing delay is negligible. What is the total nodal delay d_nodal, in milliseconds?",
+      "answer": 13.12,
+      "tolerance": 0.01,
+      "explain": "d_trans = L/R = 12,000 bits / 10^8 bps = 0.12 ms. d_prop = d/s = 2x10^6 m / 2x10^8 m/s = 10 ms. Total = 0 + 3 + 0.12 + 10 = 13.12 ms."
+    },
+    {
+      "type": "mc",
+      "category": "Transmission vs. propagation delay",
+      "q": "With L = packet length (bits) and R = link transmission rate (bps), the transmission delay is:",
+      "choices": ["d/s", "L/R", "L·a/R", "R/L"],
+      "answer": 1,
+      "explain": "d_trans = L/R, the time to push all L bits of the packet onto the link."
+    },
+    {
+      "type": "mc",
+      "category": "Transmission vs. propagation delay",
+      "q": "With d = length of the physical link and s = propagation speed, the propagation delay is:",
+      "choices": ["d/s", "s/d", "L/R", "d·s"],
+      "answer": 0,
+      "explain": "d_prop = d/s, the time for a bit to travel from one end of the link to the other. s is about 2x10^8 m/s."
+    },
+    {
+      "type": "num",
+      "category": "Transmission vs. propagation delay",
+      "q": "How long does it take to transmit an 8,000-bit packet onto a 1 Mbps link? Give the answer in milliseconds.",
+      "answer": 8,
+      "tolerance": 0.001,
+      "explain": "d_trans = L/R = 8,000 bits / 1,000,000 bps = 0.008 s = 8 ms."
+    },
+    {
+      "type": "num",
+      "category": "Transmission vs. propagation delay",
+      "q": "What is the propagation delay over a 4,000 km link if signals propagate at 2x10^8 m/s? Give the answer in milliseconds.",
+      "answer": 20,
+      "tolerance": 0.001,
+      "explain": "d_prop = d/s = 4x10^6 m / 2x10^8 m/s = 0.02 s = 20 ms."
+    },
+    {
+      "type": "tf",
+      "category": "Transmission vs. propagation delay",
+      "q": "Doubling a link's transmission rate R cuts its propagation delay in half.",
+      "answer": false,
+      "explain": "Propagation delay is d/s and depends only on the link's length and the medium. Raising R reduces transmission delay (L/R), not propagation delay."
+    },
+    {
+      "type": "mc",
+      "category": "Transmission vs. propagation delay",
+      "q": "A link is upgraded from 10 Mbps to 1 Gbps using the same cable over the same distance. Which delay stays the same?",
+      "choices": ["Transmission delay", "Propagation delay", "Neither: both change", "Both: neither changes"],
+      "answer": 1,
+      "fixed": true,
+      "explain": "Propagation delay (d/s) depends on distance and medium, which haven't changed. Transmission delay (L/R) drops because R went up."
+    },
+    {
+      "type": "mc",
+      "category": "Transmission vs. propagation delay",
+      "q": "A 10,000-bit packet is sent on a 1 Mbps link that is 200 km long (s = 2x10^8 m/s). At the moment the last bit leaves the sender, which is true?",
+      "choices": [
+        "The first bit has already reached the receiver",
+        "The first bit is still propagating along the link",
+        "The whole packet has already been received",
+        "No bits have reached the link yet"
+      ],
+      "answer": 0,
+      "explain": "d_trans = 10,000/10^6 = 10 ms and d_prop = 2x10^5/2x10^8 = 1 ms. The first bit arrives after 1 ms, long before the last bit leaves at 10 ms. The last bit still needs another 1 ms to arrive."
+    },
+    {
+      "type": "tf",
+      "category": "Transmission vs. propagation delay",
+      "q": "Transmission delay is the time it takes a single bit to travel from one end of a link to the other.",
+      "answer": false,
+      "explain": "That describes propagation delay (d/s). Transmission delay (L/R) is the time to push all of the packet's bits onto the link."
+    },
+    {
+      "type": "mc",
+      "category": "Transmission vs. propagation delay",
+      "q": "It takes roughly 30 ms for a signal to cross a transatlantic link from the US east coast to Europe. Which delay component is this?",
+      "choices": ["Processing delay", "Queueing delay", "Transmission delay", "Propagation delay"],
+      "answer": 3,
+      "explain": "Bits travel near the speed of light, but over thousands of kilometers the propagation delay (d/s) becomes noticeable. A geosynchronous satellite hop is about 270 ms."
+    },
+    {
+      "type": "mc",
+      "category": "Caravan analogy",
+      "q": "In the caravan analogy for packet delay, what does a single car represent?",
+      "choices": ["A bit", "A packet", "A router", "A link"],
+      "answer": 0,
+      "explain": "Car = bit, caravan = packet, and servicing a car at the toll booth = transmitting a bit onto the link."
+    },
+    {
+      "type": "mc",
+      "category": "Caravan analogy",
+      "q": "In the caravan analogy, the toll booth servicing a car corresponds to:",
+      "choices": [
+        "Propagation along the link",
+        "Transmitting a bit onto the link",
+        "Waiting in a router buffer",
+        "Looking up the forwarding table"
+      ],
+      "answer": 1,
+      "explain": "Toll service time is the per-bit transmission time. Driving between booths is propagation."
+    },
+    {
+      "type": "num",
+      "category": "Caravan analogy",
+      "q": "A 10-car caravan reaches a toll booth that takes 12 s to service each car. Cars drive at 100 km/h, and the next toll booth is 100 km away. How many minutes until the whole caravan is lined up before the second booth?",
+      "answer": 62,
+      "tolerance": 0.01,
+      "explain": "Transmission: 10 x 12 s = 120 s = 2 min. Propagation of the last car: 100 km / (100 km/h) = 60 min. Total = 62 min."
+    },
+    {
+      "type": "num",
+      "category": "Caravan analogy",
+      "q": "A 10-car caravan reaches a toll booth that takes 6 s to service each car. Cars drive at 100 km/h, and the next toll booth is 50 km away. How many minutes until the whole caravan is lined up before the second booth?",
+      "answer": 31,
+      "tolerance": 0.01,
+      "explain": "Transmission: 10 x 6 s = 60 s = 1 min. Propagation of the last car: 50 km / (100 km/h) = 0.5 h = 30 min. Total = 31 min."
+    },
+    {
+      "type": "num",
+      "category": "Caravan analogy",
+      "q": "A 10-car caravan reaches a toll booth that takes 1 minute to service each car. Cars now drive at 1000 km/h, and the next booth is 100 km away. When the first car arrives at the second booth, how many cars are still at the first booth?",
+      "answer": 3,
+      "tolerance": 0,
+      "explain": "The first car finishes service at 1 min and drives 100 km / (1000 km/h) = 6 min, so it arrives at 7 min. By then 7 cars have been serviced, leaving 3 at the first booth. Bits of a packet can reach the next router while later bits are still being transmitted."
+    },
+    {
+      "type": "mc",
+      "category": "Caravan analogy",
+      "q": "In the classic answer of 62 minutes (10 cars, 12 s per car, 100 km at 100 km/h), how much of the total is propagation delay?",
+      "choices": ["2 minutes", "12 minutes", "60 minutes", "62 minutes"],
+      "answer": 2,
+      "fixed": true,
+      "explain": "The last car needs 100 km / (100 km/h) = 60 min to propagate. The remaining 2 min (120 s) is transmission."
+    },
+    {
+      "type": "tf",
+      "category": "Caravan analogy",
+      "q": "The first car of a caravan can never reach the second booth while other cars of the same caravan are still waiting at the first booth.",
+      "answer": false,
+      "explain": "If propagation is fast relative to service time (e.g., 1 min per car at 1000 km/h over 100 km), the first car arrives after 7 min while 3 cars are still at the first booth."
+    },
+    {
+      "type": "mc",
+      "category": "Queueing delay and traffic intensity",
+      "q": "With a = average packet arrival rate, L = packet length (bits), and R = link bandwidth (bps), traffic intensity is:",
+      "choices": ["La/R", "R/(La)", "L/R", "a/R"],
+      "answer": 0,
+      "explain": "Traffic intensity = La/R = (arrival rate of bits) / (service rate of bits)."
+    },
+    {
+      "type": "mc",
+      "category": "Queueing delay and traffic intensity",
+      "q": "In the traffic intensity expression La/R, what does a stand for?",
+      "choices": [
+        "Link bandwidth in bits per second",
+        "Average packet arrival rate",
+        "Packet length in bits",
+        "Propagation speed of the medium"
+      ],
+      "answer": 1,
+      "explain": "a is the average packet arrival rate (packets/s), so La is the arrival rate in bits/s."
+    },
+    {
+      "type": "num",
+      "category": "Queueing delay and traffic intensity",
+      "q": "Packets of 1,000 bits arrive at a router's output link at an average of 800 packets/s. The link rate is 1 Mbps. What is the traffic intensity?",
+      "answer": 0.8,
+      "tolerance": 0.001,
+      "explain": "La/R = (1,000 x 800) / 1,000,000 = 800,000 / 1,000,000 = 0.8."
+    },
+    {
+      "type": "mc",
+      "category": "Queueing delay and traffic intensity",
+      "q": "What happens to the average queueing delay when traffic intensity La/R is greater than 1?",
+      "choices": [
+        "It is small, because the link is fully used",
+        "It levels off at a fixed maximum value",
+        "It grows without bound (average delay is infinite)",
+        "It drops to zero"
+      ],
+      "answer": 2,
+      "explain": "When La/R > 1, more work arrives than the link can serve. The backlog keeps growing, so the average delay is infinite."
+    },
+    {
+      "type": "mc",
+      "category": "Queueing delay and traffic intensity",
+      "q": "How does average queueing delay behave as traffic intensity La/R approaches 1 from below?",
+      "choices": [
+        "It increases slowly and linearly",
+        "It becomes very large very quickly",
+        "It stays roughly constant",
+        "It decreases"
+      ],
+      "answer": 1,
+      "explain": "The delay curve is nearly flat at low intensity and shoots upward as La/R nears 1, like traffic jams on a highway near capacity."
+    },
+    {
+      "type": "multi",
+      "category": "Queueing delay and traffic intensity",
+      "q": "Which changes would lower the traffic intensity La/R on a router's output link?",
+      "choices": [
+        "Increase the link transmission rate R",
+        "Decrease the average packet arrival rate a",
+        "Send shorter packets (smaller L)",
+        "Shorten the physical length of the link"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Traffic intensity depends only on L, a and R. The link's physical length affects propagation delay, not traffic intensity."
+    },
+    {
+      "type": "num",
+      "category": "Queueing delay and traffic intensity",
+      "q": "An output link runs at 12 Mbps and all packets are 1,500 bytes. What is the largest average arrival rate a, in packets per second, that keeps traffic intensity at or below 1?",
+      "answer": 1000,
+      "tolerance": 0.5,
+      "explain": "L = 1,500 x 8 = 12,000 bits. La/R <= 1 gives a <= R/L = 12,000,000 / 12,000 = 1,000 packets/s."
+    },
+    {
+      "type": "tf",
+      "category": "Queueing delay and traffic intensity",
+      "q": "When traffic intensity is close to 0, an arriving packet usually finds little or no queue ahead of it, so average queueing delay is small.",
+      "answer": true,
+      "explain": "La/R near 0 means little arriving work compared with link capacity, so a queue rarely forms."
+    },
+    {
+      "type": "mc",
+      "category": "Packet loss",
+      "q": "When does a router drop (lose) a packet due to congestion?",
+      "choices": [
+        "When the packet arrives to find the buffer (queue) full",
+        "When the packet's propagation delay exceeds its transmission delay",
+        "When traffic intensity is close to 0",
+        "When processing determines the packet's output link"
+      ],
+      "answer": 0,
+      "explain": "The buffer before a link has finite capacity. A packet arriving to a full queue has nowhere to be stored, so it is dropped."
+    },
+    {
+      "type": "multi",
+      "category": "Packet loss",
+      "q": "After a packet is dropped at a full router buffer, what may happen to it?",
+      "choices": [
+        "It is retransmitted by the previous node",
+        "It is retransmitted by the source end system",
+        "It is not retransmitted at all",
+        "The same router restores it from the buffer once space frees up"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "A lost packet may be retransmitted by the previous node, by the source end system, or not at all. A dropped packet was never stored, so the router cannot restore it."
+    },
+    {
+      "type": "tf",
+      "category": "Packet loss",
+      "q": "Because routers buffer packets, a packet arriving at a busy output link is never dropped. It just waits longer.",
+      "answer": false,
+      "explain": "Buffers have finite capacity. A packet that arrives while the buffer is full is dropped."
+    },
+    {
+      "type": "mc",
+      "category": "Packet loss",
+      "q": "A router's output queue grows longer when:",
+      "choices": [
+        "The arrival rate to the link (temporarily) exceeds the link's capacity",
+        "The outgoing link is physically very long",
+        "Packets are shorter than usual",
+        "Processing delay is in the microseconds"
+      ],
+      "answer": 0,
+      "explain": "Queues build when packets arrive faster than the output link can transmit them. If this lasts long enough, the buffer fills and losses follow."
+    },
+    {
+      "type": "mc",
+      "category": "Packet loss",
+      "q": "An output link with a finite buffer has traffic intensity well above 1 for a sustained period. What will a growing share of arriving packets experience?",
+      "choices": [
+        "Being dropped (packet loss)",
+        "Lower propagation delay",
+        "Lower transmission delay",
+        "Bypassing nodal processing"
+      ],
+      "answer": 0,
+      "explain": "With more work arriving than the link can serve, the finite buffer fills. Packets arriving to the full buffer are lost, and under heavy congestion loss rates can be high (10-20% of packets has been observed)."
+    },
+    {
+      "type": "tf",
+      "category": "Packet loss",
+      "q": "Queueing delay and congestion-related packet loss come from the same cause: packets arriving at an output link faster than it can transmit them.",
+      "answer": true,
+      "explain": "Arrivals that outpace transmission make the queue grow, which causes queueing delay. Once the finite buffer is full, further arrivals are dropped."
+    },
+    {
+      "type": "mc",
+      "category": "Traceroute",
+      "q": "What does the traceroute program measure?",
+      "choices": [
+        "Round-trip delay from the source to each router along the path toward a destination",
+        "One-way propagation delay of each link only",
+        "The throughput of each link on the path",
+        "The buffer size at each router"
+      ],
+      "answer": 0,
+      "explain": "For each hop, the sender measures the time from sending a probe until the router's reply returns. That is a round-trip time (RTT)."
+    },
+    {
+      "type": "num",
+      "category": "Traceroute",
+      "q": "How many probe packets does traceroute send toward each router (hop) on the path?",
+      "answer": 3,
+      "tolerance": 0,
+      "explain": "Traceroute sends three probes per hop, so each line of output shows three RTT measurements."
+    },
+    {
+      "type": "mc",
+      "category": "Traceroute",
+      "q": "How does traceroute make its probes stop at, and get a reply from, router i on the path?",
+      "choices": [
+        "It sets the probe's time-to-live (TTL) field to i",
+        "It sends exactly i copies of the probe",
+        "It waits i milliseconds before sending",
+        "It sets the packet length to i bytes"
+      ],
+      "answer": 0,
+      "explain": "Probes for router i carry a TTL of i, so they reach router i, which returns a packet to the sender."
+    },
+    {
+      "type": "mc",
+      "category": "Traceroute",
+      "q": "In traceroute output, what does a line of \"* * *\" mean?",
+      "choices": [
+        "No response: the probes were lost or the router isn't replying",
+        "The delay was too small to measure",
+        "The destination has been reached",
+        "The router replied with the maximum possible RTT"
+      ],
+      "answer": 0,
+      "explain": "A * means no reply came back for that probe, so no RTT could be measured."
+    },
+    {
+      "type": "mc",
+      "category": "Traceroute",
+      "q": "In a traceroute from gaia.cs.umass.edu (Massachusetts) to eurecom.fr (France), the RTT jumps from about 22 ms at a router in Washington, DC to about 105 ms at the next hop in Europe. What mainly explains the jump?",
+      "choices": [
+        "Propagation delay across the trans-oceanic link",
+        "Processing delay at the European router",
+        "Transmission delay of the probe packets",
+        "Traceroute sending more probes to that hop"
+      ],
+      "answer": 0,
+      "explain": "That hop crosses the Atlantic, and the long physical distance adds a large propagation delay."
+    },
+    {
+      "type": "mc",
+      "category": "Traceroute",
+      "q": "Traceroute sometimes shows a smaller RTT to a later (farther) router than to an earlier one. How is that possible?",
+      "choices": [
+        "Queueing delays along the path change over time, and each probe is measured at a different moment",
+        "Packets travel faster the farther they go",
+        "Propagation speed increases over longer links",
+        "Traceroute subtracts processing delay for later hops"
+      ],
+      "answer": 0,
+      "explain": "Congestion, and so queueing delay, changes over time. A probe to a farther router can meet less queueing than an earlier probe to a nearer router."
+    },
+    {
+      "type": "tf",
+      "category": "Traceroute",
+      "q": "Each delay value traceroute prints is the one-way delay from the source to that router.",
+      "answer": false,
+      "explain": "Traceroute measures round-trip time: from sending the probe until the router's reply arrives back at the sender."
+    },
+    {
+      "type": "mc",
+      "category": "Throughput and bottlenecks",
+      "q": "Which best defines throughput?",
+      "choices": [
+        "The rate (bits per unit time) at which bits are sent from sender to receiver",
+        "The time for a packet to travel from sender to receiver",
+        "The number of packets dropped per second",
+        "The transmission rate of the fastest link on the path"
+      ],
+      "answer": 0,
+      "explain": "Throughput is a rate in bits/time unit. It can be instantaneous (at a point in time) or average (over a longer period)."
+    },
+    {
+      "type": "num",
+      "category": "Throughput and bottlenecks",
+      "q": "A download's rate goes up and down from second to second, between 1 and 9 Mbps. In total it moves 50 Mb in 10 s. What is its average throughput over that interval, in Mbps?",
+      "answer": 5,
+      "tolerance": 0.001,
+      "explain": "Average throughput = bits transferred / time = 50 Mb / 10 s = 5 Mbps. The second-to-second values are instantaneous throughput."
+    },
+    {
+      "type": "num",
+      "category": "Throughput and bottlenecks",
+      "q": "A server sends a large file to a client over two links in series: the server's link is Rs = 2 Mbps and the client's link is Rc = 10 Mbps. What is the average end-to-end throughput, in Mbps?",
+      "answer": 2,
+      "tolerance": 0.001,
+      "explain": "End-to-end throughput is limited by the thinnest pipe: min(Rs, Rc) = min(2, 10) = 2 Mbps."
+    },
+    {
+      "type": "mc",
+      "category": "Throughput and bottlenecks",
+      "q": "What is a bottleneck link?",
+      "choices": [
+        "The link on the end-to-end path that constrains end-to-end throughput",
+        "The link with the longest propagation delay",
+        "The link closest to the sending server",
+        "The link with the most packet loss in the past"
+      ],
+      "answer": 0,
+      "explain": "The bottleneck is the link that limits end-to-end throughput, usually the one with the smallest transmission rate available to the flow."
+    },
+    {
+      "type": "num",
+      "category": "Throughput and bottlenecks",
+      "q": "Ten server-client connections fairly share a backbone link of R = 100 Mbps. Each server's access link is Rs = 20 Mbps and each client's is Rc = 5 Mbps. What is the per-connection end-to-end throughput, in Mbps?",
+      "answer": 5,
+      "tolerance": 0.001,
+      "explain": "Per-connection throughput = min(Rc, Rs, R/10) = min(5, 20, 10) = 5 Mbps. The client access link is the bottleneck."
+    },
+    {
+      "type": "num",
+      "category": "Throughput and bottlenecks",
+      "q": "Ten server-client connections fairly share a backbone link of R = 30 Mbps. Each server's access link is Rs = 20 Mbps and each client's is Rc = 15 Mbps. What is the per-connection end-to-end throughput, in Mbps?",
+      "answer": 3,
+      "tolerance": 0.001,
+      "explain": "min(Rc, Rs, R/10) = min(15, 20, 3) = 3 Mbps. The shared backbone is the bottleneck here."
+    },
+    {
+      "type": "mc",
+      "category": "Throughput and bottlenecks",
+      "q": "In practice, where is the bottleneck link for a server-to-client connection most often found?",
+      "choices": [
+        "At the network edge: the server's or client's access link (Rs or Rc)",
+        "In the shared backbone link in the network core",
+        "On whichever link is physically longest",
+        "On the link with the most routers attached"
+      ],
+      "answer": 0,
+      "explain": "Core links are usually provisioned so that R/N is larger than Rs or Rc. The access link at the edge is typically the bottleneck."
+    },
+    {
+      "type": "num",
+      "category": "Throughput and bottlenecks",
+      "q": "A server sends a 40-megabit file to a client. The server's access link is Rs = 4 Mbps and the client's is Rc = 10 Mbps. Ignoring all other delays, about how many seconds does the transfer take?",
+      "answer": 10,
+      "tolerance": 0.01,
+      "explain": "Throughput = min(4, 10) = 4 Mbps, so time = 40 Mb / 4 Mbps = 10 s."
+    },
+    {
+      "type": "tf",
+      "category": "Throughput and bottlenecks",
+      "q": "A client's access link is Rc = 1 Mbps. Upgrading the server's access link from Rs = 2 Mbps to 100 Mbps will noticeably increase the end-to-end throughput to that client.",
+      "answer": false,
+      "explain": "Throughput is min(Rs, Rc). It was already limited to 1 Mbps by the client's link, and upgrading the server side doesn't change that bottleneck."
+    }
+  ]
+}

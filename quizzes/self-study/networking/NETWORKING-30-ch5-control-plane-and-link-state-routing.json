@@ -1,0 +1,582 @@
+{
+  "title": "Ch5: Control Plane and Link-State Routing",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Control plane vs data plane",
+      "q": "Moving a packet from a router's input link to the appropriate output link is called what, and which plane does it belong to?",
+      "choices": ["Forwarding; data plane", "Forwarding; control plane", "Routing; data plane", "Routing; control plane"],
+      "answer": 0,
+      "explain": "Forwarding is the per-packet job of moving a packet from input to the correct output, which makes it data plane. Routing works out the end-to-end route and belongs to the control plane."
+    },
+    {
+      "type": "tf",
+      "category": "Control plane vs data plane",
+      "q": "Routing, which determines the route packets take from source to destination, is a data-plane function.",
+      "answer": false,
+      "explain": "Routing is the control-plane function. Forwarding, the local input-to-output move inside a router, is the data-plane function."
+    },
+    {
+      "type": "mc",
+      "category": "Control plane vs data plane",
+      "q": "In the traditional per-router control plane, where does the routing algorithm run?",
+      "choices": [
+        "In each and every router, with the routing components of the routers interacting with one another",
+        "Only in a remote controller, which installs forwarding tables into the routers",
+        "Only in the end hosts at the edge of the network",
+        "In a single elected router, which pushes tables to all the others"
+      ],
+      "answer": 0,
+      "explain": "In the per-router approach, every router runs its own routing-algorithm component. These components talk to each other in the control plane, and each one fills in its own router's local forwarding table."
+    },
+    {
+      "type": "mc",
+      "category": "Control plane vs data plane",
+      "q": "In a software-defined networking (SDN) control plane, what computes the forwarding tables?",
+      "choices": [
+        "A logically centralized remote controller, which installs the tables in the routers through a control agent (CA) in each router",
+        "Each router's own routing algorithm, exchanging messages with neighboring routers",
+        "Each router's control agent, working independently of any other device",
+        "The sending hosts, which attach the route to each packet"
+      ],
+      "answer": 0,
+      "explain": "With SDN, a remote controller computes the forwarding tables and installs them. The control agent (CA) in each router only talks to the controller. It does not compute routes by itself."
+    },
+    {
+      "type": "multi",
+      "category": "Control plane vs data plane",
+      "q": "Which are the two approaches to structuring the network control plane?",
+      "choices": [
+        "Per-router control (traditional)",
+        "Logically centralized control (software-defined networking)",
+        "Per-host control, where each end host chooses routes",
+        "Per-packet control, where each packet computes its own route"
+      ],
+      "answer": [0, 1],
+      "explain": "The two approaches are traditional per-router control, where routing algorithms run inside every router, and logically centralized control, which is SDN."
+    },
+    {
+      "type": "num",
+      "category": "Control plane vs data plane",
+      "q": "A router's local forwarding table maps header values to output links: 0100 -> 3, 0110 -> 2, 0111 -> 2, 1001 -> 1. A packet arrives with header value 1001. On which output link is it forwarded?",
+      "answer": 1,
+      "explain": "Forwarding is a lookup in the local table: 1001 maps to output link 1. (Both 0110 and 0111 would go out link 2.)"
+    },
+    {
+      "type": "tf",
+      "category": "Control plane vs data plane",
+      "q": "In both the per-router and the SDN approach, each router forwards packets using a local forwarding table. The two approaches differ in how that table gets computed.",
+      "answer": true,
+      "explain": "The data plane looks the same in both cases: header values are looked up in a local forwarding table. The control plane is what changes. Either distributed routing algorithms in every router compute the table, or a remote controller computes and installs it."
+    },
+    {
+      "type": "mc",
+      "category": "Control plane vs data plane",
+      "q": "Which protocol handles routing among ISPs, as opposed to routing inside a single ISP?",
+      "choices": ["BGP", "OSPF", "ICMP", "SNMP"],
+      "answer": 0,
+      "explain": "BGP handles routing among ISPs. OSPF is an intra-ISP routing protocol. ICMP is the Internet Control Message Protocol, and SNMP is used for network management."
+    },
+    {
+      "type": "mc",
+      "category": "Routing and the graph abstraction",
+      "q": "What is the goal of a routing protocol?",
+      "choices": [
+        "Determine good paths (routes) from sending hosts to the receiving host through the network of routers",
+        "Move each arriving packet from a router's input port to the correct output port",
+        "Guarantee reliable, in-order delivery of data between two hosts",
+        "Assign addresses to hosts as they join the network"
+      ],
+      "answer": 0,
+      "explain": "A routing protocol finds good paths through the network of routers. Moving a packet from input port to output port is forwarding."
+    },
+    {
+      "type": "mc",
+      "category": "Routing and the graph abstraction",
+      "q": "In routing, what is a 'path'?",
+      "choices": [
+        "The sequence of routers that packets traverse from a given initial source host to the final destination host",
+        "A single direct link between two neighboring routers",
+        "One entry in a router's forwarding table",
+        "The set of all links in the network"
+      ],
+      "answer": 0,
+      "explain": "A path, also called a route, is the full sequence of routers from the source host to the destination host."
+    },
+    {
+      "type": "multi",
+      "category": "Routing and the graph abstraction",
+      "q": "When a routing protocol looks for 'good' paths, what can 'good' mean?",
+      "choices": ["Least cost", "Fastest", "Least congested", "Passing through as many routers as possible"],
+      "answer": [0, 1, 2],
+      "explain": "A good path can be the least-cost, the fastest, or the least-congested one. Going through extra routers is never a goal."
+    },
+    {
+      "type": "mc",
+      "category": "Routing and the graph abstraction",
+      "q": "In the graph abstraction G = (N, E) of a network, what are N and E?",
+      "choices": [
+        "N is the set of routers; E is the set of links",
+        "N is the set of links; E is the set of routers",
+        "N is the number of routers; E is the number of end hosts",
+        "N is the set of networks; E is the set of end hosts"
+      ],
+      "answer": 0,
+      "explain": "Routers are the graph's nodes (N), and the links between them are its edges (E). Each edge (a,b) has a cost c(a,b)."
+    },
+    {
+      "type": "mc",
+      "category": "Routing and the graph abstraction",
+      "q": "c(a,b) is the cost of the direct link between a and b. If c(u,z) = ∞, what does that mean?",
+      "choices": [
+        "u and z are not directly connected by a link",
+        "There is no path of any kind from u to z",
+        "The link between u and z is infinitely fast",
+        "The link between u and z is fully congested"
+      ],
+      "answer": 0,
+      "explain": "c(a,b) only describes a direct link. An infinite value means there is no direct link. u can still reach z through other routers. In the 6-node example network, c(u,z) = ∞, yet the least-cost path from u to z costs 4."
+    },
+    {
+      "type": "multi",
+      "category": "Routing and the graph abstraction",
+      "q": "The network operator sets link costs. Which of these are valid ways to set them?",
+      "choices": [
+        "Set every link's cost to 1",
+        "Make cost inversely related to bandwidth",
+        "Make cost inversely related to congestion",
+        "Let each packet pick a random cost for every link"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The operator decides the costs. They can all be 1, they can be inversely related to bandwidth, or they can be inversely related to congestion."
+    },
+    {
+      "type": "tf",
+      "category": "Routing and the graph abstraction",
+      "q": "If every link cost is set to 1, the least-cost path between two routers is the path with the fewest links (hops).",
+      "answer": true,
+      "explain": "With all costs equal to 1, a path's cost is just its number of links, so minimizing cost means minimizing hop count."
+    },
+    {
+      "type": "mc",
+      "category": "Routing and the graph abstraction",
+      "q": "If link cost is set inversely related to bandwidth, what kind of links will least-cost routing tend to prefer?",
+      "choices": ["High-bandwidth links", "Low-bandwidth links", "Links with the most routers attached", "It has no effect on which links are preferred"],
+      "answer": 0,
+      "explain": "Higher bandwidth means lower cost, so least-cost paths are drawn toward high-bandwidth links."
+    },
+    {
+      "type": "mc",
+      "category": "Routing algorithm classification",
+      "q": "A routing algorithm in which all routers have complete topology and link-cost information is classified as:",
+      "choices": [
+        "Global; link-state algorithms are an example",
+        "Decentralized; distance-vector algorithms are an example",
+        "Global; distance-vector algorithms are an example",
+        "Decentralized; link-state algorithms are an example"
+      ],
+      "answer": 0,
+      "explain": "When every router has complete topology and cost information, the algorithm is global, and link-state algorithms such as Dijkstra's fall into this group. Distance-vector algorithms are decentralized."
+    },
+    {
+      "type": "mc",
+      "category": "Routing algorithm classification",
+      "q": "In a decentralized routing algorithm, what does each router know at the start?",
+      "choices": [
+        "Only the link costs to its directly attached neighbors",
+        "The complete topology and all link costs",
+        "The least-cost paths to every destination",
+        "Nothing, not even the costs of its own links"
+      ],
+      "answer": 0,
+      "explain": "Decentralized algorithms start with each router knowing only the costs of its own attached links. Routes come out of an iterative process of computing and exchanging information with neighbors."
+    },
+    {
+      "type": "multi",
+      "category": "Routing algorithm classification",
+      "q": "Which statements describe decentralized routing algorithms?",
+      "choices": [
+        "They use an iterative process of computation and exchange of information with neighbors",
+        "Routers initially know only the link costs to attached neighbors",
+        "Distance-vector algorithms are an example",
+        "Every router starts with the complete network topology",
+        "Dijkstra's link-state algorithm is an example"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Decentralized means iterative exchange with neighbors and knowing only neighbor costs at the start. Distance vector is the example. Starting with the complete topology is the global, link-state case, which is where Dijkstra's algorithm belongs."
+    },
+    {
+      "type": "mc",
+      "category": "Routing algorithm classification",
+      "q": "Which describes dynamic routing?",
+      "choices": [
+        "Routes change more quickly, through periodic updates or in response to link cost changes",
+        "Routes change slowly over time",
+        "Routes are computed once and never change",
+        "Routes are computed only by a remote controller"
+      ],
+      "answer": 0,
+      "explain": "In dynamic routing, routes change more quickly, either through periodic updates or in response to link cost changes. In static routing, routes change slowly over time."
+    },
+    {
+      "type": "tf",
+      "category": "Routing algorithm classification",
+      "q": "Global vs. decentralized and static vs. dynamic are two separate ways of classifying routing algorithms. One asks what information routers have, and the other asks how fast routes change.",
+      "answer": true,
+      "explain": "These are two independent axes. One asks whether information is global or decentralized. The other asks how fast routes change: static or dynamic."
+    },
+    {
+      "type": "text",
+      "category": "Routing algorithm classification",
+      "q": "Routing algorithms in which all routers have complete topology and link-cost information are called ____ algorithms.",
+      "answer": ["link state", "link-state", "LS", "link state routing", "link-state routing"],
+      "explain": "These are link-state (LS) algorithms, such as Dijkstra's. They are global algorithms."
+    },
+    {
+      "type": "text",
+      "category": "Routing algorithm classification",
+      "q": "Decentralized routing algorithms, in which routers iteratively compute and exchange information with their neighbors, are called ____ algorithms.",
+      "answer": ["distance vector", "distance-vector", "DV", "distance vector routing", "distance-vector routing"],
+      "explain": "These are distance-vector (DV) algorithms, the decentralized counterpart to link-state algorithms."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "In Dijkstra's link-state algorithm, how does every node come to know the network topology and link costs?",
+      "choices": [
+        "Through a link-state broadcast, so all nodes have the same information",
+        "Each node learns only its neighbors' costs and iterates with them",
+        "A remote controller computes the routes and sends each node its table",
+        "Each node probes every destination and measures the delay"
+      ],
+      "answer": 0,
+      "explain": "Dijkstra's algorithm needs complete information, which makes it centralized. Link-state broadcast spreads topology and costs to every node, so all nodes have the same information."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "What does one run of Dijkstra's algorithm at node u compute?",
+      "choices": [
+        "The least-cost paths from u (the source) to all other nodes, which gives u's forwarding table",
+        "The least-cost paths between every pair of nodes in the network",
+        "The least-cost path from u to one chosen destination only",
+        "The forwarding tables for every router in the network"
+      ],
+      "answer": 0,
+      "explain": "Dijkstra's algorithm is single-source. It finds least-cost paths from one node to all the others, and that result gives the source node its own forwarding table."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "In Dijkstra's algorithm notation, what is D(v)?",
+      "choices": [
+        "The current estimate of the cost of the least-cost path from the source to v",
+        "The cost of the direct link from the source to v",
+        "The final least cost to v, which never changes once set",
+        "The number of hops from the source to v"
+      ],
+      "answer": 0,
+      "explain": "D(v) is a current estimate. It can drop as better paths are found, and it only becomes final when v enters N'."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "In Dijkstra's algorithm notation, what are p(v) and N'?",
+      "choices": [
+        "p(v) is the predecessor node of v on the path from the source; N' is the set of nodes whose least-cost path is definitively known",
+        "p(v) is the next hop from the source toward v; N' is the set of the source's neighbors",
+        "p(v) is the priority of v; N' is the set of nodes not yet visited",
+        "p(v) is the path cost to v; N' is the set of all nodes"
+      ],
+      "answer": 0,
+      "explain": "p(v) is the node just before v on the current best path. N' collects the nodes whose least-cost paths are final. It starts as just the source and grows by one node per iteration."
+    },
+    {
+      "type": "tf",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "At initialization, each neighbor v of the source u gets D(v) = c(u,v), and that value is guaranteed to be the least cost from u to v.",
+      "answer": false,
+      "explain": "u starts out knowing only the direct costs to its neighbors, and those may not be minimal. In the 6-node example, D(w) = 5 at the start, but the least cost turns out to be 3 via u-x-y-w."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "At initialization, what is D(v) for a node v that is not adjacent to the source u?",
+      "choices": ["∞", "0", "1", "c(u,v)"],
+      "answer": 0,
+      "explain": "Nodes that aren't adjacent to u start at D(v) = ∞. Their costs come down later as the algorithm reaches them through other nodes."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "In each iteration of Dijkstra's loop, which node is added to N'?",
+      "choices": [
+        "The node w not in N' whose D(w) is the minimum",
+        "The node w not in N' whose D(w) is the maximum",
+        "Any neighbor of the most recently added node",
+        "The node with the fewest attached links"
+      ],
+      "answer": 0,
+      "explain": "Each iteration picks the node outside N' with the smallest current D, adds it to N', and then updates its neighbors."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "After node w is added to N', D(v) is updated for every v adjacent to w and not in N'. What is the update rule?",
+      "choices": [
+        "D(v) = min( D(v), D(w) + c(w,v) )",
+        "D(v) = min( D(v), c(w,v) )",
+        "D(v) = D(w) + c(w,v)",
+        "D(v) = max( D(v), D(w) + c(w,v) )"
+      ],
+      "answer": 0,
+      "explain": "The new least-cost estimate for v is the smaller of two values: the old estimate, or the known least cost to w plus the direct cost from w to v."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "After node w is added to N', which nodes have their D values updated?",
+      "choices": [
+        "Only nodes adjacent to w that are not already in N'",
+        "Every node not in N'",
+        "Every node adjacent to w, including those already in N'",
+        "Only w itself"
+      ],
+      "answer": 0,
+      "explain": "Only w's neighbors can gain a new path through w. Nodes already in N' have final costs, so they are skipped."
+    },
+    {
+      "type": "num",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "During Dijkstra's algorithm, D(v) = 7. Node w has just been added to N' with D(w) = 3, and c(w,v) = 3. What is the updated D(v)?",
+      "answer": 6,
+      "explain": "D(v) = min(7, 3 + 3) = 6. Because the path through w is better, p(v) also changes to w."
+    },
+    {
+      "type": "num",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "Dijkstra's algorithm runs from source u on a 6-node network. After k iterations of the loop, least-cost paths to k destinations are known. How many loop iterations does it take to finish?",
+      "answer": 5,
+      "explain": "Each iteration adds one node to N'. u is in N' from the start, so the other 5 nodes need 5 iterations. The loop runs until all nodes are in N'."
+    },
+    {
+      "type": "tf",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "If two nodes outside N' tie for the minimum D value, the tie can be broken arbitrarily.",
+      "answer": true,
+      "explain": "Ties can exist and may be broken arbitrarily. The resulting least costs are the same either way."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra's algorithm mechanics",
+      "q": "Once Dijkstra's algorithm finishes, how do you build the least-cost-path tree?",
+      "choices": [
+        "Trace predecessor nodes p(·) back from each destination to the source",
+        "Sort the nodes by their final D values and link them in that order",
+        "Keep every link whose cost is below the average link cost",
+        "Connect each node to its cheapest directly attached neighbor"
+      ],
+      "answer": 0,
+      "explain": "Each node's p(·) points to the previous node on its least-cost path. Following those pointers back to the source gives the tree, and it also shows the first hop, which goes into the forwarding table."
+    },
+    {
+      "type": "num",
+      "category": "Dijkstra worked examples",
+      "q": "Network A has undirected link costs u-v 2, u-w 5, u-x 1, v-w 3, v-x 2, w-x 3, w-y 1, w-z 5, x-y 1, y-z 2. Dijkstra's algorithm runs at source u. What is D(w) right after initialization (step 0)?",
+      "answer": 5,
+      "explain": "w is adjacent to u, so at the start D(w) = c(u,w) = 5 and p(w) = u. This is not the final least cost."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra worked examples",
+      "q": "Network A has undirected link costs u-v 2, u-w 5, u-x 1, v-w 3, v-x 2, w-x 3, w-y 1, w-z 5, x-y 1, y-z 2. Dijkstra's algorithm runs at source u. Which node is the first one added to N' after u?",
+      "choices": ["v", "w", "x", "y"],
+      "answer": 2,
+      "explain": "After initialization, D(v)=2, D(w)=5, D(x)=1, D(y)=∞, D(z)=∞. x has the minimum (1), so it is added first."
+    },
+    {
+      "type": "num",
+      "category": "Dijkstra worked examples",
+      "q": "Network A has undirected link costs u-v 2, u-w 5, u-x 1, v-w 3, v-x 2, w-x 3, w-y 1, w-z 5, x-y 1, y-z 2. Dijkstra's algorithm runs at source u. After x is added to N' (N' = {u, x}), what is D(w)?",
+      "answer": 4,
+      "explain": "D(w) = min(D(w), D(x) + c(x,w)) = min(5, 1 + 3) = 4, so p(w) = x. In the same step, D(v) = min(2, 1+2) = 2 and D(y) = min(∞, 1+1) = 2."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra worked examples",
+      "q": "Network A has undirected link costs u-v 2, u-w 5, u-x 1, v-w 3, v-x 2, w-x 3, w-y 1, w-z 5, x-y 1, y-z 2. Dijkstra's algorithm runs at source u. After N' = {u, x}, D(v) = 2 and D(y) = 2 tie for the minimum. What happens next?",
+      "choices": [
+        "Either one may be added next; ties can be broken arbitrarily, and the final least costs are the same",
+        "Both are added to N' in the same iteration",
+        "The algorithm must pick v, because v is adjacent to u",
+        "The algorithm restarts with x as the new source"
+      ],
+      "answer": 0,
+      "explain": "Ties are broken arbitrarily, and one node is added per iteration. The worked example adds y first and then v. Picking v first leads to the same final costs."
+    },
+    {
+      "type": "num",
+      "category": "Dijkstra worked examples",
+      "q": "Network A has undirected link costs u-v 2, u-w 5, u-x 1, v-w 3, v-x 2, w-x 3, w-y 1, w-z 5, x-y 1, y-z 2. Dijkstra's algorithm runs at source u. What is the final least cost from u to w?",
+      "answer": 3,
+      "explain": "u-x-y-w costs 1 + 1 + 1 = 3. That beats the direct link (5), u-x-w (4), and u-v-w (5). When y is added, D(w) = min(4, 2 + 1) = 3."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra worked examples",
+      "q": "Network A has undirected link costs u-v 2, u-w 5, u-x 1, v-w 3, v-x 2, w-x 3, w-y 1, w-z 5, x-y 1, y-z 2. Dijkstra's algorithm runs at source u. What is the final predecessor p(w)?",
+      "choices": ["u", "v", "x", "y"],
+      "answer": 3,
+      "explain": "w's least-cost path is u-x-y-w with cost 3, so the node just before w is y. When v is later added, D(v) + c(v,w) = 2 + 3 = 5, which does not beat 3."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra worked examples",
+      "q": "Network A has undirected link costs u-v 2, u-w 5, u-x 1, v-w 3, v-x 2, w-x 3, w-y 1, w-z 5, x-y 1, y-z 2. Dijkstra's algorithm runs at source u. What is the least-cost path from u to z?",
+      "choices": ["u-x-y-z", "u-w-z", "u-x-w-z", "u-v-w-z"],
+      "answer": 0,
+      "explain": "u-x-y-z costs 1 + 1 + 2 = 4. The alternatives cost 10 (u-w-z), 9 (u-x-w-z), and 10 (u-v-w-z). When w is added later, D(z) = min(4, 3 + 5) = 4, so it does not change."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra worked examples",
+      "q": "Network A has undirected link costs u-v 2, u-w 5, u-x 1, v-w 3, v-x 2, w-x 3, w-y 1, w-z 5, x-y 1, y-z 2. Dijkstra's algorithm runs at source u. In u's resulting forwarding table, which outgoing link does u use for destination w?",
+      "choices": ["(u,v)", "(u,w)", "(u,x)"],
+      "answer": 2,
+      "explain": "The least-cost path to w is u-x-y-w, so the first hop is x and the outgoing link is (u,x). The direct link (u,w) costs 5 and is not used."
+    },
+    {
+      "type": "multi",
+      "category": "Dijkstra worked examples",
+      "q": "Network A has undirected link costs u-v 2, u-w 5, u-x 1, v-w 3, v-x 2, w-x 3, w-y 1, w-z 5, x-y 1, y-z 2. Dijkstra's algorithm runs at source u. In u's resulting forwarding table, which destinations use outgoing link (u,x)?",
+      "choices": ["v", "w", "x", "y", "z"],
+      "answer": [1, 2, 3, 4],
+      "explain": "v is reached directly over (u,v) at cost 2. x (1), y (2, via x), w (3, via x-y), and z (4, via x-y) all start with the hop to x, so they use (u,x)."
+    },
+    {
+      "type": "num",
+      "category": "Dijkstra worked examples",
+      "q": "Network B has undirected link costs u-v 7, u-w 3, u-x 5, v-w 3, v-y 4, w-x 4, w-y 8, x-y 7, x-z 9, y-z 2. Dijkstra's algorithm runs at source u. After the first loop iteration, which adds w (D(w) = 3), what is D(v)?",
+      "answer": 6,
+      "explain": "D(v) = min(7, 3 + 3) = 6, so p(v) = w. In the same step, D(x) = min(5, 3 + 4) = 5 and D(y) = min(∞, 3 + 8) = 11."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra worked examples",
+      "q": "Network B has undirected link costs u-v 7, u-w 3, u-x 5, v-w 3, v-y 4, w-x 4, w-y 8, x-y 7, x-z 9, y-z 2. Dijkstra's algorithm runs at source u. In what order are the nodes added to N'?",
+      "choices": ["u, w, x, v, y, z", "u, w, v, x, y, z", "u, x, w, v, y, z", "u, w, x, y, v, z"],
+      "answer": 0,
+      "explain": "The minimum D at each step is: w (3), then x (5, since v is 6), then v (6), then y (10 via v), then z (12 via y)."
+    },
+    {
+      "type": "num",
+      "category": "Dijkstra worked examples",
+      "q": "Network B has undirected link costs u-v 7, u-w 3, u-x 5, v-w 3, v-y 4, w-x 4, w-y 8, x-y 7, x-z 9, y-z 2. Dijkstra's algorithm runs at source u. In the iteration that adds x (D(x) = 5), what value does D(z) get?",
+      "answer": 14,
+      "explain": "Before this step D(z) = ∞. Adding x gives D(z) = min(∞, 5 + 9) = 14 with p(z) = x. It later drops to 12 when y is added."
+    },
+    {
+      "type": "num",
+      "category": "Dijkstra worked examples",
+      "q": "Network B has undirected link costs u-v 7, u-w 3, u-x 5, v-w 3, v-y 4, w-x 4, w-y 8, x-y 7, x-z 9, y-z 2. Dijkstra's algorithm runs at source u. What is the final least cost from u to z?",
+      "answer": 12,
+      "explain": "When y is added with D(y) = 10, D(z) = min(14, 10 + 2) = 12. The path is u-w-v-y-z: 3 + 3 + 4 + 2 = 12."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra worked examples",
+      "q": "Network B has undirected link costs u-v 7, u-w 3, u-x 5, v-w 3, v-y 4, w-x 4, w-y 8, x-y 7, x-z 9, y-z 2. Dijkstra's algorithm runs at source u. What is the least-cost path from u to z?",
+      "choices": ["u-w-v-y-z", "u-w-y-z", "u-v-y-z", "u-x-z"],
+      "answer": 0,
+      "explain": "u-w-v-y-z costs 12. u-w-y-z and u-v-y-z each cost 13, and u-x-z costs 14."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra worked examples",
+      "q": "Network B has undirected link costs u-v 7, u-w 3, u-x 5, v-w 3, v-y 4, w-x 4, w-y 8, x-y 7, x-z 9, y-z 2. Dijkstra's algorithm runs at source u. What is the final predecessor p(y)?",
+      "choices": ["w", "x", "v", "z"],
+      "answer": 2,
+      "explain": "D(y) goes from 11 (via w) to 10 when v is added: min(11, 6 + 4) = 10. So p(y) = v. Going through x would cost 5 + 7 = 12."
+    },
+    {
+      "type": "mc",
+      "category": "Dijkstra worked examples",
+      "q": "Network B has undirected link costs u-v 7, u-w 3, u-x 5, v-w 3, v-y 4, w-x 4, w-y 8, x-y 7, x-z 9, y-z 2. Dijkstra's algorithm runs at source u. In u's forwarding table, which outgoing link does u use for destination z?",
+      "choices": ["(u,v)", "(u,w)", "(u,x)"],
+      "answer": 1,
+      "explain": "Following predecessors back from z gives z <- y <- v <- w <- u, so the path is u-w-v-y-z and the first hop is w. The outgoing link is (u,w)."
+    },
+    {
+      "type": "mc",
+      "category": "Complexity and oscillations",
+      "q": "For a network of n nodes, what is the algorithm complexity of the basic Dijkstra implementation?",
+      "choices": ["O(n)", "O(n log n)", "O(n^2)", "O(2^n)"],
+      "answer": 2,
+      "explain": "Each of the n iterations checks every node not yet in N', which adds up to n(n+1)/2 comparisons, or O(n^2)."
+    },
+    {
+      "type": "num",
+      "category": "Complexity and oscillations",
+      "q": "In the basic implementation of Dijkstra's algorithm, each iteration checks every node not yet in N', for n(n+1)/2 comparisons in total. How many comparisons is that for n = 20 nodes?",
+      "answer": 210,
+      "explain": "20 × 21 / 2 = 210. The quadratic growth is why the algorithm is O(n^2)."
+    },
+    {
+      "type": "mc",
+      "category": "Complexity and oscillations",
+      "q": "What complexity can more efficient implementations of Dijkstra's algorithm achieve?",
+      "choices": ["O(n log n)", "O(n^2)", "O(log n)", "O(n^3)"],
+      "answer": 0,
+      "explain": "The basic version is O(n^2). More efficient implementations reach O(n log n)."
+    },
+    {
+      "type": "mc",
+      "category": "Complexity and oscillations",
+      "q": "In link-state routing, each router must broadcast its link-state information to the other n routers. An efficient broadcast takes O(n) link crossings per source. What is the overall message complexity?",
+      "choices": ["O(n)", "O(n log n)", "O(n^2)", "O(n^3)"],
+      "answer": 2,
+      "explain": "There are n routers, and each one's broadcast crosses O(n) links, so the total is O(n^2)."
+    },
+    {
+      "type": "tf",
+      "category": "Complexity and oscillations",
+      "q": "In link-state routing, each router sends its link-state information only to its directly attached neighbors and never further.",
+      "answer": false,
+      "explain": "Each router broadcasts its link-state information to all the other routers. That is how every node ends up with the same complete view Dijkstra's algorithm needs, and it is also the source of the O(n^2) message complexity."
+    },
+    {
+      "type": "mc",
+      "category": "Complexity and oscillations",
+      "q": "Under what condition can routing based on Dijkstra's algorithm produce route oscillations?",
+      "choices": [
+        "When link costs depend on traffic volume",
+        "When every link cost is set to 1",
+        "When the network graph contains cycles",
+        "When a router has more than two neighbors"
+      ],
+      "answer": 0,
+      "explain": "Oscillations become possible when link costs depend on traffic volume. Routing decisions change the traffic, and the traffic in turn changes the costs that the next routing decision uses."
+    },
+    {
+      "type": "mc",
+      "category": "Complexity and oscillations",
+      "q": "In the oscillation scenario, why do routes keep flipping back and forth?",
+      "choices": [
+        "Moving traffic onto the path that currently looks cheapest raises that path's cost, so the next computation picks a different path, and the cycle repeats",
+        "Routers have different, inconsistent views of the topology",
+        "Dijkstra's algorithm never terminates when costs are directional",
+        "Link-state broadcast messages are lost and resent"
+      ],
+      "answer": 0,
+      "explain": "Each round finds new routes from the current costs. The new routes shift the traffic, which produces new costs, which lead to different routes. The loads keep chasing the routes."
+    },
+    {
+      "type": "tf",
+      "category": "Complexity and oscillations",
+      "q": "In the route-oscillation example, link costs are directional (the cost of a->b can differ from b->a) and depend on traffic volume.",
+      "answer": true,
+      "explain": "In the example, traffic toward destination a determines each link's cost in each direction. That combination of directional, load-dependent costs is what makes the routes oscillate."
+    }
+  ]
+}

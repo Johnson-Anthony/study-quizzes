@@ -1,0 +1,537 @@
+{
+  "title": "Ch3: Transport Evolution, QUIC and Summary",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Evolving transport-layer functionality",
+      "q": "Which scenario's main challenge for TCP is that many packets are \"in flight\" at once, so a single loss shuts down the pipeline?",
+      "choices": ["Long, fat pipes (large data transfers)", "Wireless networks", "Data center networks", "Background traffic flows"],
+      "answer": 0,
+      "explain": "Long, fat pipes have a large bandwidth-delay product, so a huge window of packets is outstanding. When one is lost, TCP's reaction drains that pipeline."
+    },
+    {
+      "type": "mc",
+      "category": "Evolving transport-layer functionality",
+      "q": "Why is standard TCP a poor fit for wireless networks?",
+      "choices": [
+        "Losses caused by noisy links and mobility are treated by TCP as congestion losses, so it cuts its sending rate even though there is no congestion",
+        "Wireless links have such long RTTs that TCP's timer can never expire",
+        "Wireless traffic is always low-priority background traffic",
+        "Wireless links cannot carry TCP segments, only UDP datagrams"
+      ],
+      "answer": 0,
+      "explain": "TCP reads loss as a sign of congestion. On wireless links, most losses come from noise or mobility, so backing off just wastes capacity."
+    },
+    {
+      "type": "multi",
+      "category": "Evolving transport-layer functionality",
+      "q": "Which scenario/challenge pairings are correct?",
+      "choices": [
+        "Long-delay links: extremely long RTTs",
+        "Data center networks: latency sensitive",
+        "Background traffic flows: low-priority TCP flows",
+        "Wireless networks: extremely long RTTs",
+        "Long, fat pipes: latency-sensitive short flows"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Wireless networks: loss from noise and mobility that TCP mistakes for congestion. Long, fat pipes: many packets in flight, and one loss shuts down the pipeline."
+    },
+    {
+      "type": "tf",
+      "category": "Evolving transport-layer functionality",
+      "q": "TCP and UDP have been the Internet's main transport protocols for about 40 years. Transport functionality has evolved through specialized TCP \"flavors\" and by moving transport functions into the application layer on top of UDP.",
+      "answer": true,
+      "explain": "Both routes have been used: TCP variants for specific scenarios, and application-layer protocols such as QUIC (HTTP/3) that run over UDP."
+    },
+    {
+      "type": "text",
+      "category": "Evolving transport-layer functionality",
+      "q": "Which transport protocol does HTTP/3 run on top of, now that functions like reliability and congestion control have moved into the application layer?",
+      "answer": ["UDP", "udp", "User Datagram Protocol"],
+      "explain": "HTTP/3 = slimmed HTTP/2 + QUIC, running over UDP. QUIC provides the reliability, congestion control and security that TCP and TLS used to provide."
+    },
+    {
+      "type": "multi",
+      "category": "Evolving transport-layer functionality",
+      "q": "Which of these are principles behind transport-layer services?",
+      "choices": [
+        "Multiplexing and demultiplexing",
+        "Reliable data transfer",
+        "Flow control",
+        "Congestion control",
+        "Routing packets through the network core",
+        "Forwarding packets between router interfaces"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The four transport-layer principles are mux/demux, reliable data transfer, flow control and congestion control. UDP and TCP are the Internet's implementations of them. Routing and forwarding happen at the network layer."
+    },
+    {
+      "type": "mc",
+      "category": "Evolving transport-layer functionality",
+      "q": "Which layers make up the network \"edge\", as opposed to the network \"core\"?",
+      "choices": ["Application and transport layers", "Network and link layers", "Transport and network layers", "Link and physical layers"],
+      "answer": 0,
+      "explain": "Application and transport protocols run in end hosts at the edge. The network layer, with its data plane and control plane, takes you into the core."
+    },
+
+    {
+      "type": "text",
+      "category": "QUIC and HTTP/3",
+      "q": "What does the acronym QUIC stand for?",
+      "answer": ["Quick UDP Internet Connections", "Quick UDP Internet Connection", "quick udp internet connections", "quick udp internet connection"],
+      "explain": "QUIC = Quick UDP Internet Connections."
+    },
+    {
+      "type": "mc",
+      "category": "QUIC and HTTP/3",
+      "q": "Where does QUIC sit in the protocol stack?",
+      "choices": [
+        "Application layer, on top of UDP",
+        "Transport layer, as a replacement for UDP",
+        "Network layer, alongside IP",
+        "Application layer, on top of TCP and TLS"
+      ],
+      "answer": 0,
+      "explain": "QUIC is an application-layer protocol that runs over UDP. It does transport-style work (reliability, congestion control) itself, in the application layer."
+    },
+    {
+      "type": "mc",
+      "category": "QUIC and HTTP/3",
+      "q": "What is QUIC's main goal?",
+      "choices": [
+        "Increase the performance of HTTP",
+        "Replace IP addressing",
+        "Provide an unreliable, connectionless datagram service",
+        "Replace DNS name resolution"
+      ],
+      "answer": 0,
+      "explain": "QUIC was designed to make HTTP faster. It is widely deployed on Google servers and in apps such as Chrome and the mobile YouTube app."
+    },
+    {
+      "type": "mc",
+      "category": "QUIC and HTTP/3",
+      "q": "What is HTTP/3 made of?",
+      "choices": [
+        "A slimmed-down HTTP/2 plus QUIC, running over UDP and IP",
+        "HTTP/2 plus TLS, running over TCP and IP",
+        "HTTP/1.1 plus QUIC, running over TCP and IP",
+        "QUIC plus TLS, running over TCP and IP"
+      ],
+      "answer": 0,
+      "explain": "HTTP/2 over TCP stacks HTTP/2 / TLS / TCP / IP. HTTP/3 stacks slimmed HTTP/2 / QUIC / UDP / IP. The slimmed HTTP/2 and QUIC together form HTTP/3."
+    },
+    {
+      "type": "multi",
+      "category": "QUIC and HTTP/3",
+      "q": "In the traditional HTTP/2-over-TCP stack, which protocols are in the application layer?",
+      "choices": ["HTTP/2", "TLS", "TCP", "IP", "UDP"],
+      "answer": [0, 1],
+      "explain": "HTTP/2 and TLS are application layer, TCP is transport, IP is network. UDP is not in this stack."
+    },
+    {
+      "type": "multi",
+      "category": "QUIC and HTTP/3",
+      "q": "Which of these does QUIC set up during connection establishment?",
+      "choices": [
+        "Reliability state",
+        "Congestion control state",
+        "Authentication",
+        "Encryption",
+        "A route through the network core",
+        "The client's IP address"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "QUIC sets up reliability, congestion control, authentication and encryption state together. Routes and IP addresses are network-layer matters."
+    },
+    {
+      "type": "mc",
+      "category": "QUIC and HTTP/3",
+      "q": "How many round-trip times does QUIC need to set up its connection state (reliability, congestion control, authentication, encryption)?",
+      "choices": [
+        "One RTT, or even zero",
+        "Exactly two RTTs: one for a handshake, then one for security",
+        "Three RTTs",
+        "None ever, because UDP is connectionless"
+      ],
+      "answer": 0,
+      "explain": "QUIC combines the transport and security handshakes, so all of this state is set up in one RTT, or even zero."
+    },
+    {
+      "type": "mc",
+      "category": "QUIC and HTTP/3",
+      "q": "When several application-level streams are multiplexed over one QUIC connection, what is per-stream and what is shared?",
+      "choices": [
+        "Reliable data transfer and security are per-stream; congestion control is shared by the whole connection",
+        "Congestion control is per-stream; reliable data transfer and security are shared",
+        "Reliable data transfer, security and congestion control are all shared",
+        "Each stream is a separate UDP socket with its own congestion control"
+      ],
+      "answer": 0,
+      "explain": "Each stream does its own reliable data transfer and security, and one congestion controller covers the whole QUIC connection."
+    },
+    {
+      "type": "mc",
+      "category": "QUIC and HTTP/3",
+      "q": "A browser sends three HTTP GET requests over one TLS-over-TCP connection (HTTP/1.1). A segment carrying the first GET is lost, but the segments with the second and third GETs arrive. What happens at the server?",
+      "choices": [
+        "The second and third requests are held up until the lost segment is retransmitted, because TCP delivers one in-order byte stream (head-of-line blocking)",
+        "The second and third requests go to the application right away, and only the first is delayed",
+        "TCP drops the connection and opens a new one for the remaining requests",
+        "TLS reorders the requests so they can be processed independently"
+      ],
+      "answer": 0,
+      "explain": "All the requests share one TCP reliable-data-transfer stream. A gap holds back everything after it, so one loss blocks every request behind it. This is head-of-line (HOL) blocking."
+    },
+    {
+      "type": "tf",
+      "category": "QUIC and HTTP/3",
+      "q": "In QUIC, a lost packet on one stream does not hold up data on the connection's other streams.",
+      "answer": true,
+      "explain": "Each stream has its own reliable data transfer, so a loss only stalls its own stream. Streams run in parallel without HOL blocking."
+    },
+    {
+      "type": "tf",
+      "category": "QUIC and HTTP/3",
+      "q": "QUIC's loss-detection and congestion-control algorithms are entirely new designs with no similarity to TCP's.",
+      "answer": false,
+      "explain": "QUIC reuses TCP's approaches. Its specification says readers who know TCP's loss detection and congestion control will find algorithms that parallel the well-known TCP ones."
+    },
+
+    {
+      "type": "mc",
+      "category": "Go-Back-N FSMs",
+      "q": "A Go-Back-N sender with window size N gets rdt_send(data) when nextseqnum == base + N. What does it do?",
+      "choices": [
+        "Refuses the data, because the window is full",
+        "Sends the packet and restarts the timer",
+        "Sends the packet and increments base",
+        "Retransmits all outstanding packets"
+      ],
+      "answer": 0,
+      "explain": "The sender only sends if nextseqnum < base + N. Otherwise it calls refuse_data(data)."
+    },
+    {
+      "type": "mc",
+      "category": "Go-Back-N FSMs",
+      "q": "When a Go-Back-N sender sends a new packet, when does it start the timer?",
+      "choices": [
+        "Only if base == nextseqnum, i.e., this packet is the oldest unACKed one",
+        "Every time a packet is sent",
+        "Only after a timeout",
+        "Only after an ACK arrives"
+      ],
+      "answer": 0,
+      "explain": "GBN uses one timer, for the oldest unACKed packet. It starts on a send only when nothing else was outstanding (base == nextseqnum)."
+    },
+    {
+      "type": "num",
+      "category": "Go-Back-N FSMs",
+      "q": "A Go-Back-N sender has base = 5 and nextseqnum = 9 when its timer expires. How many packets does it retransmit?",
+      "answer": 4,
+      "explain": "On timeout it restarts the timer and resends sndpkt[base] through sndpkt[nextseqnum-1], which is packets 5, 6, 7 and 8."
+    },
+    {
+      "type": "num",
+      "category": "Go-Back-N FSMs",
+      "q": "A Go-Back-N sender has base = 3 and gets an uncorrupted ACK with acknum = 6. What is the new value of base?",
+      "answer": 7,
+      "explain": "base = getacknum(rcvpkt) + 1 = 6 + 1 = 7. ACKs are cumulative, so packets through 6 are acknowledged."
+    },
+    {
+      "type": "mc",
+      "category": "Go-Back-N FSMs",
+      "q": "A Go-Back-N sender gets an uncorrupted ACK, and the updated base now equals nextseqnum. What does it do with the timer?",
+      "choices": ["Stops it", "Restarts it", "Leaves it running unchanged", "Doubles its timeout value"],
+      "answer": 0,
+      "explain": "If base == nextseqnum, nothing is outstanding, so it calls stop_timer. Otherwise it restarts the timer for the new oldest unACKed packet."
+    },
+    {
+      "type": "mc",
+      "category": "Go-Back-N FSMs",
+      "q": "What does a Go-Back-N sender do when it receives a corrupted ACK?",
+      "choices": [
+        "Nothing; it stays in the Wait state",
+        "Retransmits every outstanding packet",
+        "Advances base by one",
+        "Stops the timer"
+      ],
+      "answer": 0,
+      "explain": "The rdt_rcv && corrupt transition has no action (Λ). Any loss is eventually handled by the timeout."
+    },
+    {
+      "type": "mc",
+      "category": "Go-Back-N FSMs",
+      "q": "A Go-Back-N receiver has correctly received packets 1, 2 and 3. Packet 4 is lost, then packets 5 and 6 arrive uncorrupted. What does the receiver do?",
+      "choices": [
+        "Discards 5 and 6 and re-sends ACK 3 for each, producing duplicate ACKs",
+        "Buffers 5 and 6 and ACKs each one individually",
+        "Buffers 5 and 6 and sends a NAK for packet 4",
+        "Discards 5 and 6 silently without sending anything"
+      ],
+      "answer": 0,
+      "explain": "Out-of-order packets are discarded, with no receiver buffering, and the receiver re-ACKs the highest in-order seq # (3). expectedseqnum stays at 4."
+    },
+    {
+      "type": "tf",
+      "category": "Go-Back-N FSMs",
+      "q": "A Go-Back-N receiver only needs to remember expectedseqnum, because it never buffers out-of-order packets.",
+      "answer": true,
+      "explain": "Its only state is expectedseqnum (plus the last ACK packet to resend). It always ACKs the highest in-order seq # and discards anything out of order."
+    },
+    {
+      "type": "tf",
+      "category": "Go-Back-N FSMs",
+      "q": "When a Go-Back-N receiver gets a corrupted packet, it does nothing and sends no ACK.",
+      "answer": false,
+      "explain": "Any event other than an uncorrupted packet with the expected seq # triggers udt_send(sndpkt). That re-sends the ACK for the highest in-order packet received so far."
+    },
+
+    {
+      "type": "num",
+      "category": "TCP sender (simplified)",
+      "q": "In the simplified TCP sender, NextSeqNum = 1000 and the application passes down 500 bytes of data. What is NextSeqNum after the segment is created and sent?",
+      "answer": 1500,
+      "explain": "The segment gets seq # 1000, then NextSeqNum = NextSeqNum + length(data) = 1000 + 500 = 1500. TCP sequence numbers count bytes."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sender (simplified)",
+      "q": "What does the simplified TCP sender do when its timer expires?",
+      "choices": [
+        "Retransmits only the not-yet-ACKed segment with the smallest seq #, then restarts the timer",
+        "Retransmits all not-yet-ACKed segments, as Go-Back-N does",
+        "Retransmits the most recently sent segment",
+        "Closes the connection"
+      ],
+      "answer": 0,
+      "explain": "Unlike GBN, which resends the whole window, this TCP sender resends just the oldest unACKed segment and restarts the timer."
+    },
+    {
+      "type": "num",
+      "category": "TCP sender (simplified)",
+      "q": "SendBase = 92 when an ACK with ACK field value y = 120 arrives at the simplified TCP sender. What is the last byte that is now cumulatively ACKed?",
+      "answer": 119,
+      "explain": "Since y > SendBase, SendBase becomes 120. SendBase - 1 = 119 is the last cumulatively ACKed byte."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sender (simplified)",
+      "q": "SendBase = 120 when an ACK with y = 100 arrives at the simplified TCP sender. What happens?",
+      "choices": [
+        "Nothing changes, because y is not greater than SendBase",
+        "SendBase is set to 100",
+        "The segment starting at byte 100 is retransmitted",
+        "The timer is stopped"
+      ],
+      "answer": 0,
+      "explain": "The sender only acts when y > SendBase. An ACK for data that is already cumulatively acknowledged carries no new information."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sender (simplified)",
+      "q": "An ACK advances SendBase in the simplified TCP sender. What happens to the timer?",
+      "choices": [
+        "It is restarted if any segments are still not ACKed; otherwise it is stopped",
+        "It is always stopped",
+        "It is always restarted",
+        "It is left unchanged"
+      ],
+      "answer": 0,
+      "explain": "After updating SendBase: if not-yet-ACKed segments remain, start the timer; else stop it. The single timer always tracks the oldest unACKed segment."
+    },
+    {
+      "type": "tf",
+      "category": "TCP sender (simplified)",
+      "q": "If the timer is already running when new data arrives from the application, the simplified TCP sender restarts the timer for the new segment.",
+      "answer": false,
+      "explain": "It starts the timer only if the timer is not already running. A running timer belongs to an older unACKed segment."
+    },
+
+    {
+      "type": "mc",
+      "category": "TCP connection management",
+      "q": "In the TCP 3-way handshake FSM, what happens when a client creates a socket to a server (clientSocket = new Socket(\"hostname\", \"port number\"))?",
+      "choices": [
+        "It goes from closed to SYN sent and sends SYN(seq=x)",
+        "It goes from closed to listen",
+        "It goes from closed to ESTAB and sends SYN(seq=x)",
+        "It goes from listen to SYN rcvd and sends SYNACK"
+      ],
+      "answer": 0,
+      "explain": "Opening the client socket sends a SYN with the client's initial sequence number x and moves the client to SYN sent."
+    },
+    {
+      "type": "mc",
+      "category": "TCP connection management",
+      "q": "A TCP server in the listen state receives SYN(x). What does it do?",
+      "choices": [
+        "Sends SYNACK(seq=y, ACKnum=x+1), creates a new socket for talking back to the client, and goes to SYN rcvd",
+        "Sends ACK(ACKnum=x+1) and goes straight to ESTAB",
+        "Sends SYN(seq=y) and goes to SYN sent",
+        "Sends FIN and goes to CLOSE_WAIT"
+      ],
+      "answer": 0,
+      "explain": "The server ACKs the client's SYN, picks its own initial seq # y, and creates the connection socket. It reaches ESTAB only when the client's ACK(y+1) arrives."
+    },
+    {
+      "type": "num",
+      "category": "TCP connection management",
+      "q": "A client's initial sequence number is x = 300 and the server's is y = 7000. What ACKnum is in the server's SYNACK?",
+      "answer": 301,
+      "explain": "SYNACK(seq=y, ACKnum=x+1) = SYNACK(seq=7000, ACKnum=301)."
+    },
+    {
+      "type": "num",
+      "category": "TCP connection management",
+      "q": "A client's initial sequence number is x = 300 and the server's is y = 7000. What ACKnum is in the client's final ACK of the 3-way handshake?",
+      "answer": 7001,
+      "explain": "The client replies to SYNACK(seq=y, ...) with ACK(ACKnum=y+1) = 7001 and enters ESTAB."
+    },
+    {
+      "type": "tf",
+      "category": "TCP connection management",
+      "q": "When a server in SYN rcvd receives ACK(ACKnum=y+1), it moves to ESTAB without sending anything.",
+      "answer": true,
+      "explain": "The action on that transition is Λ. The handshake is done and both sides are in ESTAB."
+    },
+    {
+      "type": "mc",
+      "category": "TCP connection management",
+      "q": "The client starts closing a TCP connection. In what order does it pass through states?",
+      "choices": [
+        "ESTAB, FIN_WAIT_1, FIN_WAIT_2, TIMED_WAIT, CLOSED",
+        "ESTAB, CLOSE_WAIT, LAST_ACK, CLOSED",
+        "ESTAB, FIN_WAIT_1, TIMED_WAIT, FIN_WAIT_2, CLOSED",
+        "ESTAB, FIN_WAIT_2, FIN_WAIT_1, LAST_ACK, CLOSED"
+      ],
+      "answer": 0,
+      "explain": "The client sends FIN (FIN_WAIT_1), gets the server's ACK (FIN_WAIT_2), gets the server's FIN and ACKs it (TIMED_WAIT), then waits 2 × max segment lifetime and goes to CLOSED."
+    },
+    {
+      "type": "mc",
+      "category": "TCP connection management",
+      "q": "The client is the one that closes the connection. In what order does the server pass through states?",
+      "choices": [
+        "ESTAB, CLOSE_WAIT, LAST_ACK, CLOSED",
+        "ESTAB, FIN_WAIT_1, FIN_WAIT_2, CLOSED",
+        "ESTAB, LAST_ACK, CLOSE_WAIT, CLOSED",
+        "ESTAB, TIMED_WAIT, CLOSED"
+      ],
+      "answer": 0,
+      "explain": "The server ACKs the client's FIN (CLOSE_WAIT), later sends its own FIN (LAST_ACK), and closes when the client's final ACK arrives (CLOSED)."
+    },
+    {
+      "type": "num",
+      "category": "TCP connection management",
+      "q": "The client closes its socket and sends a segment with FINbit=1, seq=500. What ACKnum does the server put in its ACK?",
+      "answer": 501,
+      "explain": "The server replies ACKbit=1; ACKnum=x+1 = 501 and enters CLOSE_WAIT."
+    },
+    {
+      "type": "tf",
+      "category": "TCP connection management",
+      "q": "In FIN_WAIT_1, the client can no longer send data but can still receive it.",
+      "answer": true,
+      "explain": "After clientSocket.close() sends a FIN, the client's sending direction is closed but it can still receive."
+    },
+    {
+      "type": "tf",
+      "category": "TCP connection management",
+      "q": "A server in CLOSE_WAIT, having ACKed the client's FIN, can still send data to the client.",
+      "answer": true,
+      "explain": "Only the client's direction has closed. The server can keep sending until it sends its own FIN and enters LAST_ACK, after which it can no longer send."
+    },
+    {
+      "type": "mc",
+      "category": "TCP connection management",
+      "q": "How long does the client stay in TIMED_WAIT before entering CLOSED?",
+      "choices": ["2 × the maximum segment lifetime", "One RTT", "Until the server's next FIN arrives", "It closes immediately"],
+      "answer": 0,
+      "explain": "After ACKing the server's FIN (ACKnum=y+1), the client waits 2 × maximum segment lifetime before closing."
+    },
+
+    {
+      "type": "mc",
+      "category": "TCP throughput",
+      "q": "In the simple sawtooth model of TCP throughput (ignoring slow start), what range does the window size oscillate over? W is the window size at which loss occurs.",
+      "choices": ["Between W/2 and W", "Between 0 and W", "Between W and 2W", "Between 1 MSS and W"],
+      "answer": 0,
+      "explain": "The window grows until loss at W, is halved to W/2, and grows again. That gives a sawtooth between W/2 and W, with an average of ¾W."
+    },
+    {
+      "type": "mc",
+      "category": "TCP throughput",
+      "q": "Under the sawtooth model, what is average TCP throughput (W in bytes)?",
+      "choices": ["(3/4) · W / RTT bytes/sec", "W / RTT bytes/sec", "(1/2) · W / RTT bytes/sec", "(3/4) · W · RTT bytes/sec"],
+      "answer": 0,
+      "explain": "The average number of in-flight bytes is ¾W, and that many are sent every RTT. So throughput = ¾ · W/RTT."
+    },
+    {
+      "type": "num",
+      "category": "TCP throughput",
+      "q": "A TCP connection loses a segment whenever its window reaches W = 40,000 bytes, and RTT = 100 ms. Using the sawtooth model, what is the average throughput in bytes/sec?",
+      "answer": 300000,
+      "tolerance": 1,
+      "explain": "¾ · W / RTT = 0.75 × 40,000 / 0.1 = 300,000 bytes/sec."
+    },
+    {
+      "type": "multi",
+      "category": "TCP throughput",
+      "q": "Which assumptions or definitions underlie the formula avg throughput = ¾ · W/RTT?",
+      "choices": [
+        "Slow start is ignored",
+        "The sender always has data to send",
+        "W is the window size (in bytes) at which loss occurs",
+        "No losses ever occur",
+        "The window grows exponentially the whole time"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The model ignores slow start, assumes there is always data to send, and assumes loss happens when the window hits W. That loss is what produces the sawtooth."
+    },
+    {
+      "type": "num",
+      "category": "TCP throughput",
+      "q": "A TCP connection uses 1500-byte segments over a path with a 100 ms RTT. To reach 10 Gbps, about how many segments must be in flight (throughput × RTT ÷ segment size)?",
+      "answer": 83333,
+      "tolerance": 1,
+      "explain": "10×10^9 bits/s × 0.1 s = 10^9 bits per RTT. Divided by 1500 × 8 = 12,000 bits per segment, that is ≈ 83,333 segments."
+    },
+    {
+      "type": "mc",
+      "category": "TCP throughput",
+      "q": "According to the Mathis formula, TCP throughput = 1.22 · MSS / (RTT · √L). What is throughput inversely proportional to?",
+      "choices": [
+        "RTT and the square root of the segment loss probability L",
+        "RTT² and L",
+        "MSS and RTT",
+        "√RTT and L"
+      ],
+      "answer": 0,
+      "explain": "Throughput grows with MSS, and falls as RTT grows and as √L grows."
+    },
+    {
+      "type": "num",
+      "category": "TCP throughput",
+      "q": "Use the Mathis formula, throughput = 1.22 · MSS / (RTT · √L), with MSS = 1500 bytes, RTT = 100 ms and loss probability L = 10^-4. What is TCP throughput in bytes/sec?",
+      "answer": 1830000,
+      "tolerance": 1000,
+      "explain": "√L = 0.01, so RTT · √L = 0.1 × 0.01 = 0.001. Then 1.22 × 1500 / 0.001 = 1,830,000 bytes/sec (≈ 14.6 Mbps)."
+    },
+    {
+      "type": "mc",
+      "category": "TCP throughput",
+      "q": "Using the Mathis formula, what happens to TCP throughput if the segment loss probability L drops by a factor of 4?",
+      "choices": ["It doubles", "It quadruples", "It halves", "It stays the same"],
+      "answer": 0,
+      "explain": "Throughput ∝ 1/√L. If L shrinks by 4, √L shrinks by 2, so throughput doubles."
+    },
+    {
+      "type": "tf",
+      "category": "TCP throughput",
+      "q": "Take a long, fat pipe with 1500-byte segments and a 100 ms RTT. Standard TCP can reach 10 Gbps here as long as fewer than about 1 in 1,000 segments are lost.",
+      "answer": false,
+      "explain": "By the Mathis formula, 10 Gbps needs a loss rate of about L = 2·10^-10, which is very small. That is why there are TCP versions designed for long, high-speed paths."
+    }
+  ]
+}

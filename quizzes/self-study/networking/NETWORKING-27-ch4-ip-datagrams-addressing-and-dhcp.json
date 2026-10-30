@@ -1,0 +1,466 @@
+{
+  "title": "Ch4: IP Datagrams, Addressing and DHCP",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Network-layer components",
+      "q": "In the Internet's network layer, which protocol handles error reporting and router \"signaling\"?",
+      "choices": ["IP", "ICMP", "BGP", "DHCP"],
+      "answer": 1,
+      "explain": "ICMP sits next to IP in the network layer and handles error reporting and router signaling. IP covers datagram format, addressing and packet-handling conventions."
+    },
+    {
+      "type": "multi",
+      "category": "Network-layer components",
+      "q": "Which of these are jobs of the IP protocol itself, not of ICMP or the routing protocols?",
+      "choices": ["Defining the datagram format", "Addressing", "Packet-handling conventions", "Error reporting and router signaling", "Choosing paths through the network"],
+      "answer": [0, 1, 2],
+      "explain": "IP covers datagram format, addressing and packet-handling conventions. ICMP does error reporting and signaling. Path selection is done by routing protocols (OSPF, BGP) or an SDN controller."
+    },
+    {
+      "type": "mc",
+      "category": "Network-layer components",
+      "q": "Path-selection algorithms (routing protocols such as OSPF and BGP, or an SDN controller) put their results into which network-layer structure?",
+      "choices": ["The forwarding table", "The IP header's options field", "The DHCP server's address pool", "The subnet mask"],
+      "answer": 0,
+      "explain": "The path-selection algorithms fill in the forwarding table. Routers then use that table to forward datagrams."
+    },
+    {
+      "type": "tf",
+      "category": "Network-layer components",
+      "q": "ICMP is a transport-layer protocol that runs on top of TCP.",
+      "answer": false,
+      "explain": "ICMP is part of the network layer, alongside IP. TCP and UDP are the transport layer above it."
+    },
+    {
+      "type": "num",
+      "category": "IP datagram format",
+      "q": "How many bytes long is an IPv4 header with no options?",
+      "answer": 20,
+      "explain": "The fixed IPv4 header is five 32-bit rows, which is 20 bytes. Options (if any) add more."
+    },
+    {
+      "type": "num",
+      "category": "IP datagram format",
+      "q": "Leaving out options and application-layer overhead, how many bytes of header overhead in total does a TCP segment carried in an IP datagram have?",
+      "answer": 40,
+      "explain": "20 bytes of TCP header + 20 bytes of IP header = 40 bytes, plus whatever the application layer adds."
+    },
+    {
+      "type": "mc",
+      "category": "IP datagram format",
+      "q": "What does the IPv4 time-to-live (TTL) field hold?",
+      "choices": ["The remaining maximum number of hops; each router decrements it", "The number of hops traveled so far; each router increments it", "The number of seconds before the destination throws the datagram away", "The time the source created the datagram"],
+      "answer": 0,
+      "explain": "TTL is the number of hops the datagram may still take. Each router decrements it."
+    },
+    {
+      "type": "mc",
+      "category": "IP datagram format",
+      "q": "What is the \"upper layer\" field in the IP header for?",
+      "choices": ["It names the transport protocol (e.g., TCP or UDP) the payload should be passed to", "It holds the application's port number", "It holds the datagram's priority class", "It names the next router on the path"],
+      "answer": 0,
+      "explain": "The upper-layer protocol field says which protocol (e.g., TCP or UDP) the payload belongs to, so the destination knows where to deliver it."
+    },
+    {
+      "type": "multi",
+      "category": "IP datagram format",
+      "q": "Which IP header fields are used for fragmentation and reassembly?",
+      "choices": ["16-bit identifier", "Flags", "Fragment offset", "Time to live", "Header checksum", "Type of service"],
+      "answer": [0, 1, 2],
+      "explain": "The identifier, flags and fragment offset fields together support fragmentation and reassembly."
+    },
+    {
+      "type": "mc",
+      "category": "IP datagram format",
+      "q": "The \"type of service\" byte is split into which two parts?",
+      "choices": ["Diffserv (bits 0-5) and ECN (bits 6-7)", "Version (bits 0-3) and header length (bits 4-7)", "Flags (bits 0-2) and fragment offset (bits 3-7)", "Priority (bits 0-3) and TTL (bits 4-7)"],
+      "answer": 0,
+      "explain": "Type of service = diffserv in bits 0:5 and ECN in bits 6:7."
+    },
+    {
+      "type": "tf",
+      "category": "IP datagram format",
+      "q": "The IP header's \"length\" field gives the length of the header only.",
+      "answer": false,
+      "explain": "\"length\" is the total datagram length in bytes (header + payload). The header length has its own field (head. len)."
+    },
+    {
+      "type": "mc",
+      "category": "IP datagram format",
+      "q": "What are the maximum and typical sizes of an IP datagram?",
+      "choices": ["Maximum 64K bytes; typically 1500 bytes or less", "Maximum 1500 bytes; typically 576 bytes or less", "Maximum 4 GB; typically 64K bytes", "Always exactly 1500 bytes"],
+      "answer": 0,
+      "explain": "The maximum is 64K bytes. In practice datagrams are usually 1500 bytes or less."
+    },
+    {
+      "type": "mc",
+      "category": "IP datagram format",
+      "q": "Which of these could be carried in the IP header's options field?",
+      "choices": ["A timestamp or a record of the route taken", "The source and destination port numbers", "The DNS server's address", "The TCP checksum"],
+      "answer": 0,
+      "explain": "Example options are a timestamp and a record of the route taken. Port numbers and the TCP checksum belong to the transport-layer header."
+    },
+    {
+      "type": "mc",
+      "category": "IP datagram format",
+      "q": "What does the payload of an IP datagram usually contain?",
+      "choices": ["A TCP or UDP segment", "An Ethernet frame", "The forwarding table of the sending router", "A list of the routers on the path"],
+      "answer": 0,
+      "explain": "The payload is variable length and is usually a TCP or UDP segment. The IP datagram is itself carried inside a link-layer frame such as Ethernet."
+    },
+    {
+      "type": "mc",
+      "category": "IP addresses and interfaces",
+      "q": "An IP address is a 32-bit identifier associated with each...",
+      "choices": ["Host or router interface", "Host (one address per computer)", "Physical link", "Network (one address per LAN)"],
+      "answer": 0,
+      "explain": "Addresses belong to interfaces, not to whole devices. A device with several interfaces has several IP addresses."
+    },
+    {
+      "type": "mc",
+      "category": "IP addresses and interfaces",
+      "q": "In IP addressing, what is an \"interface\"?",
+      "choices": ["The connection between a host or router and a physical link", "The software API between the transport and network layers", "A cable linking two routers", "A forwarding-table entry for one subnet"],
+      "answer": 0,
+      "explain": "An interface is the connection between a host or router and a physical link. Each interface has its own IP address."
+    },
+    {
+      "type": "tf",
+      "category": "IP addresses and interfaces",
+      "q": "A router usually has only one IP address, however many links it is attached to.",
+      "answer": false,
+      "explain": "Routers usually have several interfaces, one per attached link, and each interface has its own IP address (e.g., 223.1.1.4, 223.1.2.9, 223.1.3.27 on one router)."
+    },
+    {
+      "type": "mc",
+      "category": "IP addresses and interfaces",
+      "q": "How many interfaces does a host usually have?",
+      "choices": ["One or two (e.g., wired Ethernet and wireless 802.11)", "Exactly one, always", "One for each subnet in the network", "None; only routers have interfaces"],
+      "answer": 0,
+      "explain": "A host usually has one or two interfaces, such as wired Ethernet and/or wireless 802.11. Routers usually have many."
+    },
+    {
+      "type": "text",
+      "category": "IP addresses and interfaces",
+      "q": "Write 11011111 00000001 00000001 00000001 in dotted-decimal notation.",
+      "answer": ["223.1.1.1"],
+      "explain": "Each 8-bit group becomes one decimal number: 11011111 = 223 and 00000001 = 1, so the address is 223.1.1.1."
+    },
+    {
+      "type": "num",
+      "category": "IP addresses and interfaces",
+      "q": "What is the decimal value of the address byte 11001000?",
+      "answer": 200,
+      "explain": "128 + 64 + 8 = 200 (e.g., the first byte of 200.23.16.0)."
+    },
+    {
+      "type": "mc",
+      "category": "IP addresses and interfaces",
+      "q": "Inside one subnet, with no router in between, what usually connects the hosts' wired Ethernet interfaces to each other?",
+      "choices": ["An Ethernet switch", "A router", "A DHCP server", "An ICMP relay"],
+      "answer": 0,
+      "explain": "Wired Ethernet interfaces are connected by Ethernet switches. Wireless WiFi interfaces are connected by a WiFi base station. Neither puts a router in between."
+    },
+    {
+      "type": "mc",
+      "category": "Subnets",
+      "q": "What is a subnet?",
+      "choices": ["Device interfaces that can physically reach each other without passing through a router", "All the hosts served by one ISP", "All the interfaces that belong to a single router", "Any group of hosts that use the same DNS server"],
+      "answer": 0,
+      "explain": "A subnet is a set of interfaces that can reach each other directly, with no router in between."
+    },
+    {
+      "type": "mc",
+      "category": "Subnets",
+      "q": "How is an IP address divided into a subnet part and a host part?",
+      "choices": ["The subnet part is the high-order bits, shared by every device in the subnet; the host part is the remaining low-order bits", "The subnet part is the low-order bits, shared by every device in the subnet; the host part is the high-order bits", "The subnet part is the high-order bits, and each device's subnet part is unique", "The subnet part is always exactly the first byte"],
+      "answer": 0,
+      "explain": "Devices in the same subnet share the same high-order bits (the subnet part). The remaining low-order bits are the host part."
+    },
+    {
+      "type": "mc",
+      "category": "Subnets",
+      "q": "Which recipe finds the subnets in a network?",
+      "choices": ["Detach each interface from its host or router; each resulting island of isolated network is a subnet", "Count the routers; each router is one subnet", "Group hosts by which DHCP server they use", "Group interfaces by the first byte of their IP address"],
+      "answer": 0,
+      "explain": "Detaching every interface from its host or router leaves isolated \"islands\". Each island is one subnet."
+    },
+    {
+      "type": "num",
+      "category": "Subnets",
+      "q": "Three routers are connected in a triangle by three point-to-point links, with no hosts on those links. Each router also has one more interface, attached to its own LAN of hosts. How many subnets does this network have?",
+      "answer": 6,
+      "explain": "Each of the 3 router-to-router links is its own subnet (e.g., 223.1.7/24, 223.1.8/24, 223.1.9/24), and so is each of the 3 host LANs (223.1.1/24, 223.1.2/24, 223.1.3/24): 6 in total."
+    },
+    {
+      "type": "tf",
+      "category": "Subnets",
+      "q": "A point-to-point link between two routers, with no hosts on it, still counts as its own subnet.",
+      "answer": true,
+      "explain": "If you detach the interfaces, the link is an isolated island, so it is a subnet. Its two router interfaces share a subnet prefix (e.g., 223.1.8.1 and 223.1.8.0 on 223.1.8/24)."
+    },
+    {
+      "type": "mc",
+      "category": "Subnets",
+      "q": "Host 223.1.3.1 is on subnet 223.1.3.0/24. Which of these interfaces is on the same subnet?",
+      "choices": ["223.1.3.27", "223.1.1.3", "223.1.2.9", "223.1.30.1"],
+      "answer": 0,
+      "explain": "Under /24 the first 24 bits (223.1.3) must match. Only 223.1.3.27 matches; it is the router's interface on that subnet."
+    },
+    {
+      "type": "mc",
+      "category": "Subnets",
+      "q": "What does the subnet mask \"/24\" mean?",
+      "choices": ["The high-order 24 bits are the subnet part of the address", "The low-order 24 bits are the subnet part of the address", "The subnet can hold 24 hosts", "The address is 24 bits long"],
+      "answer": 0,
+      "explain": "/24 means the first (high-order) 24 bits are the subnet part. The other 8 bits are the host part."
+    },
+    {
+      "type": "text",
+      "category": "CIDR",
+      "q": "What does CIDR stand for?",
+      "answer": ["Classless InterDomain Routing", "Classless Inter-Domain Routing", "Classless Interdomain Routing", "Classless Inter Domain Routing"],
+      "explain": "CIDR = Classless InterDomain Routing (pronounced \"cider\")."
+    },
+    {
+      "type": "mc",
+      "category": "CIDR",
+      "q": "In the CIDR address format a.b.c.d/x, what is x?",
+      "choices": ["The number of bits in the subnet portion of the address", "The number of bits in the host portion of the address", "The number of hosts on the subnet", "The number of routers between the subnet and the Internet"],
+      "answer": 0,
+      "explain": "x is how many high-order bits make up the subnet portion."
+    },
+    {
+      "type": "tf",
+      "category": "CIDR",
+      "q": "With CIDR, the subnet portion of an address must be 8, 16 or 24 bits long.",
+      "answer": false,
+      "explain": "CIDR allows a subnet portion of any length, e.g., 200.23.16.0/23 or 200.23.16.0/20."
+    },
+    {
+      "type": "num",
+      "category": "CIDR",
+      "q": "How many bits are in the host part of 200.23.16.0/23?",
+      "answer": 9,
+      "explain": "32 - 23 = 9 host bits."
+    },
+    {
+      "type": "num",
+      "category": "CIDR",
+      "q": "How many IP addresses does the block 200.23.16.0/23 contain?",
+      "answer": 512,
+      "explain": "9 host bits gives 2^9 = 512 addresses (200.23.16.0 through 200.23.17.255)."
+    },
+    {
+      "type": "mc",
+      "category": "CIDR",
+      "q": "Which address is inside the block 200.23.16.0/23?",
+      "choices": ["200.23.17.200", "200.23.18.5", "200.23.15.255", "200.24.16.1"],
+      "answer": 0,
+      "explain": "The 23-bit prefix fixes the third byte to 0001000x, so it can only be 16 or 17. The block is 200.23.16.0 through 200.23.17.255."
+    },
+    {
+      "type": "text",
+      "category": "CIDR",
+      "q": "Write in CIDR notation the block whose subnet part is the first 23 bits of 11001000 00010111 00010000 00000000.",
+      "answer": ["200.23.16.0/23"],
+      "explain": "11001000 = 200, 00010111 = 23, 00010000 = 16, 00000000 = 0, with a 23-bit subnet part: 200.23.16.0/23."
+    },
+    {
+      "type": "text",
+      "category": "DHCP",
+      "q": "What does DHCP stand for?",
+      "answer": ["Dynamic Host Configuration Protocol"],
+      "explain": "DHCP = Dynamic Host Configuration Protocol. It gives hosts their addresses automatically (\"plug-and-play\")."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP",
+      "q": "Apart from DHCP, how can a host get its IP address?",
+      "choices": ["A sysadmin hard-codes it in a configuration file", "ICANN assigns it directly to the host", "The host computes it from its TTL field", "The host copies its first-hop router's address"],
+      "answer": 0,
+      "explain": "The two options are a sysadmin hard-coding it in a config file (e.g., /etc/rc.config on UNIX) or getting it dynamically from a server with DHCP."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP",
+      "q": "In what order are the four DHCP messages sent when a new client joins a network?",
+      "choices": ["discover, offer, request, ack", "request, offer, discover, ack", "discover, request, offer, ack", "offer, discover, ack, request"],
+      "answer": 0,
+      "explain": "The client broadcasts discover (\"is there a DHCP server?\"), the server replies with offer (\"here's an address you can use\"), the client sends request (\"I'd like this address\"), and the server sends ack (\"you've got it\")."
+    },
+    {
+      "type": "multi",
+      "category": "DHCP",
+      "q": "A client remembers a previously allocated address and wants to reuse it. Which DHCP messages can it skip?",
+      "choices": ["DHCP discover", "DHCP offer", "DHCP request", "DHCP ack"],
+      "answer": [0, 1],
+      "explain": "Discover and offer are optional and can be skipped if a client remembers and wants to reuse a previously allocated address (RFC 2131). Request and ack are still needed."
+    },
+    {
+      "type": "multi",
+      "category": "DHCP",
+      "q": "Besides an IP address on the subnet, what can DHCP give the client?",
+      "choices": ["The address of the client's first-hop router", "The name and IP address of a DNS server", "The network mask", "The client's Ethernet MAC address", "The ISP's whole CIDR address block"],
+      "answer": [0, 1, 2],
+      "explain": "DHCP can also give the first-hop router's address, a DNS server's name and address, and the network mask (which bits are network and which are host)."
+    },
+    {
+      "type": "multi",
+      "category": "DHCP",
+      "q": "Which of these are goals or benefits of DHCP?",
+      "choices": ["A host can renew its lease on an address it is using", "Addresses can be reused, since a host holds one only while it is connected/on", "It supports mobile users who join and leave networks", "Each host keeps one permanent address for life"],
+      "answer": [0, 1, 2],
+      "explain": "DHCP gives out addresses on renewable leases. Addresses are held only while a host is connected/on, so they can be reused, and that suits mobile users. It does not give permanent addresses."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP",
+      "q": "How is a DHCP request message encapsulated when the client sends it?",
+      "choices": ["DHCP inside UDP, inside IP, inside Ethernet", "DHCP inside TCP, inside IP, inside Ethernet", "DHCP directly inside Ethernet, with no IP header", "DHCP inside IP, inside UDP, inside Ethernet"],
+      "answer": 0,
+      "explain": "DHCP is an application-layer message carried in UDP, then IP, then an Ethernet frame."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP",
+      "q": "A laptop that has just connected sends a DHCP request. What is the destination address of the Ethernet frame?",
+      "choices": ["FFFFFFFFFFFF (broadcast)", "The DHCP server's MAC address, found through DNS", "000000000000", "The first-hop router's MAC address, taken from its forwarding table"],
+      "answer": 0,
+      "explain": "The frame is broadcast on the LAN (destination FFFFFFFFFFFF), and the router running the DHCP server picks it up."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP",
+      "q": "When the router running the DHCP server receives the client's frame, in what order does it demultiplex the message up the stack?",
+      "choices": ["Ethernet, then IP, then UDP, then DHCP", "DHCP, then UDP, then IP, then Ethernet", "Ethernet, then UDP, then IP, then DHCP", "IP, then Ethernet, then TCP, then DHCP"],
+      "answer": 0,
+      "explain": "The message goes up the layers: Ethernet passes it to IP, IP to UDP, and UDP to DHCP. The server's ACK goes back down and is demultiplexed up to DHCP at the client in the same way."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP",
+      "q": "Where is the DHCP server usually located?",
+      "choices": ["In the router, serving every subnet the router is attached to", "On every host in the subnet", "At a regional Internet registry", "At a DNS root server"],
+      "answer": 0,
+      "explain": "The DHCP server is usually built into the router and serves all the subnets that router is attached to."
+    },
+    {
+      "type": "tf",
+      "category": "DHCP",
+      "q": "A newly arriving client sends its DHCP discover message straight to the DHCP server's IP address, which it already knows.",
+      "answer": false,
+      "explain": "The client doesn't yet know whether there is a server or where it is, so discover is a broadcast: \"is there a DHCP server out there?\""
+    },
+    {
+      "type": "mc",
+      "category": "Hierarchical addressing and route aggregation",
+      "q": "Fly-By-Night-ISP owns 200.23.16.0/20 and has given eight organizations the /23 blocks inside it. With hierarchical addressing, what does it advertise to the rest of the Internet?",
+      "choices": ["One route: \"send me anything with addresses beginning 200.23.16.0/20\"", "Eight separate routes, one for each organization's /23", "One route: 200.23.16.0/23", "One route for each host in the organizations"],
+      "answer": 0,
+      "explain": "This is route aggregation. A single /20 advertisement covers all eight /23 customer blocks, so the rest of the Internet needs only one route."
+    },
+    {
+      "type": "tf",
+      "category": "Hierarchical addressing and route aggregation",
+      "q": "Hierarchical addressing makes advertising routing information more efficient, because one prefix can stand for many customer blocks.",
+      "answer": true,
+      "explain": "Because customer blocks are carved out of the ISP's block, the ISP can advertise one aggregate prefix instead of one per customer."
+    },
+    {
+      "type": "mc",
+      "category": "Hierarchical addressing and route aggregation",
+      "q": "Organization 1 keeps its block 200.23.18.0/23 but moves from Fly-By-Night-ISP (which advertises 200.23.16.0/20) to ISPs-R-Us (which advertises 199.31.0.0/16). What does ISPs-R-Us advertise now?",
+      "choices": ["199.31.0.0/16 and also the more specific route 200.23.18.0/23", "Only 199.31.0.0/16; Organization 1's traffic still goes through Fly-By-Night-ISP", "Only 200.23.16.0/20, taking over Fly-By-Night-ISP's block", "Only 200.23.18.0/23, withdrawing 199.31.0.0/16"],
+      "answer": 0,
+      "explain": "ISPs-R-Us keeps advertising its own 199.31.0.0/16 and adds a more specific route for Organization 1's 200.23.18.0/23."
+    },
+    {
+      "type": "mc",
+      "category": "Hierarchical addressing and route aggregation",
+      "q": "After Organization 1 (200.23.18.0/23) moves to ISPs-R-Us, a datagram is sent to 200.23.18.77. Fly-By-Night-ISP still advertises 200.23.16.0/20. Where does the datagram go?",
+      "choices": ["To ISPs-R-Us, because 200.23.18.0/23 is a more specific match than 200.23.16.0/20", "To Fly-By-Night-ISP, because its /20 was advertised first", "To Fly-By-Night-ISP, because a /20 covers more addresses", "Nowhere; it is dropped because two advertisements match"],
+      "answer": 0,
+      "explain": "Both advertisements match 200.23.18.77, but the /23 is more specific (a longer matching prefix), so the datagram follows ISPs-R-Us's route to Organization 1."
+    },
+    {
+      "type": "mc",
+      "category": "Hierarchical addressing and route aggregation",
+      "q": "In the same situation (Fly-By-Night-ISP advertises 200.23.16.0/20 and ISPs-R-Us advertises 199.31.0.0/16 and 200.23.18.0/23), where does a datagram for 200.23.20.9 go?",
+      "choices": ["To Fly-By-Night-ISP", "To ISPs-R-Us", "To both ISPs", "Nowhere; it is dropped"],
+      "answer": 0,
+      "explain": "200.23.18.0/23 covers only 200.23.18.0 to 200.23.19.255, so only the /20 matches 200.23.20.9. It goes to Fly-By-Night-ISP, which serves Organization 2 (200.23.20.0/23)."
+    },
+    {
+      "type": "tf",
+      "category": "Hierarchical addressing and route aggregation",
+      "q": "After Organization 1 moves to ISPs-R-Us, Fly-By-Night-ISP's 200.23.16.0/20 advertisement still covers Organization 1's addresses.",
+      "answer": true,
+      "explain": "Fly-By-Night-ISP keeps advertising the whole /20, which includes 200.23.18.0/23. Traffic still reaches ISPs-R-Us because its /23 route is more specific."
+    },
+    {
+      "type": "mc",
+      "category": "Getting address blocks",
+      "q": "How does a network (for example, an organization) get the subnet part of its IP addresses?",
+      "choices": ["It is given part of its provider ISP's address space", "It picks any unused prefix and advertises it", "DHCP assigns it when the first host joins", "It is derived from its routers' interface hardware"],
+      "answer": 0,
+      "explain": "The ISP carves its own block into smaller blocks and hands them to customers, e.g., /23s out of 200.23.16.0/20."
+    },
+    {
+      "type": "num",
+      "category": "Getting address blocks",
+      "q": "An ISP holds 200.23.16.0/20 and divides it into equal /23 blocks for its customers. How many /23 blocks does it get?",
+      "answer": 8,
+      "explain": "Going from /20 to /23 adds 3 subnet bits, so there are 2^3 = 8 blocks (200.23.16.0/23, 200.23.18.0/23, ... 200.23.30.0/23)."
+    },
+    {
+      "type": "mc",
+      "category": "Getting address blocks",
+      "q": "An ISP splits 200.23.16.0/20 into /23 blocks in order: Organization 0 gets 200.23.16.0/23, Organization 1 gets 200.23.18.0/23, Organization 2 gets 200.23.20.0/23. Which block does Organization 3 get?",
+      "choices": ["200.23.22.0/23", "200.23.19.0/23", "200.23.21.0/23", "200.23.24.0/23"],
+      "answer": 0,
+      "explain": "Each /23 spans two values of the third byte, so the blocks start at 16, 18, 20, 22, ... 30. Organization 3 gets 200.23.22.0/23."
+    },
+    {
+      "type": "mc",
+      "category": "Getting address blocks",
+      "q": "How does an ISP get its block of addresses?",
+      "choices": ["From ICANN, which allocates addresses through regional registries", "From its own DHCP server", "From whichever neighboring ISP advertises the shortest prefix", "By choosing any block that no one else is advertising"],
+      "answer": 0,
+      "explain": "ICANN (Internet Corporation for Assigned Names and Numbers) allocates IP addresses through regional registries, which may then allocate to local registries."
+    },
+    {
+      "type": "num",
+      "category": "Getting address blocks",
+      "q": "Through how many regional registries (RRs) does ICANN allocate IP addresses?",
+      "answer": 5,
+      "explain": "ICANN allocates IP addresses through 5 regional registries, which may then allocate to local registries."
+    },
+    {
+      "type": "multi",
+      "category": "Getting address blocks",
+      "q": "Which of these are ICANN's jobs?",
+      "choices": ["Allocating IP addresses through regional registries", "Managing the DNS root zone, including delegating management of top-level domains such as .com and .edu", "Running the DHCP servers inside ISP routers", "Choosing each host's interface address"],
+      "answer": [0, 1],
+      "explain": "ICANN allocates address space and manages the DNS root zone. Individual host addresses come from the local network, by DHCP or manual configuration."
+    },
+    {
+      "type": "multi",
+      "category": "Getting address blocks",
+      "q": "Which of these deal with running out of 32-bit IPv4 addresses?",
+      "choices": ["NAT (network address translation)", "IPv6, with its 128-bit address space", "Raising the IPv4 TTL limit", "Using CIDR prefixes longer than 32 bits"],
+      "answer": [0, 1],
+      "explain": "ICANN gave out the last chunk of IPv4 addresses to the regional registries in 2011. NAT helps with IPv4 exhaustion, and IPv6 moves to 128-bit addresses. TTL has nothing to do with addressing, and an IPv4 prefix can't be longer than 32 bits."
+    },
+    {
+      "type": "mc",
+      "category": "Getting address blocks",
+      "q": "About how many distinct IPv4 addresses are there, given that addresses are 32 bits?",
+      "choices": ["About 4.3 billion (2^32)", "About 65 thousand (2^16)", "About 16.7 million (2^24)", "About 3.4 x 10^38 (2^128)"],
+      "answer": 0,
+      "explain": "2^32 is about 4.3 billion. That isn't enough for every device, which is why NAT and IPv6 (2^128 addresses) exist."
+    }
+  ]
+}

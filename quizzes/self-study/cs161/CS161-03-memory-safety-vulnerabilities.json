@@ -1,0 +1,409 @@
+{
+  "title": "CS161 03 - Memory Safety Vulnerabilities",
+  "course": "CS161",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Buffer overflows",
+      "q": "What missing feature of C is the main reason buffer overflows are such a risk in C?",
+      "choices": [
+        "Automatic bounds-checking on array and pointer accesses",
+        "Garbage collection of heap memory",
+        "Static type checking of function arguments",
+        "Support for multi-threaded programs"
+      ],
+      "answer": 0,
+      "explain": "C does not check bounds automatically. Accessing buf[5] on a char buf[4] raises no error, so checking that every access stays in bounds is up to the programmer."
+    },
+    {
+      "type": "tf",
+      "category": "Buffer overflows",
+      "q": "Buffer overflow vulnerabilities only happen in C.",
+      "answer": false,
+      "explain": "C++ and Objective-C have them too. C is the best-known case because it is so widely used for systems programming."
+    },
+    {
+      "type": "mc",
+      "category": "Buffer overflows",
+      "q": "Why is calling gets(buf) on a fixed-size buffer a bug?",
+      "choices": [
+        "gets() keeps storing input for as long as the user keeps supplying it, with no limit tied to the buffer's size",
+        "gets() always writes from higher addresses down to lower ones",
+        "gets() can only read 4 bytes at a time",
+        "gets() frees the buffer after reading"
+      ],
+      "answer": 0,
+      "explain": "gets() does no bounds checking. If the input is longer than the buffer, it writes past the end of the buffer and overwrites whatever memory comes next."
+    },
+    {
+      "type": "mc",
+      "category": "Buffer overflows",
+      "q": "Two globals are declared in this order: char buf[8]; int authenticated = 0; Where is authenticated relative to buf?",
+      "choices": [
+        "At a higher address, directly after buf",
+        "At a lower address, directly before buf",
+        "On the stack, not in static memory",
+        "In the same bytes as buf"
+      ],
+      "answer": 0,
+      "explain": "Static memory is filled in the order variables are declared and grows upward. buf comes first, so authenticated sits right after it at a higher address, which means an overflow of buf can reach it."
+    },
+    {
+      "type": "tf",
+      "category": "Buffer overflows",
+      "q": "Overflowing a static buffer only causes serious harm when security-critical data, like a function pointer or an important flag, sits right after the buffer. That situation is fairly rare in practice.",
+      "answer": true,
+      "explain": "The text says these conditions occur only rarely. That rarity is why attackers developed more general methods such as stack smashing."
+    },
+    {
+      "type": "mc",
+      "category": "Buffer overflows",
+      "q": "What does a function pointer hold?",
+      "choices": [
+        "The address of a function. Calling it jumps to that address and runs the instructions there",
+        "A copy of the function's machine code",
+        "The function's return value",
+        "The number of arguments the function takes"
+      ],
+      "answer": 0,
+      "explain": "A function pointer is a 4-byte address. If an attacker can change it, the program will start running code from a location the attacker chose."
+    },
+    {
+      "type": "text",
+      "category": "Buffer overflows",
+      "q": "What is the name for an attack that makes a running program execute instructions chosen by the attacker instead of its own code?",
+      "answer": ["malicious code injection", "code injection", "malicious code injection attack"],
+      "explain": "When the attack ends, the program is still running, but it is running the attacker's code. If the process ran as root, the attacker now has root's powers."
+    },
+    {
+      "type": "mc",
+      "category": "Stack smashing",
+      "q": "A function has one local array, buf. Going from buf toward higher addresses, which saved values come next in its x86 stack frame?",
+      "choices": [
+        "The sfp (saved ebp), then the rip (saved eip)",
+        "The rip, then the sfp",
+        "The function's arguments, then the sfp",
+        "Nothing; buf is at the top of the stack"
+      ],
+      "fixed": true,
+      "answer": 0,
+      "explain": "The sfp sits right above the local variables, and the rip sits above the sfp. A write that runs past the end of buf hits the sfp first and then the rip."
+    },
+    {
+      "type": "tf",
+      "category": "Stack smashing",
+      "q": "The stack grows down, so gets() writes a local buffer's input from higher addresses to lower addresses.",
+      "answer": false,
+      "explain": "The stack only grows down when a function call needs new space. Inside a buffer, input is still written from lower addresses to higher ones, toward the sfp and rip."
+    },
+    {
+      "type": "mc",
+      "category": "Stack smashing",
+      "q": "What does the rip (saved eip) in a stack frame hold?",
+      "choices": [
+        "The address of the next instruction to run after the function returns",
+        "The caller's saved ebp value",
+        "The address of the function's first local variable",
+        "The function's return value"
+      ],
+      "answer": 0,
+      "explain": "When the function returns, execution continues at the address stored in the rip. So if the rip has been corrupted, control goes wherever the corrupted value points."
+    },
+    {
+      "type": "mc",
+      "category": "Stack smashing",
+      "q": "x86 is little-endian. The 4-byte value 0x12345678 is stored in memory. Which byte is at the lowest address?",
+      "choices": ["0x78", "0x12", "0x34", "0x56"],
+      "answer": 0,
+      "explain": "In little-endian order, the least significant byte goes at the lowest address. So a multi-byte value appears in memory in reverse byte order."
+    },
+    {
+      "type": "text",
+      "category": "Stack smashing",
+      "q": "Injected malicious code is often written to start an interactive shell for the attacker. What is this kind of code commonly called?",
+      "answer": ["shellcode", "shell code"],
+      "explain": "It is called shellcode because it often spawns a shell, which lets the attacker run any commands they want."
+    },
+    {
+      "type": "mc",
+      "category": "Stack smashing",
+      "q": "Which late-1980s worm used a buffer overflow to infect thousands of computers?",
+      "choices": ["The Morris Worm", "Code Red", "Stuxnet", "WannaCry"],
+      "answer": 0,
+      "explain": "The Morris Worm dates stack smashing to at least the late 1980s. Code Red came later and used a buffer overflow in the IIS web server to compromise about 369,000 machines."
+    },
+    {
+      "type": "tf",
+      "category": "Stack smashing",
+      "q": "The textbook's rule of thumb: if your program has a buffer overflow bug, assume the bug is exploitable and that an attacker can take control of your program.",
+      "answer": true,
+      "explain": "Attackers have repeatedly found clever ways to exploit bugs that researchers once thought were too obscure to matter."
+    },
+    {
+      "type": "mc",
+      "category": "Format strings",
+      "q": "Why does the C compiler usually not catch a printf call whose format string asks for more arguments than were passed?",
+      "choices": [
+        "printf takes a variable number of arguments, so the compiler only needs at least one, and most compilers do not analyze format strings",
+        "The compiler checks the format string, but only for %s",
+        "The mismatch only shows up on 64-bit systems",
+        "printf counts its arguments at runtime and returns an error"
+      ],
+      "answer": 0,
+      "explain": "To catch the mismatch, the compiler would need to understand what format modifiers mean, and most compilers do not do that analysis."
+    },
+    {
+      "type": "mc",
+      "category": "Format strings",
+      "q": "There are more format modifiers than arguments in a printf call. What does printf do when it reaches the extra modifiers?",
+      "choices": [
+        "It keeps reading values from the stack that were never passed to it, such as leftover data from the previous stack frame",
+        "It stops and prints nothing for the missing arguments",
+        "It prints zero for each missing argument",
+        "It crashes right away with a bounds-check error"
+      ],
+      "answer": 0,
+      "explain": "printf fetches one argument from the stack for each modifier and does not know how many arguments were actually passed."
+    },
+    {
+      "type": "num",
+      "category": "Format strings",
+      "q": "printf's first argument (the format string) is 4 bytes above printf's RIP. The first %d reads 8 bytes above the RIP, and each later modifier moves 4 bytes higher. How many bytes above the RIP does the third %d read?",
+      "answer": 16,
+      "explain": "The reads go 8, then 12, then 16. If only two arguments were passed, the value at 16 has nothing to do with this call."
+    },
+    {
+      "type": "mc",
+      "category": "Format strings",
+      "q": "What does the %n format modifier do?",
+      "choices": [
+        "It treats its argument as an address and writes the number of characters printed so far to that address",
+        "It prints a newline",
+        "It prints its argument as a character",
+        "It prints the string at the address in its argument"
+      ],
+      "answer": 0,
+      "explain": "%n is the modifier that writes to memory, so a format string vulnerability can overwrite memory as well as leak it."
+    },
+    {
+      "type": "mc",
+      "category": "Format strings",
+      "q": "What does the %s format modifier do?",
+      "choices": [
+        "It treats its argument as an address and prints the string at that address up to the first null byte",
+        "It prints its argument as a signed integer",
+        "It writes the number of characters printed so far",
+        "It prints its argument as a single character"
+      ],
+      "answer": 0,
+      "explain": "%s follows a pointer, so with an attacker-controlled format string it can be used to read memory at other locations."
+    },
+    {
+      "type": "tf",
+      "category": "Format strings",
+      "q": "In printf(\"%d %d %d\", x, y, z), the format string's address is at a lower stack address than x, y and z because arguments are pushed in reverse order.",
+      "answer": true,
+      "explain": "The last argument is pushed first and the first argument is pushed last, so the format string ends up closest to printf's RIP."
+    },
+    {
+      "type": "mc",
+      "category": "Format strings",
+      "q": "According to the textbook, what should you assume if a program has a format string vulnerability?",
+      "choices": [
+        "The attacker can learn any value stored in memory and can take control of the program",
+        "The attacker can only crash the program",
+        "The attacker can only read values in the current stack frame",
+        "The bug only matters if the program uses %n"
+      ],
+      "answer": 0,
+      "explain": "The textbook's bottom line: assume the attacker can both read memory and take control of the program."
+    },
+    {
+      "type": "mc",
+      "category": "Integer conversion",
+      "q": "The code checks if (len > 8) error...; and then calls memcpy(buf, p, len), where len is a signed int from the network and memcpy's third parameter is a size_t (unsigned int). What is the flaw?",
+      "choices": [
+        "A negative len passes the check, then becomes a huge unsigned value when passed to memcpy, which overflows buf",
+        "len > 8 should be len >= 8. That is the only bug",
+        "memcpy cannot copy from a network string",
+        "size_t is signed, so memcpy rejects large values"
+      ],
+      "answer": 0,
+      "explain": "C silently converts the negative signed value to a large unsigned one. The check looks correct, but it never considers negative values."
+    },
+    {
+      "type": "tf",
+      "category": "Integer conversion",
+      "q": "The C compiler warns about the implicit conversion when a signed int is passed where an unsigned int (size_t) is expected.",
+      "answer": false,
+      "explain": "The compiler silently inserts the conversion, which is why these bugs are hard to spot."
+    },
+    {
+      "type": "num",
+      "category": "Integer conversion",
+      "q": "On a 32-bit platform, len is a size_t equal to 0xFFFFFFFF. What is len + 5 (in decimal)?",
+      "answer": 4,
+      "explain": "Unsigned 32-bit arithmetic wraps around. So malloc(len+5) allocates only 4 bytes, and read(fd, buf, len) then writes far more than 4 bytes into it."
+    },
+    {
+      "type": "mc",
+      "category": "Integer conversion",
+      "q": "What makes the code malloc(len+5) followed by read(fd, buf, len) unsafe, even though it allocates 5 extra bytes?",
+      "choices": [
+        "len+5 can wrap around to a small number when len is very large",
+        "malloc always rounds the size down",
+        "read writes 5 bytes too few",
+        "size_t can hold negative values"
+      ],
+      "answer": 0,
+      "explain": "Integer overflow in the size calculation makes the buffer much smaller than the amount of data written into it. That is a classic buffer overflow."
+    },
+    {
+      "type": "mc",
+      "category": "Off-by-one",
+      "q": "A buffer of size n has bounds checks that are off by one. How many bytes can be written into it?",
+      "choices": ["n + 1", "n - 1", "2n", "Any number"],
+      "answer": 0,
+      "explain": "An off-by-one error, such as using <= instead of <, lets exactly one extra byte be written right after the buffer."
+    },
+    {
+      "type": "mc",
+      "category": "Off-by-one",
+      "q": "In the textbook's example (char buf[12] with 13 bytes read in), which value does the extra byte overwrite?",
+      "choices": [
+        "The least significant byte of the saved frame pointer (sfp)",
+        "The most significant byte of the rip",
+        "The whole rip",
+        "The first byte of main()'s local variables"
+      ],
+      "answer": 0,
+      "explain": "The sfp sits directly above buf. x86 is little-endian, so the byte at the sfp's lowest address is its least significant byte."
+    },
+    {
+      "type": "tf",
+      "category": "Off-by-one",
+      "q": "A one-byte overflow into the sfp cannot be exploited, because it never reaches the rip.",
+      "answer": false,
+      "explain": "Corrupting one byte of the sfp can lead the program to use a fake stack frame, and that is enough to let an attacker run their own code."
+    },
+    {
+      "type": "mc",
+      "category": "Off-by-one",
+      "q": "When an x86 function returns, which three instructions run, in order?",
+      "choices": [
+        "mov %ebp, %esp, then pop %ebp, then pop %eip",
+        "pop %eip, then pop %ebp, then mov %ebp, %esp",
+        "pop %ebp, then mov %ebp, %esp, then pop %eip",
+        "mov %esp, %ebp, then pop %eip, then pop %ebp"
+      ],
+      "fixed": true,
+      "answer": 0,
+      "explain": "First esp moves to where ebp points (the sfp). Then the saved ebp is popped back into ebp. Then the rip is popped into eip."
+    },
+    {
+      "type": "mc",
+      "category": "Off-by-one",
+      "q": "After the vulnerable function returns with a corrupted sfp, why does the program still go back to main() normally at first?",
+      "choices": [
+        "Only the sfp was changed, so the rip is still correct. The only damage is that ebp now points to the wrong place",
+        "The CPU detects the corruption and restores the sfp",
+        "The corrupted byte is ignored by pop %ebp",
+        "main() never uses ebp"
+      ],
+      "answer": 0,
+      "explain": "The first return restores a slightly wrong ebp but the correct eip. The effect shows up later, when main() relies on that ebp."
+    },
+    {
+      "type": "mc",
+      "category": "Off-by-one",
+      "q": "Why does an off-by-one into the sfp take a second function return before control is lost?",
+      "choices": [
+        "On its own return, main() uses its corrupted ebp to find its saved ebp and rip, so it reads them from memory it was never meant to use",
+        "The first return always crashes, and the operating system restarts the program",
+        "The second return overwrites the rip automatically",
+        "Each return adds one more byte of overflow"
+      ],
+      "answer": 0,
+      "explain": "ebp tells a function where its stack frame is. When main() returns, mov %ebp, %esp and the two pops act on the wrong location, so whatever value sits there gets loaded into eip."
+    },
+    {
+      "type": "mc",
+      "category": "Other memory safety bugs",
+      "q": "What is a dangling pointer?",
+      "choices": [
+        "A pointer to a memory region that has been freed and is no longer valid",
+        "A pointer that has never been initialized to any value",
+        "A pointer to a function",
+        "A pointer stored on the heap"
+      ],
+      "answer": 0,
+      "explain": "Using a dangling pointer is a memory safety violation, because the memory it points to may now be reused for something else."
+    },
+    {
+      "type": "mc",
+      "category": "Other memory safety bugs",
+      "q": "What is a double-free bug?",
+      "choices": [
+        "A dynamically allocated object is explicitly freed more than once",
+        "Two pointers point to the same object",
+        "An object is allocated twice with malloc",
+        "A buffer is overflowed by two bytes"
+      ],
+      "answer": 0,
+      "explain": "A double free is one of the memory safety violations the textbook lists, alongside using dangling pointers."
+    },
+    {
+      "type": "mc",
+      "category": "Other memory safety bugs",
+      "q": "How are use-after-free bugs generally exploited?",
+      "choices": [
+        "The attacker triggers the creation of a second object that ends up sharing the freed object's memory, then uses the second object to change how the first is interpreted",
+        "The attacker frees the stack frame of main()",
+        "The attacker overwrites the rip with a format string",
+        "The attacker passes a negative length to memcpy"
+      ],
+      "answer": 0,
+      "explain": "The freed memory is still in use, so a new object placed there overlaps the old one. Changes made through the new object change how the old one is interpreted."
+    },
+    {
+      "type": "mc",
+      "category": "Other memory safety bugs",
+      "q": "In C++, what is an object's vtable pointer?",
+      "choices": [
+        "A pointer to an array of pointers, each holding the address of one of the object's methods",
+        "A pointer to the object's first instance variable",
+        "The address of the object's constructor only",
+        "A count of the object's methods"
+      ],
+      "answer": 0,
+      "explain": "When a method is called, the program looks up the method's address through the vtable. The object's instance variables are stored directly above the vtable pointer."
+    },
+    {
+      "type": "mc",
+      "category": "Other memory safety bugs",
+      "q": "Overflowing object x's instance variables on the heap overwrites the vtable pointer of object y, which sits above it. How does this differ from overwriting a rip on the stack?",
+      "choices": [
+        "The attacker overwrites a pointer to a pointer, not a direct code address",
+        "It only works on the stack",
+        "The attacker overwrites the method's machine code directly",
+        "It requires a format string bug"
+      ],
+      "answer": 0,
+      "explain": "The vtable pointer leads to a table of method addresses. So the attacker redirects it to memory they control, which holds the address that will be called."
+    },
+    {
+      "type": "multi",
+      "category": "Other memory safety bugs",
+      "q": "Which of these does the textbook classify as memory safety bugs?",
+      "choices": [
+        "Buffer overflows",
+        "Format string vulnerabilities",
+        "Using a dangling pointer",
+        "Double-free bugs",
+        "Choosing a weak password"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Memory safety bugs let an attacker read or write beyond the valid range of memory regions, or misuse memory that has been freed. A weak password is a different kind of problem."
+    }
+  ]
+}

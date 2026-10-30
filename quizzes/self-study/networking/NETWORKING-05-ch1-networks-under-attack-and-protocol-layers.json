@@ -1,0 +1,493 @@
+{
+  "title": "Ch1: Networks Under Attack and Protocol Layers",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Security threats",
+      "q": "Which phrase describes the Internet's original vision of its users?",
+      "choices": [
+        "A group of mutually trusting users attached to a transparent network",
+        "A group of authenticated users protected by firewalls in every access network",
+        "Untrusted hosts that must encrypt all of their traffic end to end",
+        "A centrally monitored network in which every packet is inspected for attacks"
+      ],
+      "answer": 0,
+      "explain": "The Internet was not originally designed with much security in mind. The original vision was 'a group of mutually trusting users attached to a transparent network', and protocol designers have been playing catch-up ever since."
+    },
+    {
+      "type": "tf",
+      "category": "Security threats",
+      "q": "True or false: because security was added to the Internet after the fact, security only needs to be considered at the application layer.",
+      "answer": false,
+      "explain": "Security has to be considered in every layer. Designers are retrofitting it across the whole protocol stack."
+    },
+    {
+      "type": "mc",
+      "category": "Security threats",
+      "q": "Host B sends a packet (src: B, dest: A) to server A over shared Ethernet. Host C is attached to the same shared medium and quietly reads and records the packet, including a password in its payload. What is C doing?",
+      "choices": [
+        "IP spoofing",
+        "Launching a denial-of-service attack",
+        "Packet sniffing",
+        "Building a botnet"
+      ],
+      "answer": 2,
+      "explain": "Packet sniffing means reading and recording packets that pass by on a broadcast medium, including packets addressed to other hosts. Those packets can contain passwords."
+    },
+    {
+      "type": "text",
+      "category": "Security threats",
+      "q": "On a broadcast medium, a network interface that reads and records every packet passing by, and not just the packets addressed to it, is in ____ mode.",
+      "answer": ["promiscuous", "promiscuous mode"],
+      "explain": "A promiscuous network interface reads and records all packets passing by, which is what makes packet sniffing possible."
+    },
+    {
+      "type": "mc",
+      "category": "Security threats",
+      "q": "Why are shared Ethernet and wireless networks especially exposed to packet sniffing?",
+      "choices": [
+        "They use encryption that is easy to break",
+        "They are broadcast media, so a packet sent by one host passes by the other hosts on the same medium",
+        "They do not use IP addresses",
+        "Their routers forward a copy of every packet to all hosts on the Internet"
+      ],
+      "answer": 1,
+      "explain": "Shared Ethernet and wireless are broadcast media. Every attached host can see the traffic, so a promiscuous interface can capture packets meant for someone else."
+    },
+    {
+      "type": "mc",
+      "category": "Security threats",
+      "q": "Attacker C injects a packet addressed to server A, but the packet's source address field says B. What is this attack called?",
+      "choices": [
+        "Packet sniffing",
+        "IP spoofing",
+        "Denial of service",
+        "Encapsulation"
+      ],
+      "answer": 1,
+      "explain": "IP spoofing is the injection of a packet with a false source address. This gives C a fake identity: A believes the packet came from B."
+    },
+    {
+      "type": "mc",
+      "category": "Security threats",
+      "q": "What does a denial-of-service (DoS) attack do?",
+      "choices": [
+        "Reads packets passing by on a shared medium to steal data such as passwords",
+        "Sends packets with a false source address so the receiver trusts them",
+        "Changes the payload of packets in transit without being detected",
+        "Makes resources such as a server or bandwidth unavailable to legitimate traffic by overwhelming them with bogus traffic"
+      ],
+      "answer": 3,
+      "explain": "A DoS attack overwhelms a resource (a server or bandwidth) with bogus traffic so that legitimate traffic cannot use it. The other choices describe sniffing, spoofing and tampering."
+    },
+    {
+      "type": "mc",
+      "category": "Security threats",
+      "q": "In the DoS attack described in the material, the attacker first selects a target and finally floods it with packets. What happens between those two steps?",
+      "choices": [
+        "The attacker breaks into hosts around the network, forming a botnet, so the packets can come from those compromised hosts",
+        "The attacker puts the target's network interface into promiscuous mode",
+        "The attacker obtains a digital signature from the target",
+        "The attacker sets up a password-protected VPN to the target"
+      ],
+      "answer": 0,
+      "explain": "The steps are: (1) select a target, (2) break into hosts around the network (a botnet), and (3) send packets to the target from the compromised hosts."
+    },
+    {
+      "type": "tf",
+      "category": "Security threats",
+      "q": "True or false: Wireshark is a free packet-sniffing program.",
+      "answer": true,
+      "explain": "Wireshark is a free packet sniffer. It captures and displays the packets passing through a network interface."
+    },
+    {
+      "type": "mc",
+      "category": "Lines of defense",
+      "q": "Which line of defense means 'proving you are who you say you are'?",
+      "choices": [
+        "Confidentiality",
+        "Integrity checking",
+        "Authentication",
+        "Access restriction"
+      ],
+      "answer": 2,
+      "explain": "Authentication proves identity. Confidentiality comes from encryption, integrity checks detect tampering, and access restrictions limit who can get in (for example, password-protected VPNs)."
+    },
+    {
+      "type": "text",
+      "category": "Lines of defense",
+      "q": "Cellular networks support authentication with a hardware identity stored on what kind of card?",
+      "answer": ["SIM", "SIM card", "a SIM card", "subscriber identity module"],
+      "explain": "Cellular networks get a hardware identity from the SIM card. The traditional Internet has no comparable hardware assist."
+    },
+    {
+      "type": "tf",
+      "category": "Lines of defense",
+      "q": "True or false: like cellular networks, the traditional Internet provides hardware-based identity to help with authentication.",
+      "answer": false,
+      "explain": "Only cellular networks provide hardware identity, through the SIM card. The traditional Internet has no such hardware assist."
+    },
+    {
+      "type": "mc",
+      "category": "Lines of defense",
+      "q": "Alice logs in over a shared wireless network where an attacker may be sniffing packets. Which defense keeps the attacker from reading her password even if her packets are captured?",
+      "choices": [
+        "Confidentiality through encryption",
+        "Integrity checks through digital signatures",
+        "IP spoofing",
+        "Off-by-default packet filtering at the destination server"
+      ],
+      "answer": 0,
+      "explain": "A sniffer can still capture the packets. Encryption keeps their contents confidential, so the captured password cannot be read."
+    },
+    {
+      "type": "mc",
+      "category": "Lines of defense",
+      "q": "A receiver wants to know whether a message was tampered with in transit. Which defense fits, and which tool does the material name for it?",
+      "choices": [
+        "Confidentiality, using encryption",
+        "Integrity checks, using digital signatures",
+        "Authentication, using SIM cards",
+        "Access restrictions, using password-protected VPNs"
+      ],
+      "answer": 1,
+      "explain": "Integrity checks use digital signatures to prevent or detect tampering."
+    },
+    {
+      "type": "mc",
+      "category": "Lines of defense",
+      "q": "Which example does the material give of an access restriction?",
+      "choices": [
+        "Digital signatures",
+        "Password-protected VPNs",
+        "Promiscuous network interfaces",
+        "Botnets"
+      ],
+      "answer": 1,
+      "explain": "Password-protected VPNs are the example of access restriction. Digital signatures provide integrity checks, and promiscuous interfaces and botnets are tools attackers use."
+    },
+    {
+      "type": "multi",
+      "category": "Lines of defense",
+      "q": "Which statements describe firewalls as presented in the material?",
+      "choices": [
+        "They are specialized 'middleboxes' in access and core networks",
+        "They are off by default: they filter incoming packets to restrict senders, receivers and applications",
+        "They can detect and react to DoS attacks",
+        "They give each host a hardware identity, like a SIM card",
+        "They guarantee confidentiality by encrypting every packet"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Firewalls are middleboxes in access and core networks. They filter incoming packets by default to restrict senders, receivers and applications, and they can detect and react to DoS attacks. Hardware identity is an authentication feature, and confidentiality comes from encryption."
+    },
+    {
+      "type": "mc",
+      "category": "Layering concepts",
+      "q": "In a layered architecture, how does each layer implement its service?",
+      "choices": [
+        "Through its own internal actions, relying on the services of the layer below",
+        "By relying directly on every other layer in the stack",
+        "By relying on the services of the layer above",
+        "Entirely on its own, without using any other layer"
+      ],
+      "answer": 0,
+      "explain": "Each layer implements a service through its own internal-layer actions and relies on the services of the layer below. In the Internet, a layer takes information from the layer above and uses the layer below to provide its own service."
+    },
+    {
+      "type": "multi",
+      "category": "Layering concepts",
+      "q": "Which of these are advantages of a layered architecture for a complex system like the Internet?",
+      "choices": [
+        "An explicit structure that identifies the system's pieces and how they relate (a layered reference model)",
+        "Modularization that makes the system easier to maintain and update",
+        "A guarantee that no packets are ever lost",
+        "No layer ever needs to add header information"
+      ],
+      "answer": [0, 1],
+      "explain": "Layering has two advantages: an explicit structure that serves as a reference model for discussion, and modularization that localizes changes and eases maintenance. It does not prevent loss, and encapsulation relies on headers."
+    },
+    {
+      "type": "mc",
+      "category": "Layering concepts",
+      "q": "An airline changes how its gate agents board passengers, but the gate service (loading and unloading) is still provided. Why doesn't this force changes to ticketing, baggage or runway operations?",
+      "choices": [
+        "A change in how a layer implements its service is invisible to the rest of the system, as long as the service it provides stays the same",
+        "Gate operations are not part of the layered system",
+        "The layers above and below are rebuilt whenever anything changes",
+        "Only the bottom layer of a layered system can ever be changed"
+      ],
+      "answer": 0,
+      "explain": "Modularization makes a change in a layer's service implementation transparent to the rest of the system. A new gate procedure doesn't affect ticketing, baggage or takeoff, so the change stays local to that layer."
+    },
+    {
+      "type": "tf",
+      "category": "Layering concepts",
+      "q": "True or false: if a layer changes how it implements its service but keeps the same service interface, the layers above it must also be modified.",
+      "answer": false,
+      "explain": "When the service interface stays the same, the implementation change is transparent to the other layers. That localization of changes is the point of modularization."
+    },
+    {
+      "type": "mc",
+      "category": "Layering concepts",
+      "q": "In the airline analogy, the runway service is provided by takeoff at the origin and landing at the destination. Which layer's service does it rely on?",
+      "choices": [
+        "Ticketing",
+        "Baggage",
+        "Gate",
+        "Airplane routing"
+      ],
+      "answer": 3,
+      "explain": "Each layer relies on the layer below it. The runway layer sits directly above the airplane routing layer and uses the routing service to get the plane from source to destination."
+    },
+    {
+      "type": "text",
+      "category": "Layering concepts",
+      "q": "Layering's explicit structure gives us a layered ____ model for discussing a complex system's pieces and how they relate.",
+      "answer": ["reference", "reference model"],
+      "explain": "The explicit structure acts as a layered reference model, a shared framework for identifying and discussing the system's pieces."
+    },
+    {
+      "type": "mc",
+      "category": "Internet protocol stack",
+      "q": "Which list gives the five layers of the Internet protocol stack from top to bottom?",
+      "choices": [
+        "Application, network, transport, link, physical",
+        "Application, transport, network, link, physical",
+        "Application, transport, link, network, physical",
+        "Physical, link, network, transport, application"
+      ],
+      "answer": 1,
+      "explain": "From top to bottom the layers are application, transport, network, link and physical. The last choice lists them bottom to top."
+    },
+    {
+      "type": "multi",
+      "category": "Internet protocol stack",
+      "q": "Which of these are application-layer protocols?",
+      "choices": ["HTTP", "TCP", "IMAP", "IP", "SMTP", "Ethernet", "DNS", "UDP"],
+      "answer": [0, 2, 4, 6],
+      "explain": "HTTP, IMAP, SMTP and DNS support network applications at the application layer. TCP and UDP are transport protocols, IP is a network-layer protocol, and Ethernet is a link-layer protocol."
+    },
+    {
+      "type": "mc",
+      "category": "Internet protocol stack",
+      "q": "Which layer do TCP and UDP belong to?",
+      "choices": ["Application", "Transport", "Network", "Link"],
+      "answer": 1,
+      "explain": "TCP and UDP are transport-layer protocols. They provide process-to-process data transfer."
+    },
+    {
+      "type": "mc",
+      "category": "Internet protocol stack",
+      "q": "Ethernet, 802.11 (WiFi) and PPP are protocols of which layer?",
+      "choices": ["Physical", "Network", "Link", "Transport"],
+      "answer": 2,
+      "explain": "Ethernet, 802.11 and PPP are link-layer protocols. They transfer data between neighboring network elements."
+    },
+    {
+      "type": "mc",
+      "category": "Internet protocol stack",
+      "q": "Which layer routes datagrams from source to destination and includes IP and routing protocols?",
+      "choices": ["Transport", "Network", "Link", "Application"],
+      "answer": 1,
+      "explain": "The network layer routes datagrams from source to destination. Its protocols include IP and the routing protocols."
+    },
+    {
+      "type": "mc",
+      "category": "Internet protocol stack",
+      "q": "What is the key difference between data transfer at the transport layer and at the network layer?",
+      "choices": [
+        "Transport moves data host to host; network moves data process to process",
+        "Transport moves data process to process; network moves data host to host",
+        "Transport moves data between neighboring network elements; network sends bits on the wire",
+        "There is no difference; both deliver data between processes"
+      ],
+      "answer": 1,
+      "explain": "The transport layer carries application messages from one process to another. The network layer carries data from one host (end device) to another."
+    },
+    {
+      "type": "text",
+      "category": "Internet protocol stack",
+      "q": "The Internet's network layer promises to 'do its best' but gives no delivery guarantees. What is this service model called?",
+      "answer": ["best effort", "best-effort", "best effort service", "best-effort service"],
+      "explain": "The Internet's network layer provides best-effort service. It tries its best but guarantees nothing, so it does not provide reliable host-to-host transport."
+    },
+    {
+      "type": "mc",
+      "category": "Internet protocol stack",
+      "q": "Packets can be lost along the way, for example in router buffers, and the Internet's network layer does not guarantee delivery. How does TCP still provide reliable data transfer?",
+      "choices": [
+        "It implements reliable data transfer at the transport layer, on top of a network service that can lose packets",
+        "It tells IP to switch to a reliable network-layer service model",
+        "It relies on the physical layer to retransmit lost bits",
+        "It can't: reliable transfer is impossible on the Internet"
+      ],
+      "answer": 0,
+      "explain": "TCP builds a reliable data transfer service at the transport layer on top of the unreliable, best-effort network layer. The information it needs for this is carried in the segment header."
+    },
+    {
+      "type": "mc",
+      "category": "Internet protocol stack",
+      "q": "Which layer transfers data between two neighboring network devices at either end of the same communication link?",
+      "choices": ["Physical", "Link", "Network", "Transport"],
+      "answer": 1,
+      "explain": "The link layer moves data between neighboring network elements on the same link. The physical layer underneath it controls sending the individual bits into the link."
+    },
+    {
+      "type": "mc",
+      "category": "Internet protocol stack",
+      "q": "Which layer handles the bits 'on the wire', controlling how bits are sent into a link?",
+      "choices": ["Application", "Network", "Link", "Physical"],
+      "answer": 3,
+      "explain": "The physical layer is the bottom of the stack. It controls sending the bits into the link."
+    },
+    {
+      "type": "mc",
+      "category": "Encapsulation",
+      "q": "What is encapsulation?",
+      "choices": [
+        "Taking a data unit from the layer above and adding this layer's header to create a new protocol data unit",
+        "Encrypting a packet so it cannot be sniffed",
+        "Splitting a message into bits for transmission on the wire",
+        "Removing headers as data moves up the stack at the receiver"
+      ],
+      "answer": 0,
+      "explain": "Encapsulation wraps a higher layer's data unit with this layer's header to form a new PDU. For example, the transport layer adds Ht to message M to make a segment."
+    },
+    {
+      "type": "mc",
+      "category": "Encapsulation",
+      "q": "Which list correctly names the protocol data unit at each layer, from the application layer down to the link layer?",
+      "choices": [
+        "Message, segment, datagram, frame",
+        "Message, datagram, segment, frame",
+        "Segment, message, frame, datagram",
+        "Frame, datagram, segment, message"
+      ],
+      "answer": 0,
+      "explain": "The units are: application message, transport segment, network datagram and link frame."
+    },
+    {
+      "type": "text",
+      "category": "Encapsulation",
+      "q": "The network-layer protocol encapsulates the transport-layer segment [Ht | M] with header Hn. What is the resulting network-layer unit called?",
+      "answer": ["datagram", "a datagram", "network-layer datagram", "network layer datagram"],
+      "explain": "Adding Hn to the segment produces a network-layer datagram, [Hn | Ht | M]."
+    },
+    {
+      "type": "text",
+      "category": "Encapsulation",
+      "q": "The link-layer protocol encapsulates a network-layer datagram with header Hl. What is the resulting link-layer unit called?",
+      "answer": ["frame", "a frame", "link-layer frame", "link layer frame"],
+      "explain": "Adding Hl to the datagram produces a link-layer frame, [Hl | Hn | Ht | M]. Frames are what pass between the link-layer sender and receiver."
+    },
+    {
+      "type": "mc",
+      "category": "Encapsulation",
+      "q": "Which shows the correct structure of a link-layer frame carrying application message M?",
+      "choices": [
+        "[Ht | Hn | Hl | M]",
+        "[Hl | Hn | Ht | M]",
+        "[M | Ht | Hn | Hl]",
+        "[Hn | Hl | Ht | M]"
+      ],
+      "answer": 1,
+      "explain": "Each lower layer wraps the unit it receives from above, so the outermost header belongs to the lowest layer: Hl, then Hn, then Ht, then M."
+    },
+    {
+      "type": "mc",
+      "category": "Encapsulation",
+      "q": "What is the transport-layer header Ht used for?",
+      "choices": [
+        "The transport-layer protocol uses it to implement its service, for example to identify the destination process and to support reliable data transfer",
+        "Routers use it to choose a path through the network",
+        "Switches use it to forward frames on a link",
+        "The physical layer uses it to encode bits"
+      ],
+      "answer": 0,
+      "explain": "Each header is used by its own layer's protocol. Ht tells the destination which process to deliver to, since many processes may be running there. For a protocol like TCP, it also carries the information needed for reliable data transfer."
+    },
+    {
+      "type": "mc",
+      "category": "Encapsulation",
+      "q": "In the Internet's IP protocol, what does the network-layer header Hn contain for the network layer to use?",
+      "choices": [
+        "The IP addresses of the sending and receiving hosts",
+        "The application's message",
+        "The identity of the destination process",
+        "The raw bits to be placed on the wire"
+      ],
+      "answer": 0,
+      "explain": "The IP header carries the IP addresses of the sending and receiving hosts. The network layer uses them to deliver the datagram host to host. Identifying the process is the transport header's job."
+    },
+    {
+      "type": "mc",
+      "category": "Encapsulation",
+      "q": "At the destination host, what happens to the headers as the frame moves up the protocol stack?",
+      "choices": [
+        "Each layer adds a new header",
+        "Each layer reads its own header, acts on it and removes it before passing the rest up",
+        "The physical layer removes all the headers at once",
+        "The headers stay in place and are delivered to the application along with M"
+      ],
+      "answer": 1,
+      "explain": "Going down the stack at the sender, headers are added one by one. Going up the stack at the receiver, each header is read, acted on and removed, so the application receives only M."
+    },
+    {
+      "type": "tf",
+      "category": "Encapsulation",
+      "q": "True or false: in the Matryoshka (stacking doll) analogy for encapsulation, the frame is the innermost, smallest doll.",
+      "answer": false,
+      "explain": "The message is the innermost doll. It sits inside the segment, which sits inside the datagram, and the frame is the outermost, largest doll."
+    },
+    {
+      "type": "mc",
+      "category": "Switches and routers",
+      "q": "On the end-to-end path, which layers does a link-layer switch implement?",
+      "choices": [
+        "Only the physical layer",
+        "Link and physical",
+        "Network, link and physical",
+        "All five layers"
+      ],
+      "answer": 1,
+      "explain": "A switch forwards frames, so it only needs the link and physical layers."
+    },
+    {
+      "type": "mc",
+      "category": "Switches and routers",
+      "q": "A frame [Hl | Hn | Ht | M] arrives at a router. Up to which layer does the router process it before sending it back down toward the next hop?",
+      "choices": ["Physical", "Link", "Network", "Transport"],
+      "answer": 2,
+      "explain": "A router implements the network, link and physical layers. It processes the frame up to the network layer, where it sees the datagram [Hn | Ht | M], and does not open the transport segment inside."
+    },
+    {
+      "type": "mc",
+      "category": "Switches and routers",
+      "q": "Why do switches and routers implement only the lower layers of the protocol stack?",
+      "choices": [
+        "They only need to forward frames and datagrams, so they never have to work with the transport segment or application message inside",
+        "Transport and application headers are always encrypted and cannot be read",
+        "The source host strips the transport and application headers before the packet leaves",
+        "They implement the upper layers only for traffic addressed to other routers"
+      ],
+      "answer": 0,
+      "explain": "Inside the network, the job is forwarding frames (switches) and datagrams (routers). The transport segment and application message are handled only at the end hosts."
+    },
+    {
+      "type": "tf",
+      "category": "Switches and routers",
+      "q": "True or false: a router on the path must read the transport-layer header Ht to forward a datagram toward its destination.",
+      "answer": false,
+      "explain": "Routers work only up to the network layer and forward datagrams using network-layer information. Ht is used only by the transport layer at the end hosts."
+    },
+    {
+      "type": "multi",
+      "category": "Switches and routers",
+      "q": "On the end-to-end path (source host -> switch -> router -> destination host), which of these implement the transport and application layers?",
+      "choices": ["Source host", "Switch", "Router", "Destination host"],
+      "answer": [0, 3],
+      "explain": "Only the end hosts implement all five layers. The switch implements link and physical, and the router implements network, link and physical."
+    }
+  ]
+}

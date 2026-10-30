@@ -1,0 +1,769 @@
+{
+  "title": "Ch3: TCP Reliability, Flow Control and Connections",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "TCP service model",
+      "q": "What abstraction does TCP give the application for the data it carries?",
+      "choices": [
+        "A reliable, in-order byte stream with no message boundaries",
+        "A sequence of separate messages whose boundaries are preserved",
+        "Best-effort datagrams that may arrive out of order",
+        "A reliable stream from one sender to many receivers"
+      ],
+      "answer": 0,
+      "explain": "TCP delivers a reliable, in-order byte stream and does not preserve the boundaries of the application's writes. UDP is different: it is message-oriented. TCP is also point-to-point, with one sender and one receiver."
+    },
+    {
+      "type": "tf",
+      "category": "TCP service model",
+      "q": "One TCP connection can deliver data from one sender to many receivers at the same time.",
+      "answer": false,
+      "explain": "TCP is point-to-point: one sender, one receiver."
+    },
+    {
+      "type": "tf",
+      "category": "TCP service model",
+      "q": "TCP is full duplex: within the same connection, application data can flow in both directions.",
+      "answer": true,
+      "explain": "Data can flow in both directions over one connection. That is why a single segment can carry data one way and an ACK for the other direction's data, as in the telnet echo example."
+    },
+    {
+      "type": "multi",
+      "category": "TCP service model",
+      "q": "Which of these are properties of TCP?",
+      "choices": [
+        "Cumulative ACKs",
+        "Pipelining (several unACKed segments can be in flight)",
+        "Connection-oriented: a handshake initializes sender and receiver state before data is exchanged",
+        "Flow controlled: the sender won't overwhelm the receiver",
+        "Preserves the boundaries of the application's messages",
+        "One sender delivering to many receivers"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "TCP uses cumulative ACKs (as in Go-Back-N), is pipelined, is connection-oriented, and is flow controlled. It is a byte stream with no message boundaries, and it is point-to-point."
+    },
+    {
+      "type": "mc",
+      "category": "TCP service model",
+      "q": "TCP is pipelined. What determines the size of the sender's window?",
+      "choices": [
+        "TCP's congestion control and flow control",
+        "The MSS, which fixes the window at one segment",
+        "The IP layer, based on the length of the route",
+        "The application, on each write to the socket"
+      ],
+      "answer": 0,
+      "explain": "TCP's congestion control and flow control together set the window size."
+    },
+    {
+      "type": "mc",
+      "category": "TCP service model",
+      "q": "What does TCP's MSS (maximum segment size) limit?",
+      "choices": [
+        "The amount of application data in a single segment's payload",
+        "The number of unACKed segments the sender may have outstanding",
+        "The size of the receiver's socket buffer",
+        "The length of the TCP header, including options"
+      ],
+      "answer": 0,
+      "explain": "MSS caps the application-data payload of one segment. A typical value in practice is 1460 bytes. Outstanding data is limited by the window, and the receive buffer's size is RcvBuffer."
+    },
+    {
+      "type": "mc",
+      "category": "TCP service model",
+      "q": "What does it mean that TCP is connection-oriented?",
+      "choices": [
+        "The two hosts exchange control messages (a handshake) that initialize sender and receiver state before data flows",
+        "Routers along the path reserve a dedicated circuit for the connection",
+        "Every segment of a connection is guaranteed to follow the same route",
+        "The receiver must acknowledge each byte individually"
+      ],
+      "answer": 0,
+      "explain": "Before any data is sent, the handshake sets up the connection state in both hosts, including the starting sequence numbers and receive buffer sizes."
+    },
+    {
+      "type": "mc",
+      "category": "Segment structure",
+      "q": "Why does the TCP header include a header length field?",
+      "choices": [
+        "The options field is variable length, so the header itself is variable length",
+        "The payload can be up to MSS bytes, so the receiver needs the payload size",
+        "The sequence number field can be either 16 or 32 bits",
+        "It tells the other side how many bytes it may send"
+      ],
+      "answer": 0,
+      "explain": "TCP options can be present in varying number, so the header length varies and has to be given explicitly. The number of bytes the other side may send is in the receive window field."
+    },
+    {
+      "type": "multi",
+      "category": "Segment structure",
+      "q": "Which TCP header flag bits are used for connection management (setting up and tearing down connections)?",
+      "choices": [
+        "RST",
+        "SYN",
+        "FIN",
+        "C",
+        "E",
+        "URG"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "RST, SYN and FIN are the connection-management bits. C and E are for congestion notification, and the urgent field is not really used in practice."
+    },
+    {
+      "type": "mc",
+      "category": "Segment structure",
+      "q": "What are the C and E bits in the TCP header used for?",
+      "choices": [
+        "Congestion notification",
+        "Connection setup and teardown",
+        "Marking a segment as an acknowledgment",
+        "Marking urgent data"
+      ],
+      "answer": 0,
+      "explain": "C and E carry congestion notification. RST/SYN/FIN handle connection management, and the A bit marks a segment as an ACK."
+    },
+    {
+      "type": "mc",
+      "category": "Segment structure",
+      "q": "What does the receive window field in a TCP header tell the other side?",
+      "choices": [
+        "The number of bytes the receiver is willing to accept",
+        "The sequence number of the next byte expected",
+        "The number of segments that may be sent per RTT",
+        "The length of the TCP header"
+      ],
+      "answer": 0,
+      "explain": "The receive window field (rwnd) is used for flow control. The next byte expected is carried in the acknowledgment number."
+    },
+    {
+      "type": "num",
+      "category": "Segment structure",
+      "q": "How many bits long is the TCP sequence number field? (The acknowledgment number field is the same size.)",
+      "answer": 32,
+      "explain": "Both the sequence number and the acknowledgment number are 32-bit fields."
+    },
+    {
+      "type": "mc",
+      "category": "Segment structure",
+      "q": "What are the source and destination port numbers in the TCP header used for?",
+      "choices": [
+        "Multiplexing and demultiplexing data to and from the right sockets",
+        "Flow control",
+        "Detecting bit errors in the segment",
+        "Putting bytes in order in the byte stream"
+      ],
+      "answer": 0,
+      "explain": "Port numbers are used for multiplexing and demultiplexing. Error detection uses the checksum, ordering uses sequence numbers, and flow control uses the receive window."
+    },
+    {
+      "type": "tf",
+      "category": "Segment structure",
+      "q": "The URG bit and urgent data pointer are widely used by TCP applications.",
+      "answer": false,
+      "explain": "The urgent field is still in the header, but it is not really used in practice."
+    },
+    {
+      "type": "tf",
+      "category": "Segment structure",
+      "q": "The TCP header carries an Internet checksum, the same kind of error-detection field that UDP uses.",
+      "answer": true,
+      "explain": "TCP uses the Internet checksum, just as UDP does."
+    },
+    {
+      "type": "mc",
+      "category": "Sequence numbers and ACKs",
+      "q": "What does the sequence number in a TCP segment identify?",
+      "choices": [
+        "The byte-stream number of the first data byte in the segment",
+        "How many segments the sender has sent so far",
+        "The byte-stream number of the last data byte in the segment",
+        "The next byte the sender expects to receive"
+      ],
+      "answer": 0,
+      "explain": "TCP counts bytes of the byte stream, not segments. The next byte expected is what the acknowledgment number gives."
+    },
+    {
+      "type": "mc",
+      "category": "Sequence numbers and ACKs",
+      "q": "A segment from B to A has the ACK bit set and acknowledgment number 500. What does this tell A?",
+      "choices": [
+        "B has received every byte up to and including byte 499 and expects byte 500 next",
+        "B has received byte 500",
+        "B has received exactly 500 segments",
+        "B received byte 500 out of order and is missing earlier bytes"
+      ],
+      "answer": 0,
+      "explain": "The acknowledgment number is the sequence number of the next byte expected from the other side. The ACK is cumulative, so it covers every byte before that number."
+    },
+    {
+      "type": "num",
+      "category": "Sequence numbers and ACKs",
+      "q": "Host A sends a segment with Seq=92 that contains 8 bytes of data. B has already received every earlier byte, and this segment arrives intact. What acknowledgment number does B's ACK carry?",
+      "answer": 100,
+      "explain": "The segment carries bytes 92 through 99, so the next byte B expects is 92 + 8 = 100."
+    },
+    {
+      "type": "num",
+      "category": "Sequence numbers and ACKs",
+      "q": "Host A has just sent a segment with Seq=120 that carries 15 bytes of data. What sequence number will A's next new segment carry?",
+      "answer": 135,
+      "explain": "The segment covers bytes 120 through 134, so the next new byte is 120 + 15 = 135."
+    },
+    {
+      "type": "num",
+      "category": "Sequence numbers and ACKs",
+      "q": "Telnet echo: the user on Host A types 'C', and A sends Seq=42, ACK=79, data='C'. Host B echoes it back with Seq=79, ACK=43, data='C'. What acknowledgment number is in the segment A sends to acknowledge the echoed 'C'?",
+      "answer": 80,
+      "explain": "B's echo carried one byte numbered 79, so A next expects byte 80. Each ACK is one more than the sequence number of the one-byte segment that triggered it."
+    },
+    {
+      "type": "num",
+      "category": "Sequence numbers and ACKs",
+      "q": "Telnet echo: A sent Seq=42 carrying one byte ('C'), and B's echo carried ACK=43. What sequence number does A's next segment (the one acknowledging B's echo) carry?",
+      "answer": 43,
+      "explain": "A's 'C' was byte 42, so A's next byte is 43. That matches the ACK=43 that B sent."
+    },
+    {
+      "type": "num",
+      "category": "Sequence numbers and ACKs",
+      "q": "A TCP receiver has received bytes 0 through 99 in order. Next, a segment with bytes 200 through 299 arrives, but bytes 100 through 199 have not arrived. What acknowledgment number does the receiver send?",
+      "answer": 100,
+      "explain": "ACKs are cumulative and give the next byte expected in order. The receiver sends ACK=100 (a duplicate ACK) even though it holds bytes 200-299."
+    },
+    {
+      "type": "tf",
+      "category": "Sequence numbers and ACKs",
+      "q": "The TCP specification requires a receiver to discard segments that arrive out of order.",
+      "answer": false,
+      "explain": "The TCP spec doesn't say what to do with out-of-order segments. The implementer decides whether to buffer them or drop them."
+    },
+    {
+      "type": "mc",
+      "category": "Sequence numbers and ACKs",
+      "q": "In the sender's sequence-number space, what are bytes called that have been sent but not yet ACKed?",
+      "choices": [
+        "In-flight",
+        "Usable but not yet sent",
+        "Not usable",
+        "Sent and ACKed"
+      ],
+      "answer": 0,
+      "explain": "The window of size N covers the in-flight bytes plus the usable-but-not-yet-sent bytes. Bytes beyond the window are not usable until ACKs move the window forward."
+    },
+    {
+      "type": "mc",
+      "category": "RTT estimation and timeout",
+      "q": "What goes wrong if TCP's timeout interval is set too short?",
+      "choices": [
+        "Premature timeouts cause unnecessary retransmissions",
+        "The sender is slow to react to segment loss",
+        "The receiver's buffer overflows",
+        "The connection can't be established"
+      ],
+      "answer": 0,
+      "explain": "If the timeout is shorter than the RTT, the timer fires before the ACK can arrive, so segments that were not lost get resent. A timeout that is too long has the opposite problem: TCP reacts slowly to real loss."
+    },
+    {
+      "type": "tf",
+      "category": "RTT estimation and timeout",
+      "q": "Setting the timeout interval far longer than the RTT does no harm, because it only prevents unnecessary retransmissions.",
+      "answer": false,
+      "explain": "With a timeout that is too long, TCP reacts slowly to segment loss. It waits a long time before resending a segment that really was lost."
+    },
+    {
+      "type": "mc",
+      "category": "RTT estimation and timeout",
+      "q": "How does TCP obtain a SampleRTT measurement?",
+      "choices": [
+        "The time from sending a segment until its ACK arrives, ignoring retransmitted segments",
+        "The time from sending a segment until its ACK arrives, including retransmitted segments",
+        "The receiver timestamps each segment and reports the one-way delay",
+        "The average of the last 8 timeout intervals"
+      ],
+      "answer": 0,
+      "explain": "SampleRTT is the time from sending a segment until its ACK arrives. Retransmitted segments are not used as samples."
+    },
+    {
+      "type": "num",
+      "category": "RTT estimation and timeout",
+      "q": "EstimatedRTT is currently 100 ms, and a new SampleRTT of 140 ms is measured. Using EstimatedRTT = (1 - α)·EstimatedRTT + α·SampleRTT with α = 0.125, what is the new EstimatedRTT in ms?",
+      "answer": 105,
+      "tolerance": 0.01,
+      "explain": "0.875 × 100 + 0.125 × 140 = 87.5 + 17.5 = 105 ms."
+    },
+    {
+      "type": "num",
+      "category": "RTT estimation and timeout",
+      "q": "DevRTT is currently 10 ms. A new SampleRTT of 140 ms is measured while EstimatedRTT is 100 ms. Using DevRTT = (1 - β)·DevRTT + β·|SampleRTT - EstimatedRTT| with β = 0.25, what is the new DevRTT in ms?",
+      "answer": 17.5,
+      "tolerance": 0.01,
+      "explain": "|140 - 100| = 40, and 0.75 × 10 + 0.25 × 40 = 7.5 + 10 = 17.5 ms."
+    },
+    {
+      "type": "num",
+      "category": "RTT estimation and timeout",
+      "q": "EstimatedRTT = 105 ms and DevRTT = 17.5 ms. What is TCP's TimeoutInterval in ms?",
+      "answer": 175,
+      "tolerance": 0.01,
+      "explain": "TimeoutInterval = EstimatedRTT + 4·DevRTT = 105 + 4 × 17.5 = 105 + 70 = 175 ms."
+    },
+    {
+      "type": "mc",
+      "category": "RTT estimation and timeout",
+      "q": "Why does TCP base its timeout on a smoothed EstimatedRTT instead of the most recent SampleRTT?",
+      "choices": [
+        "SampleRTT values vary a lot from one to the next, so averaging recent samples gives a steadier estimate",
+        "The most recent SampleRTT is always too small",
+        "SampleRTT can only be measured once per connection",
+        "Using SampleRTT directly would require the sender's and receiver's clocks to be synchronized"
+      ],
+      "answer": 0,
+      "explain": "Individual samples fluctuate a lot, so TCP averages several recent measurements to get a smoother estimate."
+    },
+    {
+      "type": "mc",
+      "category": "RTT estimation and timeout",
+      "q": "In EstimatedRTT = (1 - α)·EstimatedRTT + α·SampleRTT, what happens if α is made larger?",
+      "choices": [
+        "The newest sample gets more weight, so the estimate tracks changes faster",
+        "Old samples get more weight, so the estimate changes more slowly",
+        "The safety margin in the timeout grows",
+        "Retransmitted segments are included in the average"
+      ],
+      "answer": 0,
+      "explain": "α is the weight given to the newest sample. With the typical α = 0.125, each new sample counts for 1/8, and the influence of older samples decays exponentially."
+    },
+    {
+      "type": "text",
+      "category": "RTT estimation and timeout",
+      "q": "TCP averages RTT samples with a method in which the influence of past samples decreases exponentially fast. What is it called? (Full name or abbreviation.)",
+      "answer": [
+        "exponential weighted moving average",
+        "exponentially weighted moving average",
+        "EWMA",
+        "exponential weighted average",
+        "exponentially weighted average"
+      ],
+      "explain": "It is the exponential weighted moving average (EWMA). TCP uses it for both EstimatedRTT and DevRTT."
+    },
+    {
+      "type": "mc",
+      "category": "RTT estimation and timeout",
+      "q": "Why does TimeoutInterval add 4·DevRTT to EstimatedRTT?",
+      "choices": [
+        "It is a safety margin that grows when the RTT varies a lot, so timeouts don't fire too early",
+        "It covers the time the receiver waits before sending a delayed ACK",
+        "It covers the four segments of the connection handshake",
+        "It makes the timeout exactly 4 RTTs"
+      ],
+      "answer": 0,
+      "explain": "DevRTT is an EWMA of how far SampleRTT is from EstimatedRTT. When the variation is large, the safety margin is larger."
+    },
+    {
+      "type": "num",
+      "category": "RTT estimation and timeout",
+      "q": "What is the typical value of α used to compute EstimatedRTT?",
+      "answer": 0.125,
+      "explain": "The typical α is 0.125 (1/8). For DevRTT, the typical β is 0.25."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sender and receiver",
+      "q": "In the simplified TCP sender, what happens when the timer expires?",
+      "choices": [
+        "Retransmit the segment that caused the timeout, and restart the timer",
+        "Retransmit every unACKed segment in the window",
+        "Close the connection and report an error",
+        "Wait for three duplicate ACKs before resending"
+      ],
+      "answer": 0,
+      "explain": "On a timeout, the sender resends only the segment that caused it and restarts the timer."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sender and receiver",
+      "q": "The simplified TCP sender uses a single retransmission timer. Which segment is it useful to think of that timer as belonging to?",
+      "choices": [
+        "The oldest unACKed segment",
+        "The most recently sent segment",
+        "The segment with the largest sequence number",
+        "The segment acknowledged by the most recent ACK"
+      ],
+      "answer": 0,
+      "explain": "The timer is started if it isn't already running, and it expires after TimeoutInterval. Whether an implementation uses one timer or several is an implementation detail."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sender and receiver",
+      "q": "The TCP sender receives an ACK that acknowledges previously unACKed data. What does it do?",
+      "choices": [
+        "Update what is known to be ACKed, and start the timer if any segments are still unACKed",
+        "Retransmit the oldest unACKed segment",
+        "Stop the timer for good, even if data is still outstanding",
+        "Ignore it unless it is a duplicate"
+      ],
+      "answer": 0,
+      "explain": "A new ACK moves forward what is known to be ACKed. The timer keeps running only while some data is still unACKed."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sender and receiver",
+      "q": "A segment with the expected sequence number arrives in order, and all data before it has already been ACKed. What does a typical TCP receiver do?",
+      "choices": [
+        "Delay the ACK: wait up to 500 ms for the next in-order segment, and send an ACK if none arrives",
+        "Immediately send a duplicate ACK",
+        "Always immediately ACK this segment by itself",
+        "Discard the segment"
+      ],
+      "answer": 0,
+      "explain": "Delaying the ACK reduces ACK traffic. If a second in-order segment arrives during the wait, the receiver immediately sends one cumulative ACK that covers both."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sender and receiver",
+      "q": "A segment arrives with a higher sequence number than expected, so the receiver detects a gap. What does the receiver do?",
+      "choices": [
+        "Immediately send a duplicate ACK giving the sequence number of the next expected byte",
+        "Send an ACK for the last byte of the new segment",
+        "Wait up to 500 ms before sending any ACK",
+        "Send a FIN to reset the connection"
+      ],
+      "answer": 0,
+      "explain": "Cumulative ACKs can only name the next in-order byte, so the receiver repeats its previous ACK number. That is a duplicate ACK."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sender and receiver",
+      "q": "A segment arrives that partly or completely fills a gap at the low end of the receiver's window. What does the receiver do?",
+      "choices": [
+        "Immediately send a cumulative ACK for all the data now received in order",
+        "Send a duplicate ACK for the old expected byte",
+        "Wait up to 500 ms in case another segment arrives",
+        "Send nothing and let the sender's timer handle it"
+      ],
+      "answer": 0,
+      "explain": "Filling the gap advances the in-order data, so the receiver right away acknowledges everything it now has in order."
+    },
+    {
+      "type": "num",
+      "category": "TCP sender and receiver",
+      "q": "Premature timeout: Host A sends Seq=92 (8 bytes), then Seq=100 (20 bytes). Both reach B, but A's timer expires before the ACKs get back, and A retransmits Seq=92. What acknowledgment number does B send when the retransmitted Seq=92 arrives?",
+      "answer": 120,
+      "explain": "B already has bytes 92 through 119, so its cumulative ACK gives the next expected byte, 120, not 100."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sender and receiver",
+      "q": "Host A sends Seq=92 (8 bytes) and Seq=100 (20 bytes). B's ACK=100 is lost, but ACK=120 reaches A before A's timer expires. What happens next?",
+      "choices": [
+        "A retransmits nothing. ACK=120 is cumulative, so it shows both segments arrived, and A can go on to send Seq=120",
+        "A retransmits Seq=92 because its ACK never arrived",
+        "A retransmits both segments",
+        "A waits for a timeout and then retransmits Seq=100"
+      ],
+      "answer": 0,
+      "explain": "Because ACKs are cumulative, a later ACK covers for an earlier one that was lost."
+    },
+    {
+      "type": "tf",
+      "category": "TCP sender and receiver",
+      "q": "Lost ACK scenario: A sends Seq=92 with 8 bytes. B's ACK=100 is lost, and A's timer expires. A retransmits Seq=92, and B, which already has those bytes, replies with ACK=100 again.",
+      "answer": true,
+      "explain": "The timeout causes the retransmission. B receives a duplicate of data it already has and acknowledges it again with the same cumulative ACK."
+    },
+    {
+      "type": "mc",
+      "category": "Fast retransmit",
+      "q": "What event triggers TCP fast retransmit?",
+      "choices": [
+        "The sender receives 3 additional (duplicate) ACKs for the same data",
+        "The sender receives 1 duplicate ACK",
+        "The retransmission timer expires",
+        "The receiver advertises rwnd = 0"
+      ],
+      "answer": 0,
+      "explain": "Receiving triple duplicate ACKs causes the sender to resend before the timer expires."
+    },
+    {
+      "type": "mc",
+      "category": "Fast retransmit",
+      "q": "When fast retransmit fires, which segment does the sender resend?",
+      "choices": [
+        "The unACKed segment with the smallest sequence number",
+        "The most recently sent segment",
+        "Every segment sent after the one being duplicate-ACKed",
+        "The segment with the largest sequence number in the window"
+      ],
+      "answer": 0,
+      "explain": "The duplicate ACKs all name the first missing byte, which is the start of the oldest unACKed segment. That is the segment the sender resends."
+    },
+    {
+      "type": "mc",
+      "category": "Fast retransmit",
+      "q": "Why do three duplicate ACKs justify retransmitting without waiting for a timeout?",
+      "choices": [
+        "Each duplicate ACK means a later segment arrived while an earlier one was missing, so three of them make it likely that segment was lost",
+        "Duplicate ACKs mean the receiver's buffer is full",
+        "Duplicate ACKs mean the RTT estimate is wrong",
+        "Three duplicate ACKs mean the connection is closing"
+      ],
+      "answer": 0,
+      "explain": "Three segments were received after a missing one, so the missing segment was probably lost. Resending right away lets TCP recover sooner."
+    },
+    {
+      "type": "num",
+      "category": "Fast retransmit",
+      "q": "Host A sends Seq=92 (8 bytes), Seq=100 (20 bytes), and three more segments. The Seq=100 segment is lost, and every other segment arrives. Counting all of them, how many ACKs carrying ACK=100 does A receive before fast retransmit resends the missing segment?",
+      "answer": 4,
+      "explain": "The first ACK=100 is the normal ACK for the Seq=92 segment. Each of the three later segments triggers a duplicate ACK=100. The third duplicate, which is the fourth ACK=100 overall, triggers the resend."
+    },
+    {
+      "type": "num",
+      "category": "Fast retransmit",
+      "q": "Same scenario: Seq=92 (8 bytes) arrives, Seq=100 (20 bytes) is lost, and three later segments arrive. What sequence number does the fast-retransmitted segment carry?",
+      "answer": 100,
+      "explain": "The duplicate ACKs all say ACK=100. The unACKed segment with the smallest sequence number is the Seq=100 segment, so that one is resent."
+    },
+    {
+      "type": "tf",
+      "category": "Fast retransmit",
+      "q": "With fast retransmit, the sender still waits for the retransmission timer to expire before resending; the duplicate ACKs only confirm the loss.",
+      "answer": false,
+      "explain": "The point of fast retransmit is to resend as soon as the third duplicate ACK arrives, without waiting for the timeout."
+    },
+    {
+      "type": "mc",
+      "category": "Flow control",
+      "q": "What problem does TCP flow control address?",
+      "choices": [
+        "The network layer delivers data into the receiver's socket buffer faster than the application removes it, so the buffer could overflow",
+        "Routers drop packets because the network is congested",
+        "Bit errors corrupt segment payloads",
+        "Segments arrive out of order"
+      ],
+      "answer": 0,
+      "explain": "Flow control keeps the sender from overflowing the receiver's buffer by sending too much, too fast."
+    },
+    {
+      "type": "mc",
+      "category": "Flow control",
+      "q": "In TCP flow control, which side controls which?",
+      "choices": [
+        "The receiver controls the sender",
+        "The sender controls the receiver",
+        "Routers control both hosts",
+        "The sending application sets the receiver's buffer size"
+      ],
+      "answer": 0,
+      "explain": "The receiver advertises its free buffer space in rwnd, and the sender keeps within it."
+    },
+    {
+      "type": "num",
+      "category": "Flow control",
+      "q": "A receiver's RcvBuffer is 4096 bytes. There are 1500 bytes of received data in the buffer that the application hasn't read yet. What rwnd does the receiver advertise, in bytes?",
+      "answer": 2596,
+      "explain": "rwnd is the free space in the buffer: 4096 - 1500 = 2596 bytes."
+    },
+    {
+      "type": "num",
+      "category": "Flow control",
+      "q": "The latest rwnd a TCP sender received is 2000 bytes, and the sender has 1500 bytes of unACKed (in-flight) data. How many more bytes can it send before more ACKs or window updates arrive?",
+      "answer": 500,
+      "explain": "The sender limits its in-flight data to rwnd, so it can send 2000 - 1500 = 500 more bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Flow control",
+      "q": "How does the TCP sender use the rwnd value it receives?",
+      "choices": [
+        "It keeps the amount of unACKed (in-flight) data at or below rwnd",
+        "It puts exactly rwnd bytes in every segment",
+        "It sets its retransmission timeout to rwnd milliseconds",
+        "It waits for rwnd ACKs before sending more"
+      ],
+      "answer": 0,
+      "explain": "If in-flight data never exceeds the advertised free space, the receive buffer is guaranteed not to overflow."
+    },
+    {
+      "type": "tf",
+      "category": "Flow control",
+      "q": "The size of a TCP receiver's buffer (RcvBuffer) is fixed by the protocol and can't be changed.",
+      "answer": false,
+      "explain": "RcvBuffer is set through socket options (a typical default is 4096 bytes), and many operating systems adjust it automatically."
+    },
+    {
+      "type": "text",
+      "category": "Flow control",
+      "q": "What is the TCP header field in which the receiver advertises its free buffer space? (Short or full name.)",
+      "answer": [
+        "rwnd",
+        "receive window",
+        "receiver window",
+        "rcvwnd",
+        "receive window field"
+      ],
+      "explain": "The receive window, rwnd, gives the number of bytes the receiver is willing to accept."
+    },
+    {
+      "type": "multi",
+      "category": "Connection management",
+      "q": "What do the sender and receiver accomplish with the handshake before exchanging data?",
+      "choices": [
+        "Agree to establish the connection, each knowing the other is willing",
+        "Agree on connection parameters such as starting sequence numbers",
+        "Reserve bandwidth at the routers along the path",
+        "Choose the route their segments will take"
+      ],
+      "answer": [0, 1],
+      "explain": "The handshake sets up state in each host: the connection state (ESTAB), the sequence numbers in each direction, and the receive buffer sizes. It doesn't involve the routers."
+    },
+    {
+      "type": "multi",
+      "category": "Connection management",
+      "q": "Why can a simple 2-way handshake (request, then accept) fail in a real network?",
+      "choices": [
+        "Delays are variable",
+        "Messages such as req_conn(x) may be retransmitted after a loss",
+        "Messages can be reordered",
+        "Neither side can 'see' the other side's state",
+        "The checksum can't cover handshake messages"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Variable delays, retransmissions and reordering can make an old copy of a message arrive late. Each side has only the messages it receives to go on, so it can mistake an old copy for a new one."
+    },
+    {
+      "type": "mc",
+      "category": "Connection management",
+      "q": "2-way handshake failure: the client's req_conn(x) is delayed, so the client retransmits it. The connection is set up and finishes, the client terminates, and the server forgets x. Then the old req_conn(x) reaches the server. What goes wrong?",
+      "choices": [
+        "The server enters ESTAB for a half-open connection that has no client",
+        "The server rejects the old request, so nothing goes wrong",
+        "The client automatically reopens the connection",
+        "The server sends a FIN to the terminated client"
+      ],
+      "answer": 0,
+      "explain": "In a 2-way handshake, the server can't tell an old duplicate request from a new one, so it opens a connection that has no client."
+    },
+    {
+      "type": "mc",
+      "category": "Connection management",
+      "q": "2-way handshake failure: the client retransmits both req_conn(x) and data(x+1). After the original connection completes and the server forgets x, the old copies of req_conn(x) and data(x+1) arrive. What happens?",
+      "choices": [
+        "The server opens a new connection and accepts data(x+1) again, so duplicate data is accepted",
+        "The server uses the checksum to detect the duplicates and drops them",
+        "The server sends acc_conn(x), and the client resends all its data",
+        "Nothing happens, because the client has terminated"
+      ],
+      "answer": 0,
+      "explain": "Duplicate data is accepted. TCP's 3-way handshake prevents this: the server waits for the client to acknowledge the server's own freshly chosen sequence number before treating the connection as established."
+    },
+    {
+      "type": "num",
+      "category": "Connection management",
+      "q": "TCP 3-way handshake: the client chooses initial sequence number x = 1000 and sends a SYN with Seq=1000. What acknowledgment number is in the server's SYNACK?",
+      "answer": 1001,
+      "explain": "The SYNACK has SYNbit=1, Seq=y, ACKbit=1 and ACKnum = x + 1 = 1001."
+    },
+    {
+      "type": "num",
+      "category": "Connection management",
+      "q": "Same handshake: the server's SYNACK has Seq=5000 (its chosen initial sequence number y). What acknowledgment number is in the client's final ACK?",
+      "answer": 5001,
+      "explain": "The third segment has ACKbit=1 and ACKnum = y + 1 = 5001."
+    },
+    {
+      "type": "mc",
+      "category": "Connection management",
+      "q": "Which flag bits are set in the second segment of the TCP 3-way handshake (the SYNACK)?",
+      "choices": [
+        "SYN = 1 and ACK = 1",
+        "SYN = 1 only",
+        "ACK = 1 only",
+        "FIN = 1 and ACK = 1"
+      ],
+      "answer": 0,
+      "explain": "The server sends its own SYN (Seq=y) and acknowledges the client's SYN (ACKnum=x+1) in the same segment."
+    },
+    {
+      "type": "mc",
+      "category": "Connection management",
+      "q": "Which segment of the TCP 3-way handshake may already carry client-to-server data?",
+      "choices": [
+        "The third segment (the client's ACK of the SYNACK)",
+        "The first segment (the client's SYN)",
+        "The second segment (the server's SYNACK)",
+        "None of them; data can flow only after a fourth confirmation segment"
+      ],
+      "answer": 0,
+      "explain": "Once the client receives the SYNACK, it knows the server is live and moves to ESTAB, so its ACK may carry client-to-server data."
+    },
+    {
+      "type": "mc",
+      "category": "Connection management",
+      "q": "During the 3-way handshake, what state is the server in after it receives the client's SYN and sends a SYNACK, but before the final ACK arrives?",
+      "choices": [
+        "SYN RCVD",
+        "SYNSENT",
+        "LISTEN",
+        "ESTAB"
+      ],
+      "answer": 0,
+      "explain": "The server goes LISTEN, then SYN RCVD, then ESTAB once the client's ACK arrives. The client goes to SYNSENT after sending its SYN, then to ESTAB when the SYNACK arrives."
+    },
+    {
+      "type": "mc",
+      "category": "Connection management",
+      "q": "In the 3-way handshake, what does the client learn when it receives the SYNACK?",
+      "choices": [
+        "The server is live, so the client moves to ESTAB and sends an ACK",
+        "The server's receive buffer is full",
+        "The server is closing the connection",
+        "Nothing, until the server sends a fourth segment"
+      ],
+      "answer": 0,
+      "explain": "The SYNACK tells the client the server is live. In the same way, the client's ACK(y) tells the server the client is live."
+    },
+    {
+      "type": "mc",
+      "category": "Connection management",
+      "q": "In a Python TCP client, which call starts the 3-way handshake with the server?",
+      "choices": [
+        "clientSocket.connect((serverName, serverPort))",
+        "socket(AF_INET, SOCK_STREAM)",
+        "serverSocket.listen(1)",
+        "serverSocket.bind(('', serverPort))"
+      ],
+      "answer": 0,
+      "explain": "Creating the socket doesn't contact the server. connect() is the call that sends the SYN. On the server side, accept() returns the new connection socket."
+    },
+    {
+      "type": "mc",
+      "category": "Connection management",
+      "q": "How is a TCP connection closed?",
+      "choices": [
+        "Each side closes its own side by sending a segment with FIN = 1, and each FIN received is answered with an ACK",
+        "One side sends RST and the connection ends with no reply",
+        "The client sends a segment with SYN = 0",
+        "Both sides stop sending, and the connection times out"
+      ],
+      "answer": 0,
+      "explain": "Each side sends a FIN, and each FIN is acknowledged."
+    },
+    {
+      "type": "tf",
+      "category": "Connection management",
+      "q": "A host that receives a FIN can combine its ACK of that FIN with its own FIN in a single segment.",
+      "answer": true,
+      "explain": "After receiving a FIN, a host's ACK can be combined with its own FIN."
+    },
+    {
+      "type": "tf",
+      "category": "Connection management",
+      "q": "If both sides send a FIN at the same time, TCP can't handle it and the connection must be reset.",
+      "answer": false,
+      "explain": "TCP handles simultaneous FIN exchanges."
+    }
+  ]
+}

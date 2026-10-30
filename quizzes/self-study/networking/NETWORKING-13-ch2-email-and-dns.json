@@ -1,0 +1,811 @@
+{
+  "title": "NETWORKING 13: Email (SMTP, IMAP) and DNS",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Email infrastructure",
+      "q": "Which three components make up email as a distributed application?",
+      "choices": [
+        "Web browsers, DNS servers, and HTTP",
+        "User agents, mail servers, and SMTP",
+        "User agents, DNS resolvers, and IMAP",
+        "Mail servers, routers, and TCP"
+      ],
+      "answer": 1,
+      "explain": "Email has user agents (mail clients), mail servers (which hold mailboxes and outgoing queues), and SMTP, the protocol that moves messages to and between servers."
+    },
+    {
+      "type": "mc",
+      "category": "Email infrastructure",
+      "q": "A mail server keeps two sets of messages for the users it serves. What are they?",
+      "choices": [
+        "A cache of recently read messages and a list of blocked senders",
+        "A mailbox of incoming messages for each user, and a queue of outgoing messages waiting to be sent",
+        "A queue of incoming messages waiting for a DNS lookup, and a mailbox of drafts",
+        "Only mailboxes. Outgoing mail goes straight from the user agent to the recipient's server"
+      ],
+      "answer": 1,
+      "explain": "The mailbox holds a user's incoming and previously received messages. The message queue holds outgoing messages waiting to be sent to the destination mail server."
+    },
+    {
+      "type": "mc",
+      "category": "Email infrastructure",
+      "q": "Alice's mail server pushes her message to Bob's mail server with SMTP. Which machine is the SMTP client here?",
+      "choices": [
+        "Alice's mail server (the sending server)",
+        "Bob's mail server (the receiving server)",
+        "Bob's user agent",
+        "Alice's local DNS server"
+      ],
+      "answer": 0,
+      "explain": "In SMTP the client is the side that sends the mail and the server is the side that receives it. A mail server is the client when it sends and the server when it receives."
+    },
+    {
+      "type": "mc",
+      "category": "Email infrastructure",
+      "q": "In the Alice-to-Bob scenario, what happens right after Alice's user agent sends the message to her own mail server with SMTP?",
+      "choices": [
+        "Bob's user agent downloads the message with IMAP",
+        "Bob's mail server places the message in Bob's mailbox",
+        "The message is placed in the outgoing message queue on Alice's mail server",
+        "Alice's user agent opens a TCP connection directly to Bob's mail server"
+      ],
+      "answer": 2,
+      "explain": "The steps are: (1) Alice composes in her UA, (2) the UA sends the message to her mail server with SMTP and it goes into the message queue, (3) her server's SMTP client opens a TCP connection to Bob's server, (4) it sends the message, (5) Bob's server puts it in Bob's mailbox, and (6) Bob reads it with his UA."
+    },
+    {
+      "type": "tf",
+      "category": "Email infrastructure",
+      "q": "For Alice's message to be delivered, Bob's user agent must be running at the moment Alice's mail server transfers the message.",
+      "answer": false,
+      "explain": "Bob's mail server accepts the message and stores it in Bob's mailbox. Bob can open his user agent and read it at any later time, so delivery and reading are asynchronous."
+    },
+    {
+      "type": "multi",
+      "category": "Email infrastructure",
+      "q": "Which tasks belong to the user agent (the 'mail reader')?",
+      "choices": [
+        "Composing messages",
+        "Editing messages",
+        "Reading messages",
+        "Accepting incoming SMTP connections from other mail servers on port 25",
+        "Holding the outgoing message queue that is sent on to destination servers"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The user agent (for example Outlook or the iPhone mail client) is for composing, editing, and reading mail. Accepting SMTP connections and holding the outgoing queue are mail server jobs, and the messages themselves are stored on the server."
+    },
+    {
+      "type": "num",
+      "category": "SMTP protocol",
+      "q": "On which well-known port does an SMTP server listen?",
+      "answer": 25,
+      "explain": "SMTP servers listen on port 25, so a sending client always knows where to connect."
+    },
+    {
+      "type": "mc",
+      "category": "SMTP protocol",
+      "q": "Which transport service does SMTP run on, and why?",
+      "choices": [
+        "UDP, because email is delay-sensitive",
+        "TCP, to transfer email reliably from client to server",
+        "Directly on IP, with no transport layer",
+        "UDP, because each message fits in one datagram"
+      ],
+      "answer": 1,
+      "explain": "SMTP (RFC 5321) uses TCP so that email moves reliably from the client to the server. SMTP handshaking starts only after the TCP connection is set up."
+    },
+    {
+      "type": "mc",
+      "category": "SMTP protocol",
+      "q": "After the TCP connection is set up, what are SMTP's three phases, in order?",
+      "choices": [
+        "Handshaking (greeting), transfer of messages, closure",
+        "Transfer of messages, handshaking, closure",
+        "DNS lookup, handshaking, transfer of messages",
+        "Authentication, transfer of messages, per-byte acknowledgment"
+      ],
+      "answer": 0,
+      "explain": "SMTP greets first (handshaking), then transfers one or more messages, and then closes the SMTP session. After that the TCP connection can close."
+    },
+    {
+      "type": "mc",
+      "category": "SMTP protocol",
+      "q": "Which exchange is the SMTP handshake?",
+      "choices": [
+        "Client sends HELO, server sends 220, client sends 250",
+        "Client sends MAIL FROM, server replies 221, client sends DATA",
+        "Server sends 220 with its hostname, client sends HELO, server replies 250 Hello",
+        "Server sends 250 Hello, client sends QUIT, server sends 221"
+      ],
+      "answer": 2,
+      "explain": "After TCP setup the receiving server speaks first with a 220 greeting that carries its hostname. The client answers with HELO and its own hostname, and the server replies 250 Hello ... pleased to meet you."
+    },
+    {
+      "type": "text",
+      "category": "SMTP protocol",
+      "q": "During an SMTP session, which command does the client send to tell the server that the message content itself is about to start?",
+      "answer": ["DATA", "data", "Data"],
+      "explain": "After MAIL FROM and RCPT TO identify the sender and recipient, the client sends DATA. The message content follows and ends with a line that holds only a period."
+    },
+    {
+      "type": "mc",
+      "category": "SMTP protocol",
+      "q": "How does the receiving SMTP server tell where a message's content ends?",
+      "choices": [
+        "From a Content-Length header that gives the byte count",
+        "A line that contains only a period (CRLF.CRLF)",
+        "The client closes the TCP connection",
+        "A blank line after the body"
+      ],
+      "answer": 1,
+      "explain": "The server uses CRLF.CRLF, a line containing only a period, to find the end of the message. A blank line is what separates the header from the body."
+    },
+    {
+      "type": "mc",
+      "category": "SMTP protocol",
+      "q": "The client has finished sending its messages. How does the SMTP session end?",
+      "choices": [
+        "The client sends a line with only a period and the server disconnects right away",
+        "The server sends 220 again",
+        "The client sends HELO with an empty hostname",
+        "The client sends QUIT, the server replies 221, and the connection closes"
+      ],
+      "answer": 3,
+      "explain": "QUIT ends the SMTP session. The server answers 221 (closing connection) and the TCP connection can then close. The lone period only ends a single message."
+    },
+    {
+      "type": "mc",
+      "category": "SMTP protocol",
+      "q": "In the sample SMTP session, which client command lines name the sender and the recipient for the transfer?",
+      "choices": [
+        "MAIL FROM: and RCPT TO:",
+        "From: and To:",
+        "HELO and DATA",
+        "220 and 250"
+      ],
+      "answer": 0,
+      "explain": "MAIL FROM: and RCPT TO: are SMTP commands. The From: and To: lines are header lines inside the message itself, which is a separate thing. 220 and 250 are server status codes."
+    },
+    {
+      "type": "tf",
+      "category": "SMTP protocol",
+      "q": "SMTP usually relays a message through a chain of intermediate mail servers between the sender's mail server and the receiver's mail server.",
+      "answer": false,
+      "explain": "SMTP transfers directly: the sending server, acting as the client, opens a TCP connection to the receiving server and hands the message over."
+    },
+    {
+      "type": "tf",
+      "category": "SMTP protocol",
+      "q": "SMTP commands are plain ASCII text, and each server response is a status code followed by a phrase.",
+      "answer": true,
+      "explain": "Like HTTP, SMTP is a command/response protocol. Commands are human-readable ASCII and responses are a status code plus a phrase, for example 250 Hello ... pleased to meet you."
+    },
+    {
+      "type": "mc",
+      "category": "SMTP vs HTTP",
+      "q": "HTTP is called a 'pull' protocol and SMTP a 'push' protocol. What does that mean?",
+      "choices": [
+        "HTTP servers push pages to clients, and SMTP clients pull mail from servers",
+        "Both pull data from servers, but SMTP does it in batches",
+        "An HTTP client pulls objects from a server, and an SMTP client pushes a message to the receiving server",
+        "HTTP uses TCP and SMTP uses UDP"
+      ],
+      "answer": 2,
+      "explain": "With HTTP the client asks for and pulls data from the server. With SMTP the client (a user agent or a sending mail server) pushes a message to the receiving server."
+    },
+    {
+      "type": "multi",
+      "category": "SMTP vs HTTP",
+      "q": "Which features do SMTP and HTTP have in common?",
+      "choices": [
+        "An ASCII command/response interaction",
+        "Status codes in responses",
+        "Both are pull protocols",
+        "Each object travels in its own separate response message",
+        "Both use server port 25"
+      ],
+      "answer": [0, 1],
+      "explain": "Both use human-readable ASCII command/response exchanges with status codes, and HTTP took some inspiration from SMTP. HTTP is pull while SMTP is push. Only HTTP gives each object its own response message, and port 25 belongs to SMTP."
+    },
+    {
+      "type": "mc",
+      "category": "SMTP vs HTTP",
+      "q": "Alice emails Bob a note with two photos attached. How does SMTP carry these objects, and how is that different from HTTP delivering a web page's objects?",
+      "choices": [
+        "SMTP sends each object as a separate email, while HTTP bundles all objects into one response",
+        "SMTP sends all the objects in one multipart message, while HTTP puts each object in its own response message",
+        "Both send each object in its own message",
+        "Both bundle all objects into one multipart message"
+      ],
+      "answer": 1,
+      "explain": "SMTP can put several objects into a single multipart message. HTTP wraps each object in its own response message."
+    },
+    {
+      "type": "tf",
+      "category": "SMTP vs HTTP",
+      "q": "SMTP uses persistent connections, so a sending mail server can transfer several email messages to the same receiving server over one connection.",
+      "answer": true,
+      "explain": "SMTP connections are persistent, so multiple messages can go over a single SMTP connection before QUIT."
+    },
+    {
+      "type": "mc",
+      "category": "SMTP vs HTTP",
+      "q": "What encoding does SMTP require for a message (both header and body)?",
+      "choices": [
+        "8-bit binary",
+        "UTF-16",
+        "7-bit ASCII",
+        "Any encoding, as long as a Content-Length is given"
+      ],
+      "answer": 2,
+      "explain": "SMTP requires the whole message, header and body, to be 7-bit ASCII. This is part of why SMTP traffic is human-readable."
+    },
+    {
+      "type": "mc",
+      "category": "Message format and mail access",
+      "q": "RFC 5321 and RFC 2822 both concern email. How do they split the work?",
+      "choices": [
+        "RFC 5321 defines the message syntax, and RFC 2822 defines SMTP",
+        "RFC 5321 defines IMAP, and RFC 2822 defines SMTP",
+        "Both define SMTP, and RFC 2822 is the older version",
+        "RFC 5321 defines SMTP, the protocol for exchanging messages, and RFC 2822 defines the syntax of the email message itself"
+      ],
+      "answer": 3,
+      "explain": "RFC 5321 (SMTP) plays the role for email that the HTTP RFC plays for the web. RFC 2822 defines what a message looks like, much as HTML defines the syntax of web documents."
+    },
+    {
+      "type": "mc",
+      "category": "Message format and mail access",
+      "q": "In an email message, what separates the header lines from the body?",
+      "choices": [
+        "A blank line",
+        "A line containing only a period",
+        "The DATA command",
+        "The Subject: line"
+      ],
+      "answer": 0,
+      "explain": "The header (To:, From:, Subject:, ...) is followed by a blank line and then the body, which must be ASCII."
+    },
+    {
+      "type": "tf",
+      "category": "Message format and mail access",
+      "q": "The To: and From: header lines inside an email message are the same thing as SMTP's RCPT TO: and MAIL FROM: commands.",
+      "answer": false,
+      "explain": "To:, From:, and Subject: are header lines in the message itself (RFC 2822 syntax). MAIL FROM: and RCPT TO: are SMTP protocol commands sent during the transfer."
+    },
+    {
+      "type": "mc",
+      "category": "Message format and mail access",
+      "q": "Alice's message is sitting on Bob's mail server. Why doesn't Bob's user agent fetch it with SMTP?",
+      "choices": [
+        "SMTP only carries messages between user agents, never to servers",
+        "SMTP is a push protocol that delivers mail to the receiver's server. Retrieving mail from the server needs a mail access protocol such as IMAP or HTTP",
+        "SMTP only works over UDP, which cannot carry long messages",
+        "SMTP has no way to identify the recipient"
+      ],
+      "answer": 1,
+      "explain": "SMTP handles delivery and storage of messages to the receiver's server. Getting them from the server to the reader is the job of a mail access protocol such as IMAP, or HTTP for webmail."
+    },
+    {
+      "type": "multi",
+      "category": "Message format and mail access",
+      "q": "What does IMAP provide?",
+      "choices": [
+        "Retrieval of messages stored on the server",
+        "Deletion of stored messages",
+        "Folders for stored messages, kept on the server",
+        "Transfer of messages from the sender's mail server to the receiver's mail server",
+        "Translation of the recipient's domain into a mail server address"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "IMAP (RFC 3501) keeps messages on the server and provides retrieval, deletion, and folders. Server-to-server transfer is SMTP's job, and finding a domain's mail server is DNS's job (MX records)."
+    },
+    {
+      "type": "mc",
+      "category": "Message format and mail access",
+      "q": "A Gmail user sends and reads mail in a web browser. Which description fits?",
+      "choices": [
+        "The browser speaks SMTP directly to the recipient's mail server",
+        "HTTP replaces SMTP everywhere, including between mail servers",
+        "The browser uses HTTP to reach a web-based interface, and behind that interface SMTP sends mail while IMAP (or POP) retrieves it",
+        "The browser uses IMAP to send and SMTP to retrieve"
+      ],
+      "answer": 2,
+      "explain": "Webmail such as Gmail, Hotmail, and Yahoo!Mail gives the user an HTTP interface. Underneath, SMTP still sends the mail and IMAP or POP retrieves it."
+    },
+    {
+      "type": "mc",
+      "category": "DNS purpose and design",
+      "q": "Internet hosts have both an IP address and a hostname. How is each one used?",
+      "choices": [
+        "Routers use the name to forward datagrams, and humans use the IP address",
+        "The IP address (32 bits) is used to address datagrams, and the name (e.g., cs.umass.edu) is used by humans",
+        "Routers use both interchangeably",
+        "The IP address identifies the user, and the name identifies the network interface"
+      ],
+      "answer": 1,
+      "explain": "Datagrams are addressed with 32-bit IP addresses, while people use names. DNS translates between the two."
+    },
+    {
+      "type": "multi",
+      "category": "DNS purpose and design",
+      "q": "Which services does DNS provide?",
+      "choices": [
+        "Hostname-to-IP-address translation",
+        "Host aliasing (alias names mapped to canonical names)",
+        "Mail server aliasing",
+        "Load distribution among replicated servers",
+        "Assigning IP addresses to new hosts",
+        "Forwarding datagrams between routers"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "DNS translates hostnames to IP addresses, maps aliases to canonical names, gives the mail server for a domain, and spreads load across replicated servers. It does not assign addresses or forward datagrams."
+    },
+    {
+      "type": "mc",
+      "category": "DNS purpose and design",
+      "q": "A busy website runs on many replicated web servers, each with its own IP address, all under one name. How does DNS spread the load?",
+      "choices": [
+        "DNS forwards each HTTP request to the least-busy server",
+        "Each replica gets its own top-level domain",
+        "Clients must query every authoritative server in turn",
+        "The one name maps to the whole set of IP addresses, and DNS rotates which address it hands out first"
+      ],
+      "answer": 3,
+      "explain": "With load distribution, many IP addresses correspond to one name. DNS rotates among them, so different clients are sent to different replicas."
+    },
+    {
+      "type": "mc",
+      "category": "DNS purpose and design",
+      "q": "Name translation is a core Internet function. Why is DNS still an application-layer protocol?",
+      "choices": [
+        "It is carried out by hosts and name servers at the network edge, which talk to each other using an application-layer protocol. This keeps the network core simple",
+        "Routers in the network core translate names as they forward packets",
+        "It belongs to the transport layer and is only taught early for convenience",
+        "Only web browsers use it, so it is grouped with HTTP"
+      ],
+      "answer": 0,
+      "explain": "DNS servers sit at the edge, not in routers and switches, and use transport services (UDP/TCP) like any application. This follows the Internet design idea of putting complexity at the network's edge."
+    },
+    {
+      "type": "multi",
+      "category": "DNS purpose and design",
+      "q": "Why wasn't DNS built as one centralized server?",
+      "choices": [
+        "It would be a single point of failure",
+        "It would have to handle an enormous volume of traffic",
+        "A distant central database means long delays for far-away clients",
+        "Keeping one huge database maintained would be hard",
+        "DNS records are too complex to store in one place"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "A centralized design would not scale: it would be a single point of failure, take on huge traffic, be far from many clients, and be hard to maintain. The records themselves are simple, at about a billion records."
+    },
+    {
+      "type": "tf",
+      "category": "DNS purpose and design",
+      "q": "Most DNS work is reads (queries), with far fewer writes (record updates).",
+      "answer": true,
+      "explain": "DNS answers trillions of queries a day, many more reads than writes. Performance matters because almost every Internet transaction involves DNS."
+    },
+    {
+      "type": "mc",
+      "category": "DNS hierarchy and servers",
+      "q": "From top to bottom, what are the levels of the DNS server hierarchy?",
+      "choices": [
+        "TLD servers, root servers, authoritative servers",
+        "Authoritative servers, TLD servers, root servers",
+        "Root servers, top-level domain (TLD) servers, authoritative servers",
+        "Local servers, root servers, TLD servers"
+      ],
+      "answer": 2,
+      "explain": "Root servers are at the top, then TLD servers (.com, .org, .edu, ...), then authoritative servers for each organization's domain, such as amazon.com or umass.edu."
+    },
+    {
+      "type": "mc",
+      "category": "DNS hierarchy and servers",
+      "q": "In the first-approximation lookup of www.amazon.com, what does the client get from the .com TLD server?",
+      "choices": [
+        "The IP address of www.amazon.com",
+        "The amazon.com authoritative DNS server",
+        "A list of root servers",
+        "The client's local DNS server"
+      ],
+      "answer": 1,
+      "explain": "The root server points to the .com servers, the .com server points to the amazon.com DNS server, and that server returns the IP address of www.amazon.com."
+    },
+    {
+      "type": "mc",
+      "category": "DNS hierarchy and servers",
+      "q": "Root name servers are called the 'contact of last resort.' What do they actually do?",
+      "choices": [
+        "They hold the A record for every host on the Internet",
+        "They answer every query from end hosts directly",
+        "Name servers that cannot resolve a name contact them, and they point toward the right TLD servers instead of giving the final address",
+        "They are each organization's own name server"
+      ],
+      "answer": 2,
+      "explain": "A root server does not do the final translation. It starts the resolution by returning the TLD servers for the name's suffix, for example the .edu servers."
+    },
+    {
+      "type": "num",
+      "category": "DNS hierarchy and servers",
+      "q": "How many logical root name 'servers' are there worldwide? (Each one is replicated many times.)",
+      "answer": 13,
+      "explain": "There are 13 logical root servers. Each is replicated, giving many physical servers around the world."
+    },
+    {
+      "type": "mc",
+      "category": "DNS hierarchy and servers",
+      "q": "Which organization manages the root DNS domain?",
+      "choices": [
+        "Network Solutions",
+        "ICANN (Internet Corporation for Assigned Names and Numbers)",
+        "Educause",
+        "Akamai"
+      ],
+      "answer": 1,
+      "explain": "ICANN manages the root DNS domain. Network Solutions is the registry for .com and .net, and Educause handles .edu."
+    },
+    {
+      "type": "mc",
+      "category": "DNS hierarchy and servers",
+      "q": "Which servers are responsible for domains such as .com, .org, .edu, and country domains like .uk and .jp?",
+      "choices": [
+        "Root servers",
+        "Authoritative servers",
+        "Local DNS servers",
+        "Top-level domain (TLD) servers"
+      ],
+      "answer": 3,
+      "explain": "TLD servers handle .com, .org, .net, .edu, .aero, .jobs, and the country domains. Given a name, they point to that domain's authoritative server."
+    },
+    {
+      "type": "mc",
+      "category": "DNS hierarchy and servers",
+      "q": "What is an authoritative DNS server?",
+      "choices": [
+        "An organization's own DNS server(s), giving the official hostname-to-IP mappings for that organization's named hosts. The organization or a service provider can run it",
+        "Any server that has recently cached the mapping",
+        "The root server that holds the official copy of every mapping",
+        "The local DNS server of the querying host's ISP"
+      ],
+      "answer": 0,
+      "explain": "The authoritative server has final authority over an organization's names, such as umass.edu or nyu.edu. Whatever it says about those names is the answer."
+    },
+    {
+      "type": "mc",
+      "category": "DNS hierarchy and servers",
+      "q": "When a host makes a DNS query, where does the query go first, and how can that server answer?",
+      "choices": [
+        "Straight to a root server, which always returns the final IP address",
+        "To the authoritative server for the name being looked up",
+        "To its local DNS server, which answers from its cache of recent translations or forwards the request into the DNS hierarchy",
+        "To the nearest TLD server, chosen by the host's own domain"
+      ],
+      "answer": 2,
+      "explain": "Every host has a local DNS server, usually its ISP's. That server replies right away from its cache, which may be out of date, or starts resolution through the hierarchy."
+    },
+    {
+      "type": "tf",
+      "category": "DNS hierarchy and servers",
+      "q": "The local DNS server is strictly part of the root / TLD / authoritative hierarchy.",
+      "answer": false,
+      "explain": "The local DNS server does not strictly belong to the hierarchy. It acts for its hosts and queries the hierarchy on their behalf."
+    },
+    {
+      "type": "mc",
+      "category": "Name resolution and caching",
+      "q": "In an iterated query, how does a contacted server that doesn't know the answer respond?",
+      "choices": [
+        "It queries the next server itself and returns the final answer",
+        "It replies with the name of the next server to contact: 'I don't know this name, but ask this server'",
+        "It drops the query and lets the client time out",
+        "It forwards the query back to the root"
+      ],
+      "answer": 1,
+      "explain": "In iterated resolution each server returns a referral, and the querier (the local DNS server) contacts each server in the sequence itself."
+    },
+    {
+      "type": "mc",
+      "category": "Name resolution and caching",
+      "q": "What is the main drawback of recursive queries through the DNS hierarchy?",
+      "choices": [
+        "They put the burden of resolution on the contacted server, which causes heavy load at the upper levels of the hierarchy",
+        "They always need more messages than iterated queries",
+        "Their results can't be cached",
+        "They skip the authoritative server, so the answers can't be trusted"
+      ],
+      "answer": 0,
+      "explain": "With recursion each contacted server resolves the name for its caller. Root and TLD servers would carry that work, so iterated querying by the local DNS server is used more in practice. (Both of the slide examples use 8 messages.)"
+    },
+    {
+      "type": "num",
+      "category": "Name resolution and caching",
+      "q": "A host at engineering.nyu.edu resolves gaia.cs.umass.edu with an iterated query, and nothing is cached. How many DNS messages are sent in total?",
+      "answer": 8,
+      "explain": "The messages are host->local, local->root, root->local, local->TLD, TLD->local, local->authoritative, authoritative->local, and local->host. That is 4 queries and 4 replies."
+    },
+    {
+      "type": "num",
+      "category": "Name resolution and caching",
+      "q": "Same iterated lookup of gaia.cs.umass.edu, but the local DNS server already has the .edu TLD server's address cached. How many DNS messages are needed now, counting the host's query and the final reply?",
+      "answer": 6,
+      "explain": "The root is skipped: host->local, local->TLD, TLD->local, local->authoritative, authoritative->local, local->host. Caching TLD server addresses is why local servers can often bypass the root."
+    },
+    {
+      "type": "mc",
+      "category": "Name resolution and caching",
+      "q": "In the recursive-query example, which server sends the query to the authoritative server dns.cs.umass.edu?",
+      "choices": [
+        "The local DNS server dns.nyu.edu",
+        "The root DNS server",
+        "The TLD DNS server",
+        "The requesting host"
+      ],
+      "answer": 2,
+      "explain": "Recursively, the chain goes local -> root -> TLD -> authoritative, and the answer comes back the same way. The TLD server is the one that queries the authoritative server."
+    },
+    {
+      "type": "mc",
+      "category": "Name resolution and caching",
+      "q": "In the iterated-query example, which server queries the root, then the TLD server, then the authoritative server?",
+      "choices": [
+        "The requesting host",
+        "The local DNS server dns.nyu.edu",
+        "The root server",
+        "The TLD server"
+      ],
+      "answer": 1,
+      "explain": "In iterated resolution the local DNS server does the work. It follows each referral in turn until the authoritative server returns the address."
+    },
+    {
+      "type": "tf",
+      "category": "Name resolution and caching",
+      "q": "In the recursive-query example, the local DNS server sends just one query into the hierarchy (to the root) and gets the final answer back from the root.",
+      "answer": true,
+      "explain": "In the recursive case the local server asks the root once. The root asks the TLD server, which asks the authoritative server, and the reply travels back up to the local server."
+    },
+    {
+      "type": "multi",
+      "category": "Name resolution and caching",
+      "q": "Which statements about DNS caching are true?",
+      "choices": [
+        "Any name server that learns a mapping caches it and can answer from the cache right away",
+        "Cache entries disappear after a time to live (TTL)",
+        "Local name servers usually cache TLD server addresses",
+        "Cached entries are guaranteed to be up to date",
+        "When a host changes its IP address, DNS immediately purges every cached copy of the old mapping"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Caching improves response time and reduces load on DNS. Cached entries can be out of date, and DNS has no purge mechanism; stale entries just expire when their TTLs run out."
+    },
+    {
+      "type": "mc",
+      "category": "Name resolution and caching",
+      "q": "A host changes its IP address. Why might some clients keep getting the old address for a while?",
+      "choices": [
+        "The root servers have to approve the change first",
+        "Local DNS servers never cache anything",
+        "Cached copies of the old mapping stay in use until their TTLs expire. DNS translation is best-effort and doesn't hunt down stale entries",
+        "TLD servers only update once a day"
+      ],
+      "answer": 2,
+      "explain": "The new address may not be known Internet-wide until all TTLs expire. DNS accepts this best-effort behavior so it doesn't need a costly mechanism to find and purge stale cache entries."
+    },
+    {
+      "type": "text",
+      "category": "Name resolution and caching",
+      "q": "What does TTL stand for in DNS cache entries and resource records?",
+      "answer": ["time to live", "Time to live", "Time To Live", "time-to-live", "Time-to-live", "Time-To-Live"],
+      "explain": "Time to live is how long a record may be cached before it times out and is dropped."
+    },
+    {
+      "type": "mc",
+      "category": "DNS records and messages",
+      "q": "What fields make up a DNS resource record (RR)?",
+      "choices": [
+        "(id, flags, name, value)",
+        "(hostname, port, protocol, ttl)",
+        "(name, IP address, MX, CNAME)",
+        "(name, value, type, ttl)"
+      ],
+      "answer": 3,
+      "explain": "A resource record is a four-tuple (name, value, type, ttl). The type determines what name and value mean."
+    },
+    {
+      "type": "mc",
+      "category": "DNS records and messages",
+      "q": "In a type A record, what are the name and the value?",
+      "choices": [
+        "name is a hostname, and value is its IP address",
+        "name is a domain, and value is the hostname of its authoritative name server",
+        "name is an alias, and value is the canonical name",
+        "name is a domain, and value is the name of its mail server"
+      ],
+      "answer": 0,
+      "explain": "Type A records do hostname-to-address translation. The other options describe NS, CNAME, and MX records."
+    },
+    {
+      "type": "mc",
+      "category": "DNS records and messages",
+      "q": "In a type NS record for the domain foo.com, what are the name and the value?",
+      "choices": [
+        "name is a hostname in foo.com, and value is that host's IP address",
+        "name is the domain foo.com, and value is the hostname of the authoritative name server for foo.com",
+        "name is foo.com, and value is the IP address of the .com TLD server",
+        "name is foo.com, and value is the name of its SMTP mail server"
+      ],
+      "answer": 1,
+      "explain": "NS records point from a domain to its authoritative name server. That is how a TLD server sends resolvers on to the right organization's server."
+    },
+    {
+      "type": "text",
+      "category": "DNS records and messages",
+      "q": "Which resource record type maps an alias name to its canonical (real) name?",
+      "answer": ["CNAME", "cname", "CNAME record"],
+      "explain": "In a CNAME record, name is the alias and value is the canonical name."
+    },
+    {
+      "type": "mc",
+      "category": "DNS records and messages",
+      "q": "www.ibm.com is really servereast.backup2.ibm.com. Which resource record captures this?",
+      "choices": [
+        "(servereast.backup2.ibm.com, www.ibm.com, CNAME)",
+        "(www.ibm.com, servereast.backup2.ibm.com, NS)",
+        "(www.ibm.com, servereast.backup2.ibm.com, CNAME)",
+        "(ibm.com, www.ibm.com, MX)"
+      ],
+      "answer": 2,
+      "explain": "In a CNAME record the name field holds the alias (www.ibm.com) and the value holds the canonical name (servereast.backup2.ibm.com)."
+    },
+    {
+      "type": "text",
+      "category": "DNS records and messages",
+      "q": "Which resource record type gives the name of the SMTP mail server for a domain?",
+      "answer": ["MX", "mx", "MX record"],
+      "explain": "For an MX record, the value is the name of the SMTP mail server associated with the name. This is how DNS provides mail server aliasing."
+    },
+    {
+      "type": "mc",
+      "category": "DNS records and messages",
+      "q": "A DNS reply carries the same 16-bit identification number as its query. Why?",
+      "choices": [
+        "So the querier can match the reply to the query it sent",
+        "So the reply can be cached under that number",
+        "Because the number encodes the TTL",
+        "Because it identifies which root server answered"
+      ],
+      "answer": 0,
+      "explain": "The querier picks the identification number, and the reply copies it so that it is clear which query this reply answers."
+    },
+    {
+      "type": "multi",
+      "category": "DNS records and messages",
+      "q": "What can the flags field in a DNS message header indicate?",
+      "choices": [
+        "Whether the message is a query or a reply",
+        "Recursion desired",
+        "Recursion available",
+        "Whether the reply is authoritative",
+        "The TTL of the answer",
+        "The port of the domain's mail server"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The flags mark query vs. reply, whether recursion is desired or available, and whether the reply is authoritative. TTLs are part of each resource record, not the header flags."
+    },
+    {
+      "type": "num",
+      "category": "DNS records and messages",
+      "q": "In the DNS message format, each header field (identification through # additional RRs) is 2 bytes wide. How many bytes is the whole fixed header?",
+      "answer": 12,
+      "explain": "There are six 2-byte fields: identification, flags, # questions, # answer RRs, # authority RRs, and # additional RRs. 6 x 2 = 12 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "DNS records and messages",
+      "q": "A query asks for a hostname's IP address. Which section of the reply holds the type A record with the answer?",
+      "choices": [
+        "Questions",
+        "Authority",
+        "Additional info",
+        "Answers"
+      ],
+      "answer": 3,
+      "explain": "The questions section holds the name and type being asked about. Answers holds the RRs that respond to the query, authority holds records for authoritative servers, and additional info holds other helpful records."
+    },
+    {
+      "type": "tf",
+      "category": "DNS records and messages",
+      "q": "DNS query messages and reply messages use different formats.",
+      "answer": false,
+      "explain": "Queries and replies use the same format. A flag says which one a message is, and the identification number links a reply to its query."
+    },
+    {
+      "type": "mc",
+      "category": "Registering names and DNS security",
+      "q": "You start a company called Network Utopia and want networkutopia.com in the DNS. What is the first step?",
+      "choices": [
+        "Ask ICANN to add a new root server",
+        "Register the name with a DNS registrar such as Network Solutions",
+        "Add an A record to your local DNS server's cache",
+        "Send your IP addresses to every TLD server"
+      ],
+      "answer": 1,
+      "explain": "You register the name with a DNS registrar and give it the names and IP addresses of your authoritative name servers (primary and secondary)."
+    },
+    {
+      "type": "multi",
+      "category": "Registering names and DNS security",
+      "q": "Which records does the registrar put into the .com TLD server for Network Utopia?",
+      "choices": [
+        "(networkutopia.com, dns1.networkutopia.com, NS)",
+        "(dns1.networkutopia.com, 212.212.212.1, A)",
+        "A type A record for www.networkutopia.com",
+        "A type MX record for networkutopia.com"
+      ],
+      "answer": [0, 1],
+      "explain": "The TLD server gets an NS record naming the authoritative server and an A record giving that server's address. The records for www and for mail (MX) go on Network Utopia's own authoritative server."
+    },
+    {
+      "type": "mc",
+      "category": "Registering names and DNS security",
+      "q": "Where should Network Utopia's type A record for www.networkutopia.com and its MX record for networkutopia.com be stored?",
+      "choices": [
+        "On the .com TLD server",
+        "On the root servers",
+        "On every ISP's local DNS server",
+        "On Network Utopia's own authoritative name server (212.212.212.1)"
+      ],
+      "answer": 3,
+      "explain": "The company runs its own authoritative server and fills it with resource records for its hosts, such as the web server's A record and the MX record. The TLD only needs to know how to reach that authoritative server."
+    },
+    {
+      "type": "mc",
+      "category": "Registering names and DNS security",
+      "q": "Why does the registrar add an A record for dns1.networkutopia.com next to the NS record?",
+      "choices": [
+        "The NS record only gives the name server's hostname, and resolvers also need its IP address to contact it",
+        "Email delivery needs that A record",
+        "An NS record can only be stored together with an A record for www",
+        "The A record turns dns1 into a root server"
+      ],
+      "answer": 0,
+      "explain": "The value of an NS record is a hostname. To send a query to dns1.networkutopia.com, a resolver needs its address, and the A record (dns1.networkutopia.com, 212.212.212.1, A) supplies it."
+    },
+    {
+      "type": "multi",
+      "category": "Registering names and DNS security",
+      "q": "Why haven't DDoS attacks that flood the root servers succeeded so far?",
+      "choices": [
+        "Traffic filtering",
+        "Local DNS servers cache TLD server addresses, so the root servers can often be bypassed",
+        "Root servers only accept TCP connections",
+        "There is only one root server, which makes it easy to defend"
+      ],
+      "answer": [0, 1],
+      "explain": "Filtering (for example, firewalls) blocks attack traffic, and because local servers cache TLD addresses, many lookups never touch the root. There are 13 logical root servers, each replicated many times."
+    },
+    {
+      "type": "mc",
+      "category": "Registering names and DNS security",
+      "q": "An attacker intercepts DNS queries and sends back bogus replies so that a name server caches a false mapping. What is this called, and what protects against it?",
+      "choices": [
+        "A DDoS attack, countered by traffic filtering at the root servers",
+        "A spoofing attack, countered by longer TTLs on every record",
+        "A spoofing attack (DNS cache poisoning), countered by DNSSEC authentication services (RFC 4033)",
+        "Cache poisoning, countered by moving DNS onto SMTP"
+      ],
+      "answer": 2,
+      "explain": "Spoofing returns forged replies that poison caches. DNSSEC adds authentication and message integrity so that replies can be checked."
+    },
+    {
+      "type": "tf",
+      "category": "Registering names and DNS security",
+      "q": "Flooding the TLD servers with traffic is considered potentially more dangerous than flooding the root servers.",
+      "answer": true,
+      "explain": "Local servers already cache TLD addresses, so they can often skip the root. They cannot skip the TLD servers when they need the authoritative server for a domain they haven't cached, which makes a TLD attack potentially more dangerous."
+    }
+  ]
+}

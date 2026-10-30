@@ -1,0 +1,547 @@
+{
+  "title": "Ch1: The Network Core (Packet/Circuit Switching, Internet Structure)",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Forwarding and routing",
+      "q": "Which description best fits the network core?",
+      "choices": [
+        "The end hosts (laptops, phones, servers) that run applications",
+        "A mesh of interconnected routers that forward packets from source to destination",
+        "The access links (DSL, cable, Wi-Fi) that attach hosts to their first router",
+        "A single central router that all Internet traffic passes through"
+      ],
+      "answer": 1,
+      "explain": "The network core is a mesh of interconnected routers. Hosts and their access links make up the network edge, and there is no single central router."
+    },
+    {
+      "type": "tf",
+      "category": "Forwarding and routing",
+      "q": "In packet switching, the routers in the network core are what break application-layer messages into packets.",
+      "answer": false,
+      "explain": "Hosts break application-layer messages into packets. The network then forwards those packets from one router to the next, across links on the path from source to destination."
+    },
+    {
+      "type": "mc",
+      "category": "Forwarding and routing",
+      "q": "Which network-core function is the local action of moving an arriving packet from a router's input link to the appropriate output link?",
+      "choices": ["Routing", "Forwarding", "Multiplexing", "Call setup"],
+      "answer": 1,
+      "explain": "Forwarding is local. A router looks at the arriving packet's header, checks its forwarding table, and moves the packet to the right output link. Routing is the global work of figuring out paths."
+    },
+    {
+      "type": "text",
+      "category": "Forwarding and routing",
+      "q": "Forwarding is also known by what other one-word name?",
+      "answer": ["switching", "switch"],
+      "explain": "Forwarding is also called \"switching\". It is the local action of moving a packet from an input link to an output link."
+    },
+    {
+      "type": "mc",
+      "category": "Forwarding and routing",
+      "q": "Which statement describes routing?",
+      "choices": [
+        "A local action that moves a packet from one input link to one output link",
+        "Reserving a dedicated circuit on each link before any data flows",
+        "A global action that uses routing algorithms to decide the source-to-destination paths packets take",
+        "Holding packets in a buffer until the output link is free"
+      ],
+      "answer": 2,
+      "explain": "Routing is global. It decides the source-destination paths that packets take, and routing algorithms do this work. Moving a packet within one router is forwarding, and holding packets in a buffer is queueing."
+    },
+    {
+      "type": "mc",
+      "category": "Forwarding and routing",
+      "q": "A router's forwarding table maps header value to output link: 0100 -> 3, 0101 -> 2, 0111 -> 2, 1001 -> 1. A packet arrives with destination value 1001 in its header. Which output link does the router send it out on?",
+      "choices": ["Output link 1", "Output link 2", "Output link 3", "Every output link, since the router can't choose"],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Forwarding is a table lookup on the destination address in the arriving packet's header, and 1001 maps to output link 1. In the same table, a packet with 0111 would go out link 2."
+    },
+    {
+      "type": "mc",
+      "category": "Forwarding and routing",
+      "q": "How are routing and forwarding related inside a router?",
+      "choices": [
+        "The routing algorithm fills in the local forwarding table, and forwarding looks up each arriving packet in that table",
+        "Each arriving packet carries its own forwarding table, so routing isn't needed",
+        "Forwarding picks the end-to-end path, and routing then moves packets between links",
+        "They aren't related: forwarding tables start out random and get fixed as packets are lost"
+      ],
+      "answer": 0,
+      "explain": "The routing algorithm (global) produces each router's local forwarding table. Forwarding (local) then uses that table to send each packet, based on its header value, to an output link."
+    },
+    {
+      "type": "mc",
+      "category": "Forwarding and routing",
+      "q": "On a cross-country drive from San Jose to Northampton, which network-core function is like choosing the exit ramp at a single highway interchange in Cleveland?",
+      "choices": ["Routing", "Forwarding", "Queueing", "Circuit switching"],
+      "answer": 1,
+      "explain": "Planning the whole trip, such as picking the 45-hour northern route over the 48-hour southern one, is routing: a global decision about the path. The choice at one interchange about which way to go next is forwarding: a local decision made at one router."
+    },
+    {
+      "type": "mc",
+      "category": "Store-and-forward and transmission delay",
+      "q": "A packet has L bits and a link transmits at R bits per second. What is the packet transmission delay, meaning the time it takes to push the whole packet onto the link?",
+      "choices": ["R/L seconds", "L x R seconds", "L/R seconds", "L/(2R) seconds"],
+      "answer": 2,
+      "explain": "Transmission delay is L/R. It takes L/R seconds to push an L-bit packet into a link at R bps."
+    },
+    {
+      "type": "num",
+      "category": "Store-and-forward and transmission delay",
+      "q": "How many milliseconds does it take to transmit (push out) a 12,000-bit packet onto a 10 Mbps link?",
+      "answer": 1.2,
+      "tolerance": 0.01,
+      "explain": "L/R = 12,000 bits / 10,000,000 bps = 0.0012 s = 1.2 ms."
+    },
+    {
+      "type": "num",
+      "category": "Store-and-forward and transmission delay",
+      "q": "A 1,500-byte packet is transmitted onto a 1 Gbps link. What is the transmission delay in microseconds?",
+      "answer": 12,
+      "tolerance": 0.05,
+      "explain": "First convert bytes to bits: 1,500 x 8 = 12,000 bits. Then L/R = 12,000 / 10^9 = 1.2 x 10^-5 s = 12 microseconds."
+    },
+    {
+      "type": "mc",
+      "category": "Store-and-forward and transmission delay",
+      "q": "What does store-and-forward mean for a packet-switching router?",
+      "choices": [
+        "The router keeps a permanent copy of every packet so it can resend it later",
+        "The whole packet must arrive at the router before the router can start sending it on the next link",
+        "The router sends each bit onward as soon as that bit arrives",
+        "The router holds packets until a circuit has been reserved for them"
+      ],
+      "answer": 1,
+      "explain": "Store and forward means the entire packet must arrive at the router before it can be transmitted on the next link. Nothing is kept permanently, and there is no circuit reservation, which belongs to circuit switching."
+    },
+    {
+      "type": "num",
+      "category": "Store-and-forward and transmission delay",
+      "q": "A source sends one packet of L = 10 Kbits through one store-and-forward router to the destination. Both links run at R = 100 Mbps. Ignoring propagation, processing, and queueing delays, how many milliseconds after the source starts sending does the destination have the whole packet?",
+      "answer": 0.2,
+      "tolerance": 0.001,
+      "explain": "Each hop takes L/R = 10,000 / 100,000,000 s = 0.1 ms. The router has to receive the entire packet before it can send it on, so the two transmissions can't overlap: 2 x 0.1 = 0.2 ms."
+    },
+    {
+      "type": "tf",
+      "category": "Store-and-forward and transmission delay",
+      "q": "Under store-and-forward, a router can start sending a packet's first bits onto the outgoing link while the rest of that packet is still arriving.",
+      "answer": false,
+      "explain": "Store-and-forward requires the entire packet to arrive at the router before any of it is transmitted on the next link."
+    },
+    {
+      "type": "num",
+      "category": "Store-and-forward and transmission delay",
+      "q": "A source sends 3 packets of L bits each, back to back, through one store-and-forward router to the destination. Both links run at rate R. Ignoring propagation, processing, and queueing, after how many units of L/R has the destination received all 3 packets?",
+      "answer": 4,
+      "explain": "The source finishes sending packet 3 at 3L/R. The router can't forward packet 3 until all of it has arrived, so packet 3 needs one more L/R on the second link, which gives 4L/R. Packets 1 and 2 were relayed while later packets were still leaving the source, so different packets overlap in time but a single packet's two hops never do."
+    },
+    {
+      "type": "mc",
+      "category": "Queueing and packet loss",
+      "q": "When does queueing occur at a router's output link?",
+      "choices": [
+        "Any time two hosts are attached to the same router",
+        "Only when a link fails",
+        "When the arrival rate (bps) to the link is higher than the link's transmission rate (bps) for some period of time",
+        "When the output link is faster than the input links"
+      ],
+      "answer": 2,
+      "explain": "Queueing occurs when work arrives faster than it can be serviced. If packets arrive faster than the output link can transmit them, they wait in a queue for the output link."
+    },
+    {
+      "type": "mc",
+      "category": "Queueing and packet loss",
+      "q": "Hosts A and B each connect to a router over 100 Mb/s links. The router's outgoing link toward hosts C and D runs at 1.5 Mb/s. If A and B both send heavily, where do packets wait?",
+      "choices": [
+        "In a queue at the router, waiting to be sent over the 1.5 Mb/s output link",
+        "At hosts A and B, because their 100 Mb/s links are too slow",
+        "At the destination hosts, waiting for the application to read them",
+        "Nowhere, because packet switching reserves bandwidth for each sender"
+      ],
+      "answer": 0,
+      "explain": "Packets come in at up to 100 Mb/s but can leave only at 1.5 Mb/s, so they build up in the router's queue of packets waiting to go out on the output link. Packet switching does not reserve bandwidth."
+    },
+    {
+      "type": "mc",
+      "category": "Queueing and packet loss",
+      "q": "In packet switching, when are packets dropped (lost)?",
+      "choices": [
+        "When the router's memory (buffer) for queued packets fills up",
+        "Any time a packet has to wait in a queue",
+        "When the packet's reserved circuit is idle",
+        "When two forwarding-table entries point to the same output link"
+      ],
+      "answer": 0,
+      "explain": "Packets that wait are delayed but not lost. A packet is dropped only when the router's buffer is full and there is nowhere to put it."
+    },
+    {
+      "type": "tf",
+      "category": "Queueing and packet loss",
+      "q": "Packets queue only if they keep arriving faster than the output link can send them forever. A short burst of fast arrivals never causes queueing.",
+      "answer": false,
+      "explain": "Packets queue whenever the arrival rate is higher than the link's transmission rate for some period of time. A short burst still builds a queue, and the queue drains once arrivals slow down."
+    },
+    {
+      "type": "multi",
+      "category": "Queueing and packet loss",
+      "q": "For a while, packets arrive at a router's output link faster than the link can send them. Which of these can happen to those packets?",
+      "choices": [
+        "They wait in a queue, which adds delay",
+        "They are dropped if the router's buffer fills up",
+        "The router reserves a dedicated circuit for them",
+        "The output link's transmission rate automatically rises to match"
+      ],
+      "answer": [0, 1],
+      "explain": "Packets queue while they wait for the output link, and they are lost if the buffer fills. The link's rate is fixed, and nothing is reserved in packet switching."
+    },
+    {
+      "type": "mc",
+      "category": "Queueing and packet loss",
+      "q": "Router queueing is like cars at a toll plaza, a long line of people, or riders waiting for a bus. What do all of these have in common?",
+      "choices": [
+        "Work arrives faster than it can be serviced",
+        "Each customer has a reserved slot",
+        "Service is faster than arrivals",
+        "Each customer takes a different path"
+      ],
+      "answer": 0,
+      "explain": "Queueing happens whenever work arrives faster than it can be serviced, whether the work is cars, people, or packets."
+    },
+    {
+      "type": "mc",
+      "category": "Circuit switching: FDM and TDM",
+      "q": "What is the defining feature of circuit switching?",
+      "choices": [
+        "Messages are split into packets that share links on demand",
+        "End-to-end resources are allocated to, and reserved for, a \"call\" between source and destination",
+        "Every router stores whole packets before forwarding them",
+        "Each packet is routed separately and packets may take different paths"
+      ],
+      "answer": 1,
+      "explain": "Circuit switching reserves end-to-end resources for each call. The other choices all describe packet switching."
+    },
+    {
+      "type": "tf",
+      "category": "Circuit switching: FDM and TDM",
+      "q": "In circuit switching, other calls can use a call's circuit segment while that call isn't sending anything.",
+      "answer": false,
+      "explain": "Circuit switching dedicates resources and doesn't share them. A circuit segment sits idle when its call isn't using it."
+    },
+    {
+      "type": "tf",
+      "category": "Circuit switching: FDM and TDM",
+      "q": "In circuit switching, a call must use the same circuit number on every link along its path.",
+      "answer": false,
+      "explain": "Example: each link has four circuits, and one call gets the 2nd circuit on the top link and the 1st circuit on the right link. A circuit is reserved separately on each link, so the numbers don't have to match."
+    },
+    {
+      "type": "mc",
+      "category": "Circuit switching: FDM and TDM",
+      "q": "Why does circuit switching give circuit-like (guaranteed) performance?",
+      "choices": [
+        "The resources along the path are dedicated to the call and not shared",
+        "Its routers have larger buffers",
+        "It always runs over faster links",
+        "Lost packets are retransmitted automatically"
+      ],
+      "answer": 0,
+      "explain": "The call's resources are reserved for it alone, so other traffic can't compete for them. That is where the guarantee comes from."
+    },
+    {
+      "type": "mc",
+      "category": "Circuit switching: FDM and TDM",
+      "q": "In Frequency Division Multiplexing (FDM), how does each call get its share of a link?",
+      "choices": [
+        "It gets periodic time slots and uses the whole frequency band during them",
+        "It gets its own narrow frequency band and can transmit at that band's maximum rate all the time",
+        "It sends packets whenever the link happens to be idle",
+        "It gets the full band for the whole call while other calls wait"
+      ],
+      "answer": 1,
+      "explain": "FDM divides the optical or electromagnetic frequencies into narrow bands. Each call gets its own band and can transmit continuously at that narrow band's maximum rate."
+    },
+    {
+      "type": "mc",
+      "category": "Circuit switching: FDM and TDM",
+      "q": "In Time Division Multiplexing (TDM), how does each call get its share of a link?",
+      "choices": [
+        "It gets its own narrow frequency band and uses it continuously",
+        "It gets a dedicated physical wire",
+        "It gets periodic time slots, and during its slots (and only then) it can transmit at the maximum rate of the wider frequency band",
+        "It gets whatever capacity is left after the other calls finish"
+      ],
+      "answer": 2,
+      "explain": "TDM divides time into slots. Each call gets periodic slots, and during its slots it can use the full rate of the wider frequency band. Outside its slots it sends nothing."
+    },
+    {
+      "type": "mc",
+      "category": "Circuit switching: FDM and TDM",
+      "q": "Four users share a 2 Mb/s link. With FDM the link is split into 4 equal frequency bands. With TDM it is split into 4 equal, repeating time slots. Which statement is correct?",
+      "choices": [
+        "FDM: each user sends at 0.5 Mb/s continuously. TDM: each user sends at 2 Mb/s, but only during its own slot (0.5 Mb/s on average).",
+        "FDM: each user sends at 2 Mb/s continuously. TDM: each user sends at 0.5 Mb/s continuously.",
+        "Both: each user sends at 2 Mb/s continuously.",
+        "FDM: each user sends at 2 Mb/s during its slot. TDM: each user sends at 0.5 Mb/s in its own band."
+      ],
+      "answer": 0,
+      "explain": "FDM gives each user a narrow band, here a quarter of the capacity, that it can use all the time. TDM gives each user the full, wider band but only one slot in four. The average comes out the same, but the timing is different."
+    },
+    {
+      "type": "text",
+      "category": "Circuit switching: FDM and TDM",
+      "q": "What kind of network has traditionally used circuit switching?",
+      "answer": ["telephone networks", "telephone network", "the telephone network", "traditional telephone networks", "telephone", "phone networks", "phone network", "phone"],
+      "explain": "Circuit switching is commonly used in traditional telephone networks, where each call reserves its resources end to end."
+    },
+    {
+      "type": "num",
+      "category": "Packet vs. circuit switching",
+      "q": "A 1 Gb/s link is shared by users who each need 100 Mb/s while active and are active 10% of the time. Under circuit switching, how many users can the link support?",
+      "answer": 10,
+      "explain": "Circuit switching reserves 100 Mb/s for each user whether or not that user is active: 1 Gb/s / 100 Mb/s = 10 users."
+    },
+    {
+      "type": "num",
+      "category": "Packet vs. circuit switching",
+      "q": "A 600 Mb/s link is shared by users who each need 50 Mb/s while active and are active only 20% of the time. Under circuit switching, what is the largest number of users the link can support?",
+      "answer": 12,
+      "explain": "Under circuit switching, how often a user is active doesn't matter, because every user's 50 Mb/s is reserved all the time: 600 / 50 = 12 users."
+    },
+    {
+      "type": "mc",
+      "category": "Packet vs. circuit switching",
+      "q": "In the 1 Gb/s example (100 Mb/s per active user, each user active 10% of the time), packet switching can serve 35 users. Why does this work?",
+      "choices": [
+        "Packet switching compresses each user's data by a factor of 3.5",
+        "Each user is rarely active, so the chance that more than 10 of the 35 are active at once is tiny (less than 0.0004)",
+        "Packet switching splits the link into 35 frequency bands",
+        "Packet switching guarantees every user 100 Mb/s at all times"
+      ],
+      "answer": 1,
+      "explain": "The link can carry 10 active users at full rate. With 35 users who are each active only 10% of the time, more than 10 being active at the same moment has probability below 0.0004. Sharing on demand therefore serves 3.5 times as many users as reserving capacity."
+    },
+    {
+      "type": "mc",
+      "category": "Packet vs. circuit switching",
+      "q": "In that 35-user packet-switching example, what happens in the rare moments when more than 10 users are active at the same time?",
+      "choices": [
+        "Their combined arrival rate goes over 1 Gb/s, so packets queue at the router and may be lost if the buffer fills",
+        "Call setup fails and the extra users get a busy signal",
+        "The link speeds up to carry the extra traffic",
+        "Nothing, because the link always has spare capacity"
+      ],
+      "answer": 0,
+      "explain": "11 or more active users at 100 Mb/s each is more than the 1 Gb/s link can carry. Packets queue, and if the buffer fills, packets are lost. Packet switching has no call setup, so there is no busy signal."
+    },
+    {
+      "type": "multi",
+      "category": "Packet vs. circuit switching",
+      "q": "Which of these are advantages of packet switching?",
+      "choices": [
+        "Great for bursty data",
+        "Resource sharing",
+        "Simpler, with no call setup",
+        "Guaranteed, circuit-like performance",
+        "Congestion can't happen"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Packet switching handles bursty data well, shares resources, and needs no call setup. It does not guarantee performance, and excessive congestion is possible."
+    },
+    {
+      "type": "mc",
+      "category": "Packet vs. circuit switching",
+      "q": "What does \"bursty\" data mean?",
+      "choices": [
+        "Data sent at a constant rate for the whole session",
+        "Data from a source that sometimes has data to send and at other times has none",
+        "Data that was corrupted in transit",
+        "Very large files"
+      ],
+      "answer": 1,
+      "explain": "Bursty traffic alternates between having data to send and having none. Packet switching suits this well, because capacity that one source isn't using can carry other sources' packets."
+    },
+    {
+      "type": "mc",
+      "category": "Packet vs. circuit switching",
+      "q": "What is the main downside of packet switching, and what does it lead to?",
+      "choices": [
+        "Excessive congestion is possible, causing delay and loss from buffer overflow, so protocols are needed for reliable data transfer and congestion control",
+        "Reserved circuits sit idle and waste capacity, so calls have to be short",
+        "Call setup is slow, so protocols are needed to reserve paths in advance",
+        "Packets can't share links, so more links have to be built"
+      ],
+      "answer": 0,
+      "explain": "Because packet switching shares links on demand, too much traffic can overflow buffers, causing delay and loss. Protocols for reliable data transfer and congestion control are needed to deal with this."
+    },
+    {
+      "type": "mc",
+      "category": "Packet vs. circuit switching",
+      "q": "Which everyday situation is most like circuit switching (reserved resources) rather than packet switching (on-demand allocation)?",
+      "choices": [
+        "Walking into a restaurant and waiting in line for the next free table",
+        "Making a restaurant reservation, so the table is held for you whether or not you use it",
+        "Merging onto a highway that you share with whatever other cars are there",
+        "Joining the line at a bus stop"
+      ],
+      "answer": 1,
+      "explain": "A reservation sets aside a resource for you ahead of time, and it sits idle if you don't use it, just like a circuit. The other choices are first-come, on-demand sharing with possible waiting, like packet switching."
+    },
+    {
+      "type": "tf",
+      "category": "Packet vs. circuit switching",
+      "q": "It is straightforward to make packet switching give circuit-like, guaranteed behavior.",
+      "answer": false,
+      "explain": "It's complicated. There are various techniques that try to make packet switching as circuit-like as possible, but none of them is simple."
+    },
+    {
+      "type": "mc",
+      "category": "Internet structure",
+      "q": "How do hosts connect to the Internet?",
+      "choices": [
+        "Directly to a tier-1 ISP",
+        "Through access Internet Service Providers (access ISPs)",
+        "Only through an Internet exchange point",
+        "Through a content provider's data center"
+      ],
+      "answer": 1,
+      "explain": "Hosts connect through access ISPs. The access ISPs then have to be interconnected with each other."
+    },
+    {
+      "type": "mc",
+      "category": "Internet structure",
+      "q": "Why do access ISPs have to be interconnected?",
+      "choices": [
+        "So that any two hosts, anywhere, can send packets to each other",
+        "So that each access ISP can reserve circuits for its customers",
+        "So that routers don't need forwarding tables",
+        "So that hosts can skip the network edge"
+      ],
+      "answer": 0,
+      "explain": "Without interconnection, a host could reach only hosts on its own access ISP. Interconnecting access ISPs lets any two hosts exchange packets."
+    },
+    {
+      "type": "mc",
+      "category": "Internet structure",
+      "q": "With millions of access ISPs, why not connect each one directly to every other one?",
+      "choices": [
+        "It doesn't scale, because it needs O(N^2) connections",
+        "Access ISPs aren't allowed to connect to each other",
+        "Direct links would be slower than going through a global ISP",
+        "It needs only O(N) connections, which is too few for redundancy"
+      ],
+      "answer": 0,
+      "explain": "A full mesh of N networks needs N(N-1)/2 links, which grows as O(N^2). That is hopeless when N is in the millions."
+    },
+    {
+      "type": "num",
+      "category": "Internet structure",
+      "q": "If 1,000 access ISPs were each connected directly to every other one, how many links would be needed?",
+      "answer": 499500,
+      "explain": "N(N-1)/2 = 1,000 x 999 / 2 = 499,500 links. Doubling N roughly quadruples the count, which is why a full mesh doesn't scale."
+    },
+    {
+      "type": "mc",
+      "category": "Internet structure",
+      "q": "An access ISP connects to a global transit ISP. How is their relationship described?",
+      "choices": [
+        "They are equals with no agreement between them",
+        "The access ISP is the customer and the global ISP is the provider, with an economic agreement between them",
+        "The global ISP is a customer of the access ISP",
+        "Transit is a free public service, so there is no agreement"
+      ],
+      "answer": 1,
+      "explain": "Connecting access ISPs to a global transit ISP creates customer and provider ISPs with an economic agreement. The access ISP is the customer, and the global ISP is the provider."
+    },
+    {
+      "type": "mc",
+      "category": "Internet structure",
+      "q": "Why does the Internet have several competing global ISPs (ISP A, ISP B, ISP C) instead of just one?",
+      "choices": [
+        "If one global ISP is a viable business, competitors will appear, and those ISPs then need to be connected to each other",
+        "A single global ISP would need O(N^2) links to its customers",
+        "Circuit switching needs one global ISP per call",
+        "Each access ISP can connect to only one router"
+      ],
+      "answer": 0,
+      "explain": "If one global ISP is a viable business, competitors will show up. Their customers still need to reach each other, so the competing ISPs interconnect through IXPs and peering links. Connecting each access ISP to one provider is O(N), not O(N^2)."
+    },
+    {
+      "type": "mc",
+      "category": "Internet structure",
+      "q": "What is an Internet exchange point (IXP)?",
+      "choices": [
+        "A meeting point where several ISPs interconnect with one another",
+        "The router in a home network",
+        "A content provider's data center",
+        "The link between a host and its access ISP"
+      ],
+      "answer": 0,
+      "explain": "An IXP is a place where multiple ISPs (for example ISP A, B, and C) connect to each other so their networks can exchange traffic."
+    },
+    {
+      "type": "text",
+      "category": "Internet structure",
+      "q": "Besides meeting at IXPs, two ISPs can be connected directly to each other. What is that kind of link called?",
+      "answer": ["peering link", "peering", "peer link", "peering links"],
+      "explain": "A direct link between two ISPs, such as ISP B and ISP C, is called a peering link."
+    },
+    {
+      "type": "mc",
+      "category": "Internet structure",
+      "q": "In the step-by-step picture of Internet structure, what role do regional ISPs (regional networks) play?",
+      "choices": [
+        "They connect access networks to the larger ISPs",
+        "They are content providers' private data-center networks",
+        "They replace IXPs",
+        "They are home networks run by a single household"
+      ],
+      "answer": 0,
+      "explain": "Regional networks may arise to connect access networks to ISPs. Several access networks attach to a regional ISP, and the regional ISP connects up to a larger ISP."
+    },
+    {
+      "type": "mc",
+      "category": "Internet structure",
+      "q": "Why do content providers such as Google, Microsoft, and Akamai run their own networks?",
+      "choices": [
+        "To bring their services and content close to end users, often bypassing tier-1 and regional ISPs",
+        "To provide circuit-switched telephone service",
+        "To serve as access ISPs for home networks",
+        "To replace Internet exchange points"
+      ],
+      "answer": 0,
+      "explain": "A content provider network is a private network that connects the company's data centers to the Internet. It places content close to users and often bypasses tier-1 and regional ISPs."
+    },
+    {
+      "type": "multi",
+      "category": "Internet structure",
+      "q": "Which of these are at the Internet's \"center\", the small number of well-connected large networks?",
+      "choices": [
+        "Tier-1 commercial ISPs (e.g., AT&T, NTT) with national and international coverage",
+        "Content provider networks (e.g., Google, Facebook)",
+        "Home networks",
+        "Access ISPs"
+      ],
+      "answer": [0, 1],
+      "explain": "The center is made up of tier-1 commercial ISPs and large content provider networks. Access ISPs and home networks are at the edge of the hierarchy."
+    },
+    {
+      "type": "multi",
+      "category": "Internet structure",
+      "q": "Which of these are content provider networks rather than tier-1 commercial ISPs?",
+      "choices": ["Google", "Akamai", "Facebook", "Level 3", "Sprint", "NTT"],
+      "answer": [0, 1, 2],
+      "explain": "Google, Akamai, Facebook, and Microsoft are content providers that run their own private networks. Level 3, Sprint, AT&T, and NTT are tier-1 commercial ISPs."
+    },
+    {
+      "type": "tf",
+      "category": "Internet structure",
+      "q": "The Internet's network-of-networks structure comes from one top-down design, and economics and national policies have had little to do with it.",
+      "answer": false,
+      "explain": "The resulting network of networks is very complex, and its evolution has been driven by economics and national policies, not by a single design."
+    }
+  ]
+}

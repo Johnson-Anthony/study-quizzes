@@ -1,0 +1,412 @@
+{
+ "title": "Ch2 Supplemental: Web Tracking, Third-party Cookies and GDPR",
+ "course": "NETWORKING",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "Building a page from many servers",
+   "q": "You type www.nytimes.com/sports into your browser. The page shows NYT content plus an ad. Where does the ad content come from?",
+   "choices": [
+    "A third-party ad server (e.g., AdX.com) that the browser contacts directly",
+    "The nytimes.com server, which fetches the ad from the ad server and forwards it inside its HTML reply",
+    "The browser's local cache, which ships with pre-installed ads",
+    "The nytimes.com server, which stores all of its advertisers' ads itself"
+   ],
+   "answer": 0,
+   "explain": "One web page is made of pieces from many servers. The NYT content comes from nytimes.com. The ad comes from a different server (AdX.com), and the browser fetches it with its own HTTP request."
+  },
+  {
+   "type": "mc",
+   "category": "Building a page from many servers",
+   "q": "How does the browser find out that it has to contact AdX.com to finish the NYT page?",
+   "choices": [
+    "It parses the base HTML file from nytimes.com and finds a reference to AdX.com embedded in it",
+    "The user typed AdX.com as part of the URL",
+    "AdX.com pushes the ad to the browser without being asked",
+    "nytimes.com sends a redirect that takes the browser off the NYT page to AdX.com"
+   ],
+   "answer": 0,
+   "explain": "The base HTML effectively says \"make an HTTP request to AdX.com to get the ad that goes here.\" The browser finds that link while parsing the page and makes the request on its own. The user never asks for it."
+  },
+  {
+   "type": "mc",
+   "category": "Building a page from many servers",
+   "q": "Which sequence correctly describes how the browser builds the NYT sports page with an embedded ad?",
+   "choices": [
+    "GET base HTML from nytimes.com, receive reply, parse it and find the ad reference, GET the ad from AdX.com, receive the ad, lay out the page, display it",
+    "GET the ad from AdX.com, then GET the base HTML from nytimes.com, then display",
+    "GET base HTML from nytimes.com; nytimes.com then contacts AdX.com and sends back the fully assembled page; display",
+    "Display the base HTML, then replace the whole page with a page from AdX.com"
+   ],
+   "answer": 0,
+   "explain": "Steps 1-2: request and receive the base HTML from nytimes.com. Step 3: parse it and find the link to AdX.com. Steps 4-5: request and receive the ad from AdX.com. Steps 6-7: the browser lays out the combined page and displays it."
+  },
+  {
+   "type": "num",
+   "category": "Building a page from many servers",
+   "q": "In the lecture's example, how many different web servers does the browser contact to display the NYT sports page with its one ad?",
+   "answer": 2,
+   "explain": "Two servers: nytimes.com for the base HTML file and AdX.com for the ad."
+  },
+  {
+   "type": "tf",
+   "category": "Building a page from many servers",
+   "q": "Because the user typed only nytimes.com, the browser talks to the nytimes.com server and no other server while showing that page.",
+   "answer": false,
+   "explain": "The browser also contacts every server referenced in the base page, such as the AdX.com ad server, even though the user only wanted that one page."
+  },
+  {
+   "type": "text",
+   "category": "Building a page from many servers",
+   "q": "Which HTTP request method does the browser use to request the base HTML file from nytimes.com and also to request the ad from AdX.com?",
+   "answer": ["GET", "HTTP GET", "get"],
+   "explain": "Both are ordinary HTTP GET requests. The request for the ad is just another GET, sent to a different server."
+  },
+  {
+   "type": "tf",
+   "category": "First- vs third-party cookies",
+   "q": "HTTP itself is sessionless (stateless), and cookies give a website a way to store user state and remember a user from one visit to the next.",
+   "answer": true,
+   "explain": "HTTP keeps no memory of a user between requests. Cookies let a site keep user state, such as a login or a language preference, across visits."
+  },
+  {
+   "type": "mc",
+   "category": "First- vs third-party cookies",
+   "q": "Which is an example of cookies improving the user's experience?",
+   "choices": [
+    "A site remembers that you logged in and chose English, so you don't have to do it again on your next visit",
+    "An ad server records every site you visit that carries its ads",
+    "A one-pixel image reports your page visit to a tracking site",
+    "An ad network shows you sock ads on a news site after you shopped for socks"
+   ],
+   "answer": 0,
+   "explain": "Saving your login and language choice between visits is the helpful use of cookies. The other choices are cross-site tracking."
+  },
+  {
+   "type": "mc",
+   "category": "First- vs third-party cookies",
+   "q": "What makes a cookie a \"first-party\" cookie?",
+   "choices": [
+    "It is set by the website you chose to visit, the one that provides the base HTML file",
+    "It is the first cookie your browser ever stored",
+    "It is set by an ad server the first time you see one of its ads",
+    "It is kept only in the server's database, never in the browser"
+   ],
+   "answer": 0,
+   "explain": "A first-party cookie comes from the site you explicitly asked your browser to visit. In the example, that is nytimes.com and its cookie 1634."
+  },
+  {
+   "type": "mc",
+   "category": "First- vs third-party cookies",
+   "q": "What makes a cookie a \"third-party\" cookie?",
+   "choices": [
+    "It comes from a site you never chose to visit, which your browser reached through content embedded in a page you did visit",
+    "It is the third cookie a given website sets",
+    "It is shared among three or more websites",
+    "It is set by the company that makes your browser"
+   ],
+   "answer": 0,
+   "explain": "A third-party cookie comes from a site you did not choose to visit. In the example, AdX.com set cookie 7493 when the browser fetched the ad embedded in the NYT page."
+  },
+  {
+   "type": "text",
+   "category": "First- vs third-party cookies",
+   "q": "Which HTTP response header field does a server use to give the browser a cookie value (e.g., 1634)?",
+   "answer": ["Set-Cookie", "Set-cookie", "set-cookie", "Set Cookie", "set cookie", "SetCookie"],
+   "explain": "The server includes a Set-Cookie header in its HTTP response. The browser stores the value and records which site it belongs to."
+  },
+  {
+   "type": "mc",
+   "category": "First- vs third-party cookies",
+   "q": "Your browser starts with an empty cookie store and loads the NYT sports page, which includes an AdX ad. Afterward, what is in the browser's cookie store?",
+   "choices": [
+    "Two cookies: one from nytimes.com and one from AdX.com",
+    "Only the nytimes.com cookie, because you never chose to visit AdX.com",
+    "Only the AdX.com cookie, because ad servers replace first-party cookies",
+    "Nothing, because cookies are stored only on servers"
+   ],
+   "answer": 0,
+   "explain": "Both servers' responses included Set-Cookie, so the browser stores NY Times: 1634 and AdX: 7493. You never asked to visit AdX, but you now have its cookie anyway."
+  },
+  {
+   "type": "tf",
+   "category": "First- vs third-party cookies",
+   "q": "The main problem with third-party cookies is the storage space they take up in the browser.",
+   "answer": false,
+   "explain": "A cookie is under 4 KB, so storage is not the issue. The problem is that a tracker that has content on many sites can collect a lot of data about your browsing."
+  },
+  {
+   "type": "mc",
+   "category": "First- vs third-party cookies",
+   "q": "You visit recipes.com. Its page embeds a video player loaded from videohost.net, and both sites set cookies in your browser. How are these cookies classified?",
+   "choices": [
+    "The recipes.com cookie is first-party; the videohost.net cookie is third-party",
+    "The videohost.net cookie is first-party; the recipes.com cookie is third-party",
+    "Both are first-party, because both appeared on the page you visited",
+    "Both are third-party, because neither came from your browser"
+   ],
+   "answer": 0,
+   "explain": "You chose to visit recipes.com, so its cookie is first-party. You only reached videohost.net through embedded content, so its cookie is third-party."
+  },
+  {
+   "type": "mc",
+   "category": "Cross-site tracking",
+   "q": "While showing the NYT sports page, the browser requests the ad from AdX.com. Which HTTP request header tells AdX which page the user was on?",
+   "choices": ["Referer", "Set-Cookie", "Host", "User-Agent"],
+   "answer": 0,
+   "explain": "The Referer header names the page that sent the browser to AdX (here, NY Times Sports). This tells AdX which page the user was reading."
+  },
+  {
+   "type": "mc",
+   "category": "Cross-site tracking",
+   "q": "AdX.com gets its first request from a browser that has no AdX cookie yet. What does AdX do?",
+   "choices": [
+    "Creates a new ID (e.g., 7493), records in its own database that this ID viewed the NYT sports page, and returns the ad with Set-Cookie: 7493",
+    "Asks nytimes.com for the browser's cookie 1634 and reuses that value",
+    "Returns only the ad, because a site the user never visited directly cannot set a cookie",
+    "Sends the browser back to nytimes.com without an ad"
+   ],
+   "answer": 0,
+   "explain": "AdX does the same thing nytimes.com did. It creates a cookie value, stores it in its database together with what it learned from the Referer, and sends it to the browser in a Set-Cookie header."
+  },
+  {
+   "type": "mc",
+   "category": "Cross-site tracking",
+   "q": "The next day you visit socks.com, which also shows AdX ads. What does your browser's request to AdX.com contain?",
+   "choices": [
+    "Referer: socks.com and the AdX cookie set earlier (7493)",
+    "Referer: socks.com only, because cookies are sent only to sites you typed in",
+    "The nytimes.com cookie 1634, so AdX can look you up",
+    "No headers at all, because ad requests are anonymous"
+   ],
+   "answer": 0,
+   "explain": "Your browser already holds an AdX cookie, so it sends that cookie with any request to AdX.com. The Referer header tells AdX that the request came from socks.com."
+  },
+  {
+   "type": "mc",
+   "category": "Cross-site tracking",
+   "q": "How does AdX connect your socks.com visit to your earlier NYT visit?",
+   "choices": [
+    "Your browser sends back the same AdX cookie value on both requests, and AdX files each Referer under that value",
+    "socks.com and nytimes.com share their customer databases with AdX",
+    "AdX reads your browser history directly from your computer",
+    "AdX guesses from the time of day of each visit"
+   ],
+   "answer": 0,
+   "explain": "The cookie value 7493 identifies your browser to AdX. Each time it arrives with a new Referer, AdX adds that site to the record for 7493: NY Times sports, then socks.com, and so on."
+  },
+  {
+   "type": "tf",
+   "category": "Cross-site tracking",
+   "q": "In the tracking example, socks.com tells AdX.com that the user previously read the New York Times.",
+   "answer": false,
+   "explain": "The websites don't share this information with each other. Your own browser sends AdX's cookie back to AdX on every site that embeds AdX content, and that is how AdX links the visits."
+  },
+  {
+   "type": "mc",
+   "category": "Cross-site tracking",
+   "q": "One day later you open the NYT arts page, and AdX returns an ad for socks with the NYT logo on them. Why?",
+   "choices": [
+    "AdX looked up cookie 7493, saw that this browser recently visited socks.com, and picked a targeted ad",
+    "nytimes.com told AdX that you like socks",
+    "The NYT arts page always shows sock ads",
+    "Your browser chose the ad from its cache"
+   ],
+   "answer": 0,
+   "explain": "The request carried Referer: nytimes.com and cookie 7493. AdX checked its records for 7493 (NYT sports, socks.com) and chose an ad based on that browsing history."
+  },
+  {
+   "type": "multi",
+   "category": "Cross-site tracking",
+   "q": "Which of these can a third-party tracker like AdX do with its cookie, as shown in the lecture?",
+   "choices": [
+    "Track a browser's visits across all the sites that embed AdX content",
+    "Return targeted ads based on that browsing history",
+    "Learn which specific page of a site was viewed (e.g., NYT sports vs. NYT arts)",
+    "Read the cookie that nytimes.com stored in the browser",
+    "See visits to sites that embed no AdX content at all"
+   ],
+   "answer": [0, 1, 2],
+   "explain": "AdX tracks browsing over sites that carry AdX content and uses that history to target ads. The Referer header tells it the exact page. The browser sends each cookie only to the site it belongs to, so AdX never sees nytimes.com's cookie. AdX also learns nothing from sites that never make the browser contact it."
+  },
+  {
+   "type": "mc",
+   "category": "Cross-site tracking",
+   "q": "Why does an ad network like AdX want to track users across many sites?",
+   "choices": [
+    "Targeted ads are more likely to lead to purchases, and the ad network earns extra revenue from sales made through its ads",
+    "HTTP requires servers to identify each client across sites",
+    "Tracking reduces the bandwidth needed to deliver ads",
+    "Tracking makes the base page load faster"
+   ],
+   "answer": 0,
+   "explain": "Data about users' behavior is valuable, sometimes called the currency of the 21st century. If a user buys socks after clicking AdX's ad, AdX earns revenue from that sale."
+  },
+  {
+   "type": "mc",
+   "category": "Cross-site tracking",
+   "q": "When you return to nytimes.com (arts page), what cookie does your browser include in its GET request to nytimes.com?",
+   "choices": [
+    "cookie: 1634, the value nytimes.com set earlier, so NYT can add \"arts\" to that ID's record",
+    "cookie: 7493, the AdX value",
+    "Both 1634 and 7493",
+    "No cookie, because a first-party cookie is used only once"
+   ],
+   "answer": 0,
+   "explain": "The browser returns each site's own cookie to that site, so nytimes.com gets 1634. This is first-party tracking: NYT now knows that 1634 read sports and then arts."
+  },
+  {
+   "type": "mc",
+   "category": "Hidden tracking and browser defenses",
+   "q": "How can third-party tracking happen without the user seeing anything on the page?",
+   "choices": [
+    "The page embeds an invisible link, such as a one-pixel image hosted by the tracker, that the browser must fetch",
+    "The browser sends every cookie it holds to every server it contacts",
+    "The tracker takes screenshots of the user's display",
+    "It can't: tracking only works through ads the user can see"
+   ],
+   "answer": 0,
+   "explain": "A visible ad isn't needed. Any embedded object, even a single-pixel image too small to see, makes the browser send an HTTP request to the third-party site."
+  },
+  {
+   "type": "tf",
+   "category": "Hidden tracking and browser defenses",
+   "q": "When a browser fetches a one-pixel image from a tracker's server, that request can carry the tracker's cookie and a Referer header, just like a request for a visible ad.",
+   "answer": true,
+   "explain": "To the network it's an ordinary HTTP GET to the third-party server. The tracker gets the same information it would from a visible ad, and the user may never know the site was contacted."
+  },
+  {
+   "type": "mc",
+   "category": "Hidden tracking and browser defenses",
+   "q": "A blog has no ads, but its page includes a 1x1-pixel image from stats-tracker.com. You've already visited other sites that use the same pixel. Which statement is true?",
+   "choices": [
+    "stats-tracker.com can read its own cookie from your request and log the blog page (from the Referer), adding it to your browser's profile",
+    "Nothing loads that you can see, so no HTTP request is made",
+    "Only the blog can set cookies, because you chose to visit it",
+    "A 1x1 image is too small to carry a cookie"
+   ],
+   "answer": 0,
+   "explain": "Your browser still requests the pixel from stats-tracker.com. Cookies travel in the HTTP headers, not inside the image, so the image's size doesn't matter. The request carries the tracker's cookie and a Referer naming the blog page."
+  },
+  {
+   "type": "multi",
+   "category": "Hidden tracking and browser defenses",
+   "q": "Due to growing privacy concerns, which browsers changed their default settings to block third-party cookies, according to the lecture?",
+   "choices": ["Firefox", "Safari", "Chrome"],
+   "answer": [0, 1],
+   "explain": "Firefox and Safari block third-party cookies by default. At the time of the lecture, Google had only announced a plan to do the same in Chrome, and the date kept being pushed back."
+  },
+  {
+   "type": "mc",
+   "category": "Hidden tracking and browser defenses",
+   "q": "In the AdX example, what would a browser setting that blocks third-party cookies prevent?",
+   "choices": [
+    "AdX.com storing cookie 7493 in your browser, so AdX can't use it to link your NYT and socks.com visits",
+    "nytimes.com storing its cookie 1634",
+    "nytimes.com remembering your login and language choice",
+    "The browser parsing the base HTML file"
+   ],
+   "answer": 0,
+   "explain": "Blocking third-party cookies stops cookies from sites you didn't choose to visit, such as AdX. Without a cookie value sent back on each request, AdX loses the ID it used to tie your visits together. First-party cookies like nytimes.com's still work."
+  },
+  {
+   "type": "text",
+   "category": "GDPR and cookies",
+   "q": "What does the acronym GDPR stand for?",
+   "answer": ["General Data Protection Regulation", "general data protection regulation", "The General Data Protection Regulation"],
+   "explain": "GDPR is the European Union's General Data Protection Regulation."
+  },
+  {
+   "type": "mc",
+   "category": "GDPR and cookies",
+   "q": "GDPR is a law of which jurisdiction, and when did it take effect?",
+   "choices": [
+    "The European Union, 2018",
+    "The United States, 2018",
+    "The European Union, 2008",
+    "The United Nations, 2020"
+   ],
+   "answer": 0,
+   "explain": "GDPR is EU law from 2018 (recital 30 is dated May 2018). Whether a law like this protects you from cookie tracking depends on where you live."
+  },
+  {
+   "type": "mc",
+   "category": "GDPR and cookies",
+   "q": "GDPR recital 30 says natural persons may be associated with online identifiers. Which two kinds of identifier does it name as examples?",
+   "choices": [
+    "IP addresses and cookie identifiers",
+    "Usernames and passwords",
+    "Email addresses and phone numbers",
+    "Credit card numbers and postal addresses"
+   ],
+   "answer": 0,
+   "explain": "Recital 30 names \"internet protocol addresses, cookie identifiers or other identifiers\" as online identifiers that can be associated with natural persons (individual people)."
+  },
+  {
+   "type": "mc",
+   "category": "GDPR and cookies",
+   "q": "According to GDPR recital 30, why do online identifiers such as cookie IDs matter for privacy?",
+   "choices": [
+    "The traces they leave, combined with unique identifiers and other information the servers receive, can be used to build profiles of people and identify them",
+    "They slow down the network for other users",
+    "They contain the user's passwords",
+    "They let servers install software on the user's computer"
+   ],
+   "answer": 0,
+   "explain": "The risk is profiling and identification. A cookie ID combined with other data servers collect can be used to build a profile of a real person and identify them."
+  },
+  {
+   "type": "mc",
+   "category": "GDPR and cookies",
+   "q": "Under GDPR, when are cookies treated as personal data?",
+   "choices": [
+    "When they can identify an individual (a natural person)",
+    "Always: every cookie is personal data",
+    "Only when they are third-party cookies",
+    "Only when they are larger than 4 KB"
+   ],
+   "answer": 0,
+   "explain": "What matters is whether the cookie identifies a person, not a browser. When a cookie can identify an individual, it is personal data subject to GDPR."
+  },
+  {
+   "type": "tf",
+   "category": "GDPR and cookies",
+   "q": "In the AdX example, the cookie value 7493 on its own identifies a browser, not a specific person.",
+   "answer": true,
+   "explain": "In the examples, cookies were tied to a browser. A cookie becomes personal data under GDPR when, depending on how it's used, it can identify an individual."
+  },
+  {
+   "type": "multi",
+   "category": "GDPR and cookies",
+   "q": "Which of these can make a cookie identify you as an individual, and so make it personal data under GDPR?",
+   "choices": [
+    "Logging in with your credentials, so the site ties your identity to the cookie",
+    "Combining the cookie with other data, such as your IP address",
+    "The cookie being smaller than 4 KB",
+    "The cookie being first-party rather than third-party"
+   ],
+   "answer": [0, 1],
+   "explain": "If you log in and receive a cookie, your identity is linked to that cookie. A plain tracking cookie combined with other data, such as an IP address, can also identify you. Size and first- vs. third-party status do not decide this."
+  },
+  {
+   "type": "mc",
+   "category": "GDPR and cookies",
+   "q": "What is a visible result of GDPR on many websites?",
+   "choices": [
+    "Sites ask for explicit consent when you arrive, with controls like \"accept all\", \"deny all\" or \"personalize\" for cookies",
+    "All cookies are banned in the EU",
+    "Browsers must delete every cookie when the window closes",
+    "Websites may no longer show ads"
+   ],
+   "answer": 0,
+   "explain": "Because of GDPR, many sites give the user explicit control over whether cookies are allowed. That is what the cookie banner on the Inria home page in the slides does."
+  },
+  {
+   "type": "tf",
+   "category": "GDPR and cookies",
+   "q": "The consent prompts that result from GDPR cover only third-party cookies, so a site's own first-party cookies are exempt.",
+   "answer": false,
+   "explain": "Many websites now ask for explicit consent to cookies in general, both their own (first-party) and third-party ones."
+  }
+ ]
+}

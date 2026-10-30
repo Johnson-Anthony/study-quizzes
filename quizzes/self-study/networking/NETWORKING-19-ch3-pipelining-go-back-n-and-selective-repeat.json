@@ -1,0 +1,532 @@
+{
+ "title": "Ch3: rdt3.0, Pipelining, Go-Back-N and Selective Repeat",
+ "course": "NETWORKING",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "rdt3.0 over a lossy channel",
+   "q": "rdt2.x assumed a channel that can corrupt bits. What additional channel behavior does rdt3.0 handle?",
+   "choices": [
+    "The channel can arbitrarily reorder packets",
+    "The channel can lose packets, both data packets and ACKs",
+    "The channel can corrupt ACKs but never data packets",
+    "The channel can deliver packets faster than the receiver can process them"
+   ],
+   "answer": 1,
+   "explain": "rdt3.0 handles a channel that can corrupt AND lose packets in either direction (data sender->receiver, ACKs receiver->sender). One real cause is a router discarding datagrams when its buffers fill during congestion."
+  },
+  {
+   "type": "mc",
+   "category": "rdt3.0 over a lossy channel",
+   "q": "What is the key new mechanism rdt3.0 adds to recover from lost packets?",
+   "choices": [
+    "NAKs that the receiver sends for every missing packet",
+    "Stronger checksums that can rebuild missing packets",
+    "A countdown timer: the sender waits a reasonable time for an ACK and retransmits if none arrives",
+    "The receiver periodically re-sends its last ACK whether or not data arrives"
+   ],
+   "answer": 2,
+   "explain": "Like a person who repeats themselves when the listener doesn't react: the sender starts a timer when it sends a data packet. If no ACK arrives before the timer expires, a timeout interrupt fires and the sender retransmits."
+  },
+  {
+   "type": "tf",
+   "category": "rdt3.0 over a lossy channel",
+   "q": "If an rdt3.0 sender retransmits because a packet or ACK was only delayed (not lost), the receiver gets a duplicate packet, and the existing sequence numbers let it detect that duplicate.",
+   "answer": true,
+   "explain": "A timeout can't tell 'lost' apart from 'just slow', so some retransmissions are duplicates. Sequence numbers, already added in rdt2.x to handle retransmissions, let the receiver spot the duplicate and not deliver it twice."
+  },
+  {
+   "type": "mc",
+   "category": "rdt3.0 over a lossy channel",
+   "q": "In rdt3.0, the receiver gets pkt1 and sends ACK1, but ACK1 is lost. What happens next?",
+   "choices": [
+    "The receiver notices the loss and resends ACK1 on its own",
+    "The sender's timer expires and it resends pkt1. The receiver sees a duplicate, does not deliver it, and sends ACK1 again",
+    "The sender assumes success and sends the next packet, pkt0",
+    "The receiver delivers pkt1 to the application a second time, then sends ACK1"
+   ],
+   "answer": 1,
+   "explain": "After the loss nothing is in the channel and only the sender's timer is ticking. On timeout the sender resends pkt1. The receiver already has pkt1, so it treats this as a duplicate: it does not pass the data up but re-ACKs it with ACK1."
+  },
+  {
+   "type": "mc",
+   "category": "rdt3.0 over a lossy channel",
+   "q": "An rdt3.0 sender is in the 'wait for ACK0' state. A corrupted packet arrives, or an ACK1 arrives. What does the sender do?",
+   "choices": [
+    "Retransmits pkt0 immediately",
+    "Sends the next packet, pkt1",
+    "Stops the timer and returns to waiting for data from above",
+    "Nothing; it ignores the packet and keeps waiting, and if needed a later timeout triggers the retransmission"
+   ],
+   "answer": 3,
+   "explain": "A corrupted packet is handled as if it were lost, and the timeout recovers it. ACK1 refers to a packet that was already acknowledged, so it is ignored too."
+  },
+  {
+   "type": "tf",
+   "category": "rdt3.0 over a lossy channel",
+   "q": "Premature timeout in rdt3.0: the sender times out just before ACK1 arrives and resends pkt1. The original ACK1 then arrives and the sender sends pkt0. When the second (duplicate) ACK1 arrives while the sender waits for ACK0, the sender ignores it.",
+   "answer": true,
+   "explain": "The receiver flags the resent pkt1 as a duplicate (not delivered) and ACKs it again. The sender already moved on when the first ACK1 arrived, so the extra ACK1 is just a duplicate ACK and the FSM ignores it. The protocol stays correct, but it wastes a retransmission."
+  },
+  {
+   "type": "mc",
+   "category": "rdt3.0 over a lossy channel",
+   "q": "When does the rdt3.0 sender start and stop its timer?",
+   "choices": [
+    "It starts the timer when it sends (or resends) a data packet and stops it when the expected ACK arrives",
+    "It starts the timer when data comes from above and stops it when the next data comes from above",
+    "It starts the timer when an ACK arrives and stops it when the next packet is sent",
+    "The receiver runs the timer, not the sender"
+   ],
+   "answer": 0,
+   "explain": "The timer operations are the only change to the 4-state sender FSM of rdt2.1/2.2. Start the timer on every (re)transmission and stop it on receipt of the correct, uncorrupted ACK."
+  },
+  {
+   "type": "tf",
+   "category": "rdt3.0 over a lossy channel",
+   "q": "Reliable data transfer is purely a transport-layer problem; it does not come up at other layers.",
+   "answer": false,
+   "explain": "The same need, and the same toolkit (ACKs, checksums, sequence numbers, timeout/retransmit), shows up at the application, transport, network and link layers. That is why reliable data transfer counts as one of networking's top problems."
+  },
+  {
+   "type": "mc",
+   "category": "Stop-and-wait utilization",
+   "q": "What does sender utilization (U_sender) measure?",
+   "choices": [
+    "The fraction of packets that arrive without errors",
+    "The fraction of link bandwidth reserved for ACKs",
+    "The fraction of time the sender is actually busy sending bits into the channel",
+    "The number of packets sent per round-trip time"
+   ],
+   "answer": 2,
+   "explain": "U_sender is the fraction of time the sender is busy transmitting bits into the channel."
+  },
+  {
+   "type": "num",
+   "category": "Stop-and-wait utilization",
+   "q": "A 1 Gbps link carries 8000-bit packets. What is the transmission delay L/R of one packet, in microseconds?",
+   "answer": 8,
+   "tolerance": 0,
+   "explain": "D_trans = L/R = 8000 bits / 10^9 bits/s = 8 x 10^-6 s = 8 microseconds (= 0.008 ms)."
+  },
+  {
+   "type": "mc",
+   "category": "Stop-and-wait utilization",
+   "q": "Stop-and-wait: the sender starts transmitting a packet at t = 0, and the ACK is assumed to be tiny. At what time can the sender start the next packet?",
+   "choices": [
+    "t = L/R",
+    "t = RTT",
+    "t = RTT + L/R",
+    "t = 2 RTT + L/R"
+   ],
+   "answer": 2,
+   "explain": "The last bit leaves the sender at L/R. It reaches the receiver one propagation delay later, the receiver sends the ACK, and the ACK takes another propagation delay to come back. Total: L/R + RTT."
+  },
+  {
+   "type": "mc",
+   "category": "Stop-and-wait utilization",
+   "q": "Which expression gives the utilization of the stop-and-wait (rdt3.0) sender?",
+   "choices": [
+    "U = RTT / (RTT + L/R)",
+    "U = (L/R) / RTT",
+    "U = (L/R) / (RTT + L/R)",
+    "U = (RTT + L/R) / (L/R)"
+   ],
+   "answer": 2,
+   "explain": "Each cycle lasts RTT + L/R (from the first bit sent until the ACK arrives), and the sender is transmitting for only L/R of it."
+  },
+  {
+   "type": "num",
+   "category": "Stop-and-wait utilization",
+   "q": "Stop-and-wait over a 1 Gbps link with a 15 ms one-way propagation delay and 8000-bit packets. Compute U_sender (as a fraction, not a percent).",
+   "answer": 0.00027,
+   "tolerance": 0.00001,
+   "explain": "L/R = 0.008 ms and RTT = 2 x 15 = 30 ms. U = 0.008 / (30 + 0.008) = 0.008 / 30.008 = 0.00027. The sender is busy only about 0.027% of the time."
+  },
+  {
+   "type": "num",
+   "category": "Stop-and-wait utilization",
+   "q": "Stop-and-wait over a 100 Mbps link with RTT = 20 ms and 10,000-bit packets. Compute U_sender (as a fraction).",
+   "answer": 0.004975,
+   "tolerance": 0.0001,
+   "explain": "L/R = 10^4 / 10^8 s = 0.1 ms. U = 0.1 / (20 + 0.1) = 0.1 / 20.1 = 0.004975, about 0.5%."
+  },
+  {
+   "type": "tf",
+   "category": "Stop-and-wait utilization",
+   "q": "In the 1 Gbps / 15 ms example, rdt3.0's terrible utilization comes mainly from the link being too slow.",
+   "answer": false,
+   "explain": "The link is fast (1 Gbps). The protocol limits the performance of the underlying infrastructure: stop-and-wait leaves the channel idle for a whole RTT after every 8-microsecond transmission."
+  },
+  {
+   "type": "mc",
+   "category": "Pipelining",
+   "q": "What is pipelining in reliable data transfer?",
+   "choices": [
+    "The sender allows multiple 'in-flight', yet-to-be-acknowledged packets",
+    "The receiver ACKs only every Nth packet",
+    "Splitting each packet across several links in parallel",
+    "The sender waits for each ACK but sends larger packets"
+   ],
+   "answer": 0,
+   "explain": "Pipelining lets the sender have several transmitted-but-unACKed packets propagating at once, instead of only one as in stop-and-wait."
+  },
+  {
+   "type": "multi",
+   "category": "Pipelining",
+   "q": "Which changes does pipelining require compared with stop-and-wait?",
+   "choices": [
+    "A larger range of sequence numbers",
+    "Buffering at the sender and/or receiver",
+    "A channel that never loses packets",
+    "Removing checksums to save header space",
+    "A lower link transmission rate"
+   ],
+   "answer": [0, 1],
+   "explain": "Several unACKed packets must be told apart, so the sequence number range must grow beyond 0/1. The sender has to keep unACKed packets for possible retransmission, and the receiver may need to hold packets."
+  },
+  {
+   "type": "num",
+   "category": "Pipelining",
+   "q": "Same link as before (1 Gbps, RTT = 30 ms, 8000-bit packets), but the sender now pipelines 3 packets per RTT. Compute U_sender (as a fraction).",
+   "answer": 0.0008,
+   "tolerance": 0.00002,
+   "explain": "U = 3(L/R) / (RTT + L/R) = 3(0.008) / 30.008 = 0.024 / 30.008 = 0.0008. That is three times the stop-and-wait value (3 x 0.00027 = 0.00081). 3-packet pipelining triples utilization."
+  },
+  {
+   "type": "num",
+   "category": "Pipelining",
+   "q": "On the 1 Gbps link with RTT = 30 ms and 8000-bit packets, what is the smallest number of packets N that must be in flight per cycle for U_sender to reach 1 (sender always busy)?",
+   "answer": 3751,
+   "tolerance": 1,
+   "explain": "Set N(L/R) / (RTT + L/R) = 1, so N = (RTT + L/R)/(L/R) = 30.008 / 0.008 = 3751 packets."
+  },
+  {
+   "type": "multi",
+   "category": "Pipelining",
+   "q": "Go-Back-N and Selective Repeat are built from which mechanisms already used in the rdt protocols?",
+   "choices": [
+    "Sequence numbers",
+    "Acknowledgments",
+    "Checksums",
+    "Timeout and retransmit",
+    "Routing tables",
+    "Packet encryption"
+   ],
+   "answer": [0, 1, 2, 3],
+   "explain": "Both pipelined protocols reuse the same toolkit (sequence numbers, ACKs, checksums, timeout/retransmit) but apply it differently."
+  },
+  {
+   "type": "tf",
+   "category": "Pipelining",
+   "q": "A pipelined sender needs to keep copies of packets that it has sent but that have not yet been acknowledged.",
+   "answer": true,
+   "explain": "Any unACKed packet may have to be retransmitted after a timeout, so the sender must buffer it until it is acknowledged. This is part of the buffering that pipelining requires."
+  },
+  {
+   "type": "mc",
+   "category": "Go-Back-N",
+   "q": "In Go-Back-N, what does a cumulative ACK(n) mean?",
+   "choices": [
+    "Only packet n was received correctly",
+    "All packets up to and including sequence number n have been received correctly",
+    "Packet n was lost and should be resent",
+    "n packets in total have been received so far"
+   ],
+   "answer": 1,
+   "explain": "A cumulative ACK(n) acknowledges every packet up to and including n. On receiving it, the sender moves its window forward to begin at n+1."
+  },
+  {
+   "type": "num",
+   "category": "Go-Back-N",
+   "q": "A Go-Back-N sender has send_base = 10 and packets 10-13 in flight. It receives ACK(12) (cumulative). What is the new send_base?",
+   "answer": 13,
+   "tolerance": 0,
+   "explain": "ACK(12) covers 10, 11 and 12, so the window now begins at n+1 = 13."
+  },
+  {
+   "type": "mc",
+   "category": "Go-Back-N",
+   "q": "How many retransmission timers does a Go-Back-N sender keep?",
+   "choices": [
+    "One timer, for the oldest in-flight (unACKed) packet",
+    "One timer per unACKed packet",
+    "One timer per window slot, including unused slots",
+    "None; it retransmits only when it gets a duplicate ACK"
+   ],
+   "answer": 0,
+   "explain": "GBN uses a single timer for the oldest unACKed packet. When it fires, everything from that packet onward is resent, so per-packet timers are not needed."
+  },
+  {
+   "type": "mc",
+   "category": "Go-Back-N",
+   "q": "When the Go-Back-N timer for packet n expires, what does the sender retransmit?",
+   "choices": [
+    "Only packet n",
+    "Packet n and all packets with higher sequence numbers in the window",
+    "All packets with sequence numbers below n",
+    "The entire sequence-number space from 0"
+   ],
+   "answer": 1,
+   "explain": "timeout(n): retransmit packet n and all higher-sequence-number packets that have been sent, i.e., 'go back' to n."
+  },
+  {
+   "type": "mc",
+   "category": "Go-Back-N",
+   "q": "What is the only sequence-number state a Go-Back-N receiver needs to keep?",
+   "choices": [
+    "The full list of out-of-order packets received",
+    "send_base and nextseqnum",
+    "rcv_base, the sequence number of the next in-order packet it expects",
+    "A separate timer for every packet"
+   ],
+   "answer": 2,
+   "explain": "The GBN receiver always ACKs the highest in-order sequence number received so far, so it only needs to track rcv_base, the next in-order packet expected."
+  },
+  {
+   "type": "tf",
+   "category": "Go-Back-N",
+   "q": "A Go-Back-N receiver must discard every out-of-order packet it receives.",
+   "answer": false,
+   "explain": "Discarding or buffering an out-of-order packet is an implementation decision. Either way the receiver re-ACKs the packet with the highest in-order sequence number. (The 'in action' example discards.)"
+  },
+  {
+   "type": "mc",
+   "category": "Go-Back-N",
+   "q": "GBN with N = 4: the sender sends pkt0-pkt3 and pkt2 is lost. pkt0 and pkt1 arrive normally. What does the receiver send when pkt3 arrives?",
+   "choices": [
+    "ACK3",
+    "ACK2",
+    "A NAK for pkt2",
+    "ACK1 (a duplicate ACK)"
+   ],
+   "answer": 3,
+   "explain": "pkt3 is out of order (pkt2 is missing), so the receiver discards it and re-ACKs the highest in-order packet, pkt1. The result is a duplicate ACK1."
+  },
+  {
+   "type": "multi",
+   "category": "Go-Back-N",
+   "q": "Continuing the GBN example (N = 4, pkt2 lost): ACK0 arrives and the sender sends pkt4; ACK1 arrives and the sender sends pkt5. The receiver discards pkt3, pkt4 and pkt5. Then pkt2's timer expires. Which packets does the sender retransmit?",
+   "choices": ["pkt0", "pkt1", "pkt2", "pkt3", "pkt4", "pkt5", "pkt6"],
+   "fixed": true,
+   "answer": [2, 3, 4, 5],
+   "explain": "The window is now 2-5. A timeout for pkt2 resends pkt2 and every higher-numbered packet already sent in the window: 2, 3, 4, 5. The receiver then accepts them in order and sends ACK2-ACK5."
+  },
+  {
+   "type": "mc",
+   "category": "Go-Back-N",
+   "q": "In the same GBN example, the duplicate ACK1 (sent when pkt3 arrived) reaches the sender after its window has already moved to start at 2. What does the sender do with it?",
+   "choices": [
+    "Retransmits pkt1",
+    "Ignores it",
+    "Shrinks its window to start at 1 again",
+    "Immediately retransmits pkt2-pkt5"
+   ],
+   "answer": 1,
+   "explain": "ACK1 says nothing new; packets up to 1 are already acknowledged. The GBN sender ignores the duplicate ACK and relies on the pkt2 timeout."
+  },
+  {
+   "type": "mc",
+   "category": "Selective Repeat",
+   "q": "How does a Selective Repeat receiver acknowledge packets?",
+   "choices": [
+    "It sends one cumulative ACK for the highest in-order packet",
+    "It ACKs only packets that arrive in order and silently drops the rest",
+    "It individually ACKs every correctly received packet and buffers out-of-order ones for in-order delivery to the upper layer",
+    "It sends NAKs for missing packets and no ACKs"
+   ],
+   "answer": 2,
+   "explain": "SR's defining feature is individual (selective) ACKs. Out-of-order packets are buffered so they can be delivered in order once the gap fills."
+  },
+  {
+   "type": "mc",
+   "category": "Selective Repeat",
+   "q": "Selective Repeat sender: how are timers and retransmissions handled?",
+   "choices": [
+    "One timer for the oldest unACKed packet; on timeout, resend the whole window",
+    "Conceptually one timer per unACKed packet; on timeout, resend only that one packet",
+    "No timers; it resends whenever it sees a duplicate ACK",
+    "One timer per window; on timeout, resend the oldest packet and everything after it"
+   ],
+   "answer": 1,
+   "explain": "timeout(n): resend packet n and restart its timer. Each unACKed packet is conceptually timed on its own, so only the packet that timed out is retransmitted."
+  },
+  {
+   "type": "mc",
+   "category": "Selective Repeat",
+   "q": "SR with N = 4: pkt0-pkt3 are sent and pkt2 is lost. What does the receiver do when pkt3 arrives?",
+   "choices": [
+    "Discards it and resends ACK1",
+    "Delivers it to the application and sends ACK3",
+    "Buffers it and sends ACK3",
+    "Buffers it and sends nothing until pkt2 arrives"
+   ],
+   "answer": 2,
+   "explain": "pkt3 is within the receiver window but out of order, so it is buffered (not delivered yet) and individually acknowledged with ACK3."
+  },
+  {
+   "type": "mc",
+   "category": "Selective Repeat",
+   "q": "In the SR example, ACK3 arrives at the sender while pkt2 is still unACKed. What does the sender do?",
+   "choices": [
+    "Records that ACK3 arrived; the window does not advance because pkt2 is still unACKed",
+    "Advances the window base to 4",
+    "Treats ACK3 as a duplicate and ignores it",
+    "Immediately retransmits pkt2"
+   ],
+   "answer": 0,
+   "explain": "Sender rule: for ACK(n) in [sendbase, sendbase+N-1], mark packet n as received. The base advances only if n is the smallest unACKed packet. Here pkt2 is the smallest unACKed packet, so the window stays put."
+  },
+  {
+   "type": "mc",
+   "category": "Selective Repeat",
+   "q": "In the SR example, pkt2 times out and is retransmitted (alone), and this time it arrives. The receiver has pkt3, pkt4 and pkt5 buffered. What does it do?",
+   "choices": [
+    "Delivers only pkt2 and sends ACK5",
+    "Delivers pkt2, pkt3, pkt4 and pkt5 in order and sends ACK2",
+    "Discards the buffered packets and asks for them again",
+    "Delivers pkt2, pkt3, pkt4 and pkt5 and sends one cumulative ACK5"
+   ],
+   "answer": 1,
+   "explain": "pkt2 is in order, so it is delivered together with the buffered in-order packets 3, 4, 5. The receiver window advances to the next not-yet-received packet, and the ACK is selective: ACK2."
+  },
+  {
+   "type": "num",
+   "category": "Selective Repeat",
+   "q": "An SR sender (N = 4) has window base 2. It has already received ACKs for 3, 4 and 5, and now ACK2 arrives. What is the new window base?",
+   "answer": 6,
+   "tolerance": 0,
+   "explain": "pkt2 was the smallest unACKed packet, so the base advances to the next unACKed sequence number. 3, 4 and 5 are already marked as ACKed, so the base jumps to 6."
+  },
+  {
+   "type": "mc",
+   "category": "Selective Repeat",
+   "q": "An SR receiver has rcvbase = 10 and window size N = 4. A packet with sequence number 8 arrives (already received and delivered earlier). What does the receiver do?",
+   "choices": [
+    "Ignores it because it is below the window",
+    "Delivers it to the application again",
+    "Buffers it",
+    "Sends ACK(8) again"
+   ],
+   "answer": 3,
+   "explain": "8 is in [rcvbase-N, rcvbase-1] = [6, 9], so the receiver sends ACK(8). It already ACKed this packet, but that ACK may have been lost. Without a fresh ACK the sender would keep retransmitting pkt8 and its window could never advance past it."
+  },
+  {
+   "type": "mc",
+   "category": "Selective Repeat",
+   "q": "An SR receiver has rcvbase = 10 and window size N = 4. A packet with sequence number 15 arrives. What does the receiver do?",
+   "choices": [
+    "Ignores it",
+    "Buffers it and sends ACK(15)",
+    "Sends ACK(9)",
+    "Delivers it and advances the window"
+   ],
+   "answer": 0,
+   "explain": "The receiver window is [10, 13] and the re-ACK range is [6, 9]. 15 is in neither range, so the 'otherwise: ignore' rule applies."
+  },
+  {
+   "type": "multi",
+   "category": "Sequence numbers and window size",
+   "q": "Selective Repeat dilemma: sequence numbers 0, 1, 2, 3 (counting mod 4), window size 3. The sender sends pkt0, pkt1, pkt2, all arrive, and the receiver's window moves to {3, 0, 1}. Which statements are correct?",
+   "choices": [
+    "If all three ACKs are lost, the sender times out and retransmits the OLD pkt0",
+    "The receiver will accept that retransmitted pkt0 as if it were the NEW packet with sequence number 0",
+    "The receiver can always tell a retransmission from a new packet by looking at the sequence number",
+    "In both the 'ACKs arrived' and 'ACKs lost' cases, the receiver sees exactly the same thing, so its behavior is identical"
+   ],
+   "answer": [0, 1, 3],
+   "explain": "The receiver can't see the sender's side. Case (a): a new pkt0 is sent after pkt3. Case (b): the old pkt0 is retransmitted. Both look identical to the receiver, and 0 lies in its window, so in case (b) old data is wrongly accepted as new."
+  },
+  {
+   "type": "mc",
+   "category": "Sequence numbers and window size",
+   "q": "For Selective Repeat with S distinct sequence numbers and window size N, what relationship avoids the dilemma where the receiver mistakes a retransmission for a new packet?",
+   "choices": [
+    "N <= S / 2",
+    "N <= S - 1",
+    "N <= S",
+    "N >= S"
+   ],
+   "answer": 0,
+   "explain": "Worst case: the receiver has received a whole window [b, b+N-1] and moved on to [b+N, b+2N-1], while every ACK was lost and the sender may still retransmit anything in [b, b+N-1]. Those two ranges must not share any sequence number mod S, which requires 2N <= S."
+  },
+  {
+   "type": "num",
+   "category": "Sequence numbers and window size",
+   "q": "Selective Repeat with sequence numbers 0-3 (4 values). What is the largest window size that avoids the duplicate-acceptance dilemma?",
+   "answer": 2,
+   "tolerance": 0,
+   "explain": "N <= S/2 = 4/2 = 2. With N = 2: if the receiver has received 0 and 1, its window is {2, 3}, and a retransmitted old 0 or 1 falls outside it (it is re-ACKed, not accepted as new). With N = 3 the windows overlap, as in the 'oops' example."
+  },
+  {
+   "type": "num",
+   "category": "Sequence numbers and window size",
+   "q": "A Go-Back-N packet header carries a k-bit sequence number field with k = 3. How many distinct sequence numbers are available?",
+   "answer": 8,
+   "tolerance": 0,
+   "explain": "A k-bit field gives 2^k values, 0 through 2^k - 1. For k = 3 that is 8 (0-7), and sequence numbers wrap around mod 8."
+  },
+  {
+   "type": "mc",
+   "category": "Sequence numbers and window size",
+   "q": "In the sender's view of the sequence-number space (GBN or SR), what do the sequence numbers between send_base and nextseqnum - 1 represent?",
+   "choices": [
+    "Packets already ACKed",
+    "Usable sequence numbers not yet sent",
+    "Packets sent but not yet ACKed (in GBN all of them; in SR some may already be individually ACKed)",
+    "Sequence numbers outside the window that cannot be used"
+   ],
+   "answer": 2,
+   "explain": "send_base is the oldest unACKed packet and nextseqnum is the next number to use. In between are in-flight packets. GBN's sender window contains only sent-but-unACKed packets in that range. In SR's window some packets may already be individually ACKed (green) while older ones are still outstanding. From nextseqnum to the window's end are usable-but-unsent numbers; beyond that, unusable."
+  },
+  {
+   "type": "mc",
+   "category": "Comparing GBN and SR",
+   "q": "Which protocol's receiver needs to remember only rcv_base and can simply discard out-of-order packets?",
+   "choices": [
+    "Go-Back-N",
+    "Selective Repeat",
+    "Both",
+    "Neither"
+   ],
+   "answer": 0,
+   "explain": "The GBN receiver always re-ACKs the highest in-order packet, so it needs only rcv_base and may discard out-of-order arrivals. The SR receiver must buffer out-of-order packets and track which slots in its window have arrived."
+  },
+  {
+   "type": "multi",
+   "category": "Comparing GBN and SR",
+   "q": "Which of these describe Selective Repeat (and not Go-Back-N)?",
+   "choices": [
+    "Receiver sends individual ACKs for each correctly received packet",
+    "Sender conceptually keeps a timer per unACKed packet",
+    "On timeout, only the single timed-out packet is retransmitted",
+    "Receiver sends cumulative ACKs",
+    "Sender keeps one timer for the oldest in-flight packet"
+   ],
+   "answer": [0, 1, 2],
+   "explain": "Individual ACKs, per-packet timers and single-packet retransmission are SR. Cumulative ACKs and one timer for the oldest in-flight packet are GBN."
+  },
+  {
+   "type": "num",
+   "category": "Comparing GBN and SR",
+   "q": "In the side-by-side examples (N = 4, pkt2 lost, pkt4 and pkt5 sent after ACK0 and ACK1), how many MORE packets does Go-Back-N retransmit on pkt2's timeout than Selective Repeat does?",
+   "answer": 3,
+   "tolerance": 0,
+   "explain": "GBN resends pkt2, pkt3, pkt4, pkt5 (4 packets), even though 3, 4 and 5 had arrived (and were discarded). SR resends only pkt2 (1 packet). Difference: 3."
+  },
+  {
+   "type": "text",
+   "category": "Comparing GBN and SR",
+   "q": "Go-Back-N's style of acknowledgment, where ACK(n) covers every packet up to and including n, is also used by TCP. What is this kind of ACK called?",
+   "answer": ["cumulative", "cumulative ACK", "cumulative ACKs", "cumulative acknowledgment", "cumulative acknowledgments", "cumulative acknowledgement", "cumulative acknowledgements"],
+   "explain": "Cumulative ACKs. TCP uses them, while Selective Repeat uses individual (selective) ACKs instead."
+  },
+  {
+   "type": "tf",
+   "category": "Comparing GBN and SR",
+   "q": "When a Go-Back-N receiver gets an out-of-order packet it sends a duplicate ACK, whereas a Selective Repeat receiver sends an ACK carrying that out-of-order packet's own sequence number.",
+   "answer": true,
+   "explain": "GBN re-ACKs the highest in-order packet (e.g., ACK1 again when pkt3 arrives after a lost pkt2). SR ACKs the specific packet (ACK3) and buffers it."
+  }
+ ]
+}

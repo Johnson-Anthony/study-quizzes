@@ -1,0 +1,665 @@
+{
+  "title": "Ch4: Generalized Forwarding and Middleboxes",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Match+action and flow tables",
+      "q": "How does generalized forwarding differ from destination-based forwarding?",
+      "choices": [
+        "Many header fields (link-, network-, and transport-layer) can decide the action, and the action can be drop, copy, modify, log, or forward",
+        "It still forwards using only the destination IP address, but with longest-prefix matching",
+        "It matches on the packet's payload instead of its headers",
+        "It replaces the per-router tables with one table stored at the destination host"
+      ],
+      "answer": 0,
+      "explain": "Destination-based forwarding looks only at the destination IP address and its only action is to forward. In generalized ('match plus action') forwarding, bits from many header fields can be matched, and the action can be drop, copy, modify, log, forward, or send to a controller."
+    },
+    {
+      "type": "multi",
+      "category": "Match+action and flow tables",
+      "q": "In the flow-table abstraction, which of these are parts of a packet-handling rule?",
+      "choices": [
+        "Match: pattern values in packet header fields",
+        "Actions: for example drop, forward, modify, or send to the controller",
+        "Priority: chooses between overlapping patterns",
+        "Counters: number of bytes and number of packets",
+        "A hop count to the destination host",
+        "A list of every host reachable on each output link"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Each rule has a match pattern, actions, a priority to choose between overlapping patterns, and byte/packet counters. Hop counts and host lists are not part of a flow-table rule."
+    },
+    {
+      "type": "mc",
+      "category": "Match+action and flow tables",
+      "q": "A flow table holds three rules: (1) src=*.*.*.*, dest=3.4.*.* -> forward(2); (2) src=1.2.*.*, dest=*.*.*.* -> drop; (3) src=10.1.2.3, dest=*.*.*.* -> send to controller. A packet arrives with src=1.2.7.7 and dest=8.8.8.8. What happens to it?",
+      "choices": [
+        "It is dropped",
+        "It is forwarded out port 2",
+        "It is sent to the controller",
+        "It is flooded out every port"
+      ],
+      "answer": 0,
+      "explain": "The destination 8.8.8.8 does not match 3.4.*.*, and the source is not 10.1.2.3, so only rule 2 (src=1.2.*.*) matches. Its action is drop."
+    },
+    {
+      "type": "mc",
+      "category": "Match+action and flow tables",
+      "q": "Using the same three rules ((1) dest=3.4.*.* -> forward(2); (2) src=1.2.*.* -> drop; (3) src=10.1.2.3 -> send to controller), a packet arrives with src=10.1.2.3 and dest=3.4.0.1. Which statement is correct?",
+      "choices": [
+        "Only rule 1 matches, so the packet goes out port 2",
+        "Only rule 3 matches, so the packet goes to the controller",
+        "Rules 1 and 3 both match, and the rules' priorities decide which action applies",
+        "No rule matches, because a wildcard cannot match a specific address"
+      ],
+      "answer": 2,
+      "explain": "The destination matches 3.4.*.* (rule 1) and the source is exactly 10.1.2.3 (rule 3). When patterns overlap like this, the rules' priorities decide which one applies."
+    },
+    {
+      "type": "mc",
+      "category": "Match+action and flow tables",
+      "q": "What is the purpose of a flow-table rule's priority?",
+      "choices": [
+        "To pick which rule applies when a packet matches more than one (overlapping) pattern",
+        "To choose the output queue the packet waits in for scheduling",
+        "To count how many packets have matched the rule",
+        "To set the IP ToS bits on forwarded packets"
+      ],
+      "answer": 0,
+      "explain": "Priority settles which rule wins when a packet matches several rules. The counters, not the priority, count matched packets and bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Match+action and flow tables",
+      "q": "In a match pattern such as dest=3.4.*.*, what does '*' mean?",
+      "choices": [
+        "Wildcard: any value in that position matches",
+        "The field must be zero",
+        "The field is invalid and the packet is dropped",
+        "The value is copied from the previous packet in the flow"
+      ],
+      "answer": 0,
+      "explain": "'*' is a wildcard. dest=3.4.*.* matches every destination address that begins with 3.4."
+    },
+    {
+      "type": "tf",
+      "category": "Match+action and flow tables",
+      "q": "In generalized forwarding, a flow is defined only by network-layer (IP) header fields.",
+      "answer": false,
+      "explain": "A flow is defined by header field values from the link, network, and transport layers, for example MAC addresses, IP addresses, and TCP/UDP ports."
+    },
+    {
+      "type": "text",
+      "category": "Match+action and flow tables",
+      "q": "In the match+action setting, what is another name for a router's forwarding table?",
+      "answer": ["flow table", "a flow table", "flow tables", "the flow table"],
+      "explain": "In generalized forwarding, the forwarding table is also called a flow table. Its rules define the router's match+action behavior."
+    },
+    {
+      "type": "mc",
+      "category": "Match+action and flow tables",
+      "q": "What computes the forwarding tables (destination-based forwarding) and the flow tables (generalized forwarding)?",
+      "choices": [
+        "The network layer's control plane",
+        "The data plane, from each arriving packet",
+        "The router's switching fabric",
+        "The transport layer of the end hosts"
+      ],
+      "answer": 0,
+      "explain": "The data plane uses the tables to handle each packet. The control plane computes them."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "What are the three parts of an OpenFlow flow-table entry?",
+      "choices": [
+        "Match, Action, Stats",
+        "Prefix, Next hop, Interface",
+        "Source, Destination, TTL",
+        "Header, Payload, Checksum"
+      ],
+      "answer": 0,
+      "explain": "An OpenFlow entry has a Match (header fields to compare), an Action (what to do with a matching packet), and Stats (packet and byte counters)."
+    },
+    {
+      "type": "multi",
+      "category": "OpenFlow",
+      "q": "Which of these are OpenFlow actions for a matched packet?",
+      "choices": [
+        "Forward the packet to one or more ports",
+        "Drop the packet",
+        "Modify fields in its header(s)",
+        "Encapsulate it and forward it to the controller",
+        "Reassemble the IP fragments it belongs to",
+        "Run a routing algorithm to compute a new path"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The four OpenFlow actions are forward to port(s), drop, modify header fields, and encapsulate and send to the controller. Fragments are reassembled at the destination host, and routing algorithms belong to the control plane."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "What does the Stats part of an OpenFlow entry hold?",
+      "choices": [
+        "Packet and byte counters",
+        "The average queueing delay at each output port",
+        "The utilization of every link in the network",
+        "The number of rules in the flow table"
+      ],
+      "answer": 0,
+      "explain": "Stats are packet and byte counters for traffic that has matched the entry."
+    },
+    {
+      "type": "multi",
+      "category": "OpenFlow",
+      "q": "Which of these are network-layer header fields that an OpenFlow rule can match on?",
+      "choices": [
+        "IP Src",
+        "IP Dst",
+        "IP Proto",
+        "IP ToS",
+        "VLAN ID",
+        "TCP/UDP Dst Port",
+        "Dst MAC"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The network-layer match fields are IP source, IP destination, IP protocol, and IP ToS. VLAN ID and Dst MAC are link-layer fields. TCP/UDP ports are transport-layer fields. A rule can also match the ingress port."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "An OpenFlow rule wildcards every field except TCP d-port = 22, and its action is drop. What does the rule do?",
+      "choices": [
+        "Acts as a firewall: blocks all datagrams destined to TCP port 22 (SSH)",
+        "Sends all SSH traffic out switch port 22",
+        "Drops only datagrams whose TCP source port is 22",
+        "Drops all traffic except SSH"
+      ],
+      "answer": 0,
+      "explain": "Matching on destination TCP port 22 with action drop blocks all traffic headed to SSH servers, which is firewall behavior. 'd-port' means the TCP destination port, not a switch port."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "You want an OpenFlow rule with action drop that blocks every datagram sent by host 128.119.1.1, with all other fields wildcarded. Which field should hold 128.119.1.1?",
+      "choices": [
+        "IP Src",
+        "IP Dst",
+        "MAC src",
+        "Switch Port"
+      ],
+      "answer": 0,
+      "explain": "Datagrams 'sent by' a host carry that host's address in the IP source field, so the rule matches IP Src = 128.119.1.1."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "An OpenFlow rule wildcards every field except MAC dst = 22:A7:23:11:E1:02, and its action is port3. What kind of forwarding is this?",
+      "choices": [
+        "Layer-2 destination-based forwarding, as done by a link-layer switch",
+        "IP destination-based forwarding, as done by a router",
+        "Firewall filtering by source host",
+        "NAT address rewriting"
+      ],
+      "answer": 0,
+      "explain": "The rule sends frames to output port 3 based only on their destination MAC address. That is what a link-layer switch does."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "Match+action can describe several kinds of devices. Which device has 'match: IP address and port; action: rewrite address and port'?",
+      "choices": [
+        "Router",
+        "Switch",
+        "Firewall",
+        "NAT"
+      ],
+      "answer": 3,
+      "explain": "NAT matches on IP address and port and rewrites them. Router: longest destination IP prefix, forward out a link. Switch: destination MAC, forward or flood. Firewall: IP addresses and TCP/UDP ports, permit or deny."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "In the match+action view, which pairing describes a link-layer switch?",
+      "choices": [
+        "match: destination MAC address; action: forward or flood",
+        "match: longest destination IP prefix; action: forward out a link",
+        "match: IP addresses and TCP/UDP port numbers; action: permit or deny",
+        "match: IP address and port; action: rewrite address and port"
+      ],
+      "answer": 0,
+      "explain": "A switch matches on the destination MAC address and either forwards or floods. The other three pairings describe a router, a firewall, and a NAT."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "Three switches are linked in a triangle: s3 port 3 to s1 port 1, s3 port 4 to s2 port 1, and s1 port 4 to s2 port 2. Hosts h5 (10.3.0.5) and h6 (10.3.0.6) attach to s3. Hosts h3 (10.2.0.3) and h4 (10.2.0.4) attach to s2 ports 3 and 4. The flow tables are: s3: IP Src=10.3.*.*, IP Dst=10.2.*.* -> forward(3). s1: ingress port=1, IP Src=10.3.*.*, IP Dst=10.2.*.* -> forward(4). s2: ingress port=2, IP Dst=10.2.0.3 -> forward(3); ingress port=2, IP Dst=10.2.0.4 -> forward(4). What path does a datagram from h6 to h4 take?",
+      "choices": [
+        "s3 -> s1 -> s2 -> h4",
+        "s3 -> s2 -> h4, using the direct s3-s2 link",
+        "s3 -> s1 -> h4",
+        "It is dropped at s3 because no rule matches"
+      ],
+      "answer": 0,
+      "explain": "At s3 the datagram (10.3.0.6 to 10.2.0.4) goes out port 3 to s1. It arrives at s1 on port 1, so s1 sends it out port 4 to s2. It reaches s2 on port 2 and goes out port 4 to h4. The tables send this traffic through s1 even though s3 has a direct link to s2."
+    },
+    {
+      "type": "num",
+      "category": "OpenFlow",
+      "q": "Switch s2's flow table has two rules: (ingress port=2, IP Dst=10.2.0.3) -> forward(3), and (ingress port=2, IP Dst=10.2.0.4) -> forward(4). A datagram for 10.2.0.3 arrives on ingress port 2. Out of which port does s2 forward it?",
+      "answer": 3,
+      "explain": "The datagram matches the first rule (ingress port 2, destination 10.2.0.3), whose action is forward(3)."
+    },
+    {
+      "type": "tf",
+      "category": "OpenFlow",
+      "q": "In the three-switch example (s1's rule: ingress port=1, IP Src=10.3.*.*, IP Dst=10.2.*.* -> forward(4)), a datagram from h1 (10.1.0.1) to h3 (10.2.0.3) that reaches s1 on port 2 matches s1's rule.",
+      "answer": false,
+      "explain": "The datagram arrives on port 2, not port 1, and its source 10.1.0.1 does not match 10.3.*.*, so s1's rule does not match it. The rule covers only traffic from the 10.3 hosts that arrives from s3."
+    },
+    {
+      "type": "tf",
+      "category": "OpenFlow",
+      "q": "When the flow tables of several switches are set up together (for example, by an OpenFlow controller), they can produce network-wide behavior, such as sending certain hosts' traffic along a chosen path.",
+      "answer": true,
+      "explain": "Each switch only takes local match+action steps, but coordinated tables across switches can implement network-wide behavior, such as sending h5/h6 traffic to h3/h4 through s1 and then s2."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "Generalized forwarding is a simple form of network programmability whose historical roots are in active networking. What more general way of programming per-packet processing is used today?",
+      "choices": [
+        "P4",
+        "OSPF",
+        "BGP",
+        "DHCP"
+      ],
+      "answer": 0,
+      "explain": "P4 (p4.org) is a more general way to program per-packet processing. OSPF and BGP are routing protocols, and DHCP assigns host addresses."
+    },
+    {
+      "type": "mc",
+      "category": "Middleboxes",
+      "q": "How does RFC 3234 define a middlebox?",
+      "choices": [
+        "Any intermediary box on the data path between a source host and a destination host that performs functions apart from the normal, standard functions of an IP router",
+        "Any router in the middle of an ISP's backbone",
+        "Any host that both sends and receives application data",
+        "A switch that connects exactly two network segments"
+      ],
+      "answer": 0,
+      "explain": "What makes something a middlebox is that it sits on the data path and does more than, or something other than, standard IP router forwarding."
+    },
+    {
+      "type": "multi",
+      "category": "Middleboxes",
+      "q": "Which of these are middleboxes?",
+      "choices": [
+        "NAT box",
+        "Firewall",
+        "Intrusion detection system (IDS)",
+        "Load balancer",
+        "Cache",
+        "An end host's web browser",
+        "A router doing only standard IP forwarding"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "NATs, firewalls, IDSs, load balancers, caches, and application-specific boxes all sit in the network and do more than standard router forwarding. A browser runs on an end host, not in the network. A router doing only standard forwarding is, by definition, not a middlebox."
+    },
+    {
+      "type": "mc",
+      "category": "Middleboxes",
+      "q": "How has middlebox hardware changed over time?",
+      "choices": [
+        "From proprietary (closed) hardware toward 'whitebox' hardware with an open API, with local actions programmed through match+action",
+        "From open whitebox hardware toward proprietary closed hardware",
+        "From software running on servers toward fixed-function chips that cannot be reprogrammed",
+        "It has not changed; middleboxes have always been programmable whiteboxes"
+      ],
+      "answer": 0,
+      "explain": "Middleboxes started out as proprietary closed hardware. They are moving toward whitebox hardware with an open API and programmable match+action behavior, so innovation and differentiation move into software."
+    },
+    {
+      "type": "mc",
+      "category": "Middleboxes",
+      "q": "What is network functions virtualization (NFV)?",
+      "choices": [
+        "Programmable services running over whitebox networking, computation, and storage",
+        "Using a separate physical proprietary box for each network function",
+        "A routing protocol for virtual LANs",
+        "Splitting one datagram into several smaller ones"
+      ],
+      "answer": 0,
+      "explain": "NFV runs network functions (NAT, firewall, and so on) as programmable services on generic whitebox networking, compute, and storage hardware, instead of on dedicated proprietary boxes."
+    },
+    {
+      "type": "mc",
+      "category": "Middleboxes",
+      "q": "In the move away from proprietary middleboxes, what does SDN provide?",
+      "choices": [
+        "(Logically) centralized control and configuration management, often in a private or public cloud",
+        "Fully distributed per-router routing with no central controller",
+        "A link-layer protocol for wireless networks",
+        "A replacement for IP as the network-layer protocol"
+      ],
+      "answer": 0,
+      "explain": "SDN (software-defined networking) centralizes control and configuration management logically, and this control often runs in a private or public cloud."
+    },
+    {
+      "type": "tf",
+      "category": "Middleboxes",
+      "q": "Moving to whitebox hardware with an open API shifts innovation and differentiation from hardware toward software.",
+      "answer": true,
+      "explain": "When the hardware is generic and programmable through an open API, vendors and operators set themselves apart through software."
+    },
+    {
+      "type": "mc",
+      "category": "Internet architecture",
+      "q": "Why is IP called the Internet's 'thin waist'?",
+      "choices": [
+        "There is one network-layer protocol, IP, which every Internet-connected device must implement, while the layers above and below have many protocols",
+        "IP headers are smaller than those of any other protocol",
+        "IP is used only in the network core, not by hosts",
+        "IP carries less traffic than any other layer"
+      ],
+      "answer": 0,
+      "explain": "In the hourglass picture, the application, transport, link, and physical layers each have many protocols, but they all meet at a single network-layer protocol, IP, which billions of devices must implement."
+    },
+    {
+      "type": "multi",
+      "category": "Internet architecture",
+      "q": "Which of these are the three cornerstone beliefs of the Internet's architecture?",
+      "choices": [
+        "Simple connectivity",
+        "IP as the narrow waist",
+        "Intelligence and complexity at the network edge",
+        "Intelligence and complexity inside the network's switches",
+        "Every router guaranteeing reliable delivery",
+        "A different network-layer protocol for each link type"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "RFC 1958: 'the goal is connectivity, the tool is the Internet Protocol, and the intelligence is end to end rather than hidden in the network.'"
+    },
+    {
+      "type": "mc",
+      "category": "Internet architecture",
+      "q": "Complete RFC 1958's summary: 'the goal is connectivity, the tool is the Internet Protocol, and the intelligence is ...'",
+      "choices": [
+        "end to end rather than hidden in the network",
+        "hidden in the network rather than at the end hosts",
+        "split evenly between routers and hosts",
+        "held by a single central controller"
+      ],
+      "answer": 0,
+      "explain": "The Internet's tradition puts intelligence at the end points, not inside the network."
+    },
+    {
+      "type": "mc",
+      "category": "Internet architecture",
+      "q": "What does the end-to-end argument (Saltzer, Reed, Clark, 1981) claim?",
+      "choices": [
+        "A function that can be completely and correctly implemented only with the knowledge and help of the application at the end points cannot be fully provided by the communication system itself, though a partial in-network version may help performance",
+        "Every function should be implemented hop by hop in each router so that end hosts can stay simple",
+        "End hosts should never retransmit, because the network guarantees delivery",
+        "Only the network layer may implement reliable data transfer"
+      ],
+      "answer": 0,
+      "explain": "The end-to-end argument is an argument against implementing functions at low levels. If only the end points can do the job completely and correctly, the network cannot provide it as a complete feature. A partial version inside the network may still be worth having as a performance enhancement."
+    },
+    {
+      "type": "tf",
+      "category": "Internet architecture",
+      "q": "Under the end-to-end argument, an incomplete version of a function provided inside the network is never useful.",
+      "answer": false,
+      "explain": "The argument explicitly allows that an incomplete in-network version can be useful as a performance enhancement. The complete, correct function still has to be done at the end points."
+    },
+    {
+      "type": "mc",
+      "category": "Internet architecture",
+      "q": "Reliable data transfer can be done in the transport layer of the two end hosts, or at the network layer on every link along the path. These two options illustrate the contrast between:",
+      "choices": [
+        "End-to-end and hop-by-hop (in-network) implementation",
+        "Data plane and control plane",
+        "Fragmentation and reassembly",
+        "Destination-based and generalized forwarding"
+      ],
+      "answer": 0,
+      "explain": "Functions such as reliable data transfer and congestion control can be placed at the network edge (end to end) or inside the network (hop by hop). The end-to-end argument favors the edge."
+    },
+    {
+      "type": "mc",
+      "category": "Internet architecture",
+      "q": "In the 20th-century telephone network, where were the intelligence and computing located?",
+      "choices": [
+        "In the network switches; the telephones at the ends were simple",
+        "In the telephones at the ends; the switches were simple",
+        "In cloud data centers at the network edge",
+        "Split evenly between telephones and switches"
+      ],
+      "answer": 0,
+      "explain": "The phone network was the reverse of the early Internet: smart switches and simple end devices. The pre-2005 Internet put intelligence and computing at the edge."
+    },
+    {
+      "type": "mc",
+      "category": "Internet architecture",
+      "q": "How did the location of intelligence in the Internet change after about 2005?",
+      "choices": [
+        "Network devices became programmable, and massive application-level infrastructure (intelligence and computing) grew at the edge",
+        "All intelligence moved back into the network switches, as in the phone network",
+        "Intelligence left the edge, and end hosts became simple terminals",
+        "Nothing changed; intelligence stayed only in end hosts"
+      ],
+      "answer": 0,
+      "explain": "Before 2005, intelligence sat at the edge and the network core was simple. After 2005, network devices are also programmable, and the edge has huge application-level infrastructure such as data centers."
+    },
+    {
+      "type": "tf",
+      "category": "Internet architecture",
+      "q": "Middleboxes such as NAT, firewalls, caches, and NFV operate inside the network and pile functionality around IP's thin waist, the 'middle-age love handles' of the IP hourglass.",
+      "answer": true,
+      "explain": "In the 'hourglass at middle age' picture, middleboxes thicken the waist because they work inside the network around IP."
+    },
+    {
+      "type": "mc",
+      "category": "Internet architecture",
+      "q": "Middleboxes put functionality inside the network. Which architectural principle does this depart from?",
+      "choices": [
+        "Intelligence and complexity at the network edge (end to end)",
+        "IP as the single network-layer protocol",
+        "Many protocols at the link and physical layers",
+        "Fragmented datagrams reassembled only at the destination"
+      ],
+      "answer": 0,
+      "explain": "RFC 1958 says the intelligence is end to end, not hidden in the network. NATs, firewalls, caches, and similar boxes place processing inside the network."
+    },
+    {
+      "type": "mc",
+      "category": "IP fragmentation",
+      "q": "What is a link's MTU?",
+      "choices": [
+        "The largest possible link-level frame the link can carry (maximum transfer size); different link types have different MTUs",
+        "The smallest frame the link accepts",
+        "The maximum number of hops a datagram may travel",
+        "The link's transmission rate in bits per second"
+      ],
+      "answer": 0,
+      "explain": "The MTU is the maximum transfer size of a link-level frame. Because MTUs differ from link to link, a large datagram may have to be fragmented on the way."
+    },
+    {
+      "type": "mc",
+      "category": "IP fragmentation",
+      "q": "Where are the fragments of an IP datagram reassembled?",
+      "choices": [
+        "Only at the final destination",
+        "At the router that fragmented the datagram",
+        "At the next router along the path",
+        "At any router whose outgoing link has a large enough MTU"
+      ],
+      "answer": 0,
+      "explain": "Fragmentation can happen inside the network, but reassembly happens only at the destination. Each fragment travels on as its own datagram."
+    },
+    {
+      "type": "num",
+      "category": "IP fragmentation",
+      "q": "A 4000-byte IP datagram (20-byte header) must cross a link with an MTU of 1500 bytes. How many fragments are produced?",
+      "answer": 3,
+      "explain": "There are 3980 data bytes. Each fragment can carry 1500 - 20 = 1480 data bytes, so the data splits into 1480 + 1480 + 1020: 3 fragments."
+    },
+    {
+      "type": "num",
+      "category": "IP fragmentation",
+      "q": "In that 4000-byte, MTU-1500 example, how many data bytes does each full 1500-byte fragment carry?",
+      "answer": 1480,
+      "explain": "1500 total bytes minus the 20-byte IP header leaves 1480 data bytes."
+    },
+    {
+      "type": "num",
+      "category": "IP fragmentation",
+      "q": "In the 4000-byte, MTU-1500 example, what is the offset field value of the second fragment?",
+      "answer": 185,
+      "explain": "The second fragment's data starts at byte 1480 of the original data. The offset counts 8-byte units, so 1480 / 8 = 185."
+    },
+    {
+      "type": "num",
+      "category": "IP fragmentation",
+      "q": "In the 4000-byte, MTU-1500 example, what is the offset field value of the third (last) fragment?",
+      "answer": 370,
+      "explain": "The third fragment's data starts at byte 2 x 1480 = 2960, and 2960 / 8 = 370."
+    },
+    {
+      "type": "num",
+      "category": "IP fragmentation",
+      "q": "In the 4000-byte, MTU-1500 example, what is the total length (header plus data) of the last fragment?",
+      "answer": 1040,
+      "explain": "Data left over: 3980 - 2 x 1480 = 1020 bytes. Adding the 20-byte header gives 1040."
+    },
+    {
+      "type": "mc",
+      "category": "IP fragmentation",
+      "q": "Why is the second fragment's offset 185 and not 1480?",
+      "choices": [
+        "The offset field counts 8-byte units, so 1480 bytes is recorded as 1480 / 8 = 185",
+        "The offset counts 1-byte units, starting from the end of the datagram",
+        "The offset is the number of fragments sent before it, times 185",
+        "The offset is the fragment's total length divided by the MTU"
+      ],
+      "answer": 0,
+      "explain": "The offset is measured in 8-byte units. This is also why every fragment except the last must carry a multiple of 8 data bytes."
+    },
+    {
+      "type": "mc",
+      "category": "IP fragmentation",
+      "q": "In the 4000-byte example, the first two fragments have fragflag = 1 and the last has fragflag = 0. What does fragflag = 0 mean?",
+      "choices": [
+        "No more fragments follow; this piece ends the original datagram",
+        "This fragment arrived damaged and must be resent",
+        "This is the first fragment of the datagram",
+        "The datagram must not be fragmented"
+      ],
+      "answer": 0,
+      "explain": "fragflag = 1 means more fragments follow. fragflag = 0 marks the last piece, so the destination knows where the original datagram ends. A datagram that was never fragmented also has fragflag = 0 and offset = 0."
+    },
+    {
+      "type": "mc",
+      "category": "IP fragmentation",
+      "q": "How does the destination know that several fragments came from the same original datagram?",
+      "choices": [
+        "They share the same ID field value",
+        "They arrive one right after another",
+        "They have the same total length",
+        "They all have fragflag = 1"
+      ],
+      "answer": 0,
+      "explain": "All fragments of one datagram carry the original datagram's ID (ID = x in the example). The offset then places each piece in order. Fragments can arrive out of order and can have different lengths, and the last one has fragflag = 0."
+    },
+    {
+      "type": "num",
+      "category": "IP fragmentation",
+      "q": "A 2400-byte IP datagram with a 20-byte header (no options) is sent onto a link with an MTU of 700 bytes. How many fragments are produced?",
+      "answer": 4,
+      "explain": "There are 2380 data bytes. Each fragment can carry 700 - 20 = 680 data bytes, and 680 is a multiple of 8. So the data splits into 680 + 680 + 680 + 340: 4 fragments."
+    },
+    {
+      "type": "num",
+      "category": "IP fragmentation",
+      "q": "For the same 2400-byte datagram on the MTU-700 link (20-byte header, 680 data bytes per full fragment), what is the offset field value of the last fragment?",
+      "answer": 255,
+      "explain": "The last fragment's data starts at byte 3 x 680 = 2040, and 2040 / 8 = 255. The four offsets are 0, 85, 170, and 255."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP",
+      "q": "A captured DHCP Request and the reply to it both carry Transaction ID 0x6b3a11b7. What is this field for?",
+      "choices": [
+        "It lets the client match the server's reply to its own request",
+        "It is the client's MAC address",
+        "It counts how many routers the message has crossed",
+        "It is the length of the lease in seconds"
+      ],
+      "answer": 0,
+      "explain": "The server copies the client's transaction ID into its reply, so the client can tell which reply answers which request. The Hops field counts relay hops, and the client MAC has its own field."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP",
+      "q": "In the captured exchange, option 53 (DHCP Message Type) has which values in the client's message and in the server's reply?",
+      "choices": [
+        "Client: DHCP Request; server: DHCP ACK",
+        "Client: DHCP Discover; server: DHCP Offer",
+        "Client: DHCP Offer; server: DHCP Request",
+        "Client: DHCP Release; server: DHCP NAK"
+      ],
+      "answer": 0,
+      "explain": "This capture shows the last two messages of the exchange. The client sends a DHCP Request, and the server confirms with a DHCP ACK."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP",
+      "q": "What does option 55, the Parameter Request List, do in the client's DHCP Request?",
+      "choices": [
+        "Lists the configuration items the client wants, such as 1 = subnet mask, 3 = router, 6 = domain name server, 15 = domain name",
+        "Lists every IP address the client has ever used",
+        "Lists the routers the request passed through",
+        "Lists the TCP ports the client will open"
+      ],
+      "answer": 0,
+      "explain": "The client asks for specific parameters. The server's ACK then includes them: subnet mask, router, DNS servers, and domain name."
+    },
+    {
+      "type": "multi",
+      "category": "DHCP",
+      "q": "Which configuration does the server's DHCP ACK give the client in the capture?",
+      "choices": [
+        "The client's IP address, 192.168.1.101",
+        "Subnet mask 255.255.255.0",
+        "First-hop (default) router 192.168.1.1",
+        "DNS server addresses (68.87.71.226, 68.87.73.242, 68.87.64.146)",
+        "A new MAC address for the client's Ethernet interface",
+        "The IP address of every other host on the LAN"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The ACK gives the client its IP address, the subnet mask (option 1), the router (option 3), the DNS servers (option 6), and the domain name (option 15). DHCP does not assign MAC addresses. The client MAC in the reply is just copied from the request."
+    },
+    {
+      "type": "mc",
+      "category": "DHCP",
+      "q": "In the client's DHCP Request, the Client IP address field is 0.0.0.0, but option 50 (Requested IP Address) is 192.168.1.101. Why?",
+      "choices": [
+        "The client does not yet have a confirmed address, so it puts the address it wants in the Requested IP Address option",
+        "0.0.0.0 is the client's permanent address, and 192.168.1.101 is the server's address",
+        "The client is asking the server to release 192.168.1.101",
+        "The fields are random and carry no meaning"
+      ],
+      "answer": 0,
+      "explain": "Until the server ACKs, the client has no address it may use, so its IP field is 0.0.0.0 and option 50 names the address it is asking for. The server's ACK confirms 192.168.1.101."
+    },
+    {
+      "type": "num",
+      "category": "DHCP",
+      "q": "The DHCP ACK gives subnet mask 255.255.255.0. How many bits long is the subnet's network prefix?",
+      "answer": 24,
+      "explain": "255.255.255.0 has three bytes of 1s, which is 24 bits, so the subnet is 192.168.1.0/24."
+    }
+  ]
+}

@@ -1,0 +1,623 @@
+{
+  "title": "Ch2 The Web, HTTP and Cookies",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Web basics and HTTP overview",
+      "q": "In the URL www.someschool.edu/someDept/pic.gif, which part is the host name?",
+      "choices": ["www.someschool.edu", "/someDept/pic.gif", "pic.gif", "someDept"],
+      "answer": 0,
+      "explain": "A URL has a host name (www.someschool.edu) and a path name on that host (/someDept/pic.gif)."
+    },
+    {
+      "type": "mc",
+      "category": "Web basics and HTTP overview",
+      "q": "Which description of a web page is correct?",
+      "choices": [
+        "A base HTML file that includes several referenced objects, each addressable by a URL",
+        "A single HTML file with every image and audio clip embedded directly inside it",
+        "A set of objects that must all be fetched over one UDP connection",
+        "A set of objects addressable only by the server's IP address"
+      ],
+      "answer": 0,
+      "explain": "A web page is made of objects. The base HTML file references other objects (JPEG images, Java applets, audio files, ...), and each one has its own URL."
+    },
+    {
+      "type": "tf",
+      "category": "Web basics and HTTP overview",
+      "q": "All the objects referenced by a web page must be stored on the same Web server as the base HTML file.",
+      "answer": false,
+      "explain": "Each object can be stored on a different Web server. In the NY Times example, the base page comes from nytimes.com and the ad comes from AdX.com."
+    },
+    {
+      "type": "mc",
+      "category": "Web basics and HTTP overview",
+      "q": "Which statement best describes HTTP?",
+      "choices": [
+        "The Web's application-layer protocol, which uses a client/server model",
+        "A transport-layer protocol that gives browsers reliable delivery",
+        "A peer-to-peer protocol in which browsers exchange objects directly with each other",
+        "A network-layer protocol that routes web pages between routers"
+      ],
+      "answer": 0,
+      "explain": "HTTP (hypertext transfer protocol) is the Web's application-layer protocol. The client (browser) requests, receives and displays objects, and the server sends objects in response to requests."
+    },
+    {
+      "type": "mc",
+      "category": "Web basics and HTTP overview",
+      "q": "Which side starts an HTTP exchange by opening a TCP connection (creating a socket)?",
+      "choices": ["The client (browser)", "The Web server", "Whichever side has data to send first", "A router between them"],
+      "answer": 0,
+      "explain": "The client opens a TCP connection to the server on port 80, and the server accepts it. HTTP messages are then exchanged, and the TCP connection is closed."
+    },
+    {
+      "type": "num",
+      "category": "Web basics and HTTP overview",
+      "q": "What is the default TCP port number for an HTTP server?",
+      "answer": 80,
+      "explain": "HTTP clients connect to port 80 by default. For example, 'nc -c -v gaia.cs.umass.edu 80' opens a TCP connection to port 80 at gaia.cs.umass.edu."
+    },
+    {
+      "type": "text",
+      "category": "Web basics and HTTP overview",
+      "q": "What does the acronym HTTP stand for?",
+      "answer": ["HyperText Transfer Protocol", "hypertext transfer protocol", "Hypertext Transfer Protocol", "hyper text transfer protocol"],
+      "explain": "HTTP = HyperText Transfer Protocol, the Web's application-layer protocol."
+    },
+    {
+      "type": "mc",
+      "category": "Statelessness",
+      "q": "What does it mean that HTTP is 'stateless'?",
+      "choices": [
+        "The server keeps no information about past client requests",
+        "The client never stores anything about the pages it has visited",
+        "HTTP messages do not carry any header lines",
+        "The TCP connection is never kept open between requests"
+      ],
+      "answer": 0,
+      "explain": "Stateless means the server keeps no information about past client requests. Each request/response pair stands on its own."
+    },
+    {
+      "type": "multi",
+      "category": "Statelessness",
+      "q": "Why are protocols that maintain 'state' complex?",
+      "choices": [
+        "Past history (state) must be maintained",
+        "If the server or client crashes, their views of the state may be inconsistent and must be reconciled",
+        "They cannot run over TCP",
+        "They need a separate port number for each piece of state"
+      ],
+      "answer": [0, 1],
+      "explain": "A stateful protocol has to remember history. After a crash, the two sides may disagree about the state and have to reconcile it, for example by rolling back to the state before the transaction began."
+    },
+    {
+      "type": "mc",
+      "category": "Statelessness",
+      "q": "A stateful protocol: the client locks data record X, updates X to X', and then crashes (or the network fails) at time t', before it can make the second update and unlock X. What is the problem?",
+      "choices": [
+        "X is left locked and only partly updated, so the two sides have to recover from a transaction that was never completed",
+        "Nothing, because the server automatically finishes the update to X''",
+        "The server loses X entirely and must ask the client to resend the original value",
+        "The client's cookie for the server is deleted"
+      ],
+      "answer": 0,
+      "explain": "The transaction was supposed to make both changes or none. A crash at t' leaves a partly finished state that has to be cleaned up. HTTP has no multi-step transactions, so it avoids this problem."
+    },
+    {
+      "type": "tf",
+      "category": "Statelessness",
+      "q": "Because HTTP GET/response interactions are stateless, each HTTP request is independent of the others, and the client and server never have to recover from a partly completed multi-step transaction.",
+      "answer": true,
+      "explain": "HTTP has no idea of a multi-step Web 'transaction', so there is no multi-step state to track and nothing half-finished to recover."
+    },
+    {
+      "type": "tf",
+      "category": "Statelessness",
+      "q": "Since HTTP is stateless, a website has no way to recognize a returning user.",
+      "answer": false,
+      "explain": "HTTP itself is stateless, but sites can keep state between transactions using cookies: an ID carried in HTTP header lines plus a back-end database at the site."
+    },
+    {
+      "type": "mc",
+      "category": "Statelessness",
+      "q": "Why was HTTP designed to be stateless?",
+      "choices": [
+        "Simplicity: the server avoids the cleanup and recovery work that stateful protocols need when a transaction fails",
+        "To let HTTP run over UDP instead of TCP",
+        "Because stateless protocols always need fewer RTTs per object",
+        "To make cookies unnecessary"
+      ],
+      "answer": 0,
+      "explain": "Statelessness keeps HTTP simple. Stateful protocols must keep history and clean up after failed multi-step transactions, for example by reverting to the initial state."
+    },
+    {
+      "type": "mc",
+      "category": "Non-persistent vs persistent HTTP",
+      "q": "In non-persistent HTTP, how many objects can be sent over a single TCP connection?",
+      "choices": ["At most one", "Exactly two (the base file and one referenced object)", "As many as the client requests", "Up to ten"],
+      "answer": 0,
+      "explain": "Non-persistent HTTP opens a TCP connection, sends at most one object over it, then closes it. Downloading several objects therefore takes several connections."
+    },
+    {
+      "type": "num",
+      "category": "Non-persistent vs persistent HTTP",
+      "q": "With non-persistent HTTP, a user fetches www.someSchool.edu/someDepartment/home.index, which contains text plus references to 10 JPEG images. How many TCP connections are opened in total?",
+      "answer": 11,
+      "explain": "One connection for the base HTML file, then steps 1-5 are repeated for each of the 10 JPEG objects: 1 + 10 = 11 connections."
+    },
+    {
+      "type": "mc",
+      "category": "Non-persistent vs persistent HTTP",
+      "q": "Put these steps of a non-persistent HTTP fetch in order. (A) Client sends an HTTP request message containing the URL. (B) Server closes the TCP connection. (C) Client opens a TCP connection to the server on port 80 and the server accepts it. (D) Server forms a response message containing the requested object and sends it into its socket.",
+      "choices": ["A, C, D, B", "C, D, A, B", "C, A, D, B", "A, D, C, B"],
+      "answer": 2,
+      "explain": "The TCP connection is set up first (no HTTP request has been made yet), then the request is sent, then the server sends the response and closes the connection. The client then parses the HTML and repeats the steps for each referenced object."
+    },
+    {
+      "type": "multi",
+      "category": "Non-persistent vs persistent HTTP",
+      "q": "Which of the following are drawbacks of non-persistent HTTP?",
+      "choices": [
+        "It requires 2 RTTs per object",
+        "There is OS overhead for each TCP connection",
+        "Browsers often open several parallel TCP connections to fetch referenced objects",
+        "The server must remember each client's past requests",
+        "It cannot transfer JPEG images"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Every object costs a new TCP connection: an extra RTT for setup plus OS overhead, which pushes browsers to open parallel connections. Statelessness and object types have nothing to do with it."
+    },
+    {
+      "type": "mc",
+      "category": "Non-persistent vs persistent HTTP",
+      "q": "Which HTTP version uses persistent connections by default?",
+      "choices": ["HTTP/1.1", "HTTP/1.0 only", "HTTP/0.9", "None. Persistent connections need a special browser plug-in"],
+      "answer": 0,
+      "explain": "Persistent HTTP is HTTP/1.1, the version shown in the request line 'GET ... HTTP/1.1' and the status line 'HTTP/1.1 200 OK'."
+    },
+    {
+      "type": "mc",
+      "category": "Non-persistent vs persistent HTTP",
+      "q": "In persistent HTTP, when does the client send its requests for referenced objects?",
+      "choices": [
+        "As soon as it encounters a referenced object",
+        "Only after the server has closed the connection for the base file",
+        "After opening a new TCP connection for each object",
+        "Only when the user clicks on each object"
+      ],
+      "answer": 0,
+      "explain": "The server leaves the connection open after sending a response, so the client sends a request over that open connection as soon as it finds a referenced object."
+    },
+    {
+      "type": "tf",
+      "category": "Non-persistent vs persistent HTTP",
+      "q": "In persistent HTTP, the server closes the TCP connection right after sending each response.",
+      "answer": false,
+      "explain": "In persistent HTTP the server leaves the connection open after sending a response. Later messages between the same client and server use that same connection."
+    },
+    {
+      "type": "mc",
+      "category": "Response time calculations",
+      "q": "How is RTT (round-trip time) defined?",
+      "choices": [
+        "The time for a small packet to travel from the client to the server and back",
+        "The time to transmit a whole file onto the link",
+        "The time from typing a URL until every object on the page is displayed",
+        "The time for the server to look up a cookie in its database"
+      ],
+      "answer": 0,
+      "explain": "RTT is the time for a small packet to go from client to server and back. File transmission time is counted separately."
+    },
+    {
+      "type": "mc",
+      "category": "Response time calculations",
+      "q": "What is the response time for fetching one object with non-persistent HTTP?",
+      "choices": ["2 RTT + file transmission time", "1 RTT + file transmission time", "2 RTT only", "3 RTT + file transmission time"],
+      "answer": 0,
+      "explain": "One RTT sets up the TCP connection. A second RTT carries the HTTP request and brings back the first bytes of the response. Then the file takes its transmission time."
+    },
+    {
+      "type": "multi",
+      "category": "Response time calculations",
+      "q": "In the non-persistent HTTP response time for one object, what are the two RTTs used for?",
+      "choices": [
+        "Initiating the TCP connection",
+        "Sending the HTTP request and getting the first few bytes of the HTTP response back",
+        "Looking up the user's cookie in the back-end database",
+        "Closing the TCP connection"
+      ],
+      "answer": [0, 1],
+      "explain": "Response time = 1 RTT (TCP setup) + 1 RTT (request plus start of response) + file transmission time."
+    },
+    {
+      "type": "num",
+      "category": "Response time calculations",
+      "q": "RTT = 40 ms, and it takes 12 ms to transmit a file. With non-persistent HTTP, what is the response time (in ms) to fetch that one file?",
+      "answer": 92,
+      "explain": "2 RTT + transmission = 2(40) + 12 = 92 ms."
+    },
+    {
+      "type": "num",
+      "category": "Response time calculations",
+      "q": "A page has a base HTML file and 10 small JPEG images (ignore transmission times). With non-persistent HTTP and only one connection open at a time, how many RTTs does it take to get the whole page?",
+      "answer": 22,
+      "explain": "11 objects, each needing 2 RTT (TCP setup plus request/response): 11 x 2 = 22 RTT."
+    },
+    {
+      "type": "num",
+      "category": "Response time calculations",
+      "q": "RTT = 30 ms. A page has a base HTML file and 4 small images (ignore transmission times). With non-persistent HTTP and one connection at a time, what is the total time in ms?",
+      "answer": 300,
+      "explain": "5 objects x 2 RTT x 30 ms = 300 ms."
+    },
+    {
+      "type": "num",
+      "category": "Response time calculations",
+      "q": "Same page: a base HTML file and 10 small images, transmission times ignored. With persistent HTTP, the client sends all 10 image requests over the open connection as soon as it parses the base file. How many RTTs does it take in total?",
+      "answer": 3,
+      "explain": "1 RTT for TCP setup + 1 RTT for the base file + as little as 1 RTT for all the referenced objects = 3 RTT. Compare 22 RTT for serial non-persistent."
+    },
+    {
+      "type": "num",
+      "category": "Response time calculations",
+      "q": "A base HTML file references 10 small images (ignore transmission times). The browser uses non-persistent HTTP but, after getting the base file, opens 10 parallel TCP connections at once, one per image. How many RTTs does the whole page take?",
+      "answer": 4,
+      "explain": "2 RTT for the base file, then the 10 parallel non-persistent fetches each take 2 RTT at the same time: 2 + 2 = 4 RTT. This is why browsers open parallel connections, though each one adds OS overhead."
+    },
+    {
+      "type": "tf",
+      "category": "Response time calculations",
+      "q": "Compared with non-persistent HTTP's 2 RTTs per object, persistent HTTP can cut the response time for referenced objects roughly in half, to as little as one RTT.",
+      "answer": true,
+      "explain": "No new TCP handshake is needed for each object, so the per-object cost can drop from 2 RTT to 1 RTT."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request messages and methods",
+      "q": "What does the first line of an HTTP request message (the request line) contain?",
+      "choices": [
+        "Method, URL, and HTTP version, separated by spaces and ending with carriage return + line feed",
+        "HTTP version, status code, and status phrase",
+        "Host name, user agent, and accepted languages",
+        "A cookie ID followed by the entity body"
+      ],
+      "answer": 0,
+      "explain": "Request line format: method sp URL sp version cr lf, for example 'GET /index.html HTTP/1.1'. Version, status code and phrase make up the status line of a response."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request messages and methods",
+      "q": "How does an HTTP request message mark the end of its header lines?",
+      "choices": [
+        "A carriage return + line feed at the start of a line (a blank line)",
+        "A header line named 'End:'",
+        "Closing the TCP connection",
+        "A Content-Length of 0"
+      ],
+      "answer": 0,
+      "explain": "Each header line ends with cr lf. An extra cr lf on a line by itself marks the end of the headers, and the optional entity body follows."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request messages and methods",
+      "q": "A request contains these headers: 'Host: www-net.cs.umass.edu', 'User-Agent: Firefox/3.6.10', 'Accept-Language: en-us,en;q=0.5', 'Connection: keep-alive'. Which header line tells the server what kind of browser sent the request?",
+      "choices": ["User-Agent", "Host", "Accept-Language", "Connection"],
+      "answer": 0,
+      "explain": "User-Agent gives the browser type. Host names the server host, Accept-Language gives the preferred language, and Connection: keep-alive asks to keep the connection open."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request messages and methods",
+      "q": "A web page has a form. Which method sends the user's input from client to server in the entity body of the request?",
+      "choices": ["POST", "GET", "HEAD", "Set-Cookie"],
+      "answer": 0,
+      "explain": "With POST, the form input goes in the entity body of the request message."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request messages and methods",
+      "q": "For the URL www.somesite.com/animalsearch?monkeys&banana, how is the user data being sent to the server?",
+      "choices": [
+        "With a GET request, carried in the URL field after the '?'",
+        "With a POST request, carried in the entity body",
+        "With a HEAD request, carried in the header lines",
+        "In a cookie header line"
+      ],
+      "answer": 0,
+      "explain": "GET can send data to the server by putting it in the URL field of the request after a '?'."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request messages and methods",
+      "q": "What does the HEAD method do?",
+      "choices": [
+        "Requests only the headers that would be returned if the URL were requested with GET",
+        "Uploads a new object to the server",
+        "Sends form input in the entity body",
+        "Deletes the object at the specified URL"
+      ],
+      "answer": 0,
+      "explain": "HEAD returns the same headers as GET would, without the body. This is useful, for example, for finding an object's size without downloading it."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP request messages and methods",
+      "q": "Which method uploads a new object to the server, completely replacing any file that already exists at the specified URL?",
+      "choices": ["PUT", "GET", "HEAD", "POST"],
+      "answer": 0,
+      "explain": "PUT uploads a new file (object) to the server, completely replacing the file at that URL with the content in the request's entity body."
+    },
+    {
+      "type": "text",
+      "category": "HTTP request messages and methods",
+      "q": "To send a minimal but complete HTTP/1.1 GET request by hand (for example over netcat to port 80), you type the request line 'GET /kurose_ross/interactive/index.php HTTP/1.1' and one header line, then press Enter twice. What is the name of that header?",
+      "answer": ["Host", "Host:", "host"],
+      "explain": "The minimal request is 'GET /kurose_ross/interactive/index.php HTTP/1.1' followed by 'Host: gaia.cs.umass.edu', then a blank line to end the headers."
+    },
+    {
+      "type": "tf",
+      "category": "HTTP request messages and methods",
+      "q": "HTTP request messages are written in ASCII, a human-readable format.",
+      "answer": true,
+      "explain": "HTTP request (and response) messages are ASCII text, so a person can read them directly, for example in netcat output or a Wireshark capture."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP response messages and status codes",
+      "q": "In the status line 'HTTP/1.1 200 OK', what are '200' and 'OK'?",
+      "choices": [
+        "'200' is the status code, 'OK' is the status phrase",
+        "'200' is the content length, 'OK' is the content type",
+        "'200' is the port number, 'OK' is the method",
+        "'200' is the cookie ID, 'OK' is the status code"
+      ],
+      "answer": 0,
+      "explain": "The status line is: protocol version, status code, status phrase."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP response messages and status codes",
+      "q": "A server replies '301 Moved Permanently'. Where does the client find the object's new location?",
+      "choices": [
+        "In the Location: header field later in the same response",
+        "In the request line of the client's next request",
+        "In the Set-Cookie header",
+        "Nowhere. The client has to search for it"
+      ],
+      "answer": 0,
+      "explain": "301 means the object has moved, and the new location is given later in the message in the Location: field."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP response messages and status codes",
+      "q": "Which status code means the server could not understand the request message?",
+      "choices": ["400 Bad Request", "404 Not Found", "301 Moved Permanently", "505 HTTP Version Not Supported"],
+      "answer": 0,
+      "explain": "400 Bad Request: the server did not understand the request message. 404 means the document was not found on the server."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP response messages and status codes",
+      "q": "What does '404 Not Found' mean?",
+      "choices": [
+        "The requested document was not found on this server",
+        "The server could not understand the request",
+        "The object moved, and the new location is in the Location: field",
+        "The server does not support the HTTP version used"
+      ],
+      "answer": 0,
+      "explain": "404 Not Found: the requested document was not found on this server."
+    },
+    {
+      "type": "num",
+      "category": "HTTP response messages and status codes",
+      "q": "What status code is returned for 'HTTP Version Not Supported'?",
+      "answer": 505,
+      "explain": "505 HTTP Version Not Supported."
+    },
+    {
+      "type": "mc",
+      "category": "HTTP response messages and status codes",
+      "q": "Which response header line tells the client what type of object is being returned (for example, text/html)?",
+      "choices": ["Content-Type", "Content-Length", "Last-Modified", "Server"],
+      "answer": 0,
+      "explain": "Content-Type gives the object's type. Content-Length gives its length, Last-Modified says when it last changed, and Server names the server software (for example, Apache/2.4.6)."
+    },
+    {
+      "type": "multi",
+      "category": "HTTP response messages and status codes",
+      "q": "Which of these header lines belong in an HTTP response message, as opposed to a request?",
+      "choices": ["Server", "Last-Modified", "Content-Length", "User-Agent", "Accept-Language"],
+      "answer": [0, 1, 2],
+      "explain": "Server, Last-Modified and Content-Length (along with Date and Content-Type) describe the response and the returned object. User-Agent and Accept-Language are sent by the client in requests."
+    },
+    {
+      "type": "tf",
+      "category": "HTTP response messages and status codes",
+      "q": "In a '200 OK' response, the requested object comes later in the same response message, after the status line and header lines.",
+      "answer": true,
+      "explain": "200 OK means the request succeeded and the requested object follows in this message's body."
+    },
+    {
+      "type": "multi",
+      "category": "Cookies: mechanism and uses",
+      "q": "Which of these are among the four components of the cookie mechanism?",
+      "choices": [
+        "A cookie header line in the HTTP response message",
+        "A cookie header line in the next HTTP request message",
+        "A cookie file kept on the user's host and managed by the browser",
+        "A back-end database at the Web site",
+        "A cookie field in the TCP segment header",
+        "A central cookie registry shared by all Web sites"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The four components are: the set-cookie line in the response, the cookie line in later requests, the browser-managed cookie file on the user's host, and the site's back-end database. Cookies live in HTTP headers, not TCP, and every site keeps its own records."
+    },
+    {
+      "type": "mc",
+      "category": "Cookies: mechanism and uses",
+      "q": "A client visits Amazon for the first time, and Amazon creates ID 1678 for the user. How does Amazon give this ID to the client?",
+      "choices": [
+        "In a 'set-cookie: 1678' header line in its HTTP response",
+        "In a 'cookie: 1678' header line in its HTTP response",
+        "By writing directly to the client's cookie file over a separate connection",
+        "In the status line, in place of the status phrase"
+      ],
+      "answer": 0,
+      "explain": "The server sends 'set-cookie: 1678' in the response. The browser saves it in its cookie file next to other sites' cookies (for example, 'ebay 8734')."
+    },
+    {
+      "type": "mc",
+      "category": "Cookies: mechanism and uses",
+      "q": "After receiving its cookie, how does the client identify itself on later requests to Amazon, including one a week later?",
+      "choices": [
+        "It includes a 'cookie: 1678' header line in each HTTP request",
+        "It includes 'set-cookie: 1678' in each HTTP request",
+        "It reuses the same TCP connection from the first visit",
+        "It appends '?1678' to the host name"
+      ],
+      "answer": 0,
+      "explain": "Later requests carry 'cookie: 1678'. The server looks up that ID in its back-end database and takes cookie-specific action, such as recommendations."
+    },
+    {
+      "type": "mc",
+      "category": "Cookies: mechanism and uses",
+      "q": "When Susan's first HTTP request reaches an e-commerce site, what does the site create?",
+      "choices": [
+        "A unique ID (the 'cookie') and an entry for that ID in its back-end database",
+        "A persistent TCP connection that stays open until her next visit",
+        "A copy of her browser's entire cookie file",
+        "A new URL just for her"
+      ],
+      "answer": 0,
+      "explain": "The site creates a unique ID and a database entry for it. Susan's later requests carry the ID, so the site can 'identify' her."
+    },
+    {
+      "type": "tf",
+      "category": "Cookies: mechanism and uses",
+      "q": "On a browser's very first visit to a site, its HTTP request already contains a cookie header line with that site's ID.",
+      "answer": false,
+      "explain": "The first request is an ordinary request with no cookie for that site. The site assigns the ID in its response with set-cookie, and only later requests carry 'cookie: <ID>'."
+    },
+    {
+      "type": "multi",
+      "category": "Cookies: mechanism and uses",
+      "q": "Which of these are uses of cookies?",
+      "choices": ["Authorization", "Shopping carts", "Recommendations", "User session state (for example, Web e-mail)", "Routing IP packets", "Encrypting HTTP messages"],
+      "answer": [0, 1, 2, 3],
+      "explain": "Cookies keep user state across transactions, which supports authorization (remembering you logged in), shopping carts, recommendations and session state. They do not route or encrypt anything."
+    },
+    {
+      "type": "mc",
+      "category": "Cookies: mechanism and uses",
+      "q": "State can be kept at the protocol endpoints or in the messages. How do cookies carry state?",
+      "choices": [
+        "In the messages: cookie values in HTTP messages carry the state",
+        "Only at the endpoints, by changing HTTP into a stateful protocol",
+        "In the TCP connection, which stays open between visits",
+        "In the URL path name of every object"
+      ],
+      "answer": 0,
+      "explain": "Cookies carry state in the HTTP messages themselves (the cookie and set-cookie header lines). The site uses the ID to look up history in its back-end database, and HTTP itself stays stateless."
+    },
+    {
+      "type": "mc",
+      "category": "Tracking, third-party cookies and GDPR",
+      "q": "What is a 'first-party' cookie?",
+      "choices": [
+        "A cookie from the website you chose to visit (the one that provides the base HTML file)",
+        "A cookie from an ad server whose content is embedded in the page",
+        "The first cookie the browser ever stored",
+        "A cookie that the browser creates without any server involved"
+      ],
+      "answer": 0,
+      "explain": "A first-party cookie comes from the site you chose to visit (for example, nytimes.com setting 1634). First-party cookies track your behavior on that one site."
+    },
+    {
+      "type": "mc",
+      "category": "Tracking, third-party cookies and GDPR",
+      "q": "You visit nytimes.com, and its page makes your browser fetch an ad from AdX.com, which sets cookie 7493. What kind of cookie is 7493?",
+      "choices": [
+        "A third-party cookie: it comes from a website you did not choose to visit",
+        "A first-party cookie: it was set while you were viewing nytimes.com",
+        "A session cookie owned by nytimes.com",
+        "Not a cookie, because ads cannot set cookies"
+      ],
+      "answer": 0,
+      "explain": "AdX.com is a site you never chose to visit, so its cookie is a third-party cookie. Third-party cookies let a tracker follow you across many websites."
+    },
+    {
+      "type": "mc",
+      "category": "Tracking, third-party cookies and GDPR",
+      "q": "When your browser fetches an AdX ad embedded in socks.com, how does AdX learn both who you are and which site you are on?",
+      "choices": [
+        "The HTTP GET carries a Referrer header (socks.com) and AdX's cookie (7493)",
+        "socks.com forwards its own cookie database to AdX",
+        "AdX reads your browser's whole cookie file, including the NY Times cookie",
+        "The ad's status code encodes the site name"
+      ],
+      "answer": 0,
+      "explain": "The request to AdX includes 'Referrer: socks.com' and 'cookie: 7493', so AdX records '7493: socks.com' next to its earlier '7493: NY Times sports' entry."
+    },
+    {
+      "type": "mc",
+      "category": "Tracking, third-party cookies and GDPR",
+      "q": "A user reads NY Times sports, then visits socks.com, then the next day reads NY Times arts and sees a socks ad. Why?",
+      "choices": [
+        "AdX recognized its cookie 7493 on every visit, linked the browsing history across sites, and returned a targeted ad",
+        "nytimes.com read the socks.com cookie from the user's cookie file",
+        "socks.com paid nytimes.com to share its first-party cookie 1634",
+        "The browser cached the socks ad from the day before"
+      ],
+      "answer": 0,
+      "explain": "AdX's ads appear on both sites, so its third-party cookie 7493 comes back from each one. AdX builds a cross-site history and returns ads based on it."
+    },
+    {
+      "type": "tf",
+      "category": "Tracking, third-party cookies and GDPR",
+      "q": "Third-party cookie tracking needs a visible ad on the page, so the user can always see when it is happening.",
+      "answer": false,
+      "explain": "Tracking may be invisible to the user. Instead of a displayed ad, an invisible link can trigger the HTTP GET to the tracker."
+    },
+    {
+      "type": "multi",
+      "category": "Tracking, third-party cookies and GDPR",
+      "q": "Which statements about cookies and tracking are correct?",
+      "choices": [
+        "First-party cookies can track user behavior on a given website",
+        "Third-party cookies can track user behavior across multiple websites without the user ever choosing to visit the tracker site",
+        "Third-party tracking via cookies is disabled by default in Firefox and Safari",
+        "A third-party cookie can only be set if the user explicitly types the tracker's URL"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "First-party cookies track you within one site, and third-party cookies track you across sites. You never need to visit the tracker yourself, since an embedded ad or invisible link does it. Firefox and Safari block third-party tracking cookies by default."
+    },
+    {
+      "type": "mc",
+      "category": "Tracking, third-party cookies and GDPR",
+      "q": "Under the EU General Data Protection Regulation (GDPR), when are cookies considered personal data?",
+      "choices": [
+        "When they can identify an individual",
+        "Always, whatever they contain",
+        "Only when they contain the user's name",
+        "Never. Only IP addresses count as personal data"
+      ],
+      "answer": 0,
+      "explain": "GDPR recital 30 notes that online identifiers such as IP addresses and cookie identifiers can be combined to profile and identify people. When cookies can identify an individual, they fall under GDPR's personal data rules."
+    },
+    {
+      "type": "mc",
+      "category": "Tracking, third-party cookies and GDPR",
+      "q": "What is a visible effect of GDPR on websites that use cookies?",
+      "choices": [
+        "Sites show a cookie consent banner, and cookies that are not strictly necessary are turned on only after the user explicitly agrees",
+        "Browsers must delete all cookies when the tab closes",
+        "Web servers must switch from HTTP/1.1 to non-persistent HTTP",
+        "Cookies may only be sent in HEAD requests"
+      ],
+      "answer": 0,
+      "explain": "The user gets explicit control over whether cookies are allowed (for example, 'OK, accept all', 'Deny all cookies', 'Personalize'). Cookies that are not strictly necessary need explicit consent first."
+    }
+  ]
+}

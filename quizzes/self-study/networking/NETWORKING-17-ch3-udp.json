@@ -1,0 +1,469 @@
+{
+  "title": "Connectionless Transport: UDP (3.3)",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "multi",
+      "category": "UDP service model",
+      "q": "Under UDP's best-effort service, which of the following can happen to the segments an application sends?",
+      "choices": [
+        "A segment can be lost",
+        "Segments can be delivered to the receiving application out of order",
+        "A lost segment is automatically retransmitted by UDP",
+        "A segment can arrive more than once, since UDP does not guarantee duplicate protection"
+      ],
+      "answer": [0, 1, 3],
+      "explain": "UDP is best-effort: it sends and hopes for the best. Segments may be lost or delivered out of order, and RFC 768 says delivery and duplicate protection are not guaranteed. UDP never retransmits anything."
+    },
+    {
+      "type": "mc",
+      "category": "UDP service model",
+      "q": "What does it mean to say UDP is connectionless?",
+      "choices": [
+        "UDP segments carry no port numbers, so they are not tied to any application",
+        "Sender and receiver do a short handshake but discard the state afterward",
+        "There is no handshaking between UDP sender and receiver, and each segment is handled independently of the others",
+        "UDP segments are sent with no header at all"
+      ],
+      "answer": 2,
+      "explain": "Connectionless means there is no handshake and no shared state between sender and receiver. Each UDP segment is handled on its own, without reference to any other segment."
+    },
+    {
+      "type": "tf",
+      "category": "UDP service model",
+      "q": "A UDP receiver uses what it learned from earlier segments from the same sender to decide how to handle a newly arriving segment.",
+      "answer": false,
+      "explain": "Each UDP segment is handled independently of all the others. There is no connection state linking one segment to the next."
+    },
+    {
+      "type": "text",
+      "category": "UDP service model",
+      "q": "UDP's service, where the sender sends segments and \"hopes for the best\" with no guarantee of delivery or ordering, is called ______ service.",
+      "answer": ["best effort", "best-effort", "best effort service", "best-effort service"],
+      "explain": "Best-effort service means \"send and hope for the best\": segments may be lost or delivered out of order."
+    },
+    {
+      "type": "mc",
+      "category": "UDP service model",
+      "q": "According to the UDP specification (RFC 768), which transport protocol should an application use if it needs ordered, reliable delivery of a stream of data?",
+      "choices": [
+        "UDP, because its checksum guarantees delivery",
+        "TCP",
+        "IP directly, with no transport protocol",
+        "UDP with a longer length field"
+      ],
+      "answer": 1,
+      "explain": "RFC 768 says UDP provides minimal protocol mechanism, with no guarantee of delivery or duplicate protection, and that applications requiring ordered reliable delivery of streams should use TCP. (An application can also add reliability itself on top of UDP, as HTTP/3 does.)"
+    },
+    {
+      "type": "tf",
+      "category": "UDP service model",
+      "q": "UDP is designed to run over the Internet Protocol (IP) as its underlying network-layer protocol.",
+      "answer": true,
+      "explain": "RFC 768 states that UDP assumes IP is the underlying protocol. The UDP sender passes its segment down to IP, and the receiver gets segments up from IP."
+    },
+    {
+      "type": "tf",
+      "category": "UDP service model",
+      "q": "Before the first UDP segment can be sent, the sender and receiver must set up shared connection state.",
+      "answer": false,
+      "explain": "UDP has no handshaking and no connection state at sender or receiver. A sender can send a datagram right away."
+    },
+    {
+      "type": "multi",
+      "category": "Why use UDP",
+      "q": "Which of the following are reasons UDP exists alongside TCP?",
+      "choices": [
+        "No connection establishment, so no handshake round-trip delay before data flows",
+        "Guaranteed in-order delivery to the application",
+        "Simple design with no connection state at sender or receiver",
+        "Small header size, so little overhead",
+        "Automatic retransmission of lost segments",
+        "No congestion control, so the sender can send as fast as it wants"
+      ],
+      "answer": [0, 2, 3, 5],
+      "explain": "UDP's advantages: no connection setup (no added RTT), no connection state, a small header, and no congestion control, so it can blast away and keep working under congestion. In-order delivery and retransmission are things UDP does NOT provide."
+    },
+    {
+      "type": "mc",
+      "category": "Why use UDP",
+      "q": "Why can a UDP application keep sending even when the network is congested?",
+      "choices": [
+        "UDP reserves bandwidth in routers when the sender starts",
+        "UDP has no congestion control, so nothing in UDP slows the sender down",
+        "Routers give UDP segments priority over TCP segments",
+        "The UDP checksum repairs segments damaged by congestion"
+      ],
+      "answer": 1,
+      "explain": "UDP has no built-in congestion control. A UDP sender can send as fast as it likes and still work in a congested network, which TCP has more trouble doing."
+    },
+    {
+      "type": "mc",
+      "category": "Why use UDP",
+      "q": "Streaming multimedia applications are a good fit for UDP because they are typically:",
+      "choices": [
+        "Loss intolerant and rate insensitive",
+        "Loss intolerant and dependent on in-order byte streams",
+        "Loss tolerant and rate sensitive",
+        "Tolerant of any delay but not of any loss"
+      ],
+      "answer": 2,
+      "explain": "Streaming media can tolerate some segment loss but is sensitive to rate, so it should not be throttled too hard by congestion control. UDP fits: it does not slow the sender down, and occasional losses are acceptable."
+    },
+    {
+      "type": "mc",
+      "category": "Why use UDP",
+      "q": "Why are DNS and SNMP well suited to running over UDP?",
+      "choices": [
+        "They transfer huge files that need guaranteed in-order delivery",
+        "They depend on UDP's retransmissions to recover lost requests",
+        "They need a handshake before every request",
+        "They need to keep working when the network is compromised or congested, and UDP has no setup delay or congestion control holding them back"
+      ],
+      "answer": 3,
+      "explain": "DNS and SNMP need to work even when the network is in a compromised or congested state. UDP has no connection setup and no congestion control, so it can still get messages out."
+    },
+    {
+      "type": "multi",
+      "category": "Why use UDP",
+      "q": "HTTP/3 needs reliable transfer but runs over UDP. Which features does it add itself, at the application layer?",
+      "choices": [
+        "Reliable data transfer",
+        "Congestion control",
+        "Extra sequence-number fields inside the UDP header",
+        "Nothing, because UDP already provides reliability"
+      ],
+      "answer": [0, 1],
+      "explain": "When reliable transfer is needed over UDP (for example HTTP/3), the needed reliability and congestion control are added at the application layer. The UDP header itself stays the same four fields."
+    },
+    {
+      "type": "tf",
+      "category": "Why use UDP",
+      "q": "Because UDP is so bare-bones, it does nothing at all to help with reliability.",
+      "answer": false,
+      "explain": "UDP still helps with reliability through its checksum, which lets the receiver detect flipped bits. It does not recover lost or reordered segments, though."
+    },
+    {
+      "type": "mc",
+      "category": "Why use UDP",
+      "q": "A developer wants a short request/response protocol in which the very first packet already carries data, with no setup round trip. The app can tolerate an occasional lost request by retrying. Which transport fits best, and why?",
+      "choices": [
+        "TCP, because its handshake lowers the delay of the first request",
+        "UDP, because there is no connection establishment, so no RTT is spent before data is sent",
+        "UDP, because it guarantees the request will arrive",
+        "TCP, because it has a smaller header than UDP"
+      ],
+      "answer": 1,
+      "explain": "UDP has no handshake, so the sender sends its datagram right away and spends no RTT on setup. UDP does not guarantee delivery, so the app handles retries itself."
+    },
+    {
+      "type": "mc",
+      "category": "Sender and receiver actions",
+      "q": "Which sequence correctly lists the UDP sender's actions?",
+      "choices": [
+        "Creates UDP segment, then is passed an application-layer message, then passes segment to IP, then determines header field values",
+        "Determines header field values, then passes segment to IP, then creates UDP segment, then is passed an application-layer message",
+        "Is passed an application-layer message, then determines UDP header field values, then creates UDP segment, then passes segment to IP",
+        "Is passed an application-layer message, then passes the message to IP, then IP creates the UDP segment, then UDP determines header field values"
+      ],
+      "fixed": true,
+      "answer": 2,
+      "explain": "The sender gets a message from the application, fills in the UDP header fields, builds the segment (header plus message as payload), and hands it down to IP."
+    },
+    {
+      "type": "mc",
+      "category": "Sender and receiver actions",
+      "q": "Which sequence correctly lists the UDP receiver's actions?",
+      "choices": [
+        "Demultiplexes message to socket, then receives segment from IP, then checks checksum, then extracts message",
+        "Receives segment from IP, then checks the UDP checksum header value, then extracts the application-layer message, then demultiplexes the message up to the application via its socket",
+        "Receives segment from IP, then extracts message, then demultiplexes to socket, then checks checksum",
+        "Checks checksum, then receives segment directly from the link layer, then demultiplexes, then extracts message"
+      ],
+      "fixed": true,
+      "answer": 1,
+      "explain": "The receiver gets the segment from the network layer (IP), checks the checksum, extracts the application message, and demultiplexes it to the right application socket."
+    },
+    {
+      "type": "mc",
+      "category": "Sender and receiver actions",
+      "q": "An SNMP client sends a request using UDP. What is the payload of the UDP segment?",
+      "choices": [
+        "The IP datagram header",
+        "Only the UDP header; SNMP data travels separately",
+        "The connection state shared by client and server",
+        "The SNMP message passed down from the application layer"
+      ],
+      "answer": 3,
+      "explain": "UDP puts the application-layer message (here the SNMP message) into the segment as its payload, behind the UDP header, then passes the segment to IP."
+    },
+    {
+      "type": "mc",
+      "category": "Sender and receiver actions",
+      "q": "After a UDP receiver extracts the application message, how does the message reach the correct application process?",
+      "choices": [
+        "UDP uses the checksum value to identify the application",
+        "UDP delivers the message to every application on the host",
+        "UDP demultiplexes it to the right socket using the port numbers in the header",
+        "UDP looks up the connection set up during the handshake"
+      ],
+      "answer": 2,
+      "explain": "The source and destination port number fields are used for multiplexing and demultiplexing. The receiver uses them to send the message up to the right application socket. There is no handshake or connection to look up."
+    },
+    {
+      "type": "tf",
+      "category": "Sender and receiver actions",
+      "q": "A UDP sender hands the finished segment directly to the link layer, bypassing IP.",
+      "answer": false,
+      "explain": "The UDP sender passes the segment to IP (the network layer), which forwards it toward the receiving host. The receiver likewise gets segments from IP."
+    },
+    {
+      "type": "tf",
+      "category": "Sender and receiver actions",
+      "q": "A UDP receiver checks the segment's checksum header value before it extracts the application-layer message and delivers it.",
+      "answer": true,
+      "explain": "Receiver actions in order: receive the segment from IP, check the UDP checksum, extract the message, demultiplex it up to the application via its socket."
+    },
+    {
+      "type": "num",
+      "category": "UDP segment format",
+      "q": "How many fields are in the UDP header?",
+      "answer": 4,
+      "explain": "The four fields are source port #, destination port #, length, and checksum. After the header comes the application data (payload)."
+    },
+    {
+      "type": "num",
+      "category": "UDP segment format",
+      "q": "Every UDP header field is 16 bits wide. How many bytes long is the UDP header?",
+      "answer": 8,
+      "explain": "4 fields x 16 bits = 64 bits = 8 bytes. In the format diagram that is two 32-bit rows: source/destination port, then length/checksum."
+    },
+    {
+      "type": "num",
+      "category": "UDP segment format",
+      "q": "A UDP segment carries 100 bytes of application data. What value goes in its length field?",
+      "answer": 108,
+      "explain": "The length field is the length in bytes of the whole UDP segment, including the header. 100 bytes of payload + 8-byte header = 108."
+    },
+    {
+      "type": "num",
+      "category": "UDP segment format",
+      "q": "A received UDP segment's length field reads 520. How many bytes of application data does it carry?",
+      "answer": 512,
+      "explain": "The length field counts the header too. 520 - 8 header bytes = 512 bytes of payload."
+    },
+    {
+      "type": "multi",
+      "category": "UDP segment format",
+      "q": "Which UDP header fields are used for multiplexing and demultiplexing?",
+      "choices": [
+        "Source port #",
+        "Destination port #",
+        "Length",
+        "Checksum"
+      ],
+      "answer": [0, 1],
+      "explain": "The source and destination port numbers are used for multiplexing and demultiplexing. Length gives the segment size, and the checksum is for error detection."
+    },
+    {
+      "type": "mc",
+      "category": "UDP segment format",
+      "q": "Why does the UDP header need a length field?",
+      "choices": [
+        "To count how many segments the sender has sent so far",
+        "The application data (payload) can vary in length, so UDP needs to know exactly how long the segment is",
+        "To tell the receiver how many bytes to expect in the next segment",
+        "To carry the measured round-trip time"
+      ],
+      "answer": 1,
+      "explain": "The payload is variable-length, so the header records the segment's length in bytes (header included)."
+    },
+    {
+      "type": "tf",
+      "category": "UDP segment format",
+      "q": "The UDP length field gives the size of the application data only, not counting the header.",
+      "answer": false,
+      "explain": "The length field is the length in bytes of the UDP segment including the header."
+    },
+    {
+      "type": "num",
+      "category": "UDP segment format",
+      "q": "How many bits wide is the UDP destination port number field?",
+      "answer": 16,
+      "explain": "Each header row is 32 bits and holds two fields, so each field, including the destination port, is 16 bits."
+    },
+    {
+      "type": "text",
+      "category": "UDP segment format",
+      "q": "UDP is defined in RFC number ____.",
+      "answer": ["768", "RFC 768", "rfc768"],
+      "explain": "UDP is specified in RFC 768 (J. Postel, 1980). It is only about three pages long, which makes it an easy Internet protocol spec to read."
+    },
+    {
+      "type": "mc",
+      "category": "Computing the Internet checksum",
+      "q": "When computing the Internet checksum, the sender treats the UDP segment's contents as a sequence of:",
+      "choices": [
+        "8-bit characters",
+        "32-bit integers",
+        "16-bit integers",
+        "Single bits, counted for parity"
+      ],
+      "answer": 2,
+      "explain": "The segment contents (including UDP header fields and the IP addresses) are treated as a sequence of 16-bit integers, which are added with one's complement addition."
+    },
+    {
+      "type": "multi",
+      "category": "Computing the Internet checksum",
+      "q": "Which of the following are included in the UDP checksum computation?",
+      "choices": [
+        "The UDP header fields",
+        "The application data (payload) of the segment",
+        "The source and destination IP addresses",
+        "Link-layer (hardware) addresses"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The checksum covers the contents of the UDP segment (header fields and payload) plus the source and destination IP addresses. Link-layer addresses are not included."
+    },
+    {
+      "type": "mc",
+      "category": "Computing the Internet checksum",
+      "q": "When adding 16-bit integers for the Internet checksum, what happens to a carry out of the most significant bit?",
+      "choices": [
+        "It is discarded",
+        "It wraps around and is added back into the result",
+        "It becomes a 17th bit of the checksum field",
+        "It indicates that an error has occurred"
+      ],
+      "answer": 1,
+      "explain": "A carry out of the most significant bit wraps around: it is added back into the low-order end of the 16-bit sum."
+    },
+    {
+      "type": "mc",
+      "category": "Computing the Internet checksum",
+      "q": "Once the 16-bit sum (with wraparound) has been computed, how is the checksum obtained from it?",
+      "choices": [
+        "The sum is used as the checksum as-is",
+        "Take the two's complement: flip all bits, then add 1",
+        "Keep only the low-order 8 bits of the sum",
+        "Take the one's complement: flip every 0 to 1 and every 1 to 0"
+      ],
+      "answer": 3,
+      "explain": "The checksum is the one's complement of the sum: every bit is flipped. For example, sum 1011101110111100 gives checksum 0100010001000011."
+    },
+    {
+      "type": "mc",
+      "category": "Computing the Internet checksum",
+      "q": "Adding 1110011001100110 and 1101010101010101 gives the 17-bit result 11011101110111011. What 16-bit sum is used to compute the checksum?",
+      "choices": [
+        "1011101110111011",
+        "1011101110111100",
+        "1101110111011101",
+        "0100010001000011"
+      ],
+      "answer": 1,
+      "explain": "Drop the leading carry bit, leaving 1011101110111011, then wrap it around by adding 1: 1011101110111100. (1011101110111011 forgets the wraparound. 1101110111011101 is just the top 16 bits. 0100010001000011 is the checksum, not the sum.)"
+    },
+    {
+      "type": "text",
+      "category": "Computing the Internet checksum",
+      "q": "Compute the Internet checksum of the two 16-bit words 0110011001100000 and 0101010101010101. Give all 16 bits.",
+      "answer": ["0100010001001010", "0100 0100 0100 1010"],
+      "explain": "Sum: 0110011001100000 + 0101010101010101 = 1011101110110101. There is no carry out of the top bit, so no wraparound. Checksum = one's complement (flip every bit) = 0100010001001010."
+    },
+    {
+      "type": "text",
+      "category": "Computing the Internet checksum",
+      "q": "Compute the 16-bit one's complement sum, after any wraparound, of 1000000000000001 and 1000000000000010. Give all 16 bits.",
+      "answer": ["0000000000000100", "0000 0000 0000 0100"],
+      "explain": "1000000000000001 + 1000000000000010 = 1 0000000000000011 (17 bits). The carry wraps around: 0000000000000011 + 1 = 0000000000000100."
+    },
+    {
+      "type": "text",
+      "category": "Computing the Internet checksum",
+      "q": "Compute the Internet checksum of the two 16-bit words 1000000000000001 and 1000000000000010. Give all 16 bits.",
+      "answer": ["1111111111111011", "1111 1111 1111 1011"],
+      "explain": "Raw sum = 1 0000000000000011. The carry wraps around to give 0000000000000100. Flip every bit for the checksum: 1111111111111011."
+    },
+    {
+      "type": "tf",
+      "category": "Computing the Internet checksum",
+      "q": "The same Internet checksum computation used by UDP also appears in TCP and in IP.",
+      "answer": true,
+      "explain": "The Internet checksum is not unique to UDP. The same idea is used again in TCP and in the IP protocol."
+    },
+    {
+      "type": "mc",
+      "category": "Checksum error detection",
+      "q": "What is the goal of the UDP checksum?",
+      "choices": [
+        "To detect errors (flipped bits) in the transmitted segment",
+        "To correct flipped bits in the transmitted segment",
+        "To detect lost segments so they can be retransmitted",
+        "To put out-of-order segments back in order"
+      ],
+      "answer": 0,
+      "explain": "The checksum only detects bit errors. It does not correct them, and it does nothing about loss or reordering."
+    },
+    {
+      "type": "mc",
+      "category": "Checksum error detection",
+      "q": "Consider a simple scheme where the sender transmits two numbers plus their sum: 5, 6, 11. The receiver adds the first two numbers and compares the result to the third. Which received triple contains an error that the receiver would NOT detect?",
+      "choices": [
+        "4, 6, 11",
+        "5, 6, 12",
+        "4, 7, 11",
+        "5, 7, 11"
+      ],
+      "answer": 2,
+      "explain": "4 + 7 = 11 matches the received sum, so the receiver sees no problem even though both numbers changed. The others fail the check: 4 + 6 = 10, 5 + 6 = 11 (not 12), and 5 + 7 = 12."
+    },
+    {
+      "type": "mc",
+      "category": "Checksum error detection",
+      "q": "In the same scheme (two numbers plus their sum), the sender transmits 5, 6, 11 and the receiver gets 5, 6, 12. What can the receiver conclude?",
+      "choices": [
+        "No error occurred, because the two data numbers are unchanged",
+        "An error occurred, but the receiver cannot tell which of the three numbers changed, since any of them, including the checksum, may have been corrupted",
+        "The first number was corrupted",
+        "It can repair the segment by replacing 12 with 11"
+      ],
+      "answer": 1,
+      "explain": "5 + 6 = 11 does not equal 12, so an error is detected. Any of the three values might have changed in transit, so the receiver knows only that something is wrong, not where. The checksum detects errors; it does not correct them."
+    },
+    {
+      "type": "tf",
+      "category": "Checksum error detection",
+      "q": "If the receiver's computed checksum equals the value in the checksum field, the segment is guaranteed to be error-free.",
+      "answer": false,
+      "explain": "Equal means only that no error was detected. Some combinations of bit flips leave the sum unchanged, so errors can still go undetected. The Internet checksum is not foolproof."
+    },
+    {
+      "type": "mc",
+      "category": "Checksum error detection",
+      "q": "The words 1110011001100110 and 1101010101010101 are sent with their Internet checksum. In transit, the last two bits of the first word flip from 10 to 01, and the last two bits of the second word flip from 01 to 10. Why does the receiver fail to detect the error?",
+      "choices": [
+        "The last two bit positions are not covered by the checksum",
+        "The wraparound carry cancels out any error",
+        "The receiver checks only the header, not the data",
+        "The first word's value drops by 1 and the second's rises by 1, so their sum, and therefore the checksum, is unchanged"
+      ],
+      "answer": 3,
+      "explain": "...10 to ...01 subtracts 1 from the first word, and ...01 to ...10 adds 1 to the second. The sum is the same, so the receiver computes the same checksum the sender did, even though both numbers changed. This is why the Internet checksum is weak protection."
+    },
+    {
+      "type": "tf",
+      "category": "Checksum error detection",
+      "q": "The Internet checksum lets the receiver locate and correct flipped bits.",
+      "answer": false,
+      "explain": "It can only detect some errors. Stronger techniques, seen later at the link layer and in security, can both detect and correct bit errors."
+    },
+    {
+      "type": "tf",
+      "category": "Checksum error detection",
+      "q": "If there are no errors and the receiver adds all of the segment's 16-bit words (with wraparound) plus the received checksum, the result is 1111111111111111.",
+      "answer": true,
+      "explain": "The checksum is the one's complement of the sum S, so S + checksum has a 1 in every bit position: 1111111111111111. Any other result means an error was detected. This is equivalent to recomputing the checksum and comparing it with the checksum field."
+    }
+  ]
+}

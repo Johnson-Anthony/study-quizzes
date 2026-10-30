@@ -1,0 +1,374 @@
+{
+  "title": "Ch5: Distance-Vector Routing",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Bellman-Ford equation",
+      "q": "In the Bellman-Ford equation Dx(y) = min_v { c(x,v) + Dv(y) }, the minimum is taken over which set of nodes v?",
+      "choices": ["All neighbors v of x", "All nodes v in the network", "All nodes on the current path from x to y", "All neighbors v of the destination y"],
+      "answer": 0,
+      "explain": "x tries each of its own neighbors as the first hop and adds the direct link cost c(x,v) to that neighbor's estimate Dv(y). Because the minimum only covers neighbors, a DV node needs information from its neighbors and nothing else."
+    },
+    {
+      "type": "mc",
+      "category": "Bellman-Ford equation",
+      "q": "In Dx(y) = min_v { c(x,v) + Dv(y) }, what does the term Dv(y) stand for?",
+      "choices": ["Neighbor v's estimated least-cost-path cost to y", "The direct cost of the link from v to y", "The direct cost of the link from x to v", "The number of hops from v to y"],
+      "answer": 0,
+      "explain": "c(x,v) is the direct cost of the link from x to v. Dv(y) is v's own estimate of its least-cost path to y, which v reports in its distance vector."
+    },
+    {
+      "type": "num",
+      "category": "Bellman-Ford equation",
+      "q": "Node u has neighbors v, x and w with link costs c(u,v) = 2, c(u,x) = 1, c(u,w) = 5. For destination z, the neighbors report Dv(z) = 5, Dx(z) = 3, Dw(z) = 3. Using Bellman-Ford, what is Du(z)?",
+      "answer": 4,
+      "explain": "Du(z) = min{ c(u,v)+Dv(z), c(u,x)+Dx(z), c(u,w)+Dw(z) } = min{2+5, 1+3, 5+3} = min{7, 4, 8} = 4."
+    },
+    {
+      "type": "mc",
+      "category": "Bellman-Ford equation",
+      "q": "Node u has neighbors v, x and w with c(u,v) = 2, c(u,x) = 1, c(u,w) = 5, and they report Dv(z) = 5, Dx(z) = 3, Dw(z) = 3. Which node is u's next hop toward z?",
+      "choices": ["v", "x", "w", "z itself"],
+      "answer": 1,
+      "explain": "The next hop is the neighbor that achieves the minimum in the Bellman-Ford equation. Here that is x, with 1 + 3 = 4. w also reports a distance of 3, but its link from u costs 5, so going through w costs 8."
+    },
+    {
+      "type": "num",
+      "category": "Bellman-Ford equation",
+      "q": "Node u has neighbors v, x and w. They report Dv(z) = 5, Dx(z) = 3, Dw(z) = 3, and c(u,v) = 2, c(u,w) = 5. The link u–x now costs 6, and the neighbors' reported values are unchanged. What is Du(z)?",
+      "answer": 7,
+      "explain": "min{2+5, 6+3, 5+3} = min{7, 9, 8} = 7. The minimum is now reached through v, so v becomes u's next hop toward z."
+    },
+    {
+      "type": "mc",
+      "category": "Bellman-Ford equation",
+      "q": "The Bellman-Ford equation that distance-vector routing is based on is an example of which technique?",
+      "choices": ["Dynamic programming", "Greedy selection of the closest not-yet-finalized node", "Divide and conquer", "Random flooding"],
+      "answer": 0,
+      "explain": "Bellman-Ford is dynamic programming. It writes x's least cost to y in terms of the least costs of x's neighbors to y, which are solutions to smaller subproblems."
+    },
+    {
+      "type": "tf",
+      "category": "Bellman-Ford equation",
+      "q": "To compute Dx(y) with the Bellman-Ford equation, node x must know the complete network topology.",
+      "answer": false,
+      "explain": "x only needs the costs of its own links, c(x,v), and the distance vectors Dv(y) that its neighbors report. It never needs the full topology."
+    },
+    {
+      "type": "multi",
+      "category": "DV algorithm operation",
+      "q": "In the distance-vector algorithm, what can cause a node to start a local iteration (recompute its DV)?",
+      "choices": ["A change in the cost of one of its local links", "A DV update message from a neighbor", "A command from a central controller", "A link-state broadcast from every router in the network"],
+      "answer": [0, 1],
+      "explain": "DV is iterative and asynchronous. A local iteration is triggered only by a change in a local link cost or a DV update message from a neighbor. No central controller is involved, and routers do not flood the network."
+    },
+    {
+      "type": "mc",
+      "category": "DV algorithm operation",
+      "q": "Which sequence matches the loop each DV node runs?",
+      "choices": [
+        "Wait for a local link cost change or a neighbor's message → recompute DV estimates → if the DV to any destination changed, notify neighbors",
+        "Recompute DV estimates → notify all neighbors → wait for acknowledgments from every router",
+        "Wait for a neighbor's message → notify neighbors → recompute DV estimates",
+        "Flood local link costs to all routers → build the full topology → compute least-cost paths"
+      ],
+      "answer": 0,
+      "explain": "Each node repeats three steps: wait for an event (a local link cost change or a message from a neighbor), recompute its DV estimates using the DVs it received, and notify its neighbors only if its DV to some destination changed."
+    },
+    {
+      "type": "mc",
+      "category": "DV algorithm operation",
+      "q": "After a DV node recomputes its distance vector, when does it send the new DV to its neighbors?",
+      "choices": ["Only if its DV to some destination changed", "Every time it recomputes, whether or not anything changed", "Only when a neighbor explicitly asks for it", "Never; neighbors read it directly from the node's table"],
+      "answer": 0,
+      "explain": "DV is distributed and self-stopping. A node notifies its neighbors only when its DV changes, and those neighbors pass the change on only if their own DVs change."
+    },
+    {
+      "type": "tf",
+      "category": "DV algorithm operation",
+      "q": "DV is called self-stopping: once DVs stop changing, no notifications are sent, and a node that receives no notification takes no action.",
+      "answer": true,
+      "explain": "When no node's DV changes, no one sends a notification. With nothing received, no node recomputes, so the algorithm stops on its own."
+    },
+    {
+      "type": "tf",
+      "category": "DV algorithm operation",
+      "q": "Under minor, natural conditions, each DV estimate Dx(y) converges to the actual least cost dx(y).",
+      "answer": true,
+      "explain": "Nodes repeatedly exchange DVs and apply Bellman-Ford. Under minor, natural conditions, the estimates Dx(y) converge to the true least costs dx(y)."
+    },
+    {
+      "type": "mc",
+      "category": "DV algorithm operation",
+      "q": "When node x receives a new distance vector from a neighbor, which of its own estimates does it update with the Bellman-Ford equation?",
+      "choices": ["Dx(y) for every destination y in the network", "Only Dx(v), its distance to the neighbor v that sent the DV", "Only the link cost c(x,v) to that neighbor", "None; it just forwards the received DV to its other neighbors"],
+      "answer": 0,
+      "explain": "x recomputes Dx(y) ← min_v { c(x,v) + Dv(y) } for each node y in N. Link costs are measured locally and are not taken from neighbors' DVs."
+    },
+    {
+      "type": "mc",
+      "category": "DV algorithm operation",
+      "q": "In the distance-vector example, what does each node's distance vector contain at t = 0?",
+      "choices": ["Costs to its direct neighbors (and 0 to itself); every other entry is ∞", "Least costs to every node in the network", "Costs to every node within two hops", "∞ for every entry, including itself"],
+      "answer": 0,
+      "explain": "At t = 0, each node only has distance estimates to its nearest neighbors, which are the link costs, plus 0 to itself. Every other destination is ∞. Each node then sends this local DV to its neighbors."
+    },
+    {
+      "type": "num",
+      "category": "DV computation example",
+      "q": "Grid network: top row a, b, c; middle row d, e, f; bottom row g, h, i. Link a–b costs 8. Links b–c, a–d, b–e, d–e, e–f, d–g, e–h, f–i, g–h, h–i each cost 1. There is no c–f link. At t = 0, each node knows only the costs of its own links. At each later step, every node receives its neighbors' DVs from the previous step, recomputes, and sends. At t = 1, b receives the t = 0 DVs of a, c and e. What is b's new Db(d)?",
+      "answer": 2,
+      "explain": "Db(d) = min{ c(b,a)+Da(d), c(b,c)+Dc(d), c(b,e)+De(d) } = min{8+1, 1+∞, 1+1} = 2, through e."
+    },
+    {
+      "type": "mc",
+      "category": "DV computation example",
+      "q": "Grid network: top row a, b, c; middle row d, e, f; bottom row g, h, i. Link a–b costs 8. Links b–c, a–d, b–e, d–e, e–f, d–g, e–h, f–i, g–h, h–i each cost 1. There is no c–f link. At t = 0, each node knows only the costs of its own links. At t = 1, b receives the t = 0 DVs of a, c and e. What does b compute for Db(g)?",
+      "choices": ["∞", "2", "3", "10"],
+      "answer": 0,
+      "explain": "None of b's neighbors (a, c, e) is adjacent to g, so all of them had Dx(g) = ∞ at t = 0. Every term in the minimum is ∞, which means information about g hasn't reached b yet. The other entries b computes at t = 1 are a = 8, c = 1, d = 2, e = 1, f = 2, h = 2, i = ∞."
+    },
+    {
+      "type": "num",
+      "category": "DV computation example",
+      "q": "Grid network: top row a, b, c; middle row d, e, f; bottom row g, h, i. Link a–b costs 8. Links b–c, a–d, b–e, d–e, e–f, d–g, e–h, f–i, g–h, h–i each cost 1. There is no c–f link. At t = 1, c receives b's t = 0 DV (Db(a) = 8, Db(b) = 0, Db(c) = 1, Db(e) = 1, all others ∞). What is c's new Dc(a)?",
+      "answer": 9,
+      "explain": "c's only neighbor is b, so Dc(a) = c(c,b) + Db(a) = 1 + 8 = 9. c doesn't know about the cheaper route c–b–e–d–a (cost 4) yet. That information arrives over later iterations."
+    },
+    {
+      "type": "multi",
+      "category": "DV computation example",
+      "q": "Grid network: top row a, b, c; middle row d, e, f; bottom row g, h, i. Link a–b costs 8. Links b–c, a–d, b–e, d–e, e–f, d–g, e–h, f–i, g–h, h–i each cost 1. There is no c–f link. After c recomputes at t = 1 using b's t = 0 DV, which of these entries in c's DV are finite?",
+      "choices": ["Dc(a)", "Dc(d)", "Dc(e)", "Dc(f)", "Dc(h)"],
+      "answer": [0, 2],
+      "explain": "Dc(a) = 1 + 8 = 9 and Dc(e) = 1 + 1 = 2. b's t = 0 DV had ∞ for d, f and h, so those entries stay ∞. f is drawn right below c, but there is no c–f link."
+    },
+    {
+      "type": "num",
+      "category": "DV computation example",
+      "q": "Grid network: top row a, b, c; middle row d, e, f; bottom row g, h, i. Link a–b costs 8. Links b–c, a–d, b–e, d–e, e–f, d–g, e–h, f–i, g–h, h–i each cost 1. There is no c–f link. At t = 1, e receives the t = 0 DVs of its neighbors b, d, f and h. What is e's new De(a)?",
+      "answer": 2,
+      "explain": "Through b: 1 + Db(a) = 1 + 8 = 9. Through d: 1 + Dd(a) = 1 + 1 = 2. Through f and h: ∞. So De(a) = 2, with d as the next hop."
+    },
+    {
+      "type": "mc",
+      "category": "DV computation example",
+      "q": "Grid network: top row a, b, c; middle row d, e, f; bottom row g, h, i. Link a–b costs 8. Links b–c, a–d, b–e, d–e, e–f, d–g, e–h, f–i, g–h, h–i each cost 1. There is no c–f link. At t = 1, e receives the t = 0 DVs of b, d, f and h. What is e's new DV?",
+      "choices": [
+        "a=2, b=1, c=2, d=1, e=0, f=1, g=2, h=1, i=2",
+        "a=9, b=1, c=2, d=1, e=0, f=1, g=2, h=1, i=2",
+        "a=2, b=1, c=∞, d=1, e=0, f=1, g=∞, h=1, i=∞",
+        "a=2, b=1, c=2, d=1, e=0, f=1, g=3, h=1, i=3"
+      ],
+      "answer": 0,
+      "explain": "Each neighbor link costs 1, so e adds 1 to the best neighbor report for each destination: a through d (1+1), c through b (1+1), g through d or h (1+1), and i through f or h (1+1). Its own neighbors b, d, f, h stay at 1, and e stays at 0."
+    },
+    {
+      "type": "num",
+      "category": "DV computation example",
+      "q": "Grid network: top row a, b, c; middle row d, e, f; bottom row g, h, i. Link a–b costs 8. Links b–c, a–d, b–e, d–e, e–f, d–g, e–h, f–i, g–h, h–i each cost 1. There is no c–f link. a starts with Da(b) = 8, the direct link. At each step, every node receives its neighbors' DVs from the previous step, recomputes, and sends. When a recomputes at t = 2, what is Da(b)?",
+      "answer": 3,
+      "explain": "At t = 1, d computes Dd(b) = min{1+8 via a, 1+1 via e, ∞ via g} = 2. At t = 2, a receives that value: Da(b) = min{8 + Db(b), 1 + Dd(b)} = min{8+0, 1+2} = 3. a's next hop to b switches from the expensive direct link to d."
+    },
+    {
+      "type": "num",
+      "category": "Information diffusion",
+      "q": "Grid network: top row a, b, c; middle row d, e, f; bottom row g, h, i. Links: a–b, b–c, a–d, b–e, d–e, e–f, d–g, e–h, f–i, g–h, h–i (no c–f link). DV runs in synchronous steps starting at t = 0. At what time step t can c's state from t = 0 first influence DV computations at node e?",
+      "answer": 2,
+      "explain": "Information moves one hop per communicate-and-compute step. e is 2 hops from c (c–b–e), so c's t = 0 state can affect e's computation at t = 2."
+    },
+    {
+      "type": "num",
+      "category": "Information diffusion",
+      "q": "Grid network: top row a, b, c; middle row d, e, f; bottom row g, h, i. Links: a–b, b–c, a–d, b–e, d–e, e–f, d–g, e–h, f–i, g–h, h–i (no c–f link). DV runs in synchronous steps starting at t = 0. At what time step t can c's state from t = 0 first influence DV computations at node i?",
+      "answer": 4,
+      "explain": "i is 4 hops from c, for example c–b–e–f–i or c–b–e–h–i. c's state reaches b at t = 1, a and e at t = 2, d, f and h at t = 3, and g and i at t = 4."
+    },
+    {
+      "type": "multi",
+      "category": "Information diffusion",
+      "q": "Grid network: top row a, b, c; middle row d, e, f; bottom row g, h, i. Links: a–b, b–c, a–d, b–e, d–e, e–f, d–g, e–h, f–i, g–h, h–i (no c–f link). DV runs in synchronous steps starting at t = 0. Which nodes are first reached by c's t = 0 state at t = 3?",
+      "choices": ["a", "d", "f", "g", "h", "i"],
+      "answer": [1, 2, 4],
+      "explain": "d, f and h are exactly 3 hops from c (through b and then e). a is 2 hops away (t = 2). g and i are 4 hops away (t = 4)."
+    },
+    {
+      "type": "mc",
+      "category": "Information diffusion",
+      "q": "In the grid example (top row a, b, c; middle d, e, f; bottom g, h, i), why doesn't c's t = 0 state influence f until t = 3, even though f is drawn directly below c?",
+      "choices": [
+        "There is no c–f link, so f is 3 hops from c (c–b–e–f)",
+        "The c–f link has a large cost, so updates over it are delayed",
+        "f only accepts updates every third step",
+        "f receives c's DV at t = 1 but ignores it until t = 3"
+      ],
+      "answer": 0,
+      "explain": "The c–f link is missing, which is one of the example's deliberate asymmetries. DV information spreads one hop per step, and the shortest hop path from c to f is c–b–e–f."
+    },
+    {
+      "type": "tf",
+      "category": "Information diffusion",
+      "q": "In the grid example (a–b costs 8; all other links cost 1), c's t = 0 state reaches d before it reaches a, because the high cost of the a–b link slows the spread toward a.",
+      "answer": false,
+      "explain": "Diffusion is counted in hops (one hop per iteration), not link cost. a is 2 hops from c and is reached at t = 2. d is 3 hops away and is reached at t = 3."
+    },
+    {
+      "type": "mc",
+      "category": "Information diffusion",
+      "q": "In general, after t rounds of DV communication and computation, a node's state from t = 0 can have influenced DV computations at nodes up to how far away?",
+      "choices": ["t hops", "2t hops", "A total path cost of t", "The whole network, from t = 1 on"],
+      "answer": 0,
+      "explain": "Each round of communication and computation pushes the state one hop further, so after t rounds it can influence nodes up to t hops away."
+    },
+    {
+      "type": "num",
+      "category": "Link cost changes",
+      "q": "Three routers: link x–y costs 4, y–z costs 1, x–z costs 50, and DV has converged. What is z's least cost to x, Dz(x)?",
+      "answer": 5,
+      "explain": "Dz(x) = min{ c(z,x) + 0, c(z,y) + Dy(x) } = min{50, 1+4} = 5, through y."
+    },
+    {
+      "type": "num",
+      "category": "Link cost changes",
+      "q": "Three routers: link x–y costs 4, y–z costs 1, x–z costs 50, and DV has converged. The x–y link cost drops to 1. y detects the change, updates its DV and informs its neighbors, and then z recomputes. What is z's new Dz(x)?",
+      "answer": 2,
+      "explain": "y's new Dy(x) is 1. z computes min{50, 1 + 1} = 2 and sends its new DV to its neighbors."
+    },
+    {
+      "type": "tf",
+      "category": "Link cost changes",
+      "q": "Three routers: link x–y costs 4, y–z costs 1, x–z costs 50. The x–y cost drops to 1, y updates and informs z, and z updates and sends its DV. When y receives z's update, y's least costs don't change, so y does not send z another message.",
+      "answer": true,
+      "explain": "y still reaches x for 1 over the direct link, so its DV is unchanged and it stays quiet. The update is complete after just a couple of steps, which is why good news travels fast."
+    },
+    {
+      "type": "num",
+      "category": "Link cost changes",
+      "q": "Three routers: link x–y costs 4, y–z costs 1, x–z costs 50, and DV has converged, so z has reported Dz(x) = 5. The x–y link cost rises to 60. y detects the change and recomputes. What does y compute for its new Dy(x)?",
+      "answer": 6,
+      "explain": "Dy(x) = min{ c(y,x), c(y,z) + Dz(x) } = min{60, 1 + 5} = 6, through z. y then tells z its new cost to x is 6."
+    },
+    {
+      "type": "mc",
+      "category": "Link cost changes",
+      "q": "Three routers: link x–y costs 4, y–z costs 1, x–z costs 50. The x–y link rises to 60, and y computes a new cost of 6 to x through z because z had reported Dz(x) = 5. Why is y's estimate wrong?",
+      "choices": [
+        "z's reported cost of 5 was a path through y itself over the old 4-cost link, so y is relying on stale information about a path through itself",
+        "y should always prefer a direct link over any path through a neighbor",
+        "z's cost of 5 was wrong even before the change; z's true cost had been 50 all along",
+        "The Bellman-Ford equation doesn't apply once a link cost increases"
+      ],
+      "answer": 0,
+      "explain": "z's cost of 5 was z → y → x using the old x–y cost of 4. That path no longer costs 5, but y can't tell, because a DV only reports costs and not the paths behind them. This is what starts count-to-infinity."
+    },
+    {
+      "type": "num",
+      "category": "Link cost changes",
+      "q": "Three routers: link x–y costs 4, y–z costs 1, x–z costs 50. After the x–y link rises to 60, y computes Dy(x) = 6 (through z) and notifies z. What does z compute for its new Dz(x)?",
+      "answer": 7,
+      "explain": "z's path to x goes through y, so z computes min{50, 1 + 6} = 7 and tells y. y then computes 8, z computes 9, and so on. The costs climb a little at a time, which is count-to-infinity."
+    },
+    {
+      "type": "mc",
+      "category": "Link cost changes",
+      "q": "Three routers: x, y, z. While y believes its best path to x is through z, and z believes its best path to x is through y, what happens to a packet at y that is destined for x?",
+      "choices": [
+        "It bounces back and forth between y and z in a routing loop",
+        "It is delivered over the direct x–y link",
+        "It is delivered over the direct x–z link",
+        "It is dropped immediately because y's cost to x is ∞"
+      ],
+      "answer": 0,
+      "explain": "y forwards the packet to z, and z forwards it back to y. Routing loops like this are one of the DV problems listed in the comparison with LS."
+    },
+    {
+      "type": "num",
+      "category": "Link cost changes",
+      "q": "Three routers: link x–y now costs 60 (raised from 4), y–z costs 1, x–z costs 50. Once count-to-infinity ends and the network has converged, what is y's least cost to x, Dy(x)?",
+      "answer": 51,
+      "explain": "z's best route to x is now its direct link (50), because going through y would cost at least 61. y's best route is through z: min{60, 1 + 50} = 51."
+    },
+    {
+      "type": "mc",
+      "category": "Link cost changes",
+      "q": "In distance-vector routing, what do the phrases \"good news travels fast\" and \"bad news travels slow\" refer to?",
+      "choices": [
+        "A link cost decrease spreads in a few iterations, while a cost increase can trigger the slow count-to-infinity problem",
+        "Link-state messages travel faster than DV messages",
+        "Routers send cost decreases with higher priority than cost increases",
+        "Routers ignore cost increases until a timeout expires"
+      ],
+      "answer": 0,
+      "explain": "When the x–y cost dropped from 4 to 1, the update finished in a couple of steps. When it rose from 4 to 60, y and z kept raising their costs one step at a time, because each relied on the other's outdated path."
+    },
+    {
+      "type": "text",
+      "category": "Link cost changes",
+      "q": "After a link cost increases, two DV routers can keep raising their costs to a destination in small steps, because each believes the other has a path to it. What is this problem called?",
+      "answer": ["count-to-infinity", "count to infinity", "counting to infinity", "count-to-infinity problem"],
+      "explain": "Count-to-infinity, also called bad news travels slow. Distributed algorithms are tricky!"
+    },
+    {
+      "type": "mc",
+      "category": "LS vs DV comparison",
+      "q": "How do LS and DV compare in message complexity?",
+      "choices": [
+        "LS: with n routers, O(n²) messages sent; DV: messages are exchanged only between neighbors, and convergence time varies",
+        "LS: messages are exchanged only between neighbors; DV: O(n²) messages sent",
+        "Both send O(n) messages",
+        "LS: O(n) messages; DV: O(n³) messages"
+      ],
+      "answer": 0,
+      "explain": "In LS, every router's link costs must reach all n routers, which takes O(n²) messages. In DV, a router only exchanges messages with its neighbors, and how long it takes to converge varies."
+    },
+    {
+      "type": "multi",
+      "category": "LS vs DV comparison",
+      "q": "Which convergence issues belong to DV rather than LS?",
+      "choices": ["May have routing loops", "Count-to-infinity problem", "Convergence time varies", "May have oscillations", "O(n²) algorithm"],
+      "answer": [0, 1, 2],
+      "explain": "DV: convergence time varies, it may have routing loops, and it has the count-to-infinity problem. LS: an O(n²) algorithm with O(n²) messages, and it may have oscillations."
+    },
+    {
+      "type": "text",
+      "category": "LS vs DV comparison",
+      "q": "A malfunctioning or compromised DV router advertises that it has a really low-cost path to everywhere, so traffic gets pulled toward it. What is this called?",
+      "answer": ["black-holing", "black holing", "blackholing", "black hole", "black-hole"],
+      "explain": "Black-holing. A DV router can advertise an incorrect path cost, and since other routers build their DVs from it, the bad cost draws traffic toward that router."
+    },
+    {
+      "type": "mc",
+      "category": "LS vs DV comparison",
+      "q": "In terms of robustness, what incorrect information can a malfunctioning router advertise under LS, compared with DV?",
+      "choices": [
+        "LS: an incorrect link cost; DV: an incorrect path cost",
+        "LS: an incorrect path cost; DV: an incorrect link cost",
+        "Both: only an incorrect hop count",
+        "LS: nothing at all; DV: an incorrect link cost"
+      ],
+      "answer": 0,
+      "explain": "An LS router advertises costs of its own links, so a bad LS router can misreport a link cost. A DV router advertises path costs to destinations, so a bad DV router can misreport a path cost, which can lead to black-holing."
+    },
+    {
+      "type": "mc",
+      "category": "LS vs DV comparison",
+      "q": "Why does a malfunctioning router's error stay more contained under LS than under DV?",
+      "choices": [
+        "In LS each router computes only its own table, while in DV each router's DV is used by others, so errors propagate through the network",
+        "LS routers cannot advertise incorrect information",
+        "DV routers compute their tables only once, so errors are never corrected",
+        "LS messages are encrypted, so they can't be faked"
+      ],
+      "answer": 0,
+      "explain": "Under LS, every router computes its own table, so a bad link cost doesn't arrive already mixed into other routers' results. Under DV, every router's DV is built from its neighbors' DVs, so one bad DV spreads through the network."
+    },
+    {
+      "type": "tf",
+      "category": "LS vs DV comparison",
+      "q": "In DV, a router that advertises a wrong path cost affects only its own forwarding decisions.",
+      "answer": false,
+      "explain": "Each router's DV is used by its neighbors in their Bellman-Ford computations, and their DVs are then used by their neighbors. The error spreads through the network."
+    }
+  ]
+}

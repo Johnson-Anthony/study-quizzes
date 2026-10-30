@@ -1,0 +1,565 @@
+{
+  "title": "Ch6: Multiple Access Protocols",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "MAC basics",
+      "q": "Which of these is a point-to-point link rather than a broadcast (shared-medium) link?",
+      "choices": [
+        "802.11 wireless LAN",
+        "Upstream HFC in a cable-based access network",
+        "The link between an Ethernet switch and a host",
+        "A shared satellite radio channel"
+      ],
+      "answer": 2,
+      "explain": "A switch-to-host Ethernet link (and PPP for dial-up) has exactly one sender and one receiver at each end. Old-school shared Ethernet, upstream HFC, 802.11, 4G/5G and satellite are all broadcast media."
+    },
+    {
+      "type": "tf",
+      "category": "MAC basics",
+      "q": "On a shared broadcast channel, a collision occurs when a node receives two or more signals at the same time.",
+      "answer": true,
+      "explain": "Two or more simultaneous transmissions interfere. A node that receives overlapping signals cannot decode any of them, and that is a collision."
+    },
+    {
+      "type": "tf",
+      "category": "MAC basics",
+      "q": "Multiple access protocols usually coordinate channel sharing over a separate out-of-band control channel.",
+      "answer": false,
+      "explain": "There is no out-of-band channel. Any communication about who may transmit has to use the same shared channel being coordinated."
+    },
+    {
+      "type": "multi",
+      "category": "MAC basics",
+      "q": "Given a multiple access channel of rate R bps, which of these are properties of an ideal multiple access protocol?",
+      "choices": [
+        "When one node wants to transmit, it can send at rate R",
+        "When M nodes want to transmit, each can send at an average rate of R/M",
+        "Fully decentralized: no special node coordinates transmissions",
+        "No synchronization of clocks or slots is needed",
+        "Each of the N attached nodes always gets exactly R/N, even when it is the only active node",
+        "A central master detects collisions and tells nodes when to retransmit"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The ideal is: full rate R for a lone sender, a fair R/M share among M active senders, full decentralization (no master, no clock or slot sync), and simplicity. A fixed R/N share regardless of load is how channel partitioning falls short. A central master goes against decentralization."
+    },
+    {
+      "type": "num",
+      "category": "MAC basics",
+      "q": "An ideal multiple access protocol runs on a 100 Mbps channel. If 4 nodes want to transmit at once, what average rate (in Mbps) should each one get?",
+      "answer": 25,
+      "tolerance": 0.01,
+      "explain": "Ideally each of M active nodes gets R/M = 100/4 = 25 Mbps."
+    },
+    {
+      "type": "mc",
+      "category": "MAC basics",
+      "q": "Which class of MAC protocol divides the channel into smaller pieces (time slots, frequencies or codes) and gives each piece to one node for its exclusive use?",
+      "choices": [
+        "Random access",
+        "Channel partitioning",
+        "Taking turns",
+        "Carrier sensing"
+      ],
+      "answer": 1,
+      "explain": "Channel partitioning (TDMA, FDMA, or division by code) splits the channel up and allocates each piece exclusively."
+    },
+    {
+      "type": "mc",
+      "category": "MAC basics",
+      "q": "Which class of MAC protocol leaves the channel undivided, allows collisions, and then recovers from them?",
+      "choices": [
+        "Channel partitioning",
+        "Taking turns",
+        "Random access",
+        "Polling"
+      ],
+      "answer": 2,
+      "explain": "Random access protocols (ALOHA, slotted ALOHA, CSMA, CSMA/CD, CSMA/CA) send at the full rate with no prior coordination, accept collisions, and say how to detect them and recover."
+    },
+    {
+      "type": "mc",
+      "category": "MAC basics",
+      "q": "Which wireless LAN uses CSMA/CA (collision avoidance) as its MAC protocol?",
+      "choices": [
+        "802.11 (WiFi)",
+        "Ethernet",
+        "Bluetooth",
+        "Token ring"
+      ],
+      "answer": 0,
+      "explain": "CSMA/CA is used in 802.11. Ethernet uses CSMA/CD. Bluetooth (polling) and token ring are taking-turns protocols."
+    },
+    {
+      "type": "mc",
+      "category": "Channel partitioning",
+      "q": "In TDMA, what happens to a station's time slot in a round when that station has nothing to send?",
+      "choices": [
+        "It is given to the next station that has a packet",
+        "Stations with packets contend for it at random",
+        "The round is shortened to skip it",
+        "It goes idle"
+      ],
+      "answer": 3,
+      "explain": "Each station owns a fixed-length slot in every round. Unused slots go idle and are not handed to anyone else."
+    },
+    {
+      "type": "mc",
+      "category": "Channel partitioning",
+      "q": "In TDMA, how long is each station's slot?",
+      "choices": [
+        "One packet transmission time",
+        "One round-trip propagation delay",
+        "512 bit times",
+        "It varies with how much the station has queued"
+      ],
+      "answer": 0,
+      "explain": "Each station gets a fixed-length slot per round, and the slot length equals the time to transmit one packet."
+    },
+    {
+      "type": "num",
+      "category": "Channel partitioning",
+      "q": "A 6-station LAN uses TDMA with 6-slot frames. Only stations 1, 3 and 4 have packets to send. What fraction of the slots in each frame carry data? (Give a decimal.)",
+      "answer": 0.5,
+      "tolerance": 0.01,
+      "explain": "Slots 1, 3 and 4 are used, and slots 2, 5 and 6 go idle. That is 3 of 6, or 0.5."
+    },
+    {
+      "type": "mc",
+      "category": "Channel partitioning",
+      "q": "In FDMA, what does each station get?",
+      "choices": [
+        "A fixed time slot in each round",
+        "A fixed frequency band of the channel spectrum",
+        "A token that lets it transmit",
+        "The full channel whenever it senses the channel idle"
+      ],
+      "answer": 1,
+      "explain": "FDMA divides the channel spectrum into frequency bands and gives each station a fixed band. Transmission time in unused bands goes idle."
+    },
+    {
+      "type": "num",
+      "category": "Channel partitioning",
+      "q": "A 60 Mbps channel is shared by 6 stations using TDMA. Only one station is active. What throughput (in Mbps) does it get?",
+      "answer": 10,
+      "tolerance": 0.01,
+      "explain": "Channel partitioning gives each node 1/N of the bandwidth even when it is the only active node: 60/6 = 10 Mbps. The other slots go idle."
+    },
+    {
+      "type": "mc",
+      "category": "Channel partitioning",
+      "q": "What is the main weakness of channel partitioning MAC protocols?",
+      "choices": [
+        "They waste capacity on collisions at high load",
+        "They are unfair when every node has data to send",
+        "They are inefficient at low load: nodes wait for their piece and get only 1/N of the bandwidth even if they are the only active node",
+        "They need a central controller to poll each node"
+      ],
+      "answer": 2,
+      "explain": "Partitioning shares the channel efficiently and fairly at high load. At low load it delays channel access and caps a lone active node at 1/N of the bandwidth."
+    },
+    {
+      "type": "multi",
+      "category": "Slotted ALOHA",
+      "q": "Which of these are assumptions of slotted ALOHA?",
+      "choices": [
+        "All frames are the same size",
+        "Time is divided into equal slots, each the time to transmit one frame",
+        "Nodes start transmitting only at the beginning of a slot",
+        "Nodes are synchronized",
+        "If two or more nodes transmit in a slot, all nodes detect the collision",
+        "Nodes sense the channel before transmitting and defer if it is busy",
+        "A central node assigns slots to nodes"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "Slotted ALOHA assumes equal-size frames, slots one frame-time long, transmissions only at slot starts, synchronized nodes, and collision detection by all nodes. It does no carrier sensing (that is CSMA) and has no central assigner."
+    },
+    {
+      "type": "mc",
+      "category": "Slotted ALOHA",
+      "q": "In slotted ALOHA, what does a node do after its frame collides?",
+      "choices": [
+        "Retransmits in the very next slot",
+        "Waits K·512 bit times, with K chosen from {0, ..., 2^m − 1}",
+        "Waits for the channel to be sensed idle, then retransmits",
+        "Retransmits the frame in each later slot with probability p until it succeeds"
+      ],
+      "answer": 3,
+      "explain": "After a collision the node retransmits in each later slot with probability p until it succeeds. With no collision, it can send a new frame in the next slot."
+    },
+    {
+      "type": "mc",
+      "category": "Slotted ALOHA",
+      "q": "Why does slotted ALOHA retransmit with probability p after a collision, instead of always retransmitting in the next slot?",
+      "choices": [
+        "If every colliding node retransmitted right away, they would collide again in every later slot",
+        "It lets nodes skip clock synchronization",
+        "It makes all frames the same size",
+        "It lets a central node choose who goes next"
+      ],
+      "answer": 0,
+      "explain": "Colliding nodes that always retransmitted in the next slot would keep colliding with each other. Random choices break the symmetry, so eventually only one of them transmits in a slot."
+    },
+    {
+      "type": "num",
+      "category": "Slotted ALOHA",
+      "q": "In slotted ALOHA, N = 3 nodes always have frames to send, and each transmits in a slot with probability p = 0.5. What is the probability that one particular node succeeds in a given slot?",
+      "answer": 0.125,
+      "tolerance": 0.002,
+      "explain": "A given node succeeds with probability p(1−p)^(N−1) = 0.5 × 0.5^2 = 0.125. It must transmit, and the other N−1 nodes must not."
+    },
+    {
+      "type": "num",
+      "category": "Slotted ALOHA",
+      "q": "In slotted ALOHA, N = 4 nodes always have frames to send, and each transmits in a slot with probability p = 0.25. What is the probability that some node succeeds in a given slot?",
+      "answer": 0.421875,
+      "tolerance": 0.005,
+      "explain": "P(any node succeeds) = Np(1−p)^(N−1) = 4 × 0.25 × 0.75^3 = 0.421875."
+    },
+    {
+      "type": "mc",
+      "category": "Slotted ALOHA",
+      "q": "As the number of nodes N goes to infinity, what is the maximum efficiency of slotted ALOHA?",
+      "choices": [
+        "1/2 = 0.50",
+        "1/e ≈ 0.37",
+        "1/(2e) ≈ 0.18",
+        "1, since a single node can use the full rate"
+      ],
+      "answer": 1,
+      "explain": "Maximizing Np(1−p)^(N−1) and letting N go to infinity gives 1/e ≈ 0.37. At best, the channel carries useful transmissions only 37% of the time."
+    },
+    {
+      "type": "mc",
+      "category": "Slotted ALOHA",
+      "q": "How is the efficiency of slotted ALOHA defined?",
+      "choices": [
+        "The fraction of time a single active node can transmit",
+        "The ratio of propagation delay to frame transmission time",
+        "The long-run fraction of successful slots when there are many nodes, all with many frames to send",
+        "The fraction of slots that are empty"
+      ],
+      "answer": 2,
+      "explain": "Efficiency is the long-run fraction of slots that carry a successful transmission, measured under heavy load (many nodes, each with many frames)."
+    },
+    {
+      "type": "mc",
+      "category": "Slotted ALOHA",
+      "q": "For N nodes that each transmit with probability p, what value p* maximizes the slotted ALOHA success probability Np(1−p)^(N−1)?",
+      "choices": [
+        "p* = 1/2",
+        "p* = 1/e",
+        "p* = 1/N",
+        "p* = N/(N+1)"
+      ],
+      "answer": 2,
+      "explain": "Set the derivative N(1−p)^(N−2)[(1−p) − (N−1)p] to zero. This gives 1 − Np = 0, so p* = 1/N. Plugging in and letting N go to infinity gives the 1/e limit."
+    },
+    {
+      "type": "multi",
+      "category": "Slotted ALOHA",
+      "q": "Which of these are drawbacks of slotted ALOHA?",
+      "choices": [
+        "Collisions waste slots",
+        "Some slots go idle",
+        "Nodes may be able to detect a collision before finishing the frame, but still use the whole slot",
+        "Nodes need clock synchronization",
+        "A single active node cannot transmit at the full channel rate",
+        "It needs a central coordinating node"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The drawbacks are wasted collision slots, idle slots, slot time spent even after a collision could have been detected, and clock sync. A single active node can transmit continuously at the full rate, and the protocol is highly decentralized. Those are strengths."
+    },
+    {
+      "type": "tf",
+      "category": "Slotted ALOHA",
+      "q": "In slotted ALOHA, a single active node can transmit continuously at the full rate of the channel.",
+      "answer": true,
+      "explain": "With no other node transmitting, every slot it uses succeeds, so it gets the full rate R. This is one of slotted ALOHA's strengths."
+    },
+    {
+      "type": "text",
+      "category": "CSMA and CSMA/CD",
+      "q": "What does CSMA stand for?",
+      "answer": ["carrier sense multiple access", "carrier sensing multiple access", "carrier-sense multiple access"],
+      "explain": "Carrier sense multiple access: listen before transmitting."
+    },
+    {
+      "type": "mc",
+      "category": "CSMA and CSMA/CD",
+      "q": "In simple CSMA, what does a node do if it senses the channel busy?",
+      "choices": [
+        "Transmits anyway and relies on collision detection",
+        "Defers its transmission",
+        "Transmits with probability p in the next slot",
+        "Sends a jam signal"
+      ],
+      "answer": 1,
+      "explain": "Simple CSMA listens before transmitting. If the channel is idle, the node sends the whole frame. If it is busy, the node defers. The human analogy is \"don't interrupt others.\""
+    },
+    {
+      "type": "mc",
+      "category": "CSMA and CSMA/CD",
+      "q": "Why can collisions still happen with carrier sensing?",
+      "choices": [
+        "Nodes only sense the channel at slot boundaries",
+        "Carrier sensing works only on wireless links",
+        "Propagation delay means a node may not yet hear another node's transmission that has just started",
+        "Nodes ignore the channel state after a backoff"
+      ],
+      "answer": 2,
+      "explain": "A signal takes time to travel along the medium. A distant node can sense the channel idle and start sending before the other node's transmission reaches it. Distance and propagation delay affect how likely collisions are."
+    },
+    {
+      "type": "tf",
+      "category": "CSMA and CSMA/CD",
+      "q": "In CSMA without collision detection, a collision wastes the entire packet transmission time.",
+      "answer": true,
+      "explain": "Without collision detection, the colliding nodes keep sending their whole frames, so the full transmission time is lost. CSMA/CD fixes this by aborting."
+    },
+    {
+      "type": "mc",
+      "category": "CSMA and CSMA/CD",
+      "q": "How does CSMA/CD improve on simple CSMA?",
+      "choices": [
+        "It removes collisions entirely",
+        "It gives each node its own time slot",
+        "It detects collisions within a short time and aborts the colliding transmissions, so less channel time is wasted",
+        "It lets a central controller schedule transmissions"
+      ],
+      "answer": 2,
+      "explain": "Collisions are still possible, but they are detected quickly and the transmissions are aborted. That reduces the time wasted per collision. The human analogy is the polite conversationalist."
+    },
+    {
+      "type": "tf",
+      "category": "CSMA and CSMA/CD",
+      "q": "Collision detection is about as easy on wireless links as on wired links.",
+      "answer": false,
+      "explain": "Collision detection is easy on wired media and difficult on wireless. That is why Ethernet uses CSMA/CD and 802.11 uses CSMA/CA."
+    },
+    {
+      "type": "text",
+      "category": "CSMA and CSMA/CD",
+      "q": "In Ethernet CSMA/CD, what does an adapter send after aborting a transmission because it detected another transmission while sending?",
+      "answer": ["jam signal", "jam", "jamming signal", "a jam signal"],
+      "explain": "It aborts, sends a jam signal, and then enters binary (exponential) backoff."
+    },
+    {
+      "type": "mc",
+      "category": "CSMA and CSMA/CD",
+      "q": "In Ethernet's binary exponential backoff, after the 1st collision, from which set is K chosen at random?",
+      "choices": [
+        "{0, 1}",
+        "{0, 1, 2, 3}",
+        "{1, 2}",
+        "{0}"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "After the mth collision, K is chosen from {0, 1, ..., 2^m − 1}. For m = 1 that is {0, 1}."
+    },
+    {
+      "type": "num",
+      "category": "CSMA and CSMA/CD",
+      "q": "In Ethernet CSMA/CD, after a frame's 3rd collision, how many different values of K can the adapter choose from?",
+      "answer": 8,
+      "tolerance": 0,
+      "explain": "K is drawn from {0, 1, ..., 2^3 − 1} = {0, ..., 7}, which has 8 values."
+    },
+    {
+      "type": "num",
+      "category": "CSMA and CSMA/CD",
+      "q": "In Ethernet CSMA/CD, after a frame's 4th collision, what is the longest the adapter can wait before going back to sensing the channel? (Answer in bit times.)",
+      "answer": 7680,
+      "tolerance": 0,
+      "explain": "For m = 4, K is in {0, ..., 15}. The wait is K·512 bit times, so the most is 15 × 512 = 7680 bit times."
+    },
+    {
+      "type": "num",
+      "category": "CSMA and CSMA/CD",
+      "q": "A 10 Mbps Ethernet adapter picks K = 3 during backoff. How long does it wait, in microseconds?",
+      "answer": 153.6,
+      "tolerance": 0.1,
+      "explain": "At 10 Mbps one bit time is 0.1 µs. The wait is K·512 = 1536 bit times, and 1536 × 0.1 µs = 153.6 µs."
+    },
+    {
+      "type": "mc",
+      "category": "CSMA and CSMA/CD",
+      "q": "Why does Ethernet's backoff interval grow as a frame suffers more collisions?",
+      "choices": [
+        "To give the frame higher priority over newer frames",
+        "To keep the slot clocks synchronized",
+        "So the adapter has time to recompute the CRC",
+        "Repeated collisions suggest heavy contention, and spreading retransmissions over a wider random range makes another collision less likely"
+      ],
+      "answer": 3,
+      "explain": "More collisions mean a longer backoff interval. A larger set of possible K values spreads the contending nodes apart in time, which lowers the chance that they pick the same retransmission time."
+    },
+    {
+      "type": "mc",
+      "category": "CSMA and CSMA/CD",
+      "q": "In the Ethernet CSMA/CD algorithm, what does an adapter do if it senses the channel busy when it has a frame ready?",
+      "choices": [
+        "Waits until the channel is idle, then transmits",
+        "Immediately enters binary exponential backoff",
+        "Sends a jam signal",
+        "Drops the frame"
+      ],
+      "answer": 0,
+      "explain": "Step 2: if the channel is idle, start transmitting. If it is busy, wait until it is idle, then transmit. Backoff happens only after a collision aborts a transmission."
+    },
+    {
+      "type": "mc",
+      "category": "Taking turns",
+      "q": "How do random access MAC protocols behave under low and high load?",
+      "choices": [
+        "Inefficient at low load; efficient and fair at high load",
+        "Efficient at low load, since a single node can fully use the channel; collision overhead at high load",
+        "Efficient at both low and high load",
+        "Inefficient at both low and high load"
+      ],
+      "answer": 1,
+      "explain": "Random access lets a lone node use the whole channel, but collisions eat capacity when many nodes contend. Channel partitioning is the opposite. Taking-turns protocols try to get the best of both."
+    },
+    {
+      "type": "mc",
+      "category": "Taking turns",
+      "q": "What are taking-turns MAC protocols trying to achieve?",
+      "choices": [
+        "Zero overhead and zero latency",
+        "Dividing the channel into fixed frequency bands",
+        "Letting nodes transmit whenever they sense the channel idle",
+        "The best of both worlds: efficient, fair sharing at high load and full use by a single node at low load"
+      ],
+      "answer": 3,
+      "explain": "They aim for partitioning's efficiency and fairness at high load and random access's efficiency at low load. Nodes take turns, but nodes with more to send can take longer turns."
+    },
+    {
+      "type": "mc",
+      "category": "Taking turns",
+      "q": "In polling, how is it decided which node transmits?",
+      "choices": [
+        "A centralized controller invites the other nodes to transmit in turn",
+        "Nodes pass a token from one to the next",
+        "Each node senses the channel and transmits when it is idle",
+        "Each node has a fixed time slot"
+      ],
+      "answer": 0,
+      "explain": "A centralized controller (master) polls the client nodes one at a time. Polling is typically used with \"dumb\" devices, and Bluetooth uses it."
+    },
+    {
+      "type": "multi",
+      "category": "Taking turns",
+      "q": "Which of these are concerns with polling?",
+      "choices": [
+        "Polling overhead",
+        "Latency",
+        "Single point of failure (the master)",
+        "Collisions between client devices that answer at the same time",
+        "Needs carrier sensing, which is hard on wireless"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The concerns are overhead from the poll messages, latency while waiting to be polled, and the master as a single point of failure. Only the polled device transmits, so clients don't collide, and no carrier sensing is needed."
+    },
+    {
+      "type": "mc",
+      "category": "Taking turns",
+      "q": "In token passing, what is the single point of failure?",
+      "choices": [
+        "The centralized controller",
+        "The token",
+        "The node with the most data",
+        "The slot clock"
+      ],
+      "answer": 1,
+      "explain": "A control token is passed from node to node in order, and a node transmits only while it holds the token. If the token is lost or corrupted, nobody can transmit. The other concerns are token overhead and latency."
+    },
+    {
+      "type": "mc",
+      "category": "Taking turns",
+      "q": "In token passing, what does a node do when it receives the token and has nothing to send?",
+      "choices": [
+        "Holds the token until it has data",
+        "Discards the token",
+        "Passes the token on to the next node",
+        "Broadcasts a jam signal"
+      ],
+      "answer": 2,
+      "explain": "The token is passed explicitly from one node to the next in order. A node transmits only while holding it, so a node with nothing to send passes it along."
+    },
+    {
+      "type": "multi",
+      "category": "Taking turns",
+      "q": "Which of these use a taking-turns MAC protocol?",
+      "choices": [
+        "Bluetooth",
+        "FDDI",
+        "Token ring",
+        "Ethernet (CSMA/CD)",
+        "802.11 (CSMA/CA)"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Bluetooth uses polling, and FDDI and token ring use token passing. Ethernet and 802.11 use random access protocols."
+    },
+    {
+      "type": "text",
+      "category": "Cable access (DOCSIS)",
+      "q": "In a cable access network, what does CMTS stand for?",
+      "answer": ["cable modem termination system", "cable modem termination systems"],
+      "explain": "The CMTS sits at the cable headend and connects the cable network to the ISP."
+    },
+    {
+      "type": "multi",
+      "category": "Cable access (DOCSIS)",
+      "q": "Which multiple access techniques does a DOCSIS cable access network combine?",
+      "choices": [
+        "FDM (frequency division)",
+        "TDM (time division)",
+        "Random access",
+        "Token passing"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "DOCSIS uses FDM for its upstream and downstream channels and TDM minislots upstream. Some slots are assigned, and modems contend for others by random access with binary backoff."
+    },
+    {
+      "type": "mc",
+      "category": "Cable access (DOCSIS)",
+      "q": "Why don't the downstream cable channels need a contention mechanism?",
+      "choices": [
+        "Downstream channels use carrier sensing",
+        "A single CMTS is the only transmitter into the downstream channels",
+        "Each home has its own dedicated downstream wire",
+        "Downstream frames are polled one at a time"
+      ],
+      "answer": 1,
+      "explain": "Downstream is broadcast over multiple FDM channels (up to 1.6 Gbps each), but only the CMTS transmits into them, so senders never contend. Upstream, many modems share the channels."
+    },
+    {
+      "type": "mc",
+      "category": "Cable access (DOCSIS)",
+      "q": "In DOCSIS, what does the downstream MAP frame do?",
+      "choices": [
+        "Assigns upstream minislots to cable modems for an interval [t1, t2]",
+        "Carries the TV channel lineup",
+        "Maps IP addresses to MAC addresses",
+        "Tells modems which downstream frequency to tune to"
+      ],
+      "answer": 0,
+      "explain": "The CMTS sends a MAP frame downstream that assigns upstream minislots for the coming interval. Modems then send their upstream data frames in their assigned minislots."
+    },
+    {
+      "type": "mc",
+      "category": "Cable access (DOCSIS)",
+      "q": "In DOCSIS, how does a cable modem request upstream time slots?",
+      "choices": [
+        "It waits to be polled by the CMTS",
+        "It holds a token passed among the modems",
+        "It always has a fixed dedicated upstream slot",
+        "It sends request frames by random access (binary backoff) in certain contention minislots"
+      ],
+      "answer": 3,
+      "explain": "Requests for upstream slots (and some data) are sent by random access in selected minislots, using binary backoff after collisions. The CMTS then assigns slots through the MAP frame."
+    }
+  ]
+}

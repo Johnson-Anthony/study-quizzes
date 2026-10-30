@@ -1,0 +1,709 @@
+{
+  "title": "Ch5: Intra-AS Routing (OSPF) and Inter-AS Routing (BGP)",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "multi",
+      "category": "Autonomous systems and scalable routing",
+      "q": "Which of these are reasons the idealized routing model (all routers identical, one \"flat\" network) does not work for the real Internet?",
+      "choices": [
+        "With billions of destinations, routers can't store every destination in their routing tables",
+        "Exchanging routing tables among all routers would swamp the links",
+        "The Internet is a network of networks, and each network's admin wants to control routing in its own network",
+        "Dijkstra's algorithm cannot run on graphs that contain cycles",
+        "Routers cannot exchange packets across different link-layer technologies"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The two problems are scale (too many destinations to store, and routing table exchange would swamp the links) and administrative autonomy (each network admin wants control over routing in its own network). The other two choices are just false."
+    },
+    {
+      "type": "text",
+      "category": "Autonomous systems and scalable routing",
+      "q": "To make routing scalable, the Internet groups routers into regions, also called \"domains\". What are these regions called? (full term)",
+      "answer": ["autonomous systems", "autonomous system", "autonomous systems (AS)", "autonomous system (AS)"],
+      "explain": "Routers are grouped into autonomous systems (ASes), also called domains. Routing inside one AS is intra-AS (intra-domain) routing. Routing between ASes is inter-AS (inter-domain) routing."
+    },
+    {
+      "type": "tf",
+      "category": "Autonomous systems and scalable routing",
+      "q": "All routers within the same AS must run the same intra-domain routing protocol.",
+      "answer": true,
+      "explain": "True. Every router inside one AS runs the same intra-domain protocol. Routers in different ASes can run different intra-domain protocols."
+    },
+    {
+      "type": "tf",
+      "category": "Autonomous systems and scalable routing",
+      "q": "For the Internet to work, every AS must use the same intra-domain routing protocol (for example, all OSPF).",
+      "answer": false,
+      "explain": "False. Each AS picks its own intra-domain protocol, and routers in different ASes can run different ones. Only the inter-domain protocol (BGP) has to be shared between ASes."
+    },
+    {
+      "type": "mc",
+      "category": "Autonomous systems and scalable routing",
+      "q": "A router sits at the \"edge\" of its own AS and has links to routers in other ASes. What is it called?",
+      "choices": ["Gateway router", "Internal router", "Area border router", "Backbone router"],
+      "answer": 0,
+      "explain": "A gateway router is at the edge of its AS and links to routers in other ASes. Area border routers and backbone routers are roles inside one OSPF AS, not links to other ASes."
+    },
+    {
+      "type": "mc",
+      "category": "Autonomous systems and scalable routing",
+      "q": "Which statement about gateway routers and routing protocols is correct?",
+      "choices": [
+        "Gateways perform inter-domain routing as well as intra-domain routing",
+        "Gateways perform inter-domain routing instead of intra-domain routing",
+        "Gateways perform only intra-domain routing; inter-domain routing is done by a central server",
+        "Every router in an AS performs inter-domain routing with neighboring ASes"
+      ],
+      "answer": 0,
+      "explain": "Gateways do inter-domain routing with other ASes, and they also do intra-domain routing inside their own AS. That is why gateway routers run both eBGP and iBGP."
+    },
+    {
+      "type": "mc",
+      "category": "Autonomous systems and scalable routing",
+      "q": "A router's forwarding table has an entry for a destination outside its AS. What determines that entry?",
+      "choices": [
+        "Intra-AS routing only",
+        "Inter-AS routing only",
+        "Both inter-AS and intra-AS routing",
+        "Neither; external entries are always configured by hand"
+      ],
+      "answer": 2,
+      "explain": "Intra-AS routing alone sets entries for destinations inside the AS. For external destinations, inter-AS routing tells the router which gateway leads to the destination, and intra-AS routing tells it how to reach that gateway. So both are needed."
+    },
+    {
+      "type": "multi",
+      "category": "Autonomous systems and scalable routing",
+      "q": "AS1 connects to both AS2 and AS3. A router in AS1 gets a datagram addressed outside AS1 and has to choose which gateway to forward it to. What must AS1's inter-domain routing do so routers can make that choice?",
+      "choices": [
+        "Learn which destinations are reachable through AS2 and which through AS3",
+        "Propagate this reachability information to all routers in AS1",
+        "Give every AS1 router the full router-level topology of AS2 and AS3",
+        "Make AS2 and AS3 switch to AS1's intra-domain routing protocol"
+      ],
+      "answer": [0, 1],
+      "explain": "Inter-domain routing has two jobs here: (1) learn which destinations are reachable through each neighboring AS, and (2) spread that reachability information to all routers in the AS. ASes do not share their internal topologies, and each AS keeps its own intra-domain protocol."
+    },
+    {
+      "type": "mc",
+      "category": "Intra-AS protocols and OSPF",
+      "q": "Which description fits RIP (Routing Information Protocol)?",
+      "choices": [
+        "Classic distance-vector protocol; distance vectors exchanged every 30 seconds; no longer widely used",
+        "Link-state protocol that floods advertisements to every router in the AS",
+        "Distance-vector protocol that was Cisco-proprietary for decades before becoming open in 2013",
+        "Path-vector protocol used between autonomous systems"
+      ],
+      "answer": 0,
+      "explain": "RIP is the classic DV protocol: distance vectors are exchanged every 30 seconds, and it is no longer widely used. The second choice describes OSPF, the third EIGRP, and the fourth BGP."
+    },
+    {
+      "type": "num",
+      "category": "Intra-AS protocols and OSPF",
+      "q": "In RIP, how often (in seconds) do routers exchange distance vectors?",
+      "answer": 30,
+      "explain": "RIP is a classic distance-vector protocol, and routers exchange DVs every 30 seconds."
+    },
+    {
+      "type": "mc",
+      "category": "Intra-AS protocols and OSPF",
+      "q": "EIGRP (Enhanced Interior Gateway Routing Protocol) is best described as:",
+      "choices": [
+        "Distance-vector based, and Cisco-proprietary for decades until it became open in 2013",
+        "Link-state based, and the ISO equivalent of OSPF",
+        "A path-vector protocol that runs over TCP between gateway routers",
+        "The original distance-vector protocol, exchanging DVs every 30 seconds"
+      ],
+      "answer": 0,
+      "explain": "EIGRP is a distance-vector protocol that was Cisco-proprietary for decades and became open in 2013. The ISO link-state protocol that is essentially the same as OSPF is IS-IS."
+    },
+    {
+      "type": "mc",
+      "category": "Intra-AS protocols and OSPF",
+      "q": "Which intra-AS routing protocol is an ISO standard (not an RFC standard) and is essentially the same as OSPF?",
+      "choices": ["IS-IS", "EIGRP", "RIP", "BGP"],
+      "answer": 0,
+      "explain": "IS-IS is a link-state protocol standardized by ISO and is essentially the same as OSPF. EIGRP and RIP are distance-vector protocols, and BGP is an inter-AS protocol."
+    },
+    {
+      "type": "mc",
+      "category": "Intra-AS protocols and OSPF",
+      "q": "In the name OSPF (Open Shortest Path First), what does \"open\" mean?",
+      "choices": [
+        "The protocol is publicly available",
+        "Any router may join without authentication",
+        "Routes are advertised to all neighboring ASes",
+        "It runs over an open (always-on) TCP connection"
+      ],
+      "answer": 0,
+      "explain": "\"Open\" means the protocol is publicly available. OSPF messages are actually authenticated, and OSPF does not use TCP."
+    },
+    {
+      "type": "mc",
+      "category": "Intra-AS protocols and OSPF",
+      "q": "How are OSPF link-state advertisements carried?",
+      "choices": [
+        "Directly over IP, without TCP or UDP",
+        "Over a semi-permanent TCP connection",
+        "In UDP datagrams",
+        "Inside BGP UPDATE messages"
+      ],
+      "answer": 0,
+      "explain": "OSPF link-state advertisements go directly over IP rather than over TCP or UDP. Do not confuse this with BGP, whose peers exchange messages over a semi-permanent TCP connection."
+    },
+    {
+      "type": "multi",
+      "category": "Intra-AS protocols and OSPF",
+      "q": "Which statements about OSPF are true?",
+      "choices": [
+        "Each router floods link-state advertisements to all other routers in the entire AS",
+        "Multiple link cost metrics are possible, such as bandwidth or delay",
+        "Each router has the full topology and uses Dijkstra's algorithm to compute its forwarding table",
+        "All OSPF messages are authenticated to prevent malicious intrusion",
+        "Each router exchanges distance vectors only with its direct neighbors"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "OSPF is classic link-state: it floods LSAs across the AS, supports different link cost metrics, gives every router the full topology for Dijkstra's algorithm, and authenticates all messages. Exchanging distance vectors with neighbors is how distance-vector protocols like RIP work."
+    },
+    {
+      "type": "mc",
+      "category": "Intra-AS protocols and OSPF",
+      "q": "Which algorithm does an OSPF router run on its copy of the topology to compute its forwarding table?",
+      "choices": ["Dijkstra's algorithm", "Bellman-Ford (distance vector)", "Path-vector selection", "Hot potato routing"],
+      "answer": 0,
+      "explain": "OSPF is link-state. Each router has the full topology and runs Dijkstra's algorithm to compute its forwarding table."
+    },
+    {
+      "type": "tf",
+      "category": "Intra-AS protocols and OSPF",
+      "q": "OSPF is a distance-vector routing protocol.",
+      "answer": false,
+      "explain": "False. OSPF is a classic link-state protocol. RIP and EIGRP are the distance-vector intra-AS protocols."
+    },
+    {
+      "type": "mc",
+      "category": "Hierarchical OSPF",
+      "q": "What are the two levels of hierarchical OSPF?",
+      "choices": [
+        "Local area and backbone",
+        "Intra-AS and inter-AS",
+        "Customer network and provider network",
+        "eBGP and iBGP"
+      ],
+      "answer": 0,
+      "explain": "Hierarchical OSPF has two levels inside one AS: local areas and the backbone. Intra-AS vs inter-AS is the split between ASes, not inside OSPF."
+    },
+    {
+      "type": "mc",
+      "category": "Hierarchical OSPF",
+      "q": "In hierarchical OSPF, how far are link-state advertisements flooded?",
+      "choices": [
+        "Only within the area, or within the backbone",
+        "To every router in the entire AS",
+        "Only to area border routers",
+        "To gateway routers in neighboring ASes"
+      ],
+      "answer": 0,
+      "explain": "With hierarchy, LSAs are flooded only within an area or within the backbone, not across the whole AS. That limit is what makes hierarchical OSPF scale."
+    },
+    {
+      "type": "tf",
+      "category": "Hierarchical OSPF",
+      "q": "In hierarchical OSPF, every router still has the detailed topology of the entire AS.",
+      "answer": false,
+      "explain": "False. Each node has the detailed topology of its own area only. For destinations in other areas, it knows just the direction to reach them."
+    },
+    {
+      "type": "mc",
+      "category": "Hierarchical OSPF",
+      "q": "What does an area border router do in hierarchical OSPF?",
+      "choices": [
+        "Summarizes distances to destinations in its own area and advertises them in the backbone",
+        "Connects the AS to other ASes",
+        "Runs OSPF limited to the backbone only",
+        "Floods link-state advertisements only within its area and never talks to the backbone"
+      ],
+      "answer": 0,
+      "explain": "Area border routers summarize distances to destinations in their own area and advertise those summaries in the backbone. A boundary router connects to other ASes, and a backbone router runs OSPF limited to the backbone."
+    },
+    {
+      "type": "mc",
+      "category": "Hierarchical OSPF",
+      "q": "In hierarchical OSPF, which router connects the AS to other ASes?",
+      "choices": ["Boundary router", "Area border router", "Backbone router", "Internal (local) router"],
+      "answer": 0,
+      "explain": "The boundary router sits in the backbone and connects to other ASes."
+    },
+    {
+      "type": "mc",
+      "category": "Hierarchical OSPF",
+      "q": "A local (internal) router in area 1 has a packet for a destination in area 3. Where does it forward the packet?",
+      "choices": [
+        "Toward its own area's area border router",
+        "Directly to the internal router in area 3, using its full AS topology",
+        "To the boundary router, which forwards all inter-area traffic",
+        "It floods the packet to every router in the AS"
+      ],
+      "answer": 0,
+      "explain": "Local routers compute routes only within their area and send packets bound outside the area through their area border router. They don't know the detailed topology of other areas."
+    },
+    {
+      "type": "mc",
+      "category": "Hierarchical OSPF",
+      "q": "Which router type in hierarchical OSPF runs OSPF limited to the backbone?",
+      "choices": ["Backbone router", "Area border router", "Boundary router", "Local router"],
+      "answer": 0,
+      "explain": "A backbone router runs OSPF limited to the backbone. Area border routers sit between an area and the backbone, and the boundary router connects to other ASes."
+    },
+    {
+      "type": "text",
+      "category": "BGP basics",
+      "q": "What does BGP stand for?",
+      "answer": ["Border Gateway Protocol", "the Border Gateway Protocol"],
+      "explain": "BGP is the Border Gateway Protocol, the de facto inter-domain routing protocol of the Internet, often called the \"glue that holds the Internet together\"."
+    },
+    {
+      "type": "mc",
+      "category": "BGP basics",
+      "q": "Which part of BGP lets an AS obtain destination reachability information from neighboring ASes?",
+      "choices": ["eBGP", "iBGP", "OSPF", "Hot potato routing"],
+      "answer": 0,
+      "explain": "eBGP (external BGP) runs between gateways in different ASes and brings in reachability information from neighboring ASes. iBGP spreads that information inside the AS."
+    },
+    {
+      "type": "mc",
+      "category": "BGP basics",
+      "q": "Which part of BGP propagates reachability information to all routers inside an AS?",
+      "choices": ["iBGP", "eBGP", "OSPF link-state flooding", "NOTIFICATION messages"],
+      "answer": 0,
+      "explain": "iBGP (internal BGP) spreads reachability information to all AS-internal routers. OSPF floods link state about the AS's own topology, not BGP routes to external destinations."
+    },
+    {
+      "type": "mc",
+      "category": "BGP basics",
+      "q": "Which routers run both eBGP and iBGP?",
+      "choices": [
+        "Gateway routers",
+        "Every router in the AS",
+        "Only internal routers that have no links to other ASes",
+        "Only OSPF area border routers"
+      ],
+      "answer": 0,
+      "explain": "Gateway routers run eBGP with the neighboring AS and iBGP with the routers in their own AS. Internal routers run only iBGP."
+    },
+    {
+      "type": "multi",
+      "category": "BGP basics",
+      "q": "Which capabilities does BGP give each AS?",
+      "choices": [
+        "Obtain destination network reachability info from neighboring ASes",
+        "Determine routes to other networks based on reachability information and policy",
+        "Propagate reachability information to all AS-internal routers",
+        "Advertise destination reachability info to neighboring networks",
+        "Learn the full router-level topology of the whole Internet and run Dijkstra on it"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "BGP lets an AS learn reachability from neighbors (eBGP), choose routes based on reachability and policy, spread routes internally (iBGP), and advertise reachability to neighbors. It never gives anyone the Internet's full topology, which is part of why it scales."
+    },
+    {
+      "type": "mc",
+      "category": "BGP basics",
+      "q": "What do two BGP peers use to exchange BGP messages in a BGP session?",
+      "choices": [
+        "A semi-permanent TCP connection",
+        "Datagrams sent directly over IP",
+        "UDP datagrams sent every 30 seconds",
+        "Link-state floods through the backbone"
+      ],
+      "answer": 0,
+      "explain": "A BGP session is two BGP routers (peers) exchanging BGP messages over a semi-permanent TCP connection. OSPF is the one that sends its messages directly over IP."
+    },
+    {
+      "type": "mc",
+      "category": "BGP basics",
+      "q": "Why is BGP called a \"path vector\" protocol?",
+      "choices": [
+        "Peers advertise whole paths (sequences of ASes) to destination network prefixes",
+        "Each router floods a vector of its link costs to every router",
+        "Each router sends a vector of distances to every destination router",
+        "It computes shortest paths with Dijkstra's algorithm"
+      ],
+      "answer": 0,
+      "explain": "BGP peers advertise paths, the lists of ASes, to destination prefixes. A distance-vector protocol advertises only distances, and link-state protocols flood link costs."
+    },
+    {
+      "type": "mc",
+      "category": "BGP basics",
+      "q": "AS3 gateway 3a advertises the path \"AS3, X\" to AS2 gateway 2c. What does this advertisement mean?",
+      "choices": [
+        "AS3 promises AS2 that it will forward datagrams towards X",
+        "AS3 asks AS2 to forward datagrams towards X for it",
+        "AS3 tells AS2 the internal router-level path to X",
+        "AS3 tells AS2 that X is unreachable"
+      ],
+      "answer": 0,
+      "explain": "An advertisement is a promise: AS3 tells AS2 it will carry datagrams toward X. BGP advertises AS-level paths, not router-level paths inside an AS."
+    },
+    {
+      "type": "mc",
+      "category": "BGP messages",
+      "q": "Which BGP message advertises a new path, or withdraws an old one?",
+      "choices": ["UPDATE", "OPEN", "KEEPALIVE", "NOTIFICATION"],
+      "answer": 0,
+      "explain": "UPDATE carries path advertisements and withdrawals."
+    },
+    {
+      "type": "mc",
+      "category": "BGP messages",
+      "q": "Which BGP message opens the TCP connection to a remote BGP peer and authenticates the sending peer?",
+      "choices": ["OPEN", "UPDATE", "KEEPALIVE", "NOTIFICATION"],
+      "answer": 0,
+      "explain": "OPEN starts the session with the remote peer and authenticates the sending BGP peer."
+    },
+    {
+      "type": "mc",
+      "category": "BGP messages",
+      "q": "A BGP router has received a peer's OPEN request and has no route updates to send. Which message type does it use to acknowledge the OPEN and keep the connection alive?",
+      "choices": ["KEEPALIVE", "UPDATE", "NOTIFICATION", "OPEN"],
+      "answer": 0,
+      "explain": "KEEPALIVE keeps the connection alive when there are no UPDATEs, and it also ACKs the OPEN request."
+    },
+    {
+      "type": "mc",
+      "category": "BGP messages",
+      "q": "Which BGP message reports errors in a previous message and is also used to close the connection?",
+      "choices": ["NOTIFICATION", "KEEPALIVE", "UPDATE", "OPEN"],
+      "answer": 0,
+      "explain": "NOTIFICATION reports errors in a previous message and is also used to close the connection."
+    },
+    {
+      "type": "mc",
+      "category": "BGP routes and path advertisement",
+      "q": "What does a BGP advertised route consist of?",
+      "choices": [
+        "A prefix plus attributes",
+        "A link-state advertisement plus a sequence number",
+        "A distance vector plus a hop count",
+        "A destination host address plus a TCP port"
+      ],
+      "answer": 0,
+      "explain": "A BGP route is a prefix (the destination being advertised) plus attributes. The two most important attributes are AS-PATH and NEXT-HOP."
+    },
+    {
+      "type": "mc",
+      "category": "BGP routes and path advertisement",
+      "q": "What does the AS-PATH attribute of a BGP route contain?",
+      "choices": [
+        "The list of ASes through which the prefix advertisement has passed",
+        "The specific internal-AS router leading to the next-hop AS",
+        "The OSPF cost from the receiving router to the gateway",
+        "The local preference value assigned by policy"
+      ],
+      "answer": 0,
+      "explain": "AS-PATH lists the ASes the advertisement has passed through. The specific internal router leading to the next-hop AS is the NEXT-HOP attribute."
+    },
+    {
+      "type": "mc",
+      "category": "BGP routes and path advertisement",
+      "q": "What does the NEXT-HOP attribute of a BGP route indicate?",
+      "choices": [
+        "The specific internal-AS router leading to the next-hop AS",
+        "The list of ASes the advertisement has passed through",
+        "The next router on the OSPF shortest path inside the receiving AS",
+        "The neighboring AS that sent a NOTIFICATION"
+      ],
+      "answer": 0,
+      "explain": "NEXT-HOP names the specific internal-AS router that leads to the next-hop AS. Choosing the closest NEXT-HOP router is what hot potato routing does."
+    },
+    {
+      "type": "mc",
+      "category": "BGP routes and path advertisement",
+      "q": "AS2 router 2c receives the advertisement \"AS3, X\" from AS3 router 3a. AS2's policy accepts it, and AS2 router 2a then advertises the route to AS1 router 1c. What path does 1c receive?",
+      "choices": ["AS2, AS3, X", "AS3, X", "AS3, AS2, X", "AS1, AS2, AS3, X"],
+      "answer": 0,
+      "explain": "Before passing a route on, each AS puts its own number at the front of the AS-PATH. So AS2 advertises AS2, AS3, X. AS1 doesn't add itself until it advertises the route further."
+    },
+    {
+      "type": "mc",
+      "category": "BGP routes and path advertisement",
+      "q": "AS2 gateway 2c has accepted the path \"AS3, X\". How does it spread this path to the other routers in AS2?",
+      "choices": ["iBGP", "eBGP", "OSPF link-state advertisements", "A BGP NOTIFICATION message"],
+      "answer": 0,
+      "explain": "Inside the AS, reachability is spread by iBGP. eBGP is used across AS boundaries: 3a to 2c, and 2a to 1c."
+    },
+    {
+      "type": "mc",
+      "category": "BGP routes and path advertisement",
+      "q": "An AS has the rule \"never route through AS Y\". A gateway applies it to incoming route advertisements, accepting or declining each path. What is this mechanism called?",
+      "choices": ["Import policy", "Hot potato routing", "Area border summarization", "KEEPALIVE filtering"],
+      "answer": 0,
+      "explain": "A gateway that receives a route advertisement uses its import policy to accept or decline the path, for example refusing any path through AS Y."
+    },
+    {
+      "type": "tf",
+      "category": "BGP routes and path advertisement",
+      "q": "Besides deciding which paths to accept, an AS's policy also decides whether to advertise a path to its other neighboring ASes.",
+      "answer": true,
+      "explain": "True. Policy controls both import (accept or decline incoming paths) and advertisement (whether to pass a path on to other neighbors)."
+    },
+    {
+      "type": "mc",
+      "category": "BGP routes and path advertisement",
+      "q": "AS1 gateway 1c learns two paths to X: \"AS2, AS3, X\" from 2a and \"AS3, X\" from 3a. Based on policy it picks \"AS3, X\". What happens next?",
+      "choices": [
+        "1c advertises the chosen path within AS1 via iBGP",
+        "1c advertises the chosen path to 2a via iBGP",
+        "1c floods the path to all AS1 routers in OSPF link-state advertisements",
+        "1c keeps the path to itself, because internal routers only need OSPF routes"
+      ],
+      "answer": 0,
+      "explain": "After choosing a path, the gateway advertises it inside its own AS with iBGP. Then routers 1a, 1b and 1d learn that the path to X goes through 1c."
+    },
+    {
+      "type": "num",
+      "category": "Forwarding tables and hot potato routing",
+      "q": "Router 1d in AS1 has learned via iBGP that the path to X goes through gateway 1c. OSPF tells 1d that to reach 1c it should use interface 1. Which interface number does 1d's forwarding table list for destination X?",
+      "answer": 1,
+      "explain": "The forwarding entry for X uses the same interface as the intra-domain route to the gateway. 1c goes out interface 1, so X goes out interface 1."
+    },
+    {
+      "type": "num",
+      "category": "Forwarding tables and hot potato routing",
+      "q": "Router 1a in AS1 has learned via iBGP that the path to X goes through gateway 1c. OSPF tells 1a that to reach 1c it should use interface 2. Which interface number does 1a's forwarding table list for destination X?",
+      "answer": 2,
+      "explain": "BGP gives the gateway (1c) and OSPF gives the interface toward that gateway (2). So 1a's entry for X is interface 2."
+    },
+    {
+      "type": "mc",
+      "category": "Forwarding tables and hot potato routing",
+      "q": "How does an internal router fill in the forwarding-table entry for an external destination X?",
+      "choices": [
+        "It uses iBGP to learn which gateway leads to X, then uses the intra-domain (e.g., OSPF) route to that gateway to pick the outgoing interface",
+        "It runs Dijkstra's algorithm on a topology that includes every router on the path to X",
+        "It uses eBGP directly with the neighboring AS to learn the outgoing interface",
+        "It forwards to whichever interface has the lowest link cost"
+      ],
+      "answer": 0,
+      "explain": "The two protocols work together. BGP (iBGP) says \"X is reached through gateway 1c\", and intra-domain routing says which interface leads to 1c. That interface becomes the entry for X."
+    },
+    {
+      "type": "mc",
+      "category": "Forwarding tables and hot potato routing",
+      "q": "What is hot potato routing?",
+      "choices": [
+        "Choosing the local gateway with the least intra-domain cost, ignoring inter-domain cost",
+        "Choosing the route with the fewest AS hops to the destination",
+        "Choosing the route with the highest local preference value",
+        "Passing a packet to a random neighbor so it leaves the router as quickly as possible"
+      ],
+      "answer": 0,
+      "explain": "Hot potato routing picks the local gateway with the least intra-domain cost, so the packet leaves the AS as cheaply as possible. It doesn't consider the cost beyond the gateway."
+    },
+    {
+      "type": "mc",
+      "category": "Forwarding tables and hot potato routing",
+      "q": "In AS2, router 2d learns via iBGP that it can reach X through gateway 2a (path AS1, AS3, X) or through gateway 2c (path AS3, X). Its OSPF costs are 201 to 2a and 263 to 2c. Which gateway does hot potato routing choose?",
+      "choices": [
+        "2a, because its intra-domain cost (201) is lower",
+        "2c, because its path to X has fewer AS hops",
+        "2c, because its intra-domain cost is lower",
+        "Both, splitting traffic evenly"
+      ],
+      "answer": 0,
+      "explain": "Hot potato looks only at intra-domain cost: 201 < 263, so 2d picks 2a, even though that route has more AS hops to X."
+    },
+    {
+      "type": "tf",
+      "category": "Forwarding tables and hot potato routing",
+      "q": "Hot potato routing picks the gateway whose route has the fewest AS hops to the destination.",
+      "answer": false,
+      "explain": "False. Hot potato routing ignores inter-domain cost such as AS hops. It picks the gateway with the least intra-domain cost, even if that route crosses more ASes."
+    },
+    {
+      "type": "mc",
+      "category": "BGP policy",
+      "q": "What routing policy do the BGP policy examples treat as typical for a real-world ISP?",
+      "choices": [
+        "Route traffic only to/from its own customer networks, and don't carry transit traffic between other ISPs",
+        "Carry any traffic along the path with the fewest AS hops",
+        "Advertise every path it learns to every neighbor",
+        "Accept traffic only from other provider networks"
+      ],
+      "answer": 0,
+      "explain": "A typical ISP routes traffic to and from its own customers and does not want to carry transit traffic between other ISPs, because it gets no revenue for that."
+    },
+    {
+      "type": "mc",
+      "category": "BGP policy",
+      "q": "Provider networks A, B and C are all connected to each other, and w is a customer of A. A advertises path \"A, w\" to both B and C. Why does B choose NOT to advertise \"B, A, w\" to C?",
+      "choices": [
+        "B gets no revenue for routing C-B-A-w, since none of C, A or w are B's customers",
+        "The path B, A, w would create a routing loop",
+        "B's OSPF cost to A is too high",
+        "C would reject it because it has a longer AS-PATH"
+      ],
+      "answer": 0,
+      "explain": "Carrying C's traffic to w would make B a transit network for parties that pay it nothing, since none of C, A or w are B's customers. So B controls this by not advertising the path."
+    },
+    {
+      "type": "mc",
+      "category": "BGP policy",
+      "q": "In the same setup, B does not advertise \"B, A, w\" to C. How does C reach w?",
+      "choices": [
+        "Through A directly (C, A, w), without using B",
+        "Through B anyway (C, B, A, w)",
+        "It can't reach w at all",
+        "Through customer y"
+      ],
+      "answer": 0,
+      "explain": "C never learns the path C-B-A-w, so it uses the route A advertised directly to it and sends traffic C, A, w."
+    },
+    {
+      "type": "tf",
+      "category": "BGP policy",
+      "q": "A BGP router can learn about a path that a neighboring AS has chosen not to advertise to it.",
+      "answer": false,
+      "explain": "False. A router learns paths only through advertisements. If B doesn't advertise B-A-w to C, C doesn't learn about that path. This is how an AS enforces policy through advertisements."
+    },
+    {
+      "type": "text",
+      "category": "BGP policy",
+      "q": "Customer network x is attached to two provider networks (B and C). What is the term for this?",
+      "answer": ["dual-homed", "dual homed", "dualhomed", "multihomed", "multi-homed"],
+      "explain": "A network attached to two provider networks is dual-homed."
+    },
+    {
+      "type": "mc",
+      "category": "BGP policy",
+      "q": "Customer x is dual-homed to providers B and C, and x does not want to carry traffic from B to C. How does x enforce this?",
+      "choices": [
+        "x does not advertise to B a route to C",
+        "x sends a NOTIFICATION to close its session with B",
+        "x sets a high OSPF link weight on its link to B",
+        "x advertises to B a route to C with a long AS-PATH"
+      ],
+      "answer": 0,
+      "explain": "If x never advertises a route to C toward B, then B never learns that it can reach C through x, so no B-to-C traffic goes through x."
+    },
+    {
+      "type": "multi",
+      "category": "BGP policy",
+      "q": "Providers A, B and C are interconnected. w is attached to A, y is attached to C, and x is attached to both B and C. Which of these are customer networks?",
+      "choices": ["w", "x", "y", "A", "B", "C"],
+      "answer": [0, 1, 2],
+      "explain": "A, B and C are the provider networks. w, x and y are customers of those providers, and x is dual-homed to B and C."
+    },
+    {
+      "type": "mc",
+      "category": "BGP route selection",
+      "q": "A BGP router knows more than one route to a destination AS. What is the FIRST criterion it uses to select a route?",
+      "choices": [
+        "Local preference value attribute (a policy decision)",
+        "Shortest AS-PATH",
+        "Closest NEXT-HOP router (hot potato routing)",
+        "Lowest OSPF link weight on the first hop"
+      ],
+      "answer": 0,
+      "explain": "The order is: (1) local preference (policy), (2) shortest AS-PATH, (3) closest NEXT-HOP router (hot potato), (4) additional criteria."
+    },
+    {
+      "type": "mc",
+      "category": "BGP route selection",
+      "q": "Which ordering of BGP route-selection criteria is correct?",
+      "choices": [
+        "Local preference, then shortest AS-PATH, then closest NEXT-HOP router, then additional criteria",
+        "Shortest AS-PATH, then local preference, then closest NEXT-HOP router, then additional criteria",
+        "Closest NEXT-HOP router, then shortest AS-PATH, then local preference, then additional criteria",
+        "Shortest AS-PATH, then closest NEXT-HOP router, then local preference, then additional criteria"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Policy comes first (local preference), then shortest AS-PATH, then hot potato (closest NEXT-HOP), then any additional criteria."
+    },
+    {
+      "type": "mc",
+      "category": "BGP route selection",
+      "q": "A router has two routes to a destination with equal local preference. Route 1 has an AS-PATH of 3 ASes, and its NEXT-HOP router is at intra-domain cost 10. Route 2 has an AS-PATH of 2 ASes, and its NEXT-HOP router is at intra-domain cost 50. Which route does BGP select?",
+      "choices": [
+        "Route 2, because shortest AS-PATH is checked before closest NEXT-HOP",
+        "Route 1, because its NEXT-HOP router is closer",
+        "Route 1, because local preference breaks the tie",
+        "Neither; BGP needs an additional criterion to break the tie"
+      ],
+      "answer": 0,
+      "explain": "Local preference is equal, so the next test is shortest AS-PATH. Route 2 wins (2 ASes vs 3). Closest NEXT-HOP would only matter if the AS-PATH lengths were also equal."
+    },
+    {
+      "type": "mc",
+      "category": "BGP route selection",
+      "q": "A router has two routes to a destination. Route 1 has the higher local preference value but an AS-PATH of 4 ASes. Route 2 has a lower local preference but an AS-PATH of only 1 AS. Which route does BGP select?",
+      "choices": [
+        "Route 1, because local preference (policy) is checked first",
+        "Route 2, because it has the shortest AS-PATH",
+        "Whichever has the closest NEXT-HOP router",
+        "Route 2, because fewer AS hops always means better performance"
+      ],
+      "answer": 0,
+      "explain": "Local preference, a policy decision, is the first criterion, so the route with the higher local preference wins before AS-PATH length is ever compared. In inter-AS routing, policy dominates over performance."
+    },
+    {
+      "type": "mc",
+      "category": "BGP route selection",
+      "q": "In AS2, router 2d can reach X through 2a (AS-PATH: AS1, AS3, X; intra-domain cost 201) or through 2c (AS-PATH: AS3, X; intra-domain cost 263). If both routes have equal local preference and 2d applies the full BGP route-selection order, which gateway does it use?",
+      "choices": [
+        "2c, because the shortest AS-PATH comes before the closest NEXT-HOP",
+        "2a, because hot potato routing is always the first criterion",
+        "2a, because its intra-domain cost is lower",
+        "2c, because its intra-domain cost is lower"
+      ],
+      "answer": 0,
+      "explain": "With local preference tied, the shortest AS-PATH comes next: AS3, X (2 entries) beats AS1, AS3, X (3 entries), so 2d uses 2c. Hot potato (closest NEXT-HOP) would pick 2a, but it comes later in the order and only breaks ties. Note that 2c's intra-domain cost is higher, not lower."
+    },
+    {
+      "type": "mc",
+      "category": "Why intra- and inter-AS routing differ",
+      "q": "Why does policy matter much more in inter-AS routing than in intra-AS routing?",
+      "choices": [
+        "Between ASes, each admin wants control over how its traffic is routed and who routes through its network; within an AS there is a single admin",
+        "Intra-AS routing can't express link costs, so it has no policies at all",
+        "Inter-AS routing must keep routing tables small, and policies make tables smaller",
+        "Intra-AS protocols are proprietary, so admins can't change their policies"
+      ],
+      "answer": 0,
+      "explain": "Inter-AS routing crosses administrative boundaries, so each admin wants to control how its traffic is routed and who routes through its network. Inside one AS there is a single admin, so policy is less of an issue."
+    },
+    {
+      "type": "mc",
+      "category": "Why intra- and inter-AS routing differ",
+      "q": "How do intra-AS and inter-AS routing compare on performance?",
+      "choices": [
+        "Intra-AS routing can focus on performance; in inter-AS routing, policy dominates over performance",
+        "Inter-AS routing focuses on performance; intra-AS routing is driven by policy",
+        "Both focus only on performance",
+        "Both are driven only by policy"
+      ],
+      "answer": 0,
+      "explain": "With one admin, intra-AS routing can optimize for performance. Between ASes, policy (business relationships) wins over performance, which is why local preference is checked before AS-PATH length."
+    },
+    {
+      "type": "multi",
+      "category": "Why intra- and inter-AS routing differ",
+      "q": "From a scale point of view, what does hierarchical routing (separate intra-AS and inter-AS routing) save?",
+      "choices": [
+        "Routing table size",
+        "Routing update traffic",
+        "The need for gateway routers",
+        "The need for any intra-domain routing protocol"
+      ],
+      "answer": [0, 1],
+      "explain": "Hierarchical routing saves table size and reduces update traffic. Gateways and intra-domain protocols are still essential parts of the hierarchy."
+    },
+    {
+      "type": "tf",
+      "category": "Why intra- and inter-AS routing differ",
+      "q": "In inter-AS routing, performance dominates over policy.",
+      "answer": false,
+      "explain": "False. It's the reverse: in inter-AS routing, policy dominates over performance. Intra-AS routing is the one that can focus on performance."
+    }
+  ]
+}

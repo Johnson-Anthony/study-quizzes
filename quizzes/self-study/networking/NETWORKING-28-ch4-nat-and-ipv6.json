@@ -1,0 +1,544 @@
+{
+  "title": "Ch4: NAT and IPv6",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "NAT basics",
+      "q": "From the outside Internet's point of view, how many IPv4 addresses does a whole local network behind a NAT router use?",
+      "choices": [
+        "One: the NAT router's address",
+        "One per device in the local network",
+        "One per active connection",
+        "Two: one for the router's LAN side and one for its WAN side"
+      ],
+      "answer": 0,
+      "explain": "With NAT, all devices in the local network share one IPv4 address as far as the outside world can tell. Every datagram leaving the network has that same source address (138.76.29.7 in the slides' example). The router's LAN-side address (10.0.0.4) is private and is never seen outside."
+    },
+    {
+      "type": "multi",
+      "category": "NAT basics",
+      "q": "Which of these prefixes are private IPv4 address space, usable only inside a local network?",
+      "choices": ["10/8", "172.16/12", "192.168/16", "128.119/16", "138.76/16"],
+      "answer": [0, 1, 2],
+      "explain": "The private ranges are 10/8, 172.16/12 and 192.168/16. 128.119.40.186 and 138.76.29.7 are the public web server and NAT addresses in the slides' example."
+    },
+    {
+      "type": "mc",
+      "category": "NAT basics",
+      "q": "Which of these addresses is in private address space?",
+      "choices": ["172.20.5.9", "172.32.0.1", "192.169.1.1", "11.0.0.1"],
+      "answer": 0,
+      "explain": "172.16/12 fixes the first 12 bits: 172 plus the top 4 bits of the second octet (0001). That covers 172.16.0.0 through 172.31.255.255, so 172.20.5.9 is inside and 172.32.0.1 is just past the end. 192.169.x.x is outside 192.168/16, and 11.x.x.x is outside 10/8."
+    },
+    {
+      "type": "num",
+      "category": "NAT basics",
+      "q": "A home network uses the private prefix 192.168/16. How many bits does that leave for numbering hosts?",
+      "answer": 16,
+      "explain": "IPv4 addresses are 32 bits. A /16 prefix fixes the first 16 bits, which leaves 32 - 16 = 16 bits (65,536 addresses)."
+    },
+    {
+      "type": "tf",
+      "category": "NAT basics",
+      "q": "Behind NAT, every datagram leaving the local network has the same source IP address, but the datagrams can have different source port numbers.",
+      "answer": true,
+      "explain": "Every outgoing datagram gets the NAT IP address (e.g., 138.76.29.7) as its source. The router tells connections apart by giving them different source port numbers."
+    },
+    {
+      "type": "tf",
+      "category": "NAT basics",
+      "q": "A datagram sent from 10.0.0.1 to 10.0.0.2 in the same home network gets its source address rewritten to the NAT router's public address.",
+      "answer": false,
+      "explain": "Datagrams whose source and destination are both in the local network keep their 10.0.0/24 addresses as usual. Only traffic that crosses the NAT router to or from the rest of the Internet is translated."
+    },
+    {
+      "type": "multi",
+      "category": "NAT basics",
+      "q": "Which of these are advantages of NAT?",
+      "choices": [
+        "The provider ISP only needs to supply one IP address for all devices",
+        "Hosts in the local network can be renumbered without notifying the outside world",
+        "The network can change ISPs without changing the addresses of its local devices",
+        "Devices inside the local network can't be directly addressed or seen from outside",
+        "Outside clients can easily open connections to servers inside the local network",
+        "Routers no longer need to look beyond the network-layer header"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The first four are NAT's advantages. Outside clients connecting in is the NAT traversal problem, which is a drawback. NAT actually makes routers look beyond the network layer, because it rewrites transport-layer port numbers. That is one of the main criticisms of NAT."
+    },
+    {
+      "type": "mc",
+      "category": "NAT basics",
+      "q": "A home network behind NAT switches ISPs and gets a different public IPv4 address. What happens to the addresses of the devices inside?",
+      "choices": [
+        "Nothing changes; they keep their private addresses",
+        "Every device must be renumbered into the new ISP's address block",
+        "Only devices with open connections must be renumbered",
+        "The devices must switch to IPv6 addresses"
+      ],
+      "answer": 0,
+      "explain": "Only the NAT router's outside address changes. The internal private addresses aren't visible outside, so the network can change ISPs without changing the addresses of its local devices."
+    },
+    {
+      "type": "mc",
+      "category": "NAT basics",
+      "q": "In the slides' example, the NAT router has address 138.76.29.7 on one interface and 10.0.0.4 on the other. Which statement is true?",
+      "choices": [
+        "138.76.29.7 faces the rest of the Internet; 10.0.0.4 faces the local network",
+        "10.0.0.4 faces the rest of the Internet; 138.76.29.7 faces the local network",
+        "Remote servers can see both addresses",
+        "Both addresses are private"
+      ],
+      "answer": 0,
+      "explain": "10.0.0.4 is in the private 10/8 space and sits on the local network (10.0.0/24). 138.76.29.7 is the single public NAT address that the rest of the Internet sees."
+    },
+    {
+      "type": "mc",
+      "category": "NAT translation",
+      "q": "What does a NAT router replace in every outgoing datagram?",
+      "choices": [
+        "The source (IP address, port #), replaced with (NAT IP address, new port #)",
+        "The destination (IP address, port #), replaced with (NAT IP address, new port #)",
+        "Only the source IP address; the source port stays the same",
+        "The source IP address and the destination port #"
+      ],
+      "answer": 0,
+      "explain": "Outgoing datagrams have their (source IP address, port #) replaced with (NAT IP address, new port #). Remote clients and servers then reply using (NAT IP address, new port #) as the destination."
+    },
+    {
+      "type": "mc",
+      "category": "NAT translation",
+      "q": "What does a NAT router replace in every incoming datagram?",
+      "choices": [
+        "The destination (NAT IP address, new port #), replaced with the matching (source IP address, port #) stored in the NAT table",
+        "The source (IP address, port #), replaced with the NAT router's own address and port",
+        "Only the destination IP address; the port # stays the same",
+        "Nothing, because incoming datagrams are already addressed to the internal host"
+      ],
+      "answer": 0,
+      "explain": "Incoming datagrams arrive addressed to (NAT IP address, new port #). The router looks that pair up in its translation table and writes the original internal (IP address, port #) into the destination fields."
+    },
+    {
+      "type": "text",
+      "category": "NAT translation",
+      "q": "Where does a NAT router remember every (source IP address, port #) to (NAT IP address, new port #) translation pair?",
+      "answer": ["NAT translation table", "the NAT translation table", "translation table", "NAT table"],
+      "explain": "Each pair is stored in the NAT translation table, which has a WAN-side address column and a LAN-side address column. The router uses it to translate incoming replies back."
+    },
+    {
+      "type": "mc",
+      "category": "NAT translation",
+      "q": "Host 10.0.0.1 sends a datagram from port 3345 to web server 128.119.40.186, port 80. The NAT router (public address 138.76.29.7) chooses port 5001 for it. What are the source and destination on the datagram after it leaves for the Internet?",
+      "choices": [
+        "S: 138.76.29.7, 5001 / D: 128.119.40.186, 80",
+        "S: 10.0.0.1, 3345 / D: 128.119.40.186, 80",
+        "S: 138.76.29.7, 3345 / D: 128.119.40.186, 80",
+        "S: 138.76.29.7, 5001 / D: 128.119.40.186, 5001"
+      ],
+      "answer": 0,
+      "explain": "The router replaces the source (10.0.0.1, 3345) with (138.76.29.7, 5001) and records that pair in its table. The destination (128.119.40.186, 80) is left as it is."
+    },
+    {
+      "type": "mc",
+      "category": "NAT translation",
+      "q": "Same scenario: the web server replies. What destination does the reply have when it reaches the NAT router?",
+      "choices": ["138.76.29.7, 5001", "10.0.0.1, 3345", "138.76.29.7, 3345", "10.0.0.4, 5001"],
+      "answer": 0,
+      "explain": "The server only ever saw (138.76.29.7, 5001) as the source, so it replies to that address and port."
+    },
+    {
+      "type": "mc",
+      "category": "NAT translation",
+      "q": "Same scenario: what are the source and destination on the reply after the NAT router translates it and forwards it to the host?",
+      "choices": [
+        "S: 128.119.40.186, 80 / D: 10.0.0.1, 3345",
+        "S: 138.76.29.7, 5001 / D: 10.0.0.1, 3345",
+        "S: 128.119.40.186, 80 / D: 138.76.29.7, 5001",
+        "S: 10.0.0.4, 80 / D: 10.0.0.1, 3345"
+      ],
+      "answer": 0,
+      "explain": "For incoming datagrams, only the destination is rewritten. (138.76.29.7, 5001) becomes (10.0.0.1, 3345) from the table, and the server's source (128.119.40.186, 80) is unchanged."
+    },
+    {
+      "type": "num",
+      "category": "NAT translation",
+      "q": "A NAT router with public address 138.76.29.7 has two table entries: WAN (138.76.29.7, 5001) <-> LAN (10.0.0.1, 3345) and WAN (138.76.29.7, 5002) <-> LAN (10.0.0.3, 4100). A datagram arrives addressed to 138.76.29.7, port 5002. What destination port number does it have when the router forwards it into the local network?",
+      "answer": 4100,
+      "explain": "The router finds (138.76.29.7, 5002) in the WAN-side column and replaces the destination with the matching LAN-side pair, (10.0.0.3, 4100)."
+    },
+    {
+      "type": "mc",
+      "category": "NAT translation",
+      "q": "Why does a NAT router give outgoing datagrams a new port number instead of only rewriting the source IP address?",
+      "choices": [
+        "All local hosts share the one NAT IP address, so the port number is how the router knows which internal host and port a reply belongs to",
+        "The port number has to be rewritten so the IP header checksum can be computed",
+        "Remote servers only accept connections from port numbers assigned by a NAT",
+        "The new port number hides from the ISP which application is in use"
+      ],
+      "answer": 0,
+      "explain": "Every outgoing datagram has the same NAT source IP address, so replies can only be told apart by destination port. Each new port # maps to one (internal IP address, port #) pair in the translation table."
+    },
+    {
+      "type": "mc",
+      "category": "NAT translation",
+      "q": "Hosts 10.0.0.1 and 10.0.0.2, behind the same NAT router, both use source port 3345 to contact the same server. How does the NAT router keep their traffic separate?",
+      "choices": [
+        "It maps them to different new port numbers on the shared NAT IP address",
+        "It gives each host a different public IP address",
+        "It rejects the second host's connection",
+        "It leaves it to the server to tell them apart by their private addresses"
+      ],
+      "answer": 0,
+      "explain": "Each (source IP address, port #) gets its own (NAT IP address, new port #) entry, for example 5001 for one host and 5002 for the other. Replies to each port are sent back to the right host. The server never sees the private addresses."
+    },
+    {
+      "type": "tf",
+      "category": "NAT translation",
+      "q": "A remote web server contacted through NAT sees the internal host's private address (e.g., 10.0.0.1) as the source of the request.",
+      "answer": false,
+      "explain": "The NAT router replaces the source with (NAT IP address, new port #) before the datagram leaves. The server only sees 138.76.29.7 and the new port."
+    },
+    {
+      "type": "multi",
+      "category": "NAT controversy",
+      "q": "Which of these criticisms have made NAT controversial?",
+      "choices": [
+        "Routers 'should' only process up to layer 3",
+        "The address 'shortage' should be solved by IPv6 instead",
+        "It violates the end-to-end argument because a network-layer device manipulates port numbers",
+        "NAT traversal: it is hard for a client to connect to a server behind NAT",
+        "It requires every local device to have its own public IP address",
+        "It forces every local host to be renumbered whenever the ISP changes"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The first four are the stated objections. The last two are false: NAT needs only one public address for all devices, and local addresses can stay the same when the ISP changes."
+    },
+    {
+      "type": "mc",
+      "category": "NAT controversy",
+      "q": "Which NAT behavior is said to violate the end-to-end argument?",
+      "choices": [
+        "A network-layer device rewrites transport-layer port numbers",
+        "The NAT router fragments datagrams",
+        "Local hosts use addresses from private address space",
+        "The router forwards datagrams between two different networks"
+      ],
+      "answer": 0,
+      "explain": "Port numbers belong to the transport layer at the end hosts. A NAT router is a network-layer device that changes them in transit, which goes against the end-to-end argument and the idea that routers should only process up to layer 3."
+    },
+    {
+      "type": "mc",
+      "category": "NAT controversy",
+      "q": "What is the 'NAT traversal' problem?",
+      "choices": [
+        "How a client outside can connect to a server that is behind a NAT",
+        "How a datagram can cross several NAT routers before reaching the Internet",
+        "How a host can reach another host on the same local network",
+        "How a NAT router can search its translation table quickly"
+      ],
+      "answer": 0,
+      "explain": "NAT traversal asks what happens when a client wants to connect to a server behind NAT. Devices inside aren't directly addressable from outside, so this doesn't work by default."
+    },
+    {
+      "type": "mc",
+      "category": "NAT controversy",
+      "q": "A client on the Internet wants to reach a web server running on 10.0.0.2 behind a NAT router. Why doesn't this work without extra help?",
+      "choices": [
+        "10.0.0.2 is private and can't be reached from outside, and the NAT router has no table entry saying which inside host should receive datagrams sent to its public address",
+        "NAT routers translate only UDP, not TCP",
+        "A host with a private address can't run a web server, even for clients inside its own network",
+        "The outside client would need IPv6 to reach it"
+      ],
+      "answer": 0,
+      "explain": "Private addresses only work inside the local network, so the client can only send to the NAT's public address. Translation table entries are created by outgoing datagrams. An unsolicited incoming datagram has no entry to map it to (10.0.0.2, 80). This is the NAT traversal problem."
+    },
+    {
+      "type": "tf",
+      "category": "NAT controversy",
+      "q": "Despite the controversy, NAT is widely used in home and institutional networks and in 4G/5G cellular networks.",
+      "answer": true,
+      "explain": "NAT is here to stay. It is used extensively in home networks, institutional networks and 4G/5G cellular networks."
+    },
+    {
+      "type": "text",
+      "category": "NAT controversy",
+      "q": "Critics of NAT argue that routers 'should' only process up to which layer? Give the layer number.",
+      "answer": ["3", "layer 3", "three", "network", "network layer"],
+      "explain": "Layer 3 is the network layer. NAT routers also read and rewrite layer-4 (transport) port numbers."
+    },
+    {
+      "type": "mc",
+      "category": "IPv6 motivation and datagram format",
+      "q": "What was the initial motivation for IPv6?",
+      "choices": [
+        "The 32-bit IPv4 address space would be completely allocated",
+        "IPv4 headers had no checksum",
+        "IPv4 couldn't carry TCP segments",
+        "NAT routers were too slow"
+      ],
+      "answer": 0,
+      "explain": "The initial motivation was that the 32-bit IPv4 address space would run out. IPv6 uses 128-bit addresses."
+    },
+    {
+      "type": "multi",
+      "category": "IPv6 motivation and datagram format",
+      "q": "Besides more addresses, which of these were additional motivations for IPv6?",
+      "choices": [
+        "Faster processing/forwarding thanks to a 40-byte fixed-length header",
+        "Different network-layer treatment of 'flows'",
+        "Fragmentation at every router",
+        "A stronger header checksum"
+      ],
+      "answer": [0, 1],
+      "explain": "The additional motivations were faster processing with a fixed 40-byte header and flow-based treatment, which the flow label supports. IPv6 has no fragmentation at routers and no header checksum at all."
+    },
+    {
+      "type": "num",
+      "category": "IPv6 motivation and datagram format",
+      "q": "How many bytes long is the fixed IPv6 header?",
+      "answer": 40,
+      "explain": "The IPv6 header is a fixed 40 bytes, which speeds processing and forwarding."
+    },
+    {
+      "type": "num",
+      "category": "IPv6 motivation and datagram format",
+      "q": "How many bits long is an IPv6 address?",
+      "answer": 128,
+      "explain": "Both the source and destination IPv6 addresses are 128 bits, compared with 32 bits for IPv4."
+    },
+    {
+      "type": "num",
+      "category": "IPv6 motivation and datagram format",
+      "q": "The IPv6 datagram format is drawn 32 bits wide. How many 32-bit rows does the source address fill?",
+      "answer": 4,
+      "explain": "128 bits / 32 bits per row = 4 rows. The destination address fills another 4."
+    },
+    {
+      "type": "num",
+      "category": "IPv6 motivation and datagram format",
+      "q": "How many of the 40 bytes in the IPv6 header do the source and destination addresses take up together?",
+      "answer": 32,
+      "explain": "2 x 128 bits = 256 bits = 32 bytes. The other 8 bytes (two 32-bit rows) hold version, priority, flow label, payload length, next header and hop limit."
+    },
+    {
+      "type": "multi",
+      "category": "IPv6 motivation and datagram format",
+      "q": "Which of these IPv4 features are missing from the IPv6 datagram?",
+      "choices": [
+        "Header checksum",
+        "Fragmentation/reassembly",
+        "Options",
+        "Hop limit",
+        "Source and destination addresses",
+        "Payload length"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "IPv6 has no checksum (to speed processing at routers), no fragmentation/reassembly, and no options (these are available as an upper-layer, next-header protocol). Hop limit, the addresses and payload length are all still in the IPv6 header."
+    },
+    {
+      "type": "mc",
+      "category": "IPv6 motivation and datagram format",
+      "q": "Why does IPv6 have no header checksum?",
+      "choices": [
+        "To speed processing at routers",
+        "IPv6 addresses are too long to checksum",
+        "The flow label already detects errors",
+        "Tunneling adds a checksum anyway"
+      ],
+      "answer": 0,
+      "explain": "The checksum was dropped to speed processing at routers. A router no longer has to check and recompute it at every hop."
+    },
+    {
+      "type": "mc",
+      "category": "IPv6 motivation and datagram format",
+      "q": "How does IPv6 handle what IPv4 did with header options?",
+      "choices": [
+        "Options are available as an upper-layer, next-header protocol",
+        "Options go in the flow label field",
+        "Options are appended to the 40-byte header, making its length variable",
+        "Options were removed with nothing to replace them"
+      ],
+      "answer": 0,
+      "explain": "The IPv6 header has no options. Option-like information can be carried as an upper-layer protocol named by the next-header field, so the main header stays a fixed 40 bytes."
+    },
+    {
+      "type": "mc",
+      "category": "IPv6 motivation and datagram format",
+      "q": "What is the IPv6 flow label for?",
+      "choices": [
+        "Identifying datagrams that belong to the same 'flow'",
+        "Identifying priority among the datagrams in a flow",
+        "Limiting how many more routers the datagram may cross",
+        "Giving the length of the payload"
+      ],
+      "answer": 0,
+      "explain": "The flow label identifies datagrams in the same flow. Priority among datagrams in a flow is the pri field, and the other two choices describe hop limit and payload len."
+    },
+    {
+      "type": "mc",
+      "category": "IPv6 motivation and datagram format",
+      "q": "Which IPv6 header field identifies priority among the datagrams in a flow?",
+      "choices": ["pri (priority)", "flow label", "hop limit", "next hdr"],
+      "answer": 0,
+      "explain": "The priority (pri) field identifies priority among datagrams in a flow. The flow label says which flow a datagram belongs to."
+    },
+    {
+      "type": "tf",
+      "category": "IPv6 motivation and datagram format",
+      "q": "The 'flow' identified by the IPv6 flow label is a precisely defined concept.",
+      "answer": false,
+      "explain": "The flow label identifies datagrams in the same flow, but the concept of a flow is not well defined."
+    },
+    {
+      "type": "multi",
+      "category": "IPv6 motivation and datagram format",
+      "q": "Which of these fields are in the IPv6 header?",
+      "choices": [
+        "version",
+        "flow label",
+        "hop limit",
+        "next header",
+        "payload length",
+        "header checksum",
+        "fragment offset"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "The IPv6 header has ver, pri, flow label, payload len, next hdr, hop limit, source address and destination address. There's no checksum, and there's nothing for fragmentation because IPv6 does no fragmentation/reassembly."
+    },
+    {
+      "type": "tf",
+      "category": "IPv6 motivation and datagram format",
+      "q": "An IPv6 router can fragment a datagram that's too big for the next link, and the destination will reassemble it.",
+      "answer": false,
+      "explain": "IPv6 has no fragmentation/reassembly. This is one of the features it leaves out compared with IPv4."
+    },
+    {
+      "type": "mc",
+      "category": "IPv6 transition and adoption",
+      "q": "Why couldn't the Internet switch from IPv4 to IPv6 all at once on a single 'flag day'?",
+      "choices": [
+        "Not all routers can be upgraded at the same time, so the network has to run with a mix of IPv4 and IPv6 routers",
+        "IPv6 datagrams can't cross Ethernet links",
+        "IPv6 addresses hadn't been assigned yet",
+        "All NAT routers would have had to be removed first"
+      ],
+      "answer": 0,
+      "explain": "Not all routers can be upgraded simultaneously, so there are no flag days. The network has to keep working with mixed IPv4 and IPv6 routers, and tunneling is the answer to that."
+    },
+    {
+      "type": "mc",
+      "category": "IPv6 transition and adoption",
+      "q": "In the IPv4-to-IPv6 transition, what is tunneling?",
+      "choices": [
+        "Carrying an IPv6 datagram as the payload of an IPv4 datagram across IPv4 routers",
+        "Converting each IPv6 header into an equivalent IPv4 header",
+        "Carrying an IPv4 datagram as the payload of an IPv6 datagram across IPv6 routers",
+        "Translating IPv6 addresses into private IPv4 addresses at a NAT router"
+      ],
+      "answer": 0,
+      "explain": "Tunneling puts a 'packet within a packet': the whole IPv6 datagram becomes the payload of an IPv4 datagram while it crosses IPv4 routers."
+    },
+    {
+      "type": "text",
+      "category": "IPv6 transition and adoption",
+      "q": "What is the name for carrying a whole datagram as the payload of another datagram (a 'packet within a packet')?",
+      "answer": ["tunneling", "tunnelling", "encapsulation", "tunneling and encapsulation"],
+      "explain": "This is tunneling: one datagram is encapsulated as the payload of another, such as an IPv6 datagram inside an IPv4 datagram."
+    },
+    {
+      "type": "mc",
+      "category": "IPv6 transition and adoption",
+      "q": "A path runs A (IPv6) - B (IPv6/v4) - C (IPv4) - D (IPv4) - E (IPv6/v4) - F (IPv6), with an IPv4 tunnel between B and E. A sends an IPv6 datagram for flow X to F. On the B-to-C link, what are the source and destination of the outer IPv4 datagram?",
+      "choices": ["src B, dest E", "src A, dest F", "src B, dest C", "src A, dest E"],
+      "answer": 0,
+      "explain": "B and E are the tunnel's endpoints. B wraps the IPv6 datagram in an IPv4 datagram addressed from B to E, and that outer datagram is what IPv4 routers C and D forward."
+    },
+    {
+      "type": "mc",
+      "category": "IPv6 transition and adoption",
+      "q": "Same path (A - B - C - D - E - F, IPv4 tunnel B to E). What are the source and destination of the IPv6 datagram carried inside on the B-to-C link?",
+      "choices": ["src A, dest F", "src B, dest E", "src B, dest F", "src A, dest B"],
+      "answer": 0,
+      "explain": "The inner IPv6 datagram isn't changed. It still says flow X, src A, dest F, and it rides as the payload of the B-to-E IPv4 datagram."
+    },
+    {
+      "type": "multi",
+      "category": "IPv6 transition and adoption",
+      "q": "Same path: A (IPv6) - B - C - D - E - F (IPv6), with an IPv4 tunnel from B to E across IPv4-only routers C and D. Which routers must handle both IPv6 and IPv4?",
+      "choices": ["A", "B", "C", "D", "E", "F"],
+      "fixed": true,
+      "answer": [1, 4],
+      "explain": "B and E are IPv6/v4 routers. B encapsulates the IPv6 datagram in IPv4, and E takes it back out. A and F speak only IPv6, and C and D speak only IPv4."
+    },
+    {
+      "type": "tf",
+      "category": "IPv6 transition and adoption",
+      "q": "Same path: routers C and D read the IPv6 header (flow X, src A, dest F) to decide where to forward the datagram.",
+      "answer": false,
+      "explain": "C and D are IPv4-only routers. They see an ordinary IPv4 datagram from B to E and forward it on that basis. To them, the IPv6 datagram is just payload."
+    },
+    {
+      "type": "mc",
+      "category": "IPv6 transition and adoption",
+      "q": "Same path: what is sent on the E-to-F link?",
+      "choices": [
+        "A plain IPv6 datagram: flow X, src A, dest F",
+        "An IPv4 datagram from B to E with the IPv6 datagram inside",
+        "An IPv4 datagram from E to F",
+        "An IPv6 datagram with src E, dest F"
+      ],
+      "answer": 0,
+      "explain": "E is the tunnel's exit. It takes the IPv6 datagram out of the IPv4 payload and forwards it to F as ordinary IPv6, with the original source A and destination F."
+    },
+    {
+      "type": "mc",
+      "category": "IPv6 transition and adoption",
+      "q": "To IPv6 routers B and E, the IPv4 tunnel between them does the same job as which part of an all-IPv6 network?",
+      "choices": [
+        "A link, such as Ethernet, that carries the IPv6 datagram as its payload",
+        "A NAT router that rewrites addresses",
+        "Another IPv6 router along the path",
+        "The IPv6 flow label"
+      ],
+      "answer": 0,
+      "explain": "When Ethernet connects two IPv6 routers, the IPv6 datagram is the payload of a link-layer frame. Tunneling does the same thing with an IPv4 datagram as the wrapper, so logically the IPv4 network acts as one link between B and E."
+    },
+    {
+      "type": "tf",
+      "category": "IPv6 transition and adoption",
+      "q": "Tunneling is only used for the IPv4-to-IPv6 transition.",
+      "answer": false,
+      "explain": "Tunneling is also used heavily in other settings, including 4G/5G cellular networks."
+    },
+    {
+      "type": "mc",
+      "category": "IPv6 transition and adoption",
+      "q": "Roughly what share of Google's clients reached its services over IPv6 in 2023?",
+      "choices": ["About 40%", "About 4%", "About 75%", "Nearly 100%"],
+      "answer": 0,
+      "explain": "Google's measurements show about 40% of clients using IPv6 in 2023, after many years of slow growth from near 0% around 2008-2010."
+    },
+    {
+      "type": "tf",
+      "category": "IPv6 transition and adoption",
+      "q": "IPv6 was deployed quickly compared with application-level changes such as the WWW, social media and streaming media.",
+      "answer": false,
+      "explain": "IPv6 deployment has taken a very long time: 25 years and counting. Over the same period, applications changed enormously (WWW, social media, streaming media, gaming, telepresence)."
+    },
+    {
+      "type": "multi",
+      "category": "IPv6 transition and adoption",
+      "q": "Which ideas from this material help explain why IPv6 has taken so long to deploy?",
+      "choices": [
+        "Not all routers can be upgraded at once, so IPv6 has to coexist with IPv4 (no flag day)",
+        "NAT lets a whole local network share one IPv4 address, which eases the address shortage",
+        "IPv6 headers are variable-length and slow to process",
+        "IPv6 datagrams can't carry TCP or UDP payloads"
+      ],
+      "answer": [0, 1],
+      "explain": "A network-layer change means upgrading routers everywhere, and that can't happen all at once. NAT also reduces the pressure of the IPv4 address shortage that IPv6 was supposed to solve. The other two are false: IPv6 has a fixed 40-byte header, and it carries UDP/TCP payloads."
+    }
+  ]
+}

@@ -1,0 +1,362 @@
+{
+  "title": "Router Input Ports and Switching",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Router architecture",
+      "q": "In the generic router architecture, which component makes up the control plane?",
+      "choices": ["The high-speed switching fabric", "The input ports", "The routing processor", "The output ports"],
+      "answer": 2,
+      "explain": "The routing processor runs routing and management, which is the control plane (software). The input ports, switching fabric and output ports together form the forwarding data plane."
+    },
+    {
+      "type": "mc",
+      "category": "Router architecture",
+      "q": "Which description fits a router's forwarding data plane?",
+      "choices": ["Implemented in software, operates in a millisecond time frame", "Implemented in hardware, operates in a nanosecond time frame", "Implemented in software, operates in a nanosecond time frame", "Implemented in hardware, operates in a millisecond time frame"],
+      "answer": 1,
+      "explain": "Forwarding happens for every datagram, so it is done in hardware on a nanosecond time scale. The control plane (routing, management) is software working on a millisecond time scale."
+    },
+    {
+      "type": "multi",
+      "category": "Router architecture",
+      "q": "Which of these are part of a router's forwarding data plane?",
+      "choices": ["Input ports", "Routing processor", "High-speed switching fabric", "Output ports", "Routing and management software"],
+      "answer": [0, 2, 3],
+      "explain": "Input ports, the switching fabric and output ports move datagrams, so they make up the data plane. The routing processor and its routing and management software make up the control plane."
+    },
+    {
+      "type": "tf",
+      "category": "Router architecture",
+      "q": "The router's routing and management functions work on a much slower time scale than forwarding individual datagrams.",
+      "answer": true,
+      "explain": "The control plane (routing, management) works in milliseconds. The forwarding data plane must handle each datagram in nanoseconds."
+    },
+    {
+      "type": "mc",
+      "category": "Router architecture",
+      "q": "In the generic router architecture, which path does an arriving datagram take?",
+      "choices": ["Input port → routing processor → output port", "Routing processor → switching fabric → input port", "Output port → switching fabric → input port", "Input port → switching fabric → output port"],
+      "answer": 3,
+      "explain": "Datagrams enter at an input port, cross the high-speed switching fabric, and leave through an output port. The routing processor sits above the fabric in the control plane and is not on the datagram's path."
+    },
+    {
+      "type": "mc",
+      "category": "Input port functions",
+      "q": "In what order does an input port process an arriving datagram before it reaches the switch fabric?",
+      "choices": ["Line termination → link-layer protocol (receive) → lookup, forwarding, queueing", "Link-layer protocol (receive) → line termination → lookup, forwarding, queueing", "Lookup, forwarding, queueing → line termination → link-layer protocol (receive)", "Line termination → lookup, forwarding, queueing → link-layer protocol (receive)"],
+      "answer": 0,
+      "explain": "Bits are received first (line termination, physical layer), then the link-layer protocol (e.g., Ethernet) handles the frame, then lookup/forwarding/queueing sends the datagram into the switch fabric."
+    },
+    {
+      "type": "mc",
+      "category": "Input port functions",
+      "q": "What does the line termination stage of an input port do?",
+      "choices": ["Runs the link-layer protocol, such as Ethernet", "Bit-level reception at the physical layer", "Looks up the output port in the forwarding table", "Computes routes with other routers"],
+      "answer": 1,
+      "explain": "Line termination is the physical layer: bit-level reception. The link-layer protocol stage comes next, followed by lookup/forwarding/queueing."
+    },
+    {
+      "type": "text",
+      "category": "Input port functions",
+      "q": "An input port uses header field values to find the output port in its forwarding table. This style of processing is described as \"match plus ____\".",
+      "answer": ["action", "Action"],
+      "explain": "\"Match plus action\": the header fields are matched against the forwarding table, and the matching entry says what to do, such as which output port to forward to."
+    },
+    {
+      "type": "mc",
+      "category": "Input port functions",
+      "q": "Why is the lookup at the input port called decentralized switching?",
+      "choices": ["Lookups are spread across several routers along the path", "The routing processor performs every lookup for all ports", "Each input port finds the output port itself, using a forwarding table held in the input port's memory", "The switching fabric chooses the output port while the datagram is in transit"],
+      "answer": 2,
+      "explain": "Each input port has the forwarding table in its own memory and does the lookup locally, so no central processor has to handle every datagram."
+    },
+    {
+      "type": "mc",
+      "category": "Input port functions",
+      "q": "When does queueing happen at an input port?",
+      "choices": ["When the routing processor is recomputing routes", "When datagrams arrive faster than they can be forwarded into the switch fabric", "Only when the forwarding table has no matching entry", "When the forwarding table is being copied to the output ports"],
+      "answer": 1,
+      "explain": "Input port queuing occurs if datagrams arrive faster than the forwarding rate into the switch fabric, so they wait at the input."
+    },
+    {
+      "type": "tf",
+      "category": "Input port functions",
+      "q": "The goal for input port processing is to finish at 'line speed', that is, to keep up with the rate at which datagrams arrive on the input link.",
+      "answer": true,
+      "explain": "If lookup and forwarding can't keep up with line speed, datagrams pile up in the input port's queue."
+    },
+    {
+      "type": "mc",
+      "category": "Input port functions",
+      "q": "A router chooses the output port using only the datagram's destination IP address. What is this called?",
+      "choices": ["Generalized forwarding", "Switching via memory", "Destination-based forwarding", "Decentralized routing"],
+      "answer": 2,
+      "explain": "Destination-based forwarding (the traditional approach) uses only the destination IP address. Generalized forwarding can use any set of header field values."
+    },
+    {
+      "type": "tf",
+      "category": "Input port functions",
+      "q": "Generalized forwarding chooses the output port based only on the destination IP address.",
+      "answer": false,
+      "explain": "That describes destination-based forwarding. Generalized forwarding can forward based on any set of header field values."
+    },
+    {
+      "type": "mc",
+      "category": "Longest prefix matching",
+      "q": "Forwarding table: 11001000 00010111 00010*** ******** → interface 0; 11001000 00010111 00011000 ******** → interface 1; 11001000 00010111 00011*** ******** → interface 2; otherwise → interface 3. Which interface does destination 11001000 00010111 00010110 10100001 go to?",
+      "choices": ["Interface 0", "Interface 1", "Interface 2", "Interface 3"],
+      "fixed": true,
+      "answer": 0,
+      "explain": "The third byte 00010110 begins with 00010, so the address matches the interface-0 prefix. It doesn't match 00011000 or 00011***, so that is the only (and longest) match."
+    },
+    {
+      "type": "mc",
+      "category": "Longest prefix matching",
+      "q": "Forwarding table: 11001000 00010111 00010*** ******** → interface 0; 11001000 00010111 00011000 ******** → interface 1; 11001000 00010111 00011*** ******** → interface 2; otherwise → interface 3. Which interface does destination 11001000 00010111 00011000 10101010 go to?",
+      "choices": ["Interface 0", "Interface 1", "Interface 2", "Interface 3"],
+      "fixed": true,
+      "answer": 1,
+      "explain": "The address matches both 00011000 (interface 1, a 24-bit prefix) and 00011*** (interface 2, a 21-bit prefix). Longest prefix matching picks the longer one, interface 1."
+    },
+    {
+      "type": "mc",
+      "category": "Longest prefix matching",
+      "q": "Forwarding table: 11001000 00010111 00010*** ******** → interface 0; 11001000 00010111 00011000 ******** → interface 1; 11001000 00010111 00011*** ******** → interface 2; otherwise → interface 3. Which interface does destination 11001000 00010111 00011001 00000001 go to?",
+      "choices": ["Interface 0", "Interface 1", "Interface 2", "Interface 3"],
+      "fixed": true,
+      "answer": 2,
+      "explain": "The third byte is 00011001, which is not 00011000, so the interface-1 entry fails. It does begin with 00011, so it matches the interface-2 entry."
+    },
+    {
+      "type": "mc",
+      "category": "Longest prefix matching",
+      "q": "Forwarding table: 11001000 00010111 00010*** ******** → interface 0; 11001000 00010111 00011000 ******** → interface 1; 11001000 00010111 00011*** ******** → interface 2; otherwise → interface 3. Which interface does destination 11001000 00010111 00001111 11110000 go to?",
+      "choices": ["Interface 0", "Interface 1", "Interface 2", "Interface 3"],
+      "fixed": true,
+      "answer": 3,
+      "explain": "The first two bytes match, but the third byte begins 00001, which is neither 00010 nor 00011. No entry's full prefix matches, so the 'otherwise' entry (interface 3) applies."
+    },
+    {
+      "type": "mc",
+      "category": "Longest prefix matching",
+      "q": "When several forwarding-table entries match a destination address, which one does longest prefix matching use?",
+      "choices": ["The entry listed first in the table", "The entry with the shortest prefix, since it covers the most addresses", "The entry for the least busy link interface", "The entry with the longest prefix that matches the destination address"],
+      "answer": 3,
+      "explain": "Longest prefix match: when looking up the forwarding-table entry for a destination address, use the longest address prefix that matches it."
+    },
+    {
+      "type": "tf",
+      "category": "Longest prefix matching",
+      "q": "Destination 11001000 00010111 00011000 10101010 matches both 11001000 00010111 00011000 ******** (interface 1) and 11001000 00010111 00011*** ******** (interface 2). The router sends it to interface 2 because that entry covers more addresses.",
+      "answer": false,
+      "explain": "The longer (more specific) prefix wins. 11001000 00010111 00011000 is 24 bits and 11001000 00010111 00011 is 21 bits, so the datagram goes to interface 1."
+    },
+    {
+      "type": "num",
+      "category": "Longest prefix matching",
+      "q": "How many bits long is the prefix in the forwarding-table entry 11001000 00010111 00010*** ******** (count the bits that are not wildcards)?",
+      "answer": 21,
+      "explain": "8 bits + 8 bits + 5 bits (00010) = 21 bits. The remaining 11 bits are wildcards."
+    },
+    {
+      "type": "num",
+      "category": "Longest prefix matching",
+      "q": "How many different 32-bit destination addresses match the forwarding-table entry 11001000 00010111 00010*** ********?",
+      "answer": 2048,
+      "explain": "21 bits are fixed and 11 are wildcards, so 2^11 = 2048 addresses match. This is the range 11001000 00010111 00010000 00000000 through 11001000 00010111 00010111 11111111."
+    },
+    {
+      "type": "num",
+      "category": "Longest prefix matching",
+      "q": "A router sends 11001000 00010111 00010000 00000000 through 11001000 00010111 00010111 11111111 to interface 0. The four addresses 11001000 00010111 00010000 00000100 through 11001000 00010111 00010000 00000111 must go to interface 3 instead. How many bits long is the prefix of a single entry that covers exactly those four addresses?",
+      "answer": 30,
+      "explain": "The four addresses differ only in their last 2 bits (100, 101, 110, 111 → 000001**), so the entry is 11001000 00010111 00010000 000001**: 32 − 2 = 30 bits."
+    },
+    {
+      "type": "mc",
+      "category": "Longest prefix matching",
+      "q": "A router sends 11001000 00010111 00010000 00000000 through 11001000 00010111 00010111 11111111 to interface 0, but the four addresses 11001000 00010111 00010000 00000100 through ...00000111 must go to interface 3. How does longest prefix matching handle this range that doesn't divide up nicely?",
+      "choices": ["Send those four addresses to the 'otherwise' entry", "Have the routing processor forward those four addresses in software", "Add an entry 11001000 00010111 00010000 000001** → interface 3; it is a longer match for those four addresses, while the shorter interface-0 prefix still handles the rest of the range", "Split the interface-0 range into separate entries that skip those four addresses, because entries are not allowed to overlap"],
+      "answer": 2,
+      "explain": "Entries may overlap. A destination in the small sub-range matches both entries, and the longer 30-bit prefix wins, so it goes to interface 3. All other addresses match only the 21-bit interface-0 prefix."
+    },
+    {
+      "type": "text",
+      "category": "TCAMs",
+      "q": "Longest prefix matching is often done in hardware using TCAMs. What does TCAM stand for?",
+      "answer": ["ternary content addressable memory", "ternary content-addressable memory", "ternary content addressable memories", "ternary content-addressable memories"],
+      "explain": "TCAM = ternary content addressable memory."
+    },
+    {
+      "type": "mc",
+      "category": "TCAMs",
+      "q": "What makes a content-addressable memory attractive for forwarding-table lookup?",
+      "choices": ["It searches the table one entry at a time, but in hardware rather than software", "You present the address and it retrieves the matching entry in one clock cycle, regardless of table size", "It compresses the table so it fits in the routing processor's cache", "It lets the router skip lookup for destinations it has already seen"],
+      "answer": 1,
+      "explain": "Content addressable: you present an address to the TCAM and it retrieves the result in one clock cycle, no matter how big the table is."
+    },
+    {
+      "type": "tf",
+      "category": "TCAMs",
+      "q": "With a TCAM, a lookup takes longer as the forwarding table grows from thousands of entries to around a million.",
+      "answer": false,
+      "explain": "A TCAM lookup takes one clock cycle regardless of table size. For example, the Cisco Catalyst holds about 1M routing table entries in TCAM."
+    },
+    {
+      "type": "mc",
+      "category": "TCAMs",
+      "q": "Which forwarding operation are TCAMs often used to perform?",
+      "choices": ["Reassembling cells into datagrams", "Bit-level reception on the input link", "Longest prefix matching", "Computing routes with other routers"],
+      "answer": 2,
+      "explain": "Longest prefix matching is often performed using TCAMs, so the lookup finishes in one clock cycle."
+    },
+    {
+      "type": "mc",
+      "category": "Switching rate",
+      "q": "What is a switching fabric's switching rate?",
+      "choices": ["The rate at which bits arrive on a single input link", "How often the routing processor updates the forwarding table", "The rate at which packets can be transferred from inputs to outputs", "The number of output ports the fabric connects to"],
+      "answer": 2,
+      "explain": "The switching fabric moves packets from an input link to the right output link. Its switching rate is how fast it can move packets from inputs to outputs."
+    },
+    {
+      "type": "num",
+      "category": "Switching rate",
+      "q": "A router has N = 8 input ports, each with line rate R = 10 Gbps. What switching rate (in Gbps) is ideally desirable for its fabric?",
+      "answer": 80,
+      "explain": "With N inputs, a switching rate of N times the line rate is desirable: N × R = 8 × 10 Gbps = 80 Gbps."
+    },
+    {
+      "type": "mc",
+      "category": "Switching rate",
+      "q": "Why is a switching rate of N times the line rate desirable for a router with N inputs?",
+      "choices": ["So the fabric can move traffic arriving at full line rate on all N inputs at the same time, without it backing up at the inputs", "So each packet can cross the fabric N times for reliability", "Because the control plane needs N times the bandwidth of the data plane", "Because every datagram is split into N cells"],
+      "answer": 0,
+      "explain": "Every input can receive at rate R at once, a total of NR. A fabric that switches at NR can keep up. A slower one makes datagrams queue at the input ports."
+    },
+    {
+      "type": "tf",
+      "category": "Switching rate",
+      "q": "Switching rate is often measured as a multiple of the input/output line rate.",
+      "answer": true,
+      "explain": "For example, a fabric for N inputs at line rate R would ideally run at NR, which is N times the line rate."
+    },
+    {
+      "type": "num",
+      "category": "Switching rate",
+      "q": "A switching fabric runs at 40 Gbps and each input link runs at 10 Gbps. For how many input ports is 40 Gbps exactly the ideal N × R switching rate?",
+      "answer": 4,
+      "explain": "N × R = 40 Gbps with R = 10 Gbps gives N = 4."
+    },
+    {
+      "type": "multi",
+      "category": "Memory and bus switching",
+      "q": "Which are the three major types of switching fabrics?",
+      "choices": ["Memory", "Bus", "Interconnection network", "Routing processor", "TCAM", "Line termination"],
+      "answer": [0, 1, 2],
+      "explain": "The three major fabric types are switching via memory, via a bus, and via an interconnection network (e.g., crossbar)."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and bus switching",
+      "q": "How did first-generation routers switch datagrams?",
+      "choices": ["Through a crossbar connecting each input to each output", "They were traditional computers: under direct CPU control, each datagram was copied into system memory and then out to the output port", "Over a shared bus straight from input port memory to output port memory, without involving the CPU", "Through multiple switching planes working in parallel"],
+      "answer": 1,
+      "explain": "First-generation routers switched via memory. They were ordinary computers in which the CPU copied each packet into system memory and then out to the output port."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and bus switching",
+      "q": "In switching via memory, why is speed limited by memory bandwidth?",
+      "choices": ["The forwarding table is too large to fit in system memory", "Datagrams must first be split into fixed-length cells", "Only one input port can send per clock cycle of the TCAM", "Each datagram crosses the system bus twice: into memory from the input port, then out of memory to the output port"],
+      "answer": 3,
+      "explain": "Every datagram crosses the bus twice, into and out of memory, so the shared memory and bus bandwidth caps forwarding speed."
+    },
+    {
+      "type": "num",
+      "category": "Memory and bus switching",
+      "q": "A router switches via memory, and its system bus can carry at most 20 Gbps. Ignoring other overhead, what is the most datagram traffic (in Gbps) it can forward from inputs to outputs?",
+      "answer": 10,
+      "explain": "Each datagram crosses the bus twice (input → memory, memory → output), so forwarded traffic is at most 20 / 2 = 10 Gbps."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and bus switching",
+      "q": "In switching via a bus, what limits switching speed?",
+      "choices": ["CPU speed, because the CPU copies every datagram into system memory", "Bus bandwidth, because all datagrams compete for the one shared bus (bus contention)", "The number of switching planes", "The length of the fixed-size cells"],
+      "answer": 1,
+      "explain": "Bus contention: every datagram must use the same shared bus, so switching speed is limited by the bus bandwidth."
+    },
+    {
+      "type": "tf",
+      "category": "Memory and bus switching",
+      "q": "In switching via a bus, a datagram goes from input port memory to output port memory over a shared bus without first being copied into the system's main memory.",
+      "answer": true,
+      "explain": "That is the difference from switching via memory, where the CPU copies each datagram into system memory (two bus crossings)."
+    },
+    {
+      "type": "mc",
+      "category": "Memory and bus switching",
+      "q": "A 32 Gbps bus-based fabric (as in the Cisco 5600) is described as fast enough for which kind of router?",
+      "choices": ["Access routers", "Large routers needing hundreds of Tbps of switching capacity", "Any router, regardless of how many ports it has or how fast they are", "None; bus fabrics are too slow for any router"],
+      "answer": 0,
+      "explain": "A 32 Gbps bus is enough for access routers. Routers needing much higher capacity use interconnection networks, e.g., the Cisco CRS with up to 100s of Tbps."
+    },
+    {
+      "type": "multi",
+      "category": "Interconnection networks",
+      "q": "Which of these are interconnection networks that can serve as a router's switching fabric?",
+      "choices": ["Crossbar", "Shared bus", "Clos network", "System memory under CPU control"],
+      "answer": [0, 2],
+      "explain": "Crossbars, Clos networks and other interconnection networks are one fabric type. A shared bus and system memory are the other two fabric types."
+    },
+    {
+      "type": "mc",
+      "category": "Interconnection networks",
+      "q": "Interconnection networks such as crossbars and Clos networks were initially developed for what purpose?",
+      "choices": ["Connecting LANs to the Internet", "Connecting processors in a multiprocessor", "Storing forwarding tables for one-cycle lookup", "Carrying Ethernet frames between routers"],
+      "answer": 1,
+      "explain": "Crossbar, Clos and other interconnection networks were first developed to connect processors in multiprocessors, and were later used as router fabrics."
+    },
+    {
+      "type": "mc",
+      "category": "Interconnection networks",
+      "q": "What is a multistage switch?",
+      "choices": ["A switch that processes each datagram several times for reliability", "A bus shared by several routers", "An n×n switch built from multiple stages of smaller switches", "A router with separate control and data planes"],
+      "answer": 2,
+      "explain": "A multistage switch builds a large n×n switch out of stages of smaller switches, e.g., an 8x8 multistage switch built from smaller-sized switches."
+    },
+    {
+      "type": "mc",
+      "category": "Interconnection networks",
+      "q": "To exploit parallelism in an interconnection-network fabric, what happens to a datagram?",
+      "choices": ["It is copied into system memory and then out to the output port", "It is copied to every output port and dropped wherever it isn't needed", "It crosses the fabric as one unit through every stage at once", "It is fragmented into fixed-length cells on entry, the cells are switched through the fabric, and the datagram is reassembled at exit"],
+      "answer": 3,
+      "explain": "Splitting datagrams into fixed-length cells lets the fabric switch cells in parallel. The datagram is reassembled when it leaves the fabric."
+    },
+    {
+      "type": "tf",
+      "category": "Interconnection networks",
+      "q": "The cells a datagram is split into for switching through an interconnection network vary in length to fit the datagram.",
+      "answer": false,
+      "explain": "The datagram is fragmented into fixed-length cells on entry and reassembled at the exit."
+    },
+    {
+      "type": "mc",
+      "category": "Interconnection networks",
+      "q": "How does a large router such as the Cisco CRS get speedup and scaleup in its switching fabric?",
+      "choices": ["By using multiple switching planes in parallel", "By using one faster shared bus", "By copying each datagram through system memory", "By moving forwarding lookups to the routing processor"],
+      "answer": 0,
+      "explain": "Scaling comes from running multiple switching 'planes' in parallel, which gives speedup and scaleup through parallelism."
+    },
+    {
+      "type": "mc",
+      "category": "Interconnection networks",
+      "q": "What is the basic unit of the Cisco CRS router's switching fabric?",
+      "choices": ["A single 3x3 crossbar", "8 switching planes, each a 3-stage interconnection network", "A 32 Gbps shared bus", "8 CPUs, each copying datagrams through system memory"],
+      "answer": 1,
+      "explain": "The Cisco CRS uses 8 switching planes as its basic unit. Each plane is a 3-stage interconnection network, giving up to 100s of Tbps of switching capacity."
+    }
+  ]
+}

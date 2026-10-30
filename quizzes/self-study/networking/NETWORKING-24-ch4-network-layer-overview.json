@@ -1,0 +1,357 @@
+{
+  "title": "Network Layer Overview: Forwarding, Routing, Planes, Service Models",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Network-layer services",
+      "q": "At the sending host, what does the network layer do with a segment it receives from the transport layer?",
+      "choices": [
+        "Encapsulates it into a datagram and passes the datagram to the link layer",
+        "Delivers it to the transport-layer protocol of the receiving process",
+        "Passes the segment's bits directly to the physical layer, skipping the link layer",
+        "Examines its header fields to choose a router output port"
+      ],
+      "answer": 0,
+      "explain": "The sender's network layer wraps (encapsulates) the transport segment in a datagram and hands it down to the link layer. Delivering segments up to the transport layer is what the receiver does."
+    },
+    {
+      "type": "mc",
+      "category": "Network-layer services",
+      "q": "At the receiving host, what is the network layer's job?",
+      "choices": [
+        "Encapsulate the segment into a new datagram for the next hop",
+        "Deliver the segment up to the transport-layer protocol",
+        "Compute the route back to the sender",
+        "Move the datagram from an input port to an output port"
+      ],
+      "answer": 1,
+      "explain": "The network layer carries segments from the sending host to the receiving host. At the receiver it delivers the segment up to the transport-layer protocol."
+    },
+    {
+      "type": "tf",
+      "category": "Network-layer services",
+      "q": "Network-layer protocols run only in end hosts. Routers handle datagrams purely at the link layer.",
+      "answer": false,
+      "explain": "Network-layer protocols run in every Internet device, both hosts and routers. A router's main job is network-layer work: it examines IP datagram headers and forwards the datagrams."
+    },
+    {
+      "type": "multi",
+      "category": "Network-layer services",
+      "q": "Which layers of the protocol stack does a router in the middle of an end-to-end path implement?",
+      "choices": ["Application", "Transport", "Network", "Link", "Physical"],
+      "answer": [2, 3, 4],
+      "fixed": true,
+      "explain": "End hosts implement all five layers. Routers along the path implement only the network, link and physical layers, which is enough to examine IP headers and forward datagrams."
+    },
+    {
+      "type": "mc",
+      "category": "Network-layer services",
+      "q": "Which IP datagrams does a router examine the header fields of?",
+      "choices": [
+        "All IP datagrams passing through it",
+        "Only the first datagram of each connection",
+        "Only datagrams addressed to the router itself",
+        "Only datagrams that arrive out of order"
+      ],
+      "answer": 0,
+      "explain": "A router examines the header fields of every IP datagram passing through it, then moves the datagram from an input port to an output port along the end-to-end path."
+    },
+    {
+      "type": "text",
+      "category": "Network-layer services",
+      "q": "What is the name of the network-layer packet that carries a transport-layer segment from the sending host to the receiving host?",
+      "answer": ["datagram", "datagrams", "a datagram", "IP datagram", "an IP datagram"],
+      "explain": "The sender encapsulates segments into datagrams. In the Internet these are IP datagrams."
+    },
+    {
+      "type": "mc",
+      "category": "Forwarding vs. routing",
+      "q": "Which description matches forwarding?",
+      "choices": [
+        "Moving packets from a router's input link to the appropriate router output link",
+        "Determining the route packets take from source to destination",
+        "Running routing algorithms to plan end-to-end paths",
+        "Delivering segments up to the transport layer at the receiver"
+      ],
+      "answer": 0,
+      "explain": "Forwarding is the per-router step of moving a packet from an input link to the right output link. Determining the whole source-to-destination route, using routing algorithms, is routing."
+    },
+    {
+      "type": "mc",
+      "category": "Forwarding vs. routing",
+      "q": "In the 'taking a trip' analogy, which pairing is correct?",
+      "choices": [
+        "Forwarding = getting through a single interchange; routing = planning the trip from source to destination",
+        "Forwarding = planning the trip from source to destination; routing = getting through a single interchange",
+        "Forwarding and routing both = getting through a single interchange",
+        "Forwarding and routing both = planning the trip from source to destination"
+      ],
+      "answer": 0,
+      "explain": "Forwarding is local, like getting through one highway interchange. Routing is global, like planning the whole route on a map from source to destination."
+    },
+    {
+      "type": "mc",
+      "category": "Forwarding vs. routing",
+      "q": "Something in the network works out that datagrams from host A to host B should travel through routers R1, R3 and R4. Which network-layer function is this, and what carries it out?",
+      "choices": [
+        "Routing, carried out by routing algorithms",
+        "Forwarding, carried out by a single router's forwarding table",
+        "Forwarding, carried out by routing algorithms",
+        "Encapsulation, carried out by the sending host"
+      ],
+      "answer": 0,
+      "explain": "Determining the route packets take from source to destination is routing, and routing algorithms carry it out. Forwarding only moves a packet from one router's input link to an output link."
+    },
+    {
+      "type": "num",
+      "category": "Forwarding vs. routing",
+      "q": "A router's local forwarding table maps header values to output ports: 0100 → port 3, 0110 → port 2, 0111 → port 2, 1001 → port 1. A datagram arrives with header value 0100. Which output port is it forwarded to?",
+      "answer": 3,
+      "explain": "Forwarding means looking up the value from the arriving packet's header in the local forwarding table. The entry for 0100 says output port 3."
+    },
+    {
+      "type": "tf",
+      "category": "Forwarding vs. routing",
+      "q": "In a router's forwarding table, each output port can appear for at most one header value.",
+      "answer": false,
+      "explain": "Several header values can map to the same output port. For example, a table can send both 0110 and 0111 to port 2."
+    },
+    {
+      "type": "tf",
+      "category": "Forwarding vs. routing",
+      "q": "Forwarding concerns the whole end-to-end path, while routing concerns what happens inside a single router.",
+      "answer": false,
+      "explain": "It's the other way around. Forwarding is the per-router input-link-to-output-link step. Routing determines the end-to-end route from source to destination."
+    },
+    {
+      "type": "mc",
+      "category": "Data plane vs. control plane",
+      "q": "Which describes the data plane?",
+      "choices": [
+        "A local, per-router function that determines how a datagram arriving on an input port is forwarded to an output port",
+        "Network-wide logic that determines how a datagram is routed among routers along the end-end path",
+        "A remote controller that computes forwarding tables for all routers",
+        "Replicated application-layer services placed close to clients"
+      ],
+      "answer": 0,
+      "explain": "The data plane is local and per-router: it uses values in the arriving packet's header to pick the output port. Network-wide routing logic belongs to the control plane."
+    },
+    {
+      "type": "tf",
+      "category": "Data plane vs. control plane",
+      "q": "The control plane is network-wide logic that determines how a datagram is routed among routers along the end-end path from source host to destination host.",
+      "answer": true,
+      "explain": "Control plane = network-wide logic for routing among routers. Data plane = the local, per-router forwarding function."
+    },
+    {
+      "type": "multi",
+      "category": "Data plane vs. control plane",
+      "q": "Which of these are data-plane activities?",
+      "choices": [
+        "A router reads a value in an arriving packet's header and looks it up to choose an output port",
+        "Routing-algorithm components in different routers exchange information to compute paths",
+        "A remote controller computes forwarding tables and installs them in routers",
+        "A router moves a datagram from its input port to the chosen output port"
+      ],
+      "answer": [0, 3],
+      "explain": "Looking up the header value and moving the datagram to an output port are local, per-router forwarding, which is the data plane. Computing paths or tables, whether by routers working together or by a remote controller, is the control plane."
+    },
+    {
+      "type": "mc",
+      "category": "Data plane vs. control plane",
+      "q": "In the traditional (per-router) control-plane approach, where are routing algorithms implemented?",
+      "choices": [
+        "In each and every router, with the routing components in different routers interacting with each other",
+        "In a single remote controller that installs forwarding tables in routers",
+        "Only in the end hosts at either end of the path",
+        "In the link layer of each router"
+      ],
+      "answer": 0,
+      "explain": "In a per-router control plane, every router runs its own routing-algorithm component. These components interact with each other, and each router's component fills in that router's local forwarding table."
+    },
+    {
+      "type": "mc",
+      "category": "Data plane vs. control plane",
+      "q": "In software-defined networking (SDN), what computes the forwarding tables and installs them in routers?",
+      "choices": [
+        "A remote controller running on (remote) servers",
+        "A routing algorithm running inside each router",
+        "The network layer of the sending host",
+        "The link layer of the next-hop router"
+      ],
+      "answer": 0,
+      "explain": "With SDN, the control plane is implemented in remote servers: a remote controller computes forwarding tables and installs them in the routers."
+    },
+    {
+      "type": "tf",
+      "category": "Data plane vs. control plane",
+      "q": "In an SDN control plane, each router still runs its own full routing algorithm and exchanges routing information directly with other routers.",
+      "answer": false,
+      "explain": "In SDN, routers don't compute routes among themselves. Each router has an agent (CA) that interacts with the remote controller, and the controller computes the tables and installs them."
+    },
+    {
+      "type": "tf",
+      "category": "Data plane vs. control plane",
+      "q": "Under both the traditional per-router control plane and the SDN control plane, each router still uses its own local forwarding table to forward arriving datagrams.",
+      "answer": true,
+      "explain": "The two approaches differ only in how the forwarding tables get computed: by routing algorithms in every router, or by a remote controller. Either way, each router's data plane forwards packets by looking them up in its local table."
+    },
+    {
+      "type": "multi",
+      "category": "Service models and QoS",
+      "q": "Which of these are example services for a flow of datagrams, as opposed to services for individual datagrams?",
+      "choices": [
+        "In-order datagram delivery",
+        "Guaranteed minimum bandwidth to the flow",
+        "Restrictions on changes in inter-packet spacing",
+        "Guaranteed delivery",
+        "Guaranteed delivery with less than 40 msec delay"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Order, bandwidth to a flow, and inter-packet spacing only make sense across a sequence of datagrams, so they are flow services. Guaranteed delivery, with or without a delay bound, can apply to a single datagram."
+    },
+    {
+      "type": "mc",
+      "category": "Service models and QoS",
+      "q": "Why is in-order delivery a service for a flow of datagrams rather than for an individual datagram?",
+      "choices": [
+        "Order only has meaning relative to the other datagrams in the same flow",
+        "Individual datagrams have no header fields",
+        "In-order delivery can only be provided by an SDN controller",
+        "Individual datagrams are always delivered in order automatically"
+      ],
+      "answer": 0,
+      "explain": "A single datagram has no order by itself. Ordering, like minimum bandwidth or inter-packet spacing, describes how a sequence (flow) of datagrams is treated."
+    },
+    {
+      "type": "text",
+      "category": "Service models and QoS",
+      "q": "Network service models are compared on their QoS guarantees (bandwidth, loss, order, timing). What does QoS stand for?",
+      "answer": ["Quality of Service", "quality of service", "Quality-of-Service"],
+      "explain": "QoS = Quality of Service: what a service model guarantees about bandwidth, loss, order and timing."
+    },
+    {
+      "type": "mc",
+      "category": "Service models and QoS",
+      "q": "What does ATM's Constant Bit Rate (CBR) service model guarantee?",
+      "choices": [
+        "Constant-rate bandwidth, plus guarantees on loss, order and timing",
+        "A guaranteed minimum bandwidth and in-order delivery, but no loss or timing guarantee",
+        "No bandwidth, loss, order or timing guarantees at all",
+        "Possibly bandwidth, loss and order guarantees, but no timing guarantee"
+      ],
+      "answer": 0,
+      "explain": "ATM CBR: constant-rate bandwidth, and yes to loss, order and timing. The other choices describe ATM ABR, Internet best effort and Diffserv."
+    },
+    {
+      "type": "mc",
+      "category": "Service models and QoS",
+      "q": "Which service model guarantees a minimum bandwidth and in-order delivery, but no loss or timing?",
+      "choices": [
+        "ATM Available Bit Rate (ABR)",
+        "ATM Constant Bit Rate (CBR)",
+        "Intserv Guaranteed",
+        "Internet best effort"
+      ],
+      "answer": 0,
+      "explain": "ATM ABR: bandwidth = guaranteed minimum, loss = no, order = yes, timing = no."
+    },
+    {
+      "type": "mc",
+      "category": "Service models and QoS",
+      "q": "Which Internet service model offers guarantees on all four of bandwidth, loss, order and timing?",
+      "choices": [
+        "Intserv Guaranteed (RFC 1633)",
+        "Diffserv (RFC 2475)",
+        "Best effort",
+        "None: no Internet service model can guarantee timing"
+      ],
+      "answer": 0,
+      "explain": "Intserv Guaranteed (RFC 1633) answers yes for bandwidth, loss, order and timing. Diffserv offers only 'possible/possibly' and no timing. Best effort guarantees nothing."
+    },
+    {
+      "type": "tf",
+      "category": "Service models and QoS",
+      "q": "Diffserv (RFC 2475) provides a timing guarantee.",
+      "answer": false,
+      "explain": "Diffserv: bandwidth possible, loss possibly, order possibly, timing no."
+    },
+    {
+      "type": "multi",
+      "category": "Service models and QoS",
+      "q": "Which of these service models guarantee timing?",
+      "choices": [
+        "Internet best effort",
+        "ATM Constant Bit Rate",
+        "ATM Available Bit Rate",
+        "Intserv Guaranteed",
+        "Diffserv"
+      ],
+      "answer": [1, 3],
+      "fixed": true,
+      "explain": "Only ATM CBR and Intserv Guaranteed say yes for timing. Best effort, ATM ABR and Diffserv say no."
+    },
+    {
+      "type": "mc",
+      "category": "Best-effort service",
+      "q": "A host sends datagrams 1, 2 and 3 to another host over the Internet's network layer. Which outcome does the best-effort service model rule out?",
+      "choices": [
+        "They arrive in the order 3, 1, 2",
+        "Datagram 2 never arrives",
+        "All three arrive, but with very different delays",
+        "None of these: best effort rules out none of them"
+      ],
+      "answer": 3,
+      "explain": "Best effort guarantees nothing about successful delivery, timing or order of delivery, or bandwidth for an end-end flow. So reordering, loss and variable delay are all possible."
+    },
+    {
+      "type": "tf",
+      "category": "Best-effort service",
+      "q": "The Internet's best-effort service model guarantees a minimum amount of bandwidth to each end-end flow.",
+      "answer": false,
+      "explain": "Best effort's bandwidth guarantee is 'none'. It offers no guarantee on the bandwidth available to an end-end flow, and no guarantees on loss, order or timing either."
+    },
+    {
+      "type": "multi",
+      "category": "Best-effort service",
+      "q": "Which of these help explain why the best-effort service model works well in practice?",
+      "choices": [
+        "Its simple mechanism let the Internet be widely deployed and adopted",
+        "Enough bandwidth provisioning makes real-time applications 'good enough' most of the time",
+        "Replicated application-layer services (datacenters, CDNs) connect close to clients' networks",
+        "Congestion control of 'elastic' services",
+        "Every router reserves a guaranteed bandwidth for each flow",
+        "The network layer guarantees delivery of every datagram"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Simplicity, bandwidth provisioning, replicated application-layer services close to clients, and congestion control of elastic services all help. Per-flow reservations and guaranteed delivery are exactly what best effort does NOT provide."
+    },
+    {
+      "type": "mc",
+      "category": "Best-effort service",
+      "q": "With no timing or bandwidth guarantees, what lets real-time applications such as interactive voice and video work acceptably over best-effort service?",
+      "choices": [
+        "Sufficient provisioning of bandwidth, so performance is 'good enough' most of the time",
+        "The network layer reserving a fixed bit rate for each call",
+        "Routers guaranteeing delivery in under 40 msec",
+        "Forwarding tables that prioritize voice packets by default"
+      ],
+      "answer": 0,
+      "explain": "Enough bandwidth provisioning makes real-time applications 'good enough' most of the time, even though best effort itself guarantees nothing."
+    },
+    {
+      "type": "mc",
+      "category": "Best-effort service",
+      "q": "How do replicated, application-layer distributed services such as datacenters and content distribution networks make up for the lack of network-layer guarantees?",
+      "choices": [
+        "They connect close to clients' networks, so services can be provided from multiple locations",
+        "They add delivery and timing guarantees to the IP layer",
+        "They replace routers' forwarding tables with their own",
+        "They make the network layer deliver datagrams in order"
+      ],
+      "answer": 0,
+      "explain": "Putting replicated services near clients' networks means content can come from multiple nearby locations. This improves service at the application layer without changing the best-effort network layer."
+    }
+  ]
+}

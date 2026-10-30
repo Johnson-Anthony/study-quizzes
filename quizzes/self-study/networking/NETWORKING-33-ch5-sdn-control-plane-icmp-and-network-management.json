@@ -1,0 +1,891 @@
+{
+  "title": "Ch5: SDN Control Plane, ICMP and Network Management",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "SDN motivation",
+      "q": "In the traditional (per-router) control plane, how are forwarding tables computed?",
+      "choices": [
+        "Routing-algorithm components in each and every router interact with one another to compute them",
+        "A remote controller computes them and installs them through a control agent in each router",
+        "Each router learns them by watching the source addresses of arriving packets",
+        "Operators type every entry into each router by hand"
+      ],
+      "answer": 0,
+      "explain": "Per-router control means a routing algorithm runs inside every router, and those instances exchange messages to build each router's local forwarding table. The remote-controller option describes SDN."
+    },
+    {
+      "type": "tf",
+      "category": "SDN motivation",
+      "q": "In the SDN control plane, a remote controller computes forwarding tables and installs them in routers, each of which runs a local control agent (CA).",
+      "answer": true,
+      "explain": "In SDN the computation moves out of the routers to a remote controller. The CA in each router just talks to the controller and installs the tables it receives."
+    },
+    {
+      "type": "multi",
+      "category": "SDN motivation",
+      "q": "Which of these are reasons for a logically centralized control plane?",
+      "choices": [
+        "Easier network management: fewer router misconfigurations and more flexible traffic flows",
+        "Computing tables centrally and distributing them is easier than computing them with a distributed protocol running in every router",
+        "An open (non-proprietary) control-plane implementation fosters innovation",
+        "Switches no longer need forwarding tables",
+        "Running the controller on one physical server removes every point of failure"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The motivations are easier management, easier 'programming' of table-based forwarding, and open implementations. Switches still forward using flow tables. The controller is logically centralized but in practice runs as a distributed system, because a single server would itself be a point of failure."
+    },
+    {
+      "type": "mc",
+      "category": "SDN motivation",
+      "q": "In the 'mainframe to PC revolution' analogy for SDN, what is the shift?",
+      "choices": [
+        "From vertically integrated, closed, proprietary systems with slow innovation to horizontal layers with open interfaces and rapid innovation",
+        "From horizontal open systems to vertically integrated proprietary systems that are easier to secure",
+        "From software-based routers to specialized hardware routers",
+        "From centralized controllers to fully distributed per-router protocols"
+      ],
+      "answer": 0,
+      "explain": "Mainframes bundled specialized hardware, OS and applications. PCs separated these into layers with open interfaces (microprocessor, then Windows/Linux/macOS, then apps). SDN aims to do the same for networking by separating commodity switches, a controller (network OS) and control apps."
+    },
+    {
+      "type": "tf",
+      "category": "SDN motivation",
+      "q": "Before SDN, the network layer was built from 'monolithic' routers that ran proprietary implementations of standard protocols (IP, RIP, IS-IS, OSPF, BGP) in a proprietary router OS, plus separate middleboxes for functions such as firewalls, load balancers and NAT.",
+      "answer": true,
+      "explain": "This is the historical, distributed per-router approach. Interest in rethinking the network control plane picked up around 2005."
+    },
+    {
+      "type": "mc",
+      "category": "SDN motivation",
+      "q": "With traditional link-state/distance-vector routing, the least-cost path from u to z is u-x-y-z, but the operator wants u-to-z traffic to follow u-v-w-z instead. What must the operator do?",
+      "choices": [
+        "Send OpenFlow modify-state messages to v and w",
+        "Nothing, because link-state routing automatically moves traffic onto uvwz",
+        "Change the link weights so the routing algorithm computes uvwz as the best route (or use a new routing algorithm)",
+        "Have z send ICMP route advertisements"
+      ],
+      "answer": 2,
+      "explain": "Traditional routing only follows least-cost paths, so the only way to change the route is to change link weights until uvwz becomes cheapest. Link weights are the only control 'knobs', which gives operators very little control."
+    },
+    {
+      "type": "mc",
+      "category": "SDN motivation",
+      "q": "With traditional destination-based routing (LS or DV), an operator wants to load-balance u-to-z traffic by splitting it across both uvwz and uxyz. What is possible?",
+      "choices": [
+        "It can't be done without a new routing algorithm",
+        "Set equal weights on every link",
+        "Lower the TTL on half of the packets",
+        "Configure z to reply along both paths"
+      ],
+      "answer": 0,
+      "explain": "A least-cost routing algorithm gives each router one next hop per destination, so u sends all of its z-bound traffic the same way. Splitting the traffic needs a different routing algorithm, or SDN with generalized forwarding."
+    },
+    {
+      "type": "mc",
+      "category": "SDN motivation",
+      "q": "Router w wants to send 'red' and 'blue' traffic, both headed to z, along different paths. Why can't traditional routing do this?",
+      "choices": [
+        "Destination-based forwarding picks the output port from the destination address alone, so all z-bound traffic at w is handled the same way",
+        "LS and DV algorithms can't compute paths longer than two hops",
+        "Under link-state routing, w has no forwarding table",
+        "ICMP would report the second path as unreachable"
+      ],
+      "answer": 0,
+      "explain": "With destination-based forwarding the destination address alone decides the output port. Generalized forwarding (matching on many header fields) together with SDN can implement any routing you want, including different paths per flow."
+    },
+    {
+      "type": "text",
+      "category": "SDN motivation",
+      "q": "With traditional routing, what is the only control 'knob' an operator has for traffic engineering?",
+      "answer": ["link weights", "link weight", "link costs", "link cost", "weights", "costs"],
+      "explain": "Operators can only adjust link weights and let the routing algorithm recompute least-cost paths, which is very indirect control."
+    },
+    {
+      "type": "multi",
+      "category": "SDN architecture",
+      "q": "Which are the four key characteristics of SDN?",
+      "choices": [
+        "Generalized, flow-based forwarding (e.g., OpenFlow)",
+        "Separation of the control plane and the data plane",
+        "Control-plane functions that run outside the data-plane switches",
+        "Programmable control applications (routing, access control, load balancing, ...)",
+        "Forwarding based only on longest-prefix match of the destination address",
+        "Every switch running its own copy of OSPF"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The four characteristics are flow-based generalized forwarding, control/data plane separation, control functions external to the switches (in the controller), and programmable control apps on top. Destination-only forwarding and per-switch routing protocols are features of the traditional approach."
+    },
+    {
+      "type": "mc",
+      "category": "SDN architecture",
+      "q": "What does the SDN controller's northbound API connect it to?",
+      "choices": [
+        "Network-control applications such as routing, access control and load balancing",
+        "The data-plane switches it controls",
+        "Neighboring autonomous systems",
+        "End hosts' operating systems"
+      ],
+      "answer": 0,
+      "explain": "Applications sit 'above' the controller and use the northbound API. Switches sit 'below' and are reached through the southbound API."
+    },
+    {
+      "type": "mc",
+      "category": "SDN architecture",
+      "q": "In the SDN architecture, the protocol a controller uses to talk to its switches (e.g., OpenFlow) belongs to which interface?",
+      "choices": [
+        "The southbound API, toward the controlled switches",
+        "The northbound API, toward network-control applications",
+        "The intent framework",
+        "The network-graph abstraction"
+      ],
+      "answer": 0,
+      "explain": "The controller talks to the switches below it through the southbound API, using OpenFlow or other protocols such as SNMP."
+    },
+    {
+      "type": "tf",
+      "category": "SDN architecture",
+      "q": "Because the SDN control plane is 'logically centralized', the controller is usually a single physical server.",
+      "answer": false,
+      "explain": "The controller is logically centralized, but in practice it is a distributed system so that it has the performance, scalability, fault tolerance and robustness it needs."
+    },
+    {
+      "type": "mc",
+      "category": "SDN architecture",
+      "q": "SDN network-control applications are described as 'unbundled'. What does that mean?",
+      "choices": [
+        "They can come from a third party, separate from the switch/routing vendor and from the controller's provider",
+        "They run directly on the data-plane switches without a controller",
+        "They have no dependence on the controller's API",
+        "Each one must be compiled into the controller's core"
+      ],
+      "answer": 0,
+      "explain": "Apps are the 'brains' of control. They are built on the controller's API and lower-level services, and anyone can supply them, not just the router or controller vendor."
+    },
+    {
+      "type": "mc",
+      "category": "SDN architecture",
+      "q": "Which best describes SDN data-plane switches?",
+      "choices": [
+        "Fast, simple, commodity switches that implement generalized forwarding in hardware, using flow tables computed and installed under the controller's supervision",
+        "Feature-rich routers that each run routing algorithms and compute their own tables",
+        "Software-only devices that send every packet to the controller",
+        "Devices that only run SNMP agents and never forward packets"
+      ],
+      "answer": 0,
+      "explain": "The switches stay simple and fast. The controller fills their flow tables through an API (e.g., OpenFlow), and that API defines what the controller can and cannot control."
+    },
+    {
+      "type": "mc",
+      "category": "SDN architecture",
+      "q": "An SDN controller's network-wide state management layer, which tracks links, switches, hosts and services, is essentially a:",
+      "choices": [
+        "Distributed database",
+        "RESTful web API",
+        "OpenFlow message encoder",
+        "Per-switch packet buffer"
+      ],
+      "answer": 0,
+      "explain": "This middle layer holds statistics, flow tables, link-state info, host info and switch info, and it is implemented as a robust distributed database."
+    },
+    {
+      "type": "mc",
+      "category": "SDN architecture",
+      "q": "Which layer of an SDN controller contains abstractions such as the network graph, a RESTful API and intents?",
+      "choices": [
+        "The interface/abstraction layer facing network-control apps",
+        "The network-wide state management layer",
+        "The communication layer facing the controlled devices",
+        "The switches' data plane"
+      ],
+      "answer": 0,
+      "explain": "From top to bottom, the controller has an interface layer for apps (network graph, RESTful API, intent), a network-wide state management layer, and a communication layer to the devices (OpenFlow, SNMP)."
+    },
+    {
+      "type": "multi",
+      "category": "SDN architecture",
+      "q": "Which protocols appear in the SDN controller's communication layer, which talks to and from the controlled devices?",
+      "choices": ["OpenFlow", "SNMP", "Intent", "RESTful API"],
+      "answer": [0, 1],
+      "explain": "OpenFlow and SNMP carry messages between the controller and the switches. Intent and the RESTful API are northbound abstractions for applications."
+    },
+    {
+      "type": "tf",
+      "category": "SDN architecture",
+      "q": "An API for table-based switch control, such as OpenFlow, defines what is controllable in the switch and what is not.",
+      "answer": true,
+      "explain": "The switch API sets the limits of what the controller can program, such as which header fields a rule can match and which actions it can apply."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "What transport does the OpenFlow protocol use for messages between controller and switch?",
+      "choices": [
+        "TCP, with optional encryption",
+        "UDP, because control messages must be fast",
+        "Raw IP datagrams with protocol number 1",
+        "ICMP echo request/reply"
+      ],
+      "answer": 0,
+      "explain": "OpenFlow messages are exchanged over TCP, so delivery is reliable and in order. Encryption is optional."
+    },
+    {
+      "type": "multi",
+      "category": "OpenFlow",
+      "q": "Which are the three classes of OpenFlow messages?",
+      "choices": [
+        "Controller-to-switch",
+        "Asynchronous (switch-to-controller)",
+        "Symmetric (miscellaneous)",
+        "Switch-to-switch flooding",
+        "Host-to-controller"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "OpenFlow runs between a controller and a switch. Its message classes are controller-to-switch, asynchronous (sent by the switch), and symmetric (miscellaneous)."
+    },
+    {
+      "type": "multi",
+      "category": "OpenFlow",
+      "q": "Which of these are key controller-to-switch OpenFlow messages?",
+      "choices": ["features", "configure", "modify-state", "packet-out", "packet-in", "flow-removed", "port status"],
+      "answer": [0, 1, 2, 3],
+      "explain": "The controller-to-switch messages are features (query switch features), configure (query/set configuration parameters), modify-state (add/delete/modify flow entries) and packet-out (send a packet out a given port). Packet-in, flow-removed and port status go from switch to controller."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "Which OpenFlow message does the controller send to add, delete or modify entries in a switch's flow tables?",
+      "choices": ["modify-state", "configure", "features", "flow-removed"],
+      "answer": 0,
+      "explain": "modify-state changes flow table entries. configure is for switch configuration parameters, features queries switch capabilities, and flow-removed is a switch-to-controller notice."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "A link attached to a switch fails. Which OpenFlow message does the switch use to tell the controller?",
+      "choices": ["port status", "packet-in", "flow-removed", "features"],
+      "answer": 0,
+      "explain": "Port status tells the controller about a change on a port. This is step 1 of the slides' link-failure example."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "A switch hands a packet (and control over it) to the controller, and the controller later has the switch send that packet out a specific port. Which messages are used, in order?",
+      "choices": [
+        "packet-in, then packet-out",
+        "packet-out, then packet-in",
+        "port status, then modify-state",
+        "features, then configure"
+      ],
+      "answer": 0,
+      "explain": "packet-in goes from switch to controller and carries the packet. packet-out goes from controller to switch and tells it to send a packet out a given port."
+    },
+    {
+      "type": "mc",
+      "category": "OpenFlow",
+      "q": "What does the OpenFlow 'flow-removed' message tell the controller?",
+      "choices": [
+        "A flow table entry was deleted at the switch",
+        "The controller should delete a flow entry",
+        "A port on the switch went down",
+        "The switch's feature list has changed"
+      ],
+      "answer": 0,
+      "explain": "flow-removed is an asynchronous (switch-to-controller) message reporting that a flow table entry has been deleted at the switch."
+    },
+    {
+      "type": "tf",
+      "category": "OpenFlow",
+      "q": "The OpenFlow protocol and the OpenFlow API are the same thing.",
+      "answer": false,
+      "explain": "The OpenFlow protocol carries messages between controller and switch. The OpenFlow API is what you use to specify generalized forwarding actions (match plus action)."
+    },
+    {
+      "type": "tf",
+      "category": "OpenFlow",
+      "q": "Network operators typically program SDN switches by writing and sending OpenFlow messages directly.",
+      "answer": false,
+      "explain": "Operators use higher-level abstractions at the controller, such as apps, intents and the network graph. The controller then generates the OpenFlow messages."
+    },
+    {
+      "type": "mc",
+      "category": "SDN control/data interaction",
+      "q": "Switch s1 sees a link fail. Put these events in order: (A) controller updates its link-status info; (B) s1 sends an OpenFlow port-status message; (C) controller installs new tables in affected switches via OpenFlow; (D) Dijkstra routing app is invoked and computes new routes; (E) the flow-table computation component computes the new flow tables.",
+      "choices": ["B, A, D, E, C", "A, B, D, C, E", "B, D, A, E, C", "D, B, A, E, C"],
+      "answer": 0,
+      "explain": "The switch notifies the controller with port status (B), and the controller updates its link-state info (A). The registered Dijkstra app is called and recomputes routes from the network graph and link-state info (D). The flow-table computation component turns those routes into flow tables (E), and the controller pushes them to the switches with OpenFlow (C)."
+    },
+    {
+      "type": "mc",
+      "category": "SDN control/data interaction",
+      "q": "In the link-failure example, how does the Dijkstra link-state routing app find out that link status has changed?",
+      "choices": [
+        "It registered earlier to be called whenever link status changes, so the controller invokes it",
+        "It polls every switch periodically with SNMP GetRequests",
+        "It floods link-state advertisements to all switches",
+        "The failed switch sends it an ICMP destination-unreachable message"
+      ],
+      "answer": 0,
+      "explain": "The app subscribes to link-status changes in the controller. When the state management layer updates link-state info, the controller calls the app."
+    },
+    {
+      "type": "mc",
+      "category": "SDN control/data interaction",
+      "q": "In the final step of the link-failure example, which protocol does the controller use to install the new flow tables in the switches that need updating?",
+      "choices": ["OpenFlow", "BGP", "ICMP", "OSPF"],
+      "answer": 0,
+      "explain": "OpenFlow modify-state messages carry the new flow table entries from the controller to the switches."
+    },
+    {
+      "type": "mc",
+      "category": "SDN in practice",
+      "q": "In the ONOS SDN controller, what does the 'intent' framework provide?",
+      "choices": [
+        "A high-level specification of a service: what is wanted rather than how to do it",
+        "A low-level list of OpenFlow match-action rules for each switch",
+        "A routing protocol for exchanging routes between ISPs",
+        "A replacement for the TCP connection between controller and switch"
+      ],
+      "answer": 0,
+      "explain": "An intent states the goal (for example, connectivity between two hosts), and ONOS works out how to implement it in the network."
+    },
+    {
+      "type": "multi",
+      "category": "SDN in practice",
+      "q": "Which statements about ONOS are correct?",
+      "choices": [
+        "Control applications are separate from the controller",
+        "It has an intent framework for high-level service specification",
+        "It puts considerable emphasis on a distributed core for reliability, replication and performance scaling",
+        "Its southbound side supports protocols such as OpenFlow, Netconf and OVSDB",
+        "It is a closed, proprietary controller",
+        "It routes between ISPs in place of BGP"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "ONOS was an early, influential open-source SDN controller. Its apps are separate from the controller, it has a REST API and intent framework northbound, a distributed core, and several southbound protocols."
+    },
+    {
+      "type": "multi",
+      "category": "SDN in practice",
+      "q": "Which of these are SDN controllers used in practice?",
+      "choices": ["ONOS", "ODL (OpenDaylight)", "OSPF", "Cisco IOS", "SNMP"],
+      "answer": [0, 1],
+      "explain": "ODL and ONOS are SDN controller implementations. OSPF is a traditional intra-AS routing protocol, Cisco IOS is a proprietary router OS, and SNMP is a management protocol."
+    },
+    {
+      "type": "mc",
+      "category": "SDN in practice",
+      "q": "Google's ORION SDN control plane serves the Jupiter datacenter network and the B4 wide-area network. What is its scope?",
+      "choices": [
+        "Intradomain services within Google's own network",
+        "Interdomain routing among all ISPs on the Internet",
+        "Only the link layer inside individual racks",
+        "Only network management via SNMP"
+      ],
+      "answer": 0,
+      "explain": "ORION provides intradomain services inside Google's network. Scaling SDN beyond a single AS is listed as an open challenge."
+    },
+    {
+      "type": "mc",
+      "category": "SDN in practice",
+      "q": "Where does ORION implement routing (intradomain, iBGP) and traffic engineering?",
+      "choices": [
+        "As applications running on top of the ORION core",
+        "Inside the OpenFlow Agent on each switch",
+        "As distributed OSPF processes on each switch",
+        "In the switches' hardware data plane"
+      ],
+      "answer": 0,
+      "explain": "Routing (the Routing Engine) and traffic engineering run as apps above ORION's northbound interface. The core contains the Network Information Base plus flow, topology and config managers, and it uses OpenFlow to talk to switch agents."
+    },
+    {
+      "type": "mc",
+      "category": "SDN in practice",
+      "q": "According to Google's Amin Vahdat, what main benefit did a logically centralized controller bring to network management?",
+      "choices": [
+        "It turned the job of configuring individual network elements into the job of configuring one logical network",
+        "It removed the need to configure anything at all",
+        "It let every node discover its role by exchanging messages with neighbors at boot",
+        "It replaced OpenFlow with SNMP"
+      ],
+      "answer": 0,
+      "explain": "Every element's location and role is known ahead of time, so the controller can configure them all and push new configurations. Managing one logical network greatly simplifies the problem, both technically and in the cognitive load on network managers."
+    },
+    {
+      "type": "multi",
+      "category": "SDN in practice",
+      "q": "Which of these are listed as SDN challenges?",
+      "choices": [
+        "Hardening the control plane into a dependable, reliable, performance-scalable, secure distributed system",
+        "Building networks that meet mission-specific requirements such as real-time, ultra-reliable or ultra-secure operation",
+        "Scaling to the Internet, beyond a single AS",
+        "Commodity switches are too slow for any hardware forwarding",
+        "SDN has no role in cellular networks"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The challenges are control-plane hardening (robustness, with dependability and security 'baked in'), mission-specific requirements, and Internet scaling. SDN is described as critical in 5G cellular networks, and SDN data-plane switches do forward in hardware."
+    },
+    {
+      "type": "mc",
+      "category": "SDN in practice",
+      "q": "What would 'SDN-computed congestion control' look like?",
+      "choices": [
+        "The controller sets sender rates based on congestion levels that routers report to it",
+        "Each TCP sender infers congestion only from its own lost segments",
+        "Routers send ICMP source quench messages to slow senders",
+        "Switches drop all packets once the controller fails"
+      ],
+      "answer": 0,
+      "explain": "Like SDN-computed forwarding tables, it is an example of computing something in a logically centralized place rather than through a distributed protocol."
+    },
+    {
+      "type": "mc",
+      "category": "ICMP",
+      "q": "How are ICMP messages carried?",
+      "choices": [
+        "Inside IP datagrams, so ICMP sits just 'above' IP in the network layer",
+        "Inside TCP segments",
+        "Inside UDP segments on a well-known port",
+        "Directly in link-layer frames, with no IP header"
+      ],
+      "answer": 0,
+      "explain": "ICMP is a network-layer protocol, but its messages travel as the payload of IP datagrams."
+    },
+    {
+      "type": "mc",
+      "category": "ICMP",
+      "q": "What does an ICMP error message contain?",
+      "choices": [
+        "A type, a code, and the first 8 bytes of the IP datagram that caused the error",
+        "Only a type field",
+        "The entire datagram that caused the error, plus a checksum of the route",
+        "The forwarding table of the router that generated it"
+      ],
+      "answer": 0,
+      "explain": "Type and code identify the error. Including the start of the offending datagram lets the original sender work out which packet caused it."
+    },
+    {
+      "type": "multi",
+      "category": "ICMP",
+      "q": "Which of these do hosts and routers use ICMP for?",
+      "choices": [
+        "Reporting errors such as unreachable host, network, port or protocol",
+        "Echo request/reply (used by ping)",
+        "Reliably delivering application data",
+        "Exchanging BGP routes between ASes"
+      ],
+      "answer": [0, 1],
+      "explain": "ICMP carries network-level information: error reports and echo request/reply. It does not provide reliable data delivery and it does not carry BGP."
+    },
+    {
+      "type": "mc",
+      "category": "ICMP",
+      "q": "ping sends an ICMP message of type ___ and expects a reply of type ___.",
+      "choices": ["8 (echo request); 0 (echo reply)", "0 (echo request); 8 (echo reply)", "11; 3", "3; 11"],
+      "answer": 0,
+      "explain": "Echo request is type 8, code 0. Echo reply is type 0, code 0."
+    },
+    {
+      "type": "num",
+      "category": "ICMP",
+      "q": "What is the ICMP type number of a 'TTL expired' message?",
+      "answer": 11,
+      "explain": "Type 11, code 0 is TTL expired. Routers send it when they drop a datagram whose TTL has reached zero, and traceroute relies on it."
+    },
+    {
+      "type": "mc",
+      "category": "ICMP",
+      "q": "What does ICMP type 3, code 3 mean?",
+      "choices": ["Destination port unreachable", "Destination host unreachable", "Destination network unreachable", "TTL expired"],
+      "answer": 0,
+      "explain": "Type 3 is destination unreachable, and the code says what was unreachable: 0 network, 1 host, 2 protocol, 3 port, 6 network unknown, 7 host unknown."
+    },
+    {
+      "type": "num",
+      "category": "ICMP",
+      "q": "ICMP type 3 is 'destination unreachable'. Which code means 'destination host unreachable'?",
+      "answer": 1,
+      "explain": "Code 0 is network unreachable, 1 host unreachable, 2 protocol unreachable and 3 port unreachable."
+    },
+    {
+      "type": "mc",
+      "category": "ICMP",
+      "q": "ICMP type 4, code 0 is 'source quench'. What was it for, and what is its status?",
+      "choices": [
+        "Congestion control (telling a source to slow down); it is not used",
+        "Echo reply for ping; widely used",
+        "Router discovery; required on all hosts",
+        "Reporting a bad IP header; used by traceroute"
+      ],
+      "answer": 0,
+      "explain": "Source quench was meant for network-assisted congestion control, but it is not used in practice."
+    },
+    {
+      "type": "mc",
+      "category": "Traceroute",
+      "q": "What does the traceroute source send toward the destination?",
+      "choices": [
+        "Sets of UDP segments; the 1st set has TTL=1, the 2nd TTL=2, and so on",
+        "ICMP echo requests, all with TTL=64",
+        "A single TCP SYN with TTL=255",
+        "UDP segments whose TTL starts high and decreases each round"
+      ],
+      "answer": 0,
+      "explain": "Each set (3 probes on the slides) has a TTL one higher than the last, so the n-th set expires at the n-th router."
+    },
+    {
+      "type": "mc",
+      "category": "Traceroute",
+      "q": "When a traceroute probe from the n-th set reaches the n-th router, what does that router do?",
+      "choices": [
+        "Discards the datagram and sends the source an ICMP TTL-expired message (type 11, code 0)",
+        "Forwards it with TTL reset to its original value",
+        "Sends the source an ICMP port-unreachable message (type 3, code 3)",
+        "Silently drops it, so the source has to time out"
+      ],
+      "answer": 0,
+      "explain": "The TTL has run out, so the router drops the datagram and returns type 11, code 0. That ICMP message may include the router's name and IP address, and the source records the RTT when it arrives."
+    },
+    {
+      "type": "mc",
+      "category": "Traceroute",
+      "q": "How does traceroute know when to stop?",
+      "choices": [
+        "A probe finally reaches the destination host, which returns an ICMP 'port unreachable' (type 3, code 3)",
+        "A router returns an ICMP TTL expired (type 11, code 0)",
+        "The destination returns an ICMP echo reply (type 0)",
+        "The TTL reaches 255"
+      ],
+      "answer": 0,
+      "explain": "Probes that reach the destination host are not handed to any application, so the host returns port unreachable (type 3, code 3) instead of TTL expired. That tells the source it has reached the end of the path."
+    },
+    {
+      "type": "num",
+      "category": "Traceroute",
+      "q": "The path from a source to a destination host crosses 5 routers. Traceroute sends 3 probes per TTL value and stops after the set that reaches the destination. With no losses, how many probes does it send in total?",
+      "answer": 18,
+      "explain": "Sets with TTL 1 to 5 expire at routers 1 to 5. The set with TTL 6 reaches the destination, which returns port unreachable. That is 6 sets of 3, or 18 probes."
+    },
+    {
+      "type": "tf",
+      "category": "Traceroute",
+      "q": "In traceroute, the source records an RTT for each probe when the corresponding ICMP message arrives back, and a router's ICMP message may include the router's name and IP address.",
+      "answer": true,
+      "explain": "That is how traceroute prints, for each hop, the router's identity and three RTT measurements."
+    },
+    {
+      "type": "mc",
+      "category": "Network management",
+      "q": "In network management terms, what is a router whose configurable hardware and software is managed remotely, and which runs an agent holding its data?",
+      "choices": ["A managed device", "A managing server", "A trap", "A MIB module"],
+      "answer": 0,
+      "explain": "Managed devices run agents that hold the device's data (configuration data, operational data, statistics). The managing server or controller talks to those agents."
+    },
+    {
+      "type": "mc",
+      "category": "Network management",
+      "q": "What is a network management protocol used for?",
+      "choices": [
+        "The managing server uses it to query, configure and manage devices, and devices use it to tell the managing server about data and events",
+        "Only to forward user data between managed devices",
+        "Only for routers to exchange routing tables",
+        "Only to let devices reboot themselves"
+      ],
+      "answer": 0,
+      "explain": "It works in both directions: commands and queries go from manager to device, and reports and events go from device to manager."
+    },
+    {
+      "type": "mc",
+      "category": "Network management",
+      "q": "Which describes the managing server in network management?",
+      "choices": [
+        "An application, usually with human network managers in the loop",
+        "A hardware switch that forwards packets for the managed devices",
+        "The agent process running on each router",
+        "A database stored on every managed device"
+      ],
+      "answer": 0,
+      "explain": "The managing server (or controller) is software that human operators use, and it keeps its own data about the network."
+    },
+    {
+      "type": "mc",
+      "category": "Network management",
+      "q": "Which network-management approach is more abstract, network-wide and holistic, with an emphasis on configuring many devices together?",
+      "choices": ["NETCONF/YANG", "CLI over ssh", "SNMP/MIB", "ICMP"],
+      "answer": 0,
+      "explain": "With CLI, the operator types or scripts commands to individual devices. With SNMP/MIB, the operator queries and sets device data. NETCONF/YANG targets network-wide configuration across multiple devices."
+    },
+    {
+      "type": "mc",
+      "category": "Network management",
+      "q": "Which describes the CLI (command line interface) approach to network management?",
+      "choices": [
+        "The operator types or scripts commands directly to individual devices, e.g., over ssh",
+        "The operator queries and sets MIB variables with SNMP",
+        "The operator sends XML-encoded RPCs for atomic multi-device commits",
+        "Devices discover their configuration automatically from neighbors"
+      ],
+      "answer": 0,
+      "explain": "CLI management works one device at a time, which is why it is error-prone at scale."
+    },
+    {
+      "type": "mc",
+      "category": "SNMP and MIB",
+      "q": "In SNMP's trap mode, what happens?",
+      "choices": [
+        "The agent on a managed device sends an unsolicited trap message to the managing server to report an exceptional event",
+        "The managing server sends a request and the agent sends back a response",
+        "The managing server locks the device's configuration datastore",
+        "The agent asks the managing server for a new MIB module"
+      ],
+      "answer": 0,
+      "explain": "SNMP conveys MIB information and commands in two ways: request/response (the manager asks and the agent answers) and trap mode (the agent reports an event on its own)."
+    },
+    {
+      "type": "multi",
+      "category": "SNMP and MIB",
+      "q": "Which SNMP message types are sent from agent to manager?",
+      "choices": ["Response", "Trap", "GetRequest", "SetRequest", "GetBulkRequest"],
+      "answer": [0, 1],
+      "explain": "Response carries values in reply to a request, and Trap reports an exceptional event. The Get* requests and SetRequest go from manager to agent."
+    },
+    {
+      "type": "mc",
+      "category": "SNMP and MIB",
+      "q": "Which SNMP message lets a manager fetch a whole block of data in a single request?",
+      "choices": ["GetBulkRequest", "GetNextRequest", "GetRequest", "SetRequest"],
+      "answer": 0,
+      "explain": "GetRequest gets one data instance, GetNextRequest gets the next data in a list, GetBulkRequest gets a block of data, and SetRequest sets a MIB value."
+    },
+    {
+      "type": "num",
+      "category": "SNMP and MIB",
+      "q": "In the SNMP PDU format, Get/Set-type messages use PDU types 0 to 3. Which PDU type number is a Trap?",
+      "answer": 4,
+      "explain": "The Trap PDU (type 4) has a different header: Enterprise, Agent Addr, Trap Type (0-7), Specific code and Time stamp, followed by name/value trap info."
+    },
+    {
+      "type": "mc",
+      "category": "SNMP and MIB",
+      "q": "In which SNMP PDUs do the Request ID, Error Status (0-5) and Error Index fields appear?",
+      "choices": [
+        "In the get/set header of PDU types 0-3",
+        "In the trap header of PDU type 4",
+        "In the IP header that carries the SNMP message",
+        "In every MIB variable's value field"
+      ],
+      "answer": 0,
+      "explain": "For PDU types 0-3, the get/set header is Request ID, Error Status and Error Index, followed by name/value pairs for the variables to get or set."
+    },
+    {
+      "type": "mc",
+      "category": "SNMP and MIB",
+      "q": "What is SNMP's Management Information Base (MIB)?",
+      "choices": [
+        "A managed device's operational (and some configuration) data, organized into MIB modules",
+        "The managing server's log of human operator actions",
+        "A routing table shared among all routers in an AS",
+        "The XML schema used by NETCONF"
+      ],
+      "answer": 0,
+      "explain": "The device's data is grouped into MIB modules. About 400 are defined in RFCs, and there are many more vendor-specific ones."
+    },
+    {
+      "type": "text",
+      "category": "SNMP and MIB",
+      "q": "What is the name of the data definition language used to define SNMP MIB variables?",
+      "answer": ["SMI", "Structure of Management Information", "structure of management information"],
+      "explain": "SMI (Structure of Management Information) defines the data types and structure of MIB objects. YANG plays the corresponding role for NETCONF."
+    },
+    {
+      "type": "mc",
+      "category": "SNMP and MIB",
+      "q": "A traceroute probe (a UDP segment) reaches the destination host, and the host returns ICMP port unreachable. Which UDP MIB counter on the destination is incremented?",
+      "choices": ["UDPNoPorts", "UDPInDatagrams", "UDPOutDatagrams", "udpTable"],
+      "answer": 0,
+      "explain": "UDPNoPorts (1.3.6.1.2.1.7.2) counts undeliverable datagrams that had no application at the destination port. UDPInDatagrams counts datagrams that were delivered, and udpTable is a SEQUENCE with one entry per port in use."
+    },
+    {
+      "type": "mc",
+      "category": "SNMP and MIB",
+      "q": "What kind of MIB object is udpTable in the UDP MIB?",
+      "choices": [
+        "A SEQUENCE with one entry for each UDP port currently in use",
+        "A 32-bit counter of datagrams sent",
+        "A 32-bit counter of datagrams with errors",
+        "A trap sent whenever a port opens"
+      ],
+      "answer": 0,
+      "explain": "The other UDP MIB variables shown (UDPInDatagrams, UDPNoPorts, UDPInErrors, UDPOutDatagrams) are 32-bit counters. udpTable is a SEQUENCE."
+    },
+    {
+      "type": "mc",
+      "category": "NETCONF and YANG",
+      "q": "What is NETCONF's main goal?",
+      "choices": [
+        "To actively manage and configure devices network-wide",
+        "To report IP-level errors such as unreachable ports",
+        "To compute least-cost paths between routers",
+        "To send unsolicited traps from agents"
+      ],
+      "answer": 0,
+      "explain": "NETCONF runs between a managing server and managed devices. Its focus is configuration: retrieving, setting, modifying and activating configurations, across many devices at once."
+    },
+    {
+      "type": "multi",
+      "category": "NETCONF and YANG",
+      "q": "Which of these can NETCONF do?",
+      "choices": [
+        "Retrieve, set, modify and activate configurations",
+        "Atomic-commit actions over multiple devices",
+        "Query operational data and statistics",
+        "Subscribe to notifications from devices",
+        "Send binary-encoded messages over unreliable UDP",
+        "Flood configuration to every router hop by hop"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "NETCONF uses an RPC paradigm with XML-encoded messages over a secure, reliable transport such as TLS. It does not use binary encoding over UDP."
+    },
+    {
+      "type": "mc",
+      "category": "NETCONF and YANG",
+      "q": "How are NETCONF messages structured and carried?",
+      "choices": [
+        "As remote procedure calls encoded in XML, over a secure, reliable transport (e.g., TLS)",
+        "As SNMP PDUs over UDP",
+        "As ICMP messages inside IP datagrams",
+        "As OpenFlow modify-state messages"
+      ],
+      "answer": 0,
+      "explain": "NETCONF follows an RPC paradigm: the manager sends <rpc> and the device answers with <rpc-reply>, all in XML over something like TLS."
+    },
+    {
+      "type": "mc",
+      "category": "NETCONF and YANG",
+      "q": "How does a NETCONF session begin and end?",
+      "choices": [
+        "It starts with a <hello> capabilities exchange and ends with <close-session>",
+        "It starts with <lock> and ends with <unlock>",
+        "It starts with a GetRequest and ends with a Trap",
+        "It starts with <get-config> and ends with <edit-config>"
+      ],
+      "answer": 0,
+      "explain": "After <hello>, the manager sends <rpc> messages, the device answers with <rpc-reply>, and the device may send <notification>s. <close-session> ends the session."
+    },
+    {
+      "type": "mc",
+      "category": "NETCONF and YANG",
+      "q": "What is the difference between NETCONF's <get-config> and <get>?",
+      "choices": [
+        "<get-config> retrieves all or part of a given configuration; <get> retrieves both configuration state and operational state data",
+        "<get-config> retrieves operational statistics only; <get> retrieves configuration only",
+        "They are synonyms",
+        "<get> changes the running configuration; <get-config> only reads it"
+      ],
+      "answer": 0,
+      "explain": "<get-config> names one of the device's (possibly several) configurations and returns configuration only. <get> also returns operational state."
+    },
+    {
+      "type": "mc",
+      "category": "NETCONF and YANG",
+      "q": "What does the NETCONF <lock> operation do?",
+      "choices": [
+        "Locks a configuration datastore on the managed device, blocking NETCONF, SNMP or CLI commands from other sources",
+        "Encrypts the NETCONF session",
+        "Prevents the device from forwarding packets",
+        "Freezes the device's MIB counters"
+      ],
+      "answer": 0,
+      "explain": "Locking keeps other managers from making conflicting changes while a configuration is being edited. <unlock> releases the lock."
+    },
+    {
+      "type": "mc",
+      "category": "NETCONF and YANG",
+      "q": "After a NETCONF <edit-config>, what does the managed device's <rpc-reply> contain?",
+      "choices": [
+        "<ok>, or an <rpc-error> with rollback",
+        "A Trap PDU",
+        "The device's full MIB",
+        "Nothing, because <edit-config> gets no reply"
+      ],
+      "answer": 0,
+      "explain": "If the change fails, the error comes with a rollback, so the device is not left half-configured."
+    },
+    {
+      "type": "mc",
+      "category": "NETCONF and YANG",
+      "q": "A NETCONF <rpc message-id='101'> contains <edit-config> with <target><running/></target> and a <config> that sets <interface><name>Ethernet0/0</name><mtu>1500</mtu></interface>. What does it do?",
+      "choices": [
+        "Changes the MTU of interface Ethernet0/0 to 1500 in the running configuration",
+        "Reads the current MTU of Ethernet0/0",
+        "Subscribes to notifications about Ethernet0/0",
+        "Locks the running configuration for 1500 seconds"
+      ],
+      "answer": 0,
+      "explain": "<edit-config> changes a configuration, <running/> targets the running configuration, and the <config> body sets mtu=1500 on Ethernet0/0. The message-id matches the reply to this request."
+    },
+    {
+      "type": "mc",
+      "category": "NETCONF and YANG",
+      "q": "What is YANG?",
+      "choices": [
+        "A data modeling language that specifies the structure, syntax and semantics of NETCONF management data",
+        "The transport protocol that carries NETCONF messages",
+        "An SNMP message type for bulk retrieval",
+        "An open-source SDN controller"
+      ],
+      "answer": 0,
+      "explain": "YANG has built-in data types, much like SMI. XML documents describing a device and its capabilities can be generated from a YANG description, and those documents go inside NETCONF RPCs."
+    },
+    {
+      "type": "tf",
+      "category": "NETCONF and YANG",
+      "q": "YANG can express constraints among data that a valid NETCONF configuration must satisfy, which helps keep configurations correct and consistent.",
+      "answer": true,
+      "explain": "A configuration that breaks the YANG model's constraints can be rejected before it is applied."
+    },
+    {
+      "type": "mc",
+      "category": "NETCONF and YANG",
+      "q": "YANG is to NETCONF roughly as ___ is to SNMP.",
+      "choices": ["SMI", "Trap", "OpenFlow", "ICMP"],
+      "answer": 0,
+      "explain": "Both are data definition/modeling languages: SMI defines MIB objects for SNMP, and YANG models NETCONF data."
+    },
+    {
+      "type": "mc",
+      "category": "NETCONF and YANG",
+      "q": "An operator must change a setting on 20 routers so that either all of them change or none do. Which approach directly supports this?",
+      "choices": [
+        "NETCONF, which supports atomic-commit actions over multiple devices",
+        "SNMP SetRequests sent one at a time",
+        "CLI commands typed into each router over ssh",
+        "ICMP router discovery"
+      ],
+      "answer": 0,
+      "explain": "Atomic multi-device commits are one of NETCONF's main features. SNMP sets and CLI commands act on one device at a time, so a partial failure can leave the network inconsistent."
+    },
+    {
+      "type": "num",
+      "category": "Distance vector",
+      "q": "Three nodes have link costs c(x,y)=2, c(y,z)=1 and c(x,z)=7. After x receives y's and z's initial distance vectors, x computes Dx(z) = min{c(x,y)+Dy(z), c(x,z)+Dz(z)}. What is Dx(z)?",
+      "answer": 3,
+      "explain": "min{2+1, 7+0} = 3. Going through y is cheaper than the direct link of cost 7."
+    },
+    {
+      "type": "num",
+      "category": "Distance vector",
+      "q": "Same network: c(x,y)=2, c(y,z)=1, c(x,z)=7. After z receives x's and y's initial vectors (Dx(x)=0, Dy(x)=2), what is z's new estimate Dz(x)?",
+      "answer": 3,
+      "explain": "Dz(x) = min{c(z,x)+Dx(x), c(z,y)+Dy(x)} = min{7+0, 1+2} = 3."
+    },
+    {
+      "type": "tf",
+      "category": "Distance vector",
+      "q": "In the same network (c(x,y)=2, c(y,z)=1, c(x,z)=7), before x hears from any neighbor, its distance-vector estimate of the cost to z is 7, and its estimates of the cost from y and from z to any node are infinity.",
+      "answer": true,
+      "explain": "At first x knows only its own direct link costs (0 to itself, 2 to y, 7 to z), so it sets every other entry to infinity. Once the neighbors' vectors arrive, Dx(z) drops to 3."
+    }
+  ]
+}

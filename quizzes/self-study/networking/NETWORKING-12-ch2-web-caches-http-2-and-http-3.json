@@ -1,0 +1,489 @@
+{
+ "title": "Web Caches, Conditional GET, HTTP/2 and HTTP/3",
+ "course": "NETWORKING",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "Web caches",
+   "q": "What is the goal of a Web cache?",
+   "choices": [
+    "Encrypt HTTP traffic between the client and the origin server",
+    "Satisfy client requests without involving the origin server",
+    "Store cookies so the server can remember users",
+    "Translate host names into IP addresses"
+   ],
+   "answer": 1,
+   "explain": "A Web cache tries to answer client requests itself, so the origin server doesn't have to be involved."
+  },
+  {
+   "type": "mc",
+   "category": "Web caches",
+   "q": "A browser is configured to use a local Web cache and requests an object the cache does not have. What happens?",
+   "choices": [
+    "The cache returns an error and the browser retries against the origin server directly",
+    "The cache redirects the browser to the origin server, which sends the object straight to the browser",
+    "The cache requests the object from the origin server, stores a copy, then returns it to the browser",
+    "The cache waits until another client requests the object before fetching it"
+   ],
+   "answer": 2,
+   "explain": "On a miss, the cache gets the object from the origin server, keeps a copy, and then returns it to the client. Later requests for the same object can then be served from the cache."
+  },
+  {
+   "type": "tf",
+   "category": "Web caches",
+   "q": "A Web cache acts as a server to the requesting client and as a client to the origin server.",
+   "answer": true,
+   "explain": "The cache plays both roles. It is the server for the original requesting client and a client of the origin server."
+  },
+  {
+   "type": "text",
+   "category": "Web caches",
+   "q": "Web caches are also known as what kind of server? (one word)",
+   "answer": ["proxy", "proxy server", "proxy servers", "Proxy"],
+   "explain": "Web caches are also called proxy servers."
+  },
+  {
+   "type": "mc",
+   "category": "Web caches",
+   "q": "How does an origin server tell a cache how an object may be cached?",
+   "choices": [
+    "With a Cache-Control header in the HTTP response, e.g. Cache-Control: max-age=<seconds> or Cache-Control: no-cache",
+    "With an If-modified-since header in the HTTP response",
+    "By always replying 304 Not Modified to the cache",
+    "It can't; the cache alone decides how long to keep objects"
+   ],
+   "answer": 0,
+   "explain": "The origin server puts the object's allowed caching in the response header. For example, max-age=<seconds> limits how long the object may be cached, and no-cache tells the cache not to cache it."
+  },
+  {
+   "type": "multi",
+   "category": "Web caches",
+   "q": "Which of these are reasons for Web caching?",
+   "choices": [
+    "Reduce response time for client requests, because the cache is closer to the client",
+    "Reduce traffic on an institution's access link",
+    "Let \"poor\" content providers deliver content more effectively, because the Internet is dense with caches",
+    "Increase the load on origin servers to keep them fully used",
+    "Remove the need for HTTP request messages"
+   ],
+   "answer": [0, 1, 2],
+   "explain": "Caching cuts response time because the cache is close to the client. It also cuts access-link traffic, and because caches are spread all over the Internet, it helps small content providers deliver their content. It lowers the load on origin servers, and clients still send HTTP requests (to the cache)."
+  },
+  {
+   "type": "tf",
+   "category": "Web caches",
+   "q": "Two clients in the same institution request the same object through the cache, one after the other. The first request was a cache miss. The origin server must still be contacted again for the second request.",
+   "answer": false,
+   "explain": "After the miss, the cache stored the object. The second request is served straight from the cache, and the origin server isn't involved."
+  },
+  {
+   "type": "num",
+   "category": "Caching performance",
+   "q": "Scenario: an institution has a 1.54 Mbps access link, the RTT from the institutional router to origin servers is 2 s, web objects are 100K bits, and browsers make 15 requests/sec to origin servers. What is the average data rate (in Mbps) from origin servers to the browsers?",
+   "answer": 1.5,
+   "tolerance": 0.01,
+   "explain": "15 requests/sec x 100,000 bits = 1,500,000 bits/sec = 1.50 Mbps."
+  },
+  {
+   "type": "num",
+   "category": "Caching performance",
+   "q": "Same scenario: 1.50 Mbps of average traffic to browsers over a 1.54 Mbps access link, with no cache. What is the access link utilization? (decimal, e.g. 0.5)",
+   "answer": 0.97,
+   "tolerance": 0.01,
+   "explain": "Utilization = 1.50 / 1.54 = about 0.97."
+  },
+  {
+   "type": "num",
+   "category": "Caching performance",
+   "q": "Same scenario: the institution's LAN runs at 1 Gbps and carries the 1.50 Mbps of web traffic. What is the LAN utilization? (decimal)",
+   "answer": 0.0015,
+   "tolerance": 0.0002,
+   "explain": "1.5 Mbps / 1000 Mbps = 0.0015. LAN delays are therefore on the order of microseconds."
+  },
+  {
+   "type": "mc",
+   "category": "Caching performance",
+   "q": "In the no-cache scenario, end-end delay = Internet delay + access link delay + LAN delay comes out to roughly \"2 sec + minutes + usecs\". Why is the access link term on the order of minutes?",
+   "choices": [
+    "The LAN is the bottleneck at 0.0015 utilization",
+    "The access link is at 0.97 utilization, and queueing delay grows very large as utilization approaches 1",
+    "Origin servers take minutes to process each request",
+    "Propagation over the access link takes several minutes"
+   ],
+   "answer": 1,
+   "explain": "Average queueing delay rises steeply as utilization approaches 1. At 0.97, packets waiting to cross the access link can sit in the queue for minutes."
+  },
+  {
+   "type": "num",
+   "category": "Caching performance",
+   "q": "Option 1: the institution upgrades the access link from 1.54 Mbps to 154 Mbps. Browser traffic is still 1.50 Mbps. What is the new access link utilization? (decimal)",
+   "answer": 0.0097,
+   "tolerance": 0.0005,
+   "explain": "1.50 / 154 = about 0.0097. Access link delay drops from minutes to milliseconds, but a faster link is expensive."
+  },
+  {
+   "type": "num",
+   "category": "Caching performance",
+   "q": "Option 2: keep the 1.54 Mbps access link and install a local Web cache with a hit rate of 0.4. Browser demand is 1.50 Mbps. What is the access link utilization now? (decimal)",
+   "answer": 0.58,
+   "tolerance": 0.01,
+   "explain": "Only the 60% of requests that miss cross the access link: 0.6 x 1.50 = 0.9 Mbps, and 0.9 / 1.54 = about 0.58. Queueing delay at the access link becomes low (milliseconds)."
+  },
+  {
+   "type": "num",
+   "category": "Caching performance",
+   "q": "With the cache (hit rate 0.4), requests that go to origin servers take about 2.01 s and cache hits take only milliseconds. What is the average end-end delay in seconds?",
+   "answer": 1.2,
+   "tolerance": 0.03,
+   "explain": "0.6 x 2.01 + 0.4 x (~msecs) = about 1.2 s."
+  },
+  {
+   "type": "num",
+   "category": "Caching performance",
+   "q": "Suppose the cache hit rate were 0.5 instead of 0.4. Misses still take about 2.01 s and hits take only milliseconds. What is the average end-end delay in seconds?",
+   "answer": 1.0,
+   "tolerance": 0.03,
+   "explain": "0.5 x 2.01 + 0.5 x (~0) = about 1.0 s. A higher hit rate puts more weight on the near-zero cache delay."
+  },
+  {
+   "type": "num",
+   "category": "Caching performance",
+   "q": "Browser demand is 1.50 Mbps over a 1.54 Mbps access link. What is the minimum cache hit rate that brings access link utilization down to 0.5? (decimal, two places)",
+   "answer": 0.49,
+   "tolerance": 0.01,
+   "explain": "Need (1 - h) x 1.50 / 1.54 = 0.5, so (1 - h) x 1.50 = 0.77, giving 1 - h = 0.513 and h = about 0.49."
+  },
+  {
+   "type": "mc",
+   "category": "Caching performance",
+   "q": "In the cache calculation, why are requests that go to origin servers estimated at about 2.01 s instead of 2 s?",
+   "choices": [
+    "The extra 0.01 s is the time to search the cache before going to the origin server",
+    "It is the 2 s Internet RTT plus a small (~10 ms) queueing delay on the now lightly loaded access link",
+    "The LAN adds 10 ms because its utilization rose to 0.97",
+    "The origin server adds 10 ms to check the If-modified-since date"
+   ],
+   "answer": 1,
+   "explain": "With the access link at only 0.58 utilization, its queueing delay drops to milliseconds. That gives 2 s of Internet delay plus about 10 ms at the access link."
+  },
+  {
+   "type": "mc",
+   "category": "Caching performance",
+   "q": "Compare Option 1 (upgrade to a 154 Mbps access link) with Option 2 (install a cache with hit rate 0.4 on the 1.54 Mbps link). Which statement is true?",
+   "choices": [
+    "The faster link gives a lower average delay and is also cheaper",
+    "The cache gives a lower average end-end delay (~1.2 s vs ~2 s) and is cheaper",
+    "Both give the same average delay, but the cache costs more",
+    "The cache leaves access link utilization at 0.97, so delays stay in the minutes"
+   ],
+   "answer": 1,
+   "explain": "With the faster link, every request still pays the ~2 s Internet delay. With the cache, 40% of requests skip it, so the average drops to ~1.2 s, and a cache costs less than a faster access link."
+  },
+  {
+   "type": "mc",
+   "category": "Conditional GET",
+   "q": "What is the goal of the conditional GET?",
+   "choices": [
+    "Don't send the object if the browser already has an up-to-date cached version",
+    "Make the server push objects before the client asks for them",
+    "Divide large objects into frames so small ones aren't blocked",
+    "Encrypt the object only if it has changed"
+   ],
+   "answer": 0,
+   "explain": "If the browser's cached copy is still current, the server doesn't resend the object. That avoids the object's transmission delay and saves the network resources it would have used."
+  },
+  {
+   "type": "text",
+   "category": "Conditional GET",
+   "q": "Which HTTP request header does a client use in a conditional GET to give the date of its cached copy?",
+   "answer": ["If-modified-since", "If-Modified-Since", "if-modified-since", "If-modified-since:", "If-Modified-Since:", "If modified since"],
+   "explain": "The client sends If-modified-since: <date>, where <date> is the date of its browser-cached copy."
+  },
+  {
+   "type": "mc",
+   "category": "Conditional GET",
+   "q": "In a conditional GET, what date does the client put in the If-modified-since header?",
+   "choices": [
+    "The current date and time",
+    "The date of its browser-cached copy of the object",
+    "The date when it wants the object to expire",
+    "The date when the server was last restarted"
+   ],
+   "answer": 1,
+   "explain": "The client sends the date of its cached copy. The server compares that date with the object's last modification to decide whether to resend the object."
+  },
+  {
+   "type": "num",
+   "category": "Conditional GET",
+   "q": "A server receives a conditional GET and the object has not been modified since the given date. Which HTTP status code does it return?",
+   "answer": 304,
+   "tolerance": 0,
+   "explain": "The server replies HTTP/1.0 304 Not Modified and sends no object."
+  },
+  {
+   "type": "mc",
+   "category": "Conditional GET",
+   "q": "A server receives a conditional GET, and the object was modified after the If-modified-since date. How does it respond?",
+   "choices": [
+    "304 Not Modified, with no body",
+    "200 OK, with the new version of the object in the body",
+    "404 Not Found, so the client deletes its cached copy",
+    "It ignores the request until the client sends a plain GET"
+   ],
+   "answer": 1,
+   "explain": "If the object changed, the server sends a normal 200 OK response containing the current object."
+  },
+  {
+   "type": "tf",
+   "category": "Conditional GET",
+   "q": "A 304 Not Modified response contains a fresh copy of the requested object.",
+   "answer": false,
+   "explain": "A 304 response contains no object. The browser uses its cached copy, which is the point of the conditional GET."
+  },
+  {
+   "type": "multi",
+   "category": "Conditional GET",
+   "q": "When a server answers a conditional GET with 304 Not Modified, what is saved compared with resending the object?",
+   "choices": [
+    "The object's transmission delay",
+    "The network resources that would have carried the object",
+    "The HTTP request message",
+    "The round trip between client and server"
+   ],
+   "answer": [0, 1],
+   "explain": "The object isn't transmitted, so its transmission delay and the network resources it would use are both saved. The client still sends a request and gets a (small) response, so there is still a round trip."
+  },
+  {
+   "type": "mc",
+   "category": "HTTP/2",
+   "q": "What is the key goal of HTTP/2?",
+   "choices": [
+    "Replace TCP with UDP",
+    "Decreased delay in multi-object HTTP requests",
+    "Add new HTTP methods and status codes",
+    "Make HTTP stateful by default"
+   ],
+   "answer": 1,
+   "explain": "HTTP/2 aims to cut the delay of fetching pages made of many objects. It still runs over TCP, and it leaves methods and status codes unchanged."
+  },
+  {
+   "type": "mc",
+   "category": "HTTP/2",
+   "q": "HTTP/1.1 allows multiple pipelined GETs over a single TCP connection. In what order does the server send the responses?",
+   "choices": [
+    "Smallest object first",
+    "In the order of client-specified priorities",
+    "In order, first-come-first-served (FCFS)",
+    "In random order"
+   ],
+   "answer": 2,
+   "explain": "An HTTP/1.1 server answers pipelined GETs in order (FCFS), so a small object can get stuck waiting behind a large one."
+  },
+  {
+   "type": "text",
+   "category": "HTTP/2",
+   "q": "With FCFS responses, a small object may have to wait for a large object ahead of it to finish transmitting. What is this problem called?",
+   "answer": ["head-of-line blocking", "HOL blocking", "head of line blocking", "head-of-line (HOL) blocking", "HOL", "head-of-line"],
+   "explain": "This is head-of-line (HOL) blocking, like waiting at a checkout with one loaf of bread behind someone with a full cart."
+  },
+  {
+   "type": "multi",
+   "category": "HTTP/2",
+   "q": "Which of these are changes HTTP/2 makes compared with HTTP/1.1?",
+   "choices": [
+    "Objects can be sent in an order based on client-specified priority (not necessarily FCFS)",
+    "The server can push unrequested objects to the client",
+    "Objects are divided into frames, and frame transmission is scheduled to mitigate HOL blocking",
+    "New methods and status codes replace those of HTTP 1.1",
+    "It runs over UDP instead of TCP"
+   ],
+   "answer": [0, 1, 2],
+   "explain": "HTTP/2 gives the server more flexibility in sending objects through priorities, server push, and frame interleaving. Methods, status codes and most header fields are unchanged, and it still runs over TCP."
+  },
+  {
+   "type": "tf",
+   "category": "HTTP/2",
+   "q": "HTTP/2 keeps the methods, status codes and most header fields of HTTP 1.1.",
+   "answer": true,
+   "explain": "These are essentially unchanged. What HTTP/2 changes is how the server schedules and sends objects."
+  },
+  {
+   "type": "mc",
+   "category": "HTTP/2",
+   "q": "A client requests one large object O1 (e.g. a video file) followed by three small objects O2, O3, O4. With HTTP/2 frame interleaving, what happens compared with HTTP/1.1?",
+   "choices": [
+    "O2, O3, O4 are delivered quickly and O1 is only slightly delayed",
+    "O1 is delivered first, then O2, O3, O4, exactly as with FCFS",
+    "All four objects finish at the same times as in HTTP/1.1",
+    "O2, O3, O4 are delivered quickly but O1 is dropped"
+   ],
+   "answer": 0,
+   "explain": "Interleaving frames lets the small objects finish early instead of waiting behind O1. O1 finishes only slightly later, so the average object delay goes down."
+  },
+  {
+   "type": "mc",
+   "category": "HTTP/2",
+   "q": "Which HTTP/2 feature most directly mitigates head-of-line blocking?",
+   "choices": [
+    "Server push of unrequested objects",
+    "Keeping status codes unchanged from HTTP 1.1",
+    "Dividing objects into frames and interleaving frame transmission",
+    "Using If-modified-since headers"
+   ],
+   "answer": 2,
+   "explain": "Because objects are split into frames and frames from different objects are interleaved, small objects no longer wait for a whole large object to finish."
+  },
+  {
+   "type": "mc",
+   "category": "HTTP/2",
+   "q": "What does HTTP/2 server push do?",
+   "choices": [
+    "Sends the client objects it hasn't requested yet but will probably need",
+    "Forces the client to resend lost requests",
+    "Pushes the client's cookies back to the server",
+    "Moves objects from the origin server to a Web cache"
+   ],
+   "answer": 0,
+   "explain": "The server can send unrequested objects in advance that the client is likely to request soon."
+  },
+  {
+   "type": "mc",
+   "category": "HTTP/3 and QUIC",
+   "q": "HTTP/2 still runs over a single TCP connection. What problem does that leave?",
+   "choices": [
+    "Methods and status codes are incompatible with HTTP 1.1",
+    "Recovery from packet loss still stalls all object transmissions",
+    "Objects can't be split into frames",
+    "The server can't send objects out of FCFS order"
+   ],
+   "answer": 1,
+   "explain": "All objects share one TCP connection. While TCP retransmits a lost segment, every object's transmission waits."
+  },
+  {
+   "type": "mc",
+   "category": "HTTP/3 and QUIC",
+   "q": "Why do browsers (with HTTP 1.1 and with HTTP/2 over TCP) have an incentive to open multiple parallel TCP connections?",
+   "choices": [
+    "To get around Cache-Control: no-cache headers",
+    "To reduce stalling from loss recovery and increase overall throughput",
+    "Because each TCP connection can carry only one object",
+    "To avoid the TLS handshake"
+   ],
+   "answer": 1,
+   "explain": "If one connection stalls while it recovers from a loss, the other connections keep delivering, and overall throughput goes up."
+  },
+  {
+   "type": "tf",
+   "category": "HTTP/3 and QUIC",
+   "q": "A plain (\"vanilla\") TCP connection provides security for HTTP traffic.",
+   "answer": false,
+   "explain": "Vanilla TCP provides no security. For HTTP/2 over TCP, security comes from a separate TLS layer, and HTTP/3 builds security in."
+  },
+  {
+   "type": "multi",
+   "category": "HTTP/3 and QUIC",
+   "q": "What does HTTP/3 add?",
+   "choices": [
+    "Security",
+    "Per-object error control",
+    "Per-object congestion control (allowing more pipelining)",
+    "A move from UDP to TCP",
+    "Removal of congestion control"
+   ],
+   "answer": [0, 1, 2],
+   "explain": "HTTP/3 adds security and per-object error and congestion control, and it runs over UDP rather than TCP."
+  },
+  {
+   "type": "mc",
+   "category": "HTTP/3 and QUIC",
+   "q": "Which transport protocol does HTTP/3 (via QUIC) run over?",
+   "choices": ["TCP", "UDP", "TLS", "IP directly, with no transport protocol"],
+   "answer": 1,
+   "explain": "HTTP/3 runs over UDP. QUIC sits on top of UDP and provides the reliability, congestion control and security features."
+  },
+  {
+   "type": "text",
+   "category": "HTTP/3 and QUIC",
+   "q": "What does QUIC stand for?",
+   "answer": ["Quick UDP Internet Connections", "Quick UDP Internet Connection", "quick udp internet connections"],
+   "explain": "QUIC stands for Quick UDP Internet Connections."
+  },
+  {
+   "type": "mc",
+   "category": "HTTP/3 and QUIC",
+   "q": "Where does QUIC fit in the protocol stack?",
+   "choices": [
+    "It is a network-layer protocol that replaces IP",
+    "It is an application-layer protocol running on top of UDP",
+    "It is a link-layer protocol below IP",
+    "It is a transport-layer protocol running on top of TCP"
+   ],
+   "answer": 1,
+   "explain": "QUIC is an application-layer protocol on top of UDP, built to improve HTTP performance. It is widely deployed on Google servers and in apps such as Chrome."
+  },
+  {
+   "type": "mc",
+   "category": "HTTP/3 and QUIC",
+   "q": "In the HTTP/2 over TCP protocol stack, where does TLS sit?",
+   "choices": [
+    "In the application layer, between HTTP/2 and TCP",
+    "In the transport layer, replacing TCP",
+    "In the network layer, below IP",
+    "Above HTTP/2"
+   ],
+   "answer": 0,
+   "explain": "The stack is HTTP/2 over TLS (both in the application layer), then TCP (transport), then IP (network)."
+  },
+  {
+   "type": "num",
+   "category": "HTTP/3 and QUIC",
+   "q": "With HTTP/2 over TCP + TLS, how many serial handshakes must complete before data is sent?",
+   "answer": 2,
+   "tolerance": 0,
+   "explain": "First the TCP handshake (reliability and congestion control state), then the TLS handshake (authentication and crypto state)."
+  },
+  {
+   "type": "multi",
+   "category": "HTTP/3 and QUIC",
+   "q": "QUIC sets up a connection with a single 1-RTT handshake. Which state does that one handshake establish?",
+   "choices": [
+    "Reliability",
+    "Congestion control",
+    "Authentication",
+    "Crypto (encryption) state",
+    "IP routing tables along the path",
+    "The DNS mapping for the server's name"
+   ],
+   "answer": [0, 1, 2, 3],
+   "explain": "One QUIC handshake sets up reliability, congestion control, authentication and crypto state, which takes TCP plus TLS two serial handshakes. Routing and DNS are not part of it."
+  },
+  {
+   "type": "num",
+   "category": "HTTP/3 and QUIC",
+   "q": "When a client reconnects to a server using QUIC 0-RTT connection establishment, how many RTTs of handshake delay are there before it can send data?",
+   "answer": 0,
+   "tolerance": 0,
+   "explain": "0-RTT: the client sends data right away in the new connection, protected with keys from its cached session ticket."
+  },
+  {
+   "type": "mc",
+   "category": "HTTP/3 and QUIC",
+   "q": "What makes QUIC 0-RTT connection establishment possible?",
+   "choices": [
+    "The client reuses the TCP connection from its last visit",
+    "In an earlier connection the server sent a TLS session ticket, which the client cached and now uses for encryption and authentication",
+    "The server skips authentication on repeat visits",
+    "The Web cache sets up the connection on the client's behalf"
+   ],
+   "answer": 1,
+   "explain": "The server sent a TLS session ticket during the first QUIC connection, and the client cached it. On the next connection the client uses that ticket for encryption and authentication right away, with no handshake delay."
+  },
+  {
+   "type": "tf",
+   "category": "HTTP/3 and QUIC",
+   "q": "QUIC's loss detection and congestion control use algorithms that parallel well-known TCP algorithms.",
+   "answer": true,
+   "explain": "QUIC uses the same approaches to error and congestion control as TCP. The QUIC specification says readers who know TCP will recognize them."
+  }
+ ]
+}

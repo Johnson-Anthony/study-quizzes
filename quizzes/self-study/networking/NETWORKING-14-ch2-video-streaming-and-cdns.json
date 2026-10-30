@@ -1,0 +1,494 @@
+{
+  "title": "Ch2: Video Streaming and CDNs",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Video encoding",
+      "q": "Which description of digital video matches the lecture?",
+      "choices": [
+        "A single compressed image plus a list of motion vectors",
+        "A continuous analog signal sampled once per second",
+        "A sequence of images (frames) displayed at a constant rate, e.g. 24 or 30 images/sec, each an array of pixels",
+        "A stream of pixels sent at whatever rate the network allows, with no fixed frame rate"
+      ],
+      "answer": 2,
+      "explain": "Video is a sequence of images shown at a constant rate (e.g., 24 or 30 frames/sec). Each digital image is an array of pixels, and each pixel is represented by bits."
+    },
+    {
+      "type": "mc",
+      "category": "Video encoding",
+      "q": "A run of N identical purple sky pixels is sent as just two values: the color (purple) and the repeat count N. What kind of coding is this?",
+      "choices": [
+        "Temporal coding",
+        "Spatial coding",
+        "Variable bit rate transmission",
+        "DASH chunking"
+      ],
+      "answer": 1,
+      "explain": "Spatial coding uses redundancy within a single image. Here it replaces N repeated values with two."
+    },
+    {
+      "type": "num",
+      "category": "Video encoding",
+      "q": "A frame has a run of 500 identical purple pixels. With the spatial coding trick from the lecture, how many values are needed to encode that run?",
+      "answer": 2,
+      "explain": "Two values: the color and the number of repeats. The run length (500) doesn't change that."
+    },
+    {
+      "type": "mc",
+      "category": "Video encoding",
+      "q": "Instead of sending the complete frame i+1, an encoder sends only the differences from frame i. What does this exploit?",
+      "choices": [
+        "Redundancy within a single image (spatial)",
+        "The constant bit rate of the encoder",
+        "Redundancy between consecutive images (temporal)",
+        "The client's playout buffer"
+      ],
+      "answer": 2,
+      "explain": "Temporal coding uses redundancy from one image to the next. If a frame barely changes, only the changes need to be sent."
+    },
+    {
+      "type": "tf",
+      "category": "Video encoding",
+      "q": "In constant bit rate (CBR) video, the encoding rate rises and falls as the amount of spatial and temporal redundancy in the scene changes.",
+      "answer": false,
+      "explain": "That describes variable bit rate (VBR). In CBR, the video encoding rate is fixed."
+    },
+    {
+      "type": "mc",
+      "category": "Video encoding",
+      "q": "A VBR-encoded video switches between a nearly static talking-head shot and a fast-moving action scene. Which part most likely needs the higher encoding rate, and why?",
+      "choices": [
+        "The talking head, because static frames contain more pixels",
+        "Both need the same rate, because VBR fixes the rate per video",
+        "The talking head, because temporal coding works poorly when nothing changes",
+        "The action scene, because frames change a lot, so there's less temporal redundancy to exploit"
+      ],
+      "answer": 3,
+      "explain": "VBR's rate changes with the amount of spatial and temporal coding possible. When consecutive frames differ a lot, sending only the differences saves little, so more bits are needed."
+    },
+    {
+      "type": "mc",
+      "category": "Video encoding",
+      "q": "Which encoding standard is often used on the Internet, with rates from about 64 Kbps to 12 Mbps?",
+      "choices": [
+        "MPEG 1",
+        "MPEG 2",
+        "MPEG 4",
+        "HTTP/2"
+      ],
+      "answer": 2,
+      "explain": "MPEG4 covers 64 Kbps to 12 Mbps and is often used on the Internet. MPEG 1 (CD-ROM) is about 1.5 Mbps, and MPEG2 (DVD) is 3-6 Mbps."
+    },
+    {
+      "type": "multi",
+      "category": "Streaming stored video",
+      "q": "Which challenges do large-scale video streaming services face?",
+      "choices": [
+        "Scale: reaching on the order of a billion users",
+        "Heterogeneity: users differ (wired vs. mobile, bandwidth-rich vs. bandwidth-poor)",
+        "No standard video compression exists",
+        "Every viewer needs a dedicated circuit through the network"
+      ],
+      "answer": [0, 1],
+      "explain": "The two challenges are scale and heterogeneity. The answer to both is a distributed, application-level infrastructure."
+    },
+    {
+      "type": "mc",
+      "category": "Streaming stored video",
+      "q": "What is the general solution to the scale and heterogeneity challenges of video streaming?",
+      "choices": [
+        "Reserving bandwidth for each stream in the network-core routers",
+        "A distributed, application-level infrastructure",
+        "One very large server at a central location",
+        "Replacing packet switching with circuit switching"
+      ],
+      "answer": 1,
+      "explain": "Streaming services build distributed infrastructure at the application level (for example, CDNs plus client-driven DASH) on top of the existing Internet."
+    },
+    {
+      "type": "mc",
+      "category": "Streaming stored video",
+      "q": "In the three-step picture (1. video recorded, 2. video sent, 3. video received and played out), what makes this 'streaming'?",
+      "choices": [
+        "The server sends at exactly the rate the video was recorded",
+        "The network delay is fixed",
+        "The video is recorded at 30 frames/sec",
+        "The client plays out early parts of the video while the server is still sending later parts"
+      ],
+      "answer": 3,
+      "explain": "Streaming means playout starts before the whole video has arrived. For example, the client plays frame 2 while the server sends frame 10."
+    },
+    {
+      "type": "multi",
+      "category": "Streaming stored video",
+      "q": "Compared with downloading a whole video before playing it, what advantages does streaming offer?",
+      "choices": [
+        "Playout can begin earlier",
+        "Less bandwidth is wasted if the viewer doesn't watch the whole video",
+        "Network delay becomes constant",
+        "No client-side buffer is needed"
+      ],
+      "answer": [0, 1],
+      "explain": "Streaming lets playout start sooner and avoids sending parts that are never watched. It doesn't remove variable delay, so the client still needs a buffer."
+    },
+    {
+      "type": "multi",
+      "category": "Streaming stored video",
+      "q": "Which of these are challenges in streaming stored video?",
+      "choices": [
+        "Server-to-client bandwidth varies with congestion (in the home, access network, network core, or video server)",
+        "Network delays vary (jitter)",
+        "Client interactivity: pause, fast-forward, rewind, jumping through the video",
+        "Lost video packets may be retransmitted, adding delay",
+        "The recorded frame rate changes randomly during playout"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The main challenges are varying bandwidth and variable delay/loss. Other challenges are interactivity and retransmission of lost packets. The recorded frame rate is fixed by the recording."
+    },
+    {
+      "type": "mc",
+      "category": "Streaming stored video",
+      "q": "What does the continuous playout constraint say?",
+      "choices": [
+        "Once client playout starts, playout timing must match the original recording timing",
+        "The server must transmit at exactly the playout rate",
+        "Every frame must take the same network path",
+        "The client must download the whole video before playing it"
+      ],
+      "answer": 0,
+      "explain": "During playout, each frame must be played at its original time. Network delays vary, though, so the client needs a buffer to meet this constraint."
+    },
+    {
+      "type": "text",
+      "category": "Streaming stored video",
+      "q": "What is the term for variation in network delay from one packet or frame to the next?",
+      "answer": ["jitter", "delay jitter", "network jitter"],
+      "explain": "Jitter is variable network delay. Client-side buffering absorbs it."
+    },
+    {
+      "type": "mc",
+      "category": "Playout buffering",
+      "q": "What are client-side buffering and an initial playout delay used for?",
+      "choices": [
+        "Increasing the available bandwidth on the path",
+        "Choosing the encoding rate of the next chunk",
+        "Compensating for network-added delay and delay jitter",
+        "Reducing the number of bits per frame"
+      ],
+      "answer": 2,
+      "explain": "The client waits, builds up a buffer, and then plays at the original timing, even though frames arrive unevenly."
+    },
+    {
+      "type": "num",
+      "category": "Playout buffering",
+      "q": "At time t, a client has received chunks 1 through 9 and has played out chunks 1 through 3. How many chunks are in its playout buffer?",
+      "answer": 6,
+      "explain": "Buffered = received - played out = 9 - 3 = 6. (On the slide, at t0, 6 received - 2 played = 4 buffered.)"
+    },
+    {
+      "type": "mc",
+      "category": "Playout buffering",
+      "q": "A client sets a very short initial playout delay, and frame delays are highly variable. What is the most likely result?",
+      "choices": [
+        "A frame misses its playout time (starvation), and the video freezes with a 'buffering' spinner",
+        "The viewer waits a long time before the video starts",
+        "The server automatically lowers its encoding rate",
+        "Frames are played faster than their original timing to catch up"
+      ],
+      "answer": 0,
+      "explain": "With too little buffered, a late frame isn't there when it's needed. That is starvation, and the video freezes."
+    },
+    {
+      "type": "mc",
+      "category": "Playout buffering",
+      "q": "What is the downside of a very long initial playout delay?",
+      "choices": [
+        "Starvation becomes more likely",
+        "The client has to request lower-quality chunks",
+        "Frames are played out of their original timing",
+        "The viewer waits longer before playout begins"
+      ],
+      "answer": 3,
+      "explain": "A longer delay protects against starvation, but users don't like waiting. Picking the delay means balancing the two."
+    },
+    {
+      "type": "mc",
+      "category": "Playout buffering",
+      "q": "On a plot of cumulative data vs. time for client video reception (with variable network delay), what does an unusually long horizontal step mean?",
+      "choices": [
+        "The encoder produced an unusually large frame",
+        "That frame's network delay was much longer than the previous frame's",
+        "The client paused playout",
+        "The server stopped recording"
+      ],
+      "answer": 1,
+      "explain": "A horizontal segment means time passes with no new data. Long steps mean a frame arrived much later than the one before it, and short steps mean it arrived much sooner."
+    },
+    {
+      "type": "tf",
+      "category": "Playout buffering",
+      "q": "Playout buffering alone can keep video playing smoothly even if the available bandwidth stays below the video's encoding rate for a long time.",
+      "answer": false,
+      "explain": "Buffering absorbs variable delay. A long bandwidth shortfall drains the buffer, so the client has to lower the rate, which is what DASH is for."
+    },
+    {
+      "type": "text",
+      "category": "DASH",
+      "q": "What does DASH stand for?",
+      "answer": ["Dynamic Adaptive Streaming over HTTP", "dynamic adaptive streaming over http", "Dynamic, Adaptive Streaming over HTTP", "dynamic, adaptive streaming over http"],
+      "explain": "DASH is Dynamic, Adaptive Streaming over HTTP."
+    },
+    {
+      "type": "mc",
+      "category": "DASH",
+      "q": "Which problem is DASH mainly designed to handle, as opposed to playout buffering?",
+      "choices": [
+        "Variable network delay (jitter)",
+        "Available server-to-client bandwidth that changes over time or is too low for the current rate",
+        "Spatial redundancy within frames",
+        "Packet reordering inside routers"
+      ],
+      "answer": 1,
+      "explain": "Buffering absorbs variable delay. DASH adapts the encoding rate (and server) to the available bandwidth."
+    },
+    {
+      "type": "multi",
+      "category": "DASH",
+      "q": "In DASH, which of these does the server side do?",
+      "choices": [
+        "Divides the video file into multiple chunks",
+        "Encodes each chunk at multiple different rates",
+        "Stores the different rate encodings in different files, replicated across CDN nodes",
+        "Provides a manifest file with URLs for the different chunks",
+        "Measures each client's bandwidth and picks its encoding rate",
+        "Pushes chunks to the client at a fixed rate, whether or not they're requested"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The server prepares chunks, encodings, files, replicas, and the manifest. The client estimates bandwidth, picks the rate, and requests each chunk."
+    },
+    {
+      "type": "mc",
+      "category": "DASH",
+      "q": "What does the DASH manifest file contain?",
+      "choices": [
+        "The video itself at its highest encoding rate",
+        "The client's bandwidth history, reported back to the server",
+        "URLs for the different chunks (each encoding and where it is stored)",
+        "The DNS record of the origin server only"
+      ],
+      "answer": 2,
+      "explain": "The manifest lists the client's options: each chunk, at each encoding rate, and the servers/URLs it can be fetched from."
+    },
+    {
+      "type": "multi",
+      "category": "DASH",
+      "q": "In DASH, the 'intelligence' is at the client. Which decisions does the client make?",
+      "choices": [
+        "When to request a chunk (so the buffer doesn't starve or overflow)",
+        "What encoding rate to request",
+        "Where to request the chunk from (e.g., a nearby server or one with high available bandwidth)",
+        "How the server divides the video into chunks",
+        "Which set of encoding rates the server produces"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The client decides when, at what rate, and from where. Chunking and the available encodings are set up on the server side."
+    },
+    {
+      "type": "num",
+      "category": "DASH",
+      "q": "A DASH manifest offers each chunk at 1, 2.5, 5, and 8 Mbps. The client estimates 6 Mbps of available server-to-client bandwidth. What rate (in Mbps) should it request for the next chunk?",
+      "answer": 5,
+      "explain": "The client picks the highest encoding rate it can sustain with the current bandwidth. 8 Mbps is more than 6 Mbps, so it picks 5 Mbps."
+    },
+    {
+      "type": "mc",
+      "category": "DASH",
+      "q": "Partway through a stream, a DASH client's bandwidth estimate drops sharply. What typically happens?",
+      "choices": [
+        "For the next chunk, the client requests a lower-rate encoding (and may choose a different server)",
+        "The server notices the congestion and re-encodes the current chunk",
+        "The client restarts from the first chunk at a lower rate",
+        "TCP automatically switches the connection to a lower encoding"
+      ],
+      "answer": 0,
+      "explain": "Rates are chosen one chunk at a time by the client, so it can step down for the next request without restarting."
+    },
+    {
+      "type": "tf",
+      "category": "DASH",
+      "q": "Within one DASH session, the client must request every chunk at the same encoding rate from the same server.",
+      "answer": false,
+      "explain": "The client can pick different rates at different times, based on the bandwidth available then, and can fetch from different servers."
+    },
+    {
+      "type": "tf",
+      "category": "DASH",
+      "q": "A higher-quality encoding of a chunk is stored in a larger file and needs more bandwidth to download in time.",
+      "answer": true,
+      "explain": "Higher quality means more bits per chunk, so a larger file and a higher required rate."
+    },
+    {
+      "type": "text",
+      "category": "DASH",
+      "q": "Complete the summary: Streaming video = encoding + DASH + ________.",
+      "answer": ["playout buffering", "buffering", "client-side buffering", "playout buffer", "client buffering"],
+      "explain": "Streaming video = encoding + DASH + playout buffering."
+    },
+    {
+      "type": "multi",
+      "category": "CDNs",
+      "q": "Why doesn't a single, large 'mega-server' work for streaming to hundreds of thousands of simultaneous users?",
+      "choices": [
+        "It is a single point of failure",
+        "It is a point of network congestion",
+        "Distant clients have long (and possibly congested) paths to it",
+        "It cannot use HTTP",
+        "It cannot store more than one encoding of a video"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "Single point of failure, congestion point, and long paths to far-away clients: this approach doesn't scale."
+    },
+    {
+      "type": "mc",
+      "category": "CDNs",
+      "q": "What does a content distribution network (CDN) do?",
+      "choices": [
+        "Sends all requests to one central data center",
+        "Reserves a dedicated circuit for each viewer",
+        "Encodes each video once, at a single rate",
+        "Stores and serves multiple copies of videos at multiple geographically distributed sites"
+      ],
+      "answer": 3,
+      "explain": "A CDN is option 2: replicate content at many distributed sites so clients can be served from nearby copies."
+    },
+    {
+      "type": "mc",
+      "category": "CDNs",
+      "q": "Which describes the 'enter deep' CDN approach?",
+      "choices": [
+        "A small number (tens) of large clusters in POPs near access networks",
+        "Pushing CDN servers deep into many access networks, close to users",
+        "Putting all servers deep inside a single data center",
+        "Routing every request through the network core to an origin server"
+      ],
+      "answer": 1,
+      "explain": "Enter deep puts servers inside many access networks at the Internet's edge, close to users."
+    },
+    {
+      "type": "mc",
+      "category": "CDNs",
+      "q": "Which describes the 'bring home' CDN approach?",
+      "choices": [
+        "Servers inside nearly every access network",
+        "Caching video only on users' home devices",
+        "A smaller number (tens) of larger clusters in POPs near access networks",
+        "One mega-server located near the content owner"
+      ],
+      "answer": 2,
+      "explain": "Bring home uses fewer, larger server clusters in points of presence (POPs) near access networks."
+    },
+    {
+      "type": "mc",
+      "category": "CDNs",
+      "q": "Which pairing of CDN company and approach is correct?",
+      "choices": [
+        "Akamai: enter deep; Limelight: bring home",
+        "Akamai: bring home; Limelight: enter deep",
+        "Both use enter deep",
+        "Both use bring home"
+      ],
+      "answer": 0,
+      "fixed": true,
+      "explain": "Akamai pushes many servers deep into access networks (about 240,000 servers in over 120 countries in 2015). Limelight uses bring home."
+    },
+    {
+      "type": "tf",
+      "category": "CDNs",
+      "q": "Compared with enter deep, the bring home approach puts CDN servers in many more locations, closer to users.",
+      "answer": false,
+      "explain": "It's the opposite. Bring home uses fewer (tens of) larger clusters in POPs. Enter deep uses many servers inside access networks, close to users."
+    },
+    {
+      "type": "multi",
+      "category": "CDNs",
+      "q": "How can a client be directed to the CDN server that holds the content it requested?",
+      "choices": [
+        "A manifest file",
+        "A CDN DNS server",
+        "The client's home router broadcasts the location",
+        "A mega-server relays all of the traffic"
+      ],
+      "answer": [0, 1],
+      "explain": "Either a manifest file or a CDN DNS server points the client to the content."
+    },
+    {
+      "type": "mc",
+      "category": "Netflix and OTT",
+      "q": "Which sequence matches how a Netflix client streams an episode?",
+      "choices": [
+        "Client fetches chunks from a random CDN node, then asks Netflix for a manifest to check them",
+        "Netflix pushes the whole episode to the client, which then picks a rate",
+        "Client requests the content from Netflix; Netflix returns a manifest; client fetches chunks from a CDN node at the highest supportable rate; it may switch rate or copy if the path gets congested",
+        "Client's ISP picks the CDN node and rate, then tells Netflix which manifest to send"
+      ],
+      "answer": 2,
+      "explain": "The subscriber asks, the provider returns a manifest, and then the client, using DASH, retrieves chunks from CDN nodes and adapts its rate and server choice as conditions change."
+    },
+    {
+      "type": "text",
+      "category": "Netflix and OTT",
+      "q": "Netflix stores copies of its content at the nodes of its own worldwide CDN. What is that CDN called?",
+      "answer": ["OpenConnect", "Open Connect", "openconnect", "open connect"],
+      "explain": "Netflix's CDN is OpenConnect."
+    },
+    {
+      "type": "mc",
+      "category": "Netflix and OTT",
+      "q": "What does it mean to call Netflix an OTT ('over the top') service?",
+      "choices": [
+        "It operates its own ISP and access network to reach subscribers",
+        "It is an application-level service that delivers content over ISPs' networks, using Internet host-to-host communication as a service, without being an ISP",
+        "It sends video over dedicated circuits that bypass the Internet",
+        "It runs above the transport layer only in the network core"
+      ],
+      "answer": 1,
+      "explain": "Netflix is about content, not the network. It runs at the application layer on top of the IP infrastructure that ISPs provide."
+    },
+    {
+      "type": "multi",
+      "category": "Netflix and OTT",
+      "q": "OTT services have to cope with a congested Internet from the 'edge'. Which of these are OTT challenges?",
+      "choices": [
+        "What content to place in which CDN node",
+        "Which CDN node to retrieve content from",
+        "What rate to retrieve content at",
+        "Configuring routers inside ISPs' core networks",
+        "Assigning IP addresses to subscribers"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "An OTT service controls only its own servers and clients. It can't configure ISP routers or addressing, so it decides placement, server selection, and rate."
+    },
+    {
+      "type": "mc",
+      "category": "Netflix and OTT",
+      "q": "While a Netflix episode is playing, the path to the client's current CDN server becomes congested. What can the client do?",
+      "choices": [
+        "Ask Netflix to reroute the ISP's traffic around the congestion",
+        "Nothing; it must wait until the path clears",
+        "Download the rest of the episode from Netflix's central servers",
+        "Request the next chunks from a different copy listed in the manifest, possibly at a different rate"
+      ],
+      "answer": 3,
+      "explain": "The manifest lists several copies and rates, so the client can switch to another CDN server and/or rate for the next chunk."
+    },
+    {
+      "type": "tf",
+      "category": "Netflix and OTT",
+      "q": "OTT services like Netflix reflect the view of the Internet as a service infrastructure that applications are built on.",
+      "answer": true,
+      "explain": "Besides the 'nuts and bolts' view, the Internet can be seen as infrastructure that provides services to applications. OTT services build on that host-to-host service."
+    }
+  ]
+}

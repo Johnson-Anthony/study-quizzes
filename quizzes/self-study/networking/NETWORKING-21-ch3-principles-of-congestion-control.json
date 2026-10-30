@@ -1,0 +1,467 @@
+{
+ "title": "Ch3: Principles of Congestion Control",
+ "course": "NETWORKING",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "Congestion vs. flow control",
+   "q": "Informally, which of these best describes network congestion?",
+   "choices": [
+    "Too many sources sending too much data too fast for the network to handle",
+    "One sender transmitting faster than a single receiver can process",
+    "Bit errors introduced on a noisy link",
+    "A receiving application reading data too slowly from its socket"
+   ],
+   "answer": 0,
+   "explain": "Congestion is a problem in the network: many senders together overload it. One sender overwhelming one receiver, or a slow receiving application, is a flow-control problem. Bit errors are a link problem and have nothing to do with load."
+  },
+  {
+   "type": "multi",
+   "category": "Congestion vs. flow control",
+   "q": "Which of the following are manifestations of congestion?",
+   "choices": [
+    "Long delays from queueing in router buffers",
+    "Packet loss from buffer overflow at routers",
+    "Corrupted bits detected by a checksum",
+    "Overflow of the destination host's receive buffer"
+   ],
+   "answer": [0, 1],
+   "explain": "Congestion shows up as long delays (packets wait in router queues) and as packet loss (router buffers fill up and overflow). Corrupted bits come from transmission errors. Receive-buffer overflow at the destination is what flow control prevents."
+  },
+  {
+   "type": "text",
+   "category": "Congestion vs. flow control",
+   "q": "Under congestion, packets are lost because router buffers ______. (one word)",
+   "answer": ["overflow", "overflows", "fill", "fill up"],
+   "explain": "When a router's buffers are full, arriving packets have nowhere to wait and are dropped. This is buffer overflow."
+  },
+  {
+   "type": "mc",
+   "category": "Congestion vs. flow control",
+   "q": "A powerful server sends to a slow embedded device across an otherwise idle network, and the device's receive buffer keeps overflowing. Which mechanism addresses this?",
+   "choices": [
+    "Flow control",
+    "Congestion control",
+    "Network-assisted congestion control",
+    "Demultiplexing"
+   ],
+   "answer": 0,
+   "explain": "One sender is too fast for one receiver, and the network itself is not overloaded. That is the flow-control problem."
+  },
+  {
+   "type": "mc",
+   "category": "Congestion vs. flow control",
+   "q": "Thousands of hosts each send at modest rates, but together they overload a shared router's output link. What kind of problem is this?",
+   "choices": [
+    "Congestion: too many senders sending too fast for the network",
+    "Flow control: one sender too fast for one receiver",
+    "A reliable-data-transfer problem caused by bit errors",
+    "A multiplexing problem at the receiving host"
+   ],
+   "answer": 0,
+   "explain": "No single sender is the problem. The combined load from many senders exceeds what the network can carry, and that is congestion."
+  },
+  {
+   "type": "tf",
+   "category": "Congestion vs. flow control",
+   "q": "Congestion control and flow control solve the same problem: keeping a sender from overwhelming its receiver.",
+   "answer": false,
+   "explain": "Flow control keeps one sender from going too fast for one receiver. Congestion control deals with many senders together going too fast for the network."
+  },
+  {
+   "type": "multi",
+   "category": "Scenario 1: infinite buffers",
+   "q": "Which assumptions define congestion scenario 1 (the simplest scenario)?",
+   "choices": [
+    "One router with infinite buffers",
+    "Input and output link capacity R",
+    "Two flows",
+    "No retransmissions needed",
+    "Finite buffers that drop packets",
+    "Four senders on multi-hop paths"
+   ],
+   "answer": [0, 1, 2, 3],
+   "explain": "Scenario 1 has one router with infinite shared output buffers, links of capacity R, two flows (Host A and Host B), and no retransmissions. Finite buffers come in scenario 2, and four senders on multi-hop paths come in scenario 3."
+  },
+  {
+   "type": "num",
+   "category": "Scenario 1: infinite buffers",
+   "q": "In scenario 1, the shared output link has capacity R = 10 Mbps. What is the maximum per-connection throughput λout, in Mbps?",
+   "answer": 5,
+   "tolerance": 0,
+   "explain": "The two flows share an output link of capacity R, so each connection can get at most R/2 = 10/2 = 5 Mbps."
+  },
+  {
+   "type": "num",
+   "category": "Scenario 1: infinite buffers",
+   "q": "Scenario 1 with R = 8 Mbps. Host A and Host B each send original data at λin = 6 Mbps. What is Host A's throughput λout, in Mbps?",
+   "answer": 4,
+   "tolerance": 0,
+   "explain": "Throughput can't go above R/2 = 4 Mbps per connection. The extra 2 Mbps of arrivals keeps building up in the infinite buffer, so delay grows without bound."
+  },
+  {
+   "type": "num",
+   "category": "Scenario 1: infinite buffers",
+   "q": "Scenario 1 with R = 1000 Mbps. Each host sends λin = 300 Mbps. What is the throughput λout per connection, in Mbps?",
+   "answer": 300,
+   "tolerance": 0,
+   "explain": "Below R/2 (500 Mbps here), the throughput curve is the line λout = λin, so everything sent gets through: 300 Mbps."
+  },
+  {
+   "type": "mc",
+   "category": "Scenario 1: infinite buffers",
+   "q": "In scenario 1, what happens to delay as the arrival rate λin approaches R/2?",
+   "choices": [
+    "It grows very large, rising steeply toward infinity",
+    "It stays constant because the buffers are infinite",
+    "It drops to zero because the link is fully used",
+    "It decreases linearly"
+   ],
+   "answer": 0,
+   "explain": "As λin approaches capacity, the router queue grows and delay climbs sharply. Infinite buffers prevent loss, but they don't prevent queueing delay."
+  },
+  {
+   "type": "tf",
+   "category": "Scenario 1: infinite buffers",
+   "q": "Because the scenario 1 router has infinite buffers, no packets are lost, but congestion still has a cost.",
+   "answer": true,
+   "explain": "The cost in scenario 1 is delay. Queueing delay gets very large as the arrival rate approaches the R/2 capacity, even though nothing is dropped."
+  },
+  {
+   "type": "mc",
+   "category": "Scenario 2: finite buffers and retransmissions",
+   "q": "In scenario 2, what does λ'in represent?",
+   "choices": [
+    "Transport-layer input: original data plus retransmitted data",
+    "Original application-layer data only",
+    "Throughput delivered to the receiving application",
+    "Link capacity divided by the number of flows"
+   ],
+   "answer": 0,
+   "explain": "λin is the original data. λ'in is everything the transport layer actually sends into the network, which includes retransmissions."
+  },
+  {
+   "type": "mc",
+   "category": "Scenario 2: finite buffers and retransmissions",
+   "q": "Which pair of relationships holds in scenario 2, where the sender retransmits lost or timed-out packets?",
+   "choices": [
+    "λin = λout and λ'in ≥ λin",
+    "λin = λout and λ'in ≤ λin",
+    "λ'in = λout and λin ≥ λ'in",
+    "λin > λout and λ'in = λin"
+   ],
+   "answer": 0,
+   "explain": "At the application layer, input equals output (λin = λout) because retransmission eventually delivers all the data. At the transport layer, the input includes retransmissions, so λ'in ≥ λin."
+  },
+  {
+   "type": "mc",
+   "category": "Scenario 2: finite buffers and retransmissions",
+   "q": "In the 'perfect knowledge' idealization of scenario 2, the sender:",
+   "choices": [
+    "Sends only when router buffer space is available, so no packets are lost",
+    "Resends a packet only when it is known to be lost",
+    "Times out early and sends duplicate copies",
+    "Ignores the router and always sends at rate R"
+   ],
+   "answer": 0,
+   "explain": "With perfect knowledge, the sender never sends into a full buffer. Nothing is dropped, so throughput λout follows λin all the way up to R/2."
+  },
+  {
+   "type": "tf",
+   "category": "Scenario 2: finite buffers and retransmissions",
+   "q": "Under the 'perfect knowledge' idealization, throughput λout equals λin all the way up to R/2, and no capacity is wasted.",
+   "answer": true,
+   "explain": "Packets are sent only when buffer space is free, so none are lost or retransmitted. The throughput graph is a straight line up to R/2."
+  },
+  {
+   "type": "mc",
+   "category": "Scenario 2: finite buffers and retransmissions",
+   "q": "In the 'some perfect knowledge' case (packets can be dropped at full buffers, and the sender resends only packets known to be lost), why is λout below R/2 when the sender transmits at λ'in = R/2?",
+   "choices": [
+    "Some transmitted packets are needed retransmissions, so not all of the R/2 carries new data",
+    "The router's buffers are infinite, so delay grows without bound",
+    "The receiver throws away a duplicate copy of every packet",
+    "Upstream routers drop the packets before they reach the bottleneck"
+   ],
+   "answer": 0,
+   "explain": "Part of the sending rate is spent re-sending lost data. The gap between R/2 and the actual λout is capacity 'wasted' on retransmissions."
+  },
+  {
+   "type": "num",
+   "category": "Scenario 2: finite buffers and retransmissions",
+   "q": "'Some perfect knowledge' case: R = 10 Mbps, the sender transmits at λ'in = R/2, and 20% of the packets it transmits are (needed) retransmissions of lost packets. What is the useful throughput λout, in Mbps?",
+   "answer": 4,
+   "tolerance": 0,
+   "explain": "λ'in = 5 Mbps. Only 80% of that is original data, so λin = 4 Mbps, and every piece of original data is eventually delivered (λout = λin). That gives 4 Mbps. The remaining 1 Mbps is capacity spent on retransmissions."
+  },
+  {
+   "type": "mc",
+   "category": "Scenario 2: finite buffers and retransmissions",
+   "q": "In the realistic version of scenario 2, what causes 'un-needed duplicates'?",
+   "choices": [
+    "The sender times out too early on a packet that was delayed but not lost and sends a second copy; both copies get delivered",
+    "The router copies packets when its buffer is full",
+    "The receiver ACKs every packet twice",
+    "A lost packet has to be resent"
+   ],
+   "answer": 0,
+   "explain": "A premature timeout causes a retransmission that wasn't needed. The original copy was only delayed, so both copies cross the network and arrive. Resending a lost packet is a needed retransmission, not an un-needed one."
+  },
+  {
+   "type": "num",
+   "category": "Scenario 2: finite buffers and retransmissions",
+   "q": "Realistic scenario 2: R = 12 Mbps, and the sender transmits at λ'in = R/2. Of the packets it transmits, 1/6 are needed retransmissions and 1/6 are un-needed duplicates (both copies delivered). What is λout, in Mbps?",
+   "answer": 4,
+   "tolerance": 0,
+   "explain": "λ'in = 6 Mbps. Original data is the remaining 4/6 of that, so λin = 4 Mbps. Each piece of data reaches the application once (λout = λin = 4 Mbps). Needed retransmissions and un-needed duplicates use up the other 2 Mbps."
+  },
+  {
+   "type": "multi",
+   "category": "Scenario 2: finite buffers and retransmissions",
+   "q": "Which 'costs' of congestion does scenario 2 reveal?",
+   "choices": [
+    "More work (retransmissions) for a given receiver throughput",
+    "Un-needed retransmissions make the link carry multiple copies of a packet, lowering the maximum achievable throughput",
+    "Upstream transmission capacity is wasted on packets dropped further downstream",
+    "Throughput can exceed link capacity"
+   ],
+   "answer": [0, 1],
+   "explain": "Scenario 2 shows that retransmissions add work and that un-needed duplicates lower the maximum throughput. Waste of upstream capacity is the cost shown in scenario 3. Throughput can never exceed capacity."
+  },
+  {
+   "type": "tf",
+   "category": "Scenario 2: finite buffers and retransmissions",
+   "q": "When the sender retransmits because of a premature timeout, the receiver still receives only one copy of the packet.",
+   "answer": false,
+   "explain": "With a premature timeout, the original packet was only delayed, so both copies are delivered. That is why the link ends up carrying duplicates."
+  },
+  {
+   "type": "multi",
+   "category": "Scenario 3: multi-hop paths",
+   "q": "Which features define congestion scenario 3?",
+   "choices": [
+    "Four senders",
+    "Multi-hop paths",
+    "Timeout/retransmit",
+    "Infinite router buffers",
+    "A single router shared by two flows"
+   ],
+   "answer": [0, 1, 2],
+   "explain": "Scenario 3 has four senders on multi-hop paths that share finite router buffers, with timeout/retransmit. Infinite buffers and a single router with two flows describe scenario 1."
+  },
+  {
+   "type": "mc",
+   "category": "Scenario 3: multi-hop paths",
+   "q": "In scenario 3, the red flow's offered load λ'in keeps increasing. What happens to the blue flow that shares the upper router's queue with it?",
+   "choices": [
+    "All blue packets arriving at the upper queue are dropped, and blue throughput goes to 0",
+    "Blue throughput rises to R/2",
+    "Blue throughput is unaffected",
+    "The router gives blue packets priority over red"
+   ],
+   "answer": 0,
+   "explain": "As red traffic fills the shared upper queue, blue packets arriving there find no buffer space and are dropped. Blue throughput falls toward 0."
+  },
+  {
+   "type": "mc",
+   "category": "Scenario 3: multi-hop paths",
+   "q": "In scenario 3, what does the graph of throughput λout versus offered load λ'in look like?",
+   "choices": [
+    "It rises, reaches a peak, then falls sharply toward zero",
+    "It rises linearly, then levels off flat at R/2",
+    "It rises and levels off a little below R/2",
+    "It stays at zero until λ'in reaches R/2"
+   ],
+   "answer": 0,
+   "explain": "With multi-hop paths, adding more load past a point makes useful throughput collapse. Levelling off at R/2 is scenario 1. Levelling off a little below R/2 is scenario 2 with retransmissions."
+  },
+  {
+   "type": "mc",
+   "category": "Scenario 3: multi-hop paths",
+   "q": "Which cost of congestion does scenario 3 add?",
+   "choices": [
+    "When a packet is dropped, any upstream transmission capacity and buffering used for it was wasted",
+    "Delay increases as the arrival rate approaches capacity",
+    "Senders have to retransmit lost packets",
+    "Premature timeouts put duplicate copies on the link"
+   ],
+   "answer": 0,
+   "explain": "A packet dropped at a later hop has already used link capacity and buffer space at every router before it, and that work is wasted. The other choices are costs already shown in scenarios 1 and 2."
+  },
+  {
+   "type": "mc",
+   "category": "Scenario 3: multi-hop paths",
+   "q": "A packet makes it through routers R1 and R2 and is then dropped at a full buffer in R3. What was wasted?",
+   "choices": [
+    "The transmission capacity and buffering it used on the way through R1 and R2",
+    "Nothing; a dropped packet costs nothing until it is retransmitted",
+    "Only buffer space at R3",
+    "Only the sender's access link"
+   ],
+   "answer": 0,
+   "explain": "All the upstream work done for that packet is lost when it is dropped downstream. That capacity could have carried packets that would have been delivered."
+  },
+  {
+   "type": "tf",
+   "category": "Scenario 3: multi-hop paths",
+   "q": "In scenario 3, pushing more offered load into the network can make useful throughput go down, not just level off.",
+   "answer": true,
+   "explain": "The scenario 3 throughput curve peaks and then collapses toward zero. More packets get dropped downstream after using upstream resources."
+  },
+  {
+   "type": "multi",
+   "category": "Costs of congestion: insights",
+   "q": "Which statements are insights about the causes and costs of congestion?",
+   "choices": [
+    "Throughput can never exceed capacity",
+    "Delay increases as capacity is approached",
+    "Loss and retransmission decrease effective throughput",
+    "Un-needed duplicates decrease effective throughput even further",
+    "Upstream transmission capacity and buffering are wasted on packets lost downstream",
+    "Aggressive retransmission lets throughput exceed capacity",
+    "Infinite buffers eliminate delay"
+   ],
+   "answer": [0, 1, 2, 3, 4],
+   "explain": "The first five summarize scenarios 1 through 3. Retransmission can't push throughput above capacity. Infinite buffers prevent loss but not delay (scenario 1)."
+  },
+  {
+   "type": "tf",
+   "category": "Costs of congestion: insights",
+   "q": "A sender can push throughput above link capacity by retransmitting aggressively enough.",
+   "answer": false,
+   "explain": "Throughput can never exceed capacity. Retransmissions actually lower effective throughput, because capacity is spent re-carrying data."
+  },
+  {
+   "type": "mc",
+   "category": "Costs of congestion: insights",
+   "q": "Compare the 'resend only known-lost packets' throughput curve with the 'un-needed duplicates' curve. Which insight does the comparison show?",
+   "choices": [
+    "Un-needed duplicates decrease effective throughput even further",
+    "Delay increases as capacity is approached",
+    "Throughput can never exceed capacity",
+    "Upstream capacity is wasted on packets lost downstream"
+   ],
+   "answer": 0,
+   "explain": "Both curves fall below R/2 at λ'in = R/2, but the un-needed-duplicates curve ends lower. Unnecessary copies waste even more capacity."
+  },
+  {
+   "type": "mc",
+   "category": "Costs of congestion: insights",
+   "q": "Which congestion scenario is the one where the only cost is delay, with no loss at all?",
+   "choices": [
+    "Scenario 1: one router with infinite buffers",
+    "Scenario 2: finite buffers with retransmissions",
+    "Scenario 3: four senders on multi-hop paths",
+    "None of these scenarios"
+   ],
+   "answer": 0,
+   "fixed": true,
+   "explain": "With infinite buffers nothing is dropped. The cost is queueing delay that grows very large as λin approaches R/2."
+  },
+  {
+   "type": "mc",
+   "category": "Costs of congestion: insights",
+   "q": "Which scenario's throughput curve shows wasted capacity as a gap below R/2 that comes only from needed retransmissions?",
+   "choices": [
+    "Scenario 2, where the sender resends only packets known to be lost",
+    "Scenario 2 with perfect knowledge (sends only when buffers are free)",
+    "Scenario 1 with infinite buffers",
+    "Scenario 3 with multi-hop paths"
+   ],
+   "answer": 0,
+   "explain": "When the sender resends only known-lost packets, some of the R/2 sending rate carries needed retransmissions, so λout ends a bit below R/2. Perfect knowledge and scenario 1 waste no capacity. Scenario 3's curve collapses."
+  },
+  {
+   "type": "mc",
+   "category": "Approaches to congestion control",
+   "q": "Which of these describes end-end congestion control?",
+   "choices": [
+    "The network gives no explicit feedback; hosts infer congestion from observed loss and delay",
+    "Routers send explicit congestion information to the hosts",
+    "Routers explicitly set each sender's rate",
+    "The receiver advertises how much free buffer space it has"
+   ],
+   "answer": 0,
+   "explain": "In end-end congestion control the network is a black box, and the hosts work out from loss and delay that congestion is happening. Router feedback is network-assisted control. Advertising receive-buffer space is flow control."
+  },
+  {
+   "type": "mc",
+   "category": "Approaches to congestion control",
+   "q": "Leaving out its ECN extension, which approach to congestion control does TCP take?",
+   "choices": [
+    "End-end congestion control",
+    "Network-assisted congestion control",
+    "Router-set explicit sending rates",
+    "No congestion control at all"
+   ],
+   "answer": 0,
+   "explain": "TCP takes the end-end approach: it infers congestion from observed loss and delay, without explicit feedback from the network. TCP ECN is listed as an example of network-assisted control."
+  },
+  {
+   "type": "text",
+   "category": "Approaches to congestion control",
+   "q": "In end-end congestion control, the network doesn't signal congestion. Instead, congestion is ______ from observed loss and delay. (one word)",
+   "answer": ["inferred", "infered", "deduced"],
+   "explain": "The hosts get no explicit feedback, so they have to infer congestion from what they observe, such as lost packets and growing delay."
+  },
+  {
+   "type": "mc",
+   "category": "Approaches to congestion control",
+   "q": "In network-assisted congestion control, routers:",
+   "choices": [
+    "Give direct feedback to sending/receiving hosts whose flows pass through a congested router",
+    "Give no feedback, so hosts have to infer congestion",
+    "Retransmit lost packets for the sender",
+    "Copy packets to make sure they are delivered"
+   ],
+   "answer": 0,
+   "explain": "In network-assisted control, the congested router sends explicit congestion information to the hosts whose flows pass through it."
+  },
+  {
+   "type": "multi",
+   "category": "Approaches to congestion control",
+   "q": "In network-assisted congestion control, the feedback from a router may:",
+   "choices": [
+    "Indicate the congestion level",
+    "Explicitly set the sending rate",
+    "Retransmit the dropped packet itself",
+    "Increase the link capacity"
+   ],
+   "answer": [0, 1],
+   "explain": "Router feedback can report how congested the router is, or it can directly tell the sender what rate to use. Routers don't take over retransmission, and they can't add link capacity."
+  },
+  {
+   "type": "multi",
+   "category": "Approaches to congestion control",
+   "q": "Which of these are examples of network-assisted congestion control?",
+   "choices": [
+    "TCP ECN",
+    "ATM",
+    "DECbit",
+    "TCP inferring congestion from loss and delay"
+   ],
+   "answer": [0, 1, 2],
+   "explain": "TCP ECN, ATM and DECbit all have the network give explicit congestion feedback. Inferring congestion from loss and delay is the end-end approach."
+  },
+  {
+   "type": "mc",
+   "category": "Approaches to congestion control",
+   "q": "A router whose queue is growing marks the packets passing through it so the end hosts find out about the congestion. Which approach is this?",
+   "choices": [
+    "Network-assisted congestion control",
+    "End-end congestion control",
+    "Flow control",
+    "Retransmission after a timeout"
+   ],
+   "answer": 0,
+   "explain": "The router is giving explicit congestion feedback, so this is network-assisted control. In end-end control the hosts have to infer congestion without any such signal."
+  },
+  {
+   "type": "tf",
+   "category": "Approaches to congestion control",
+   "q": "In end-end congestion control, routers give the hosts explicit feedback about congestion.",
+   "answer": false,
+   "explain": "End-end control gets no explicit feedback from the network. The hosts infer congestion from observed loss and delay."
+  }
+ ]
+}

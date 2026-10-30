@@ -1,0 +1,619 @@
+{
+  "title": "Ch3: Transport-Layer Services, Multiplexing and Demultiplexing",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Transport-layer services",
+      "q": "The transport layer provides logical communication between which entities?",
+      "choices": [
+        "Hosts (end systems) anywhere on the Internet",
+        "Application processes running on different hosts",
+        "Routers along the path between two hosts",
+        "Adjacent nodes on the same link"
+      ],
+      "answer": 1,
+      "explain": "The transport layer provides process-to-process logical communication. Host-to-host communication is the network layer's job."
+    },
+    {
+      "type": "mc",
+      "category": "Transport-layer services",
+      "q": "What does it mean that two processes are connected by a \"logical\" channel at the transport layer?",
+      "choices": [
+        "They must share a physical cable",
+        "Every router on the path keeps a record of their conversation",
+        "From the transport layer's point of view, sender and receiver behave as if they were directly connected, even though many networks, routers and links may separate them",
+        "The channel is guaranteed never to lose or reorder messages"
+      ],
+      "answer": 2,
+      "explain": "The transport layer ignores everything between the two processes and only considers the properties of the channel that joins them. That channel can still lose, reorder or corrupt messages."
+    },
+    {
+      "type": "multi",
+      "category": "Transport-layer services",
+      "q": "The transport layer treats everything between the two communicating processes as one channel. What can this channel do to messages?",
+      "choices": [
+        "Lose messages",
+        "Deliver messages out of order",
+        "Corrupt (flip) bits in messages",
+        "Guarantee a maximum delivery delay"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "The underlying channel can lose, reorder or corrupt messages. Nothing promises a maximum delay. Delay guarantees are not available on the Internet at all."
+    },
+    {
+      "type": "text",
+      "category": "Transport-layer services",
+      "q": "The sending transport layer breaks application messages into transport-layer packets and passes them to the network layer. What are these transport-layer packets called?",
+      "answer": ["segment", "segments", "a segment", "transport-layer segment", "transport-layer segments"],
+      "explain": "Sender: breaks application messages into segments and passes them to the network layer. Receiver: reassembles segments into messages and passes them to the application layer."
+    },
+    {
+      "type": "tf",
+      "category": "Transport-layer services",
+      "q": "Transport-protocol actions take place in the end systems (the sending and receiving hosts).",
+      "answer": true,
+      "explain": "Transport protocols act in end systems. The sender breaks messages into segments, and the receiver reassembles them and passes them up to the application."
+    },
+    {
+      "type": "multi",
+      "category": "Transport-layer services",
+      "q": "Which of the following are transport-layer services?",
+      "choices": [
+        "Multiplexing and demultiplexing",
+        "Reliable data transfer",
+        "Flow control",
+        "Congestion control",
+        "Moving datagrams from the source host to the destination host across many routers"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Mux/demux, reliable data transfer, flow control and congestion control are transport-layer services. Carrying datagrams from host to host is the network layer's job (the postal service in the household analogy)."
+    },
+    {
+      "type": "mc",
+      "category": "Transport-layer services",
+      "q": "Many senders adjust how fast they send so that their combined rate does not overwhelm or exhaust network resources. Which transport-layer service is this?",
+      "choices": [
+        "Multiplexing",
+        "Congestion control",
+        "Demultiplexing",
+        "Connection setup"
+      ],
+      "answer": 1,
+      "explain": "Congestion control is about a group of senders adjusting their sending rates so that their total load does not overwhelm the network."
+    },
+    {
+      "type": "mc",
+      "category": "Transport vs. network layer",
+      "q": "The network layer provides logical communication between:",
+      "choices": [
+        "Processes",
+        "Sockets",
+        "Hosts",
+        "Applications on the same host"
+      ],
+      "answer": 2,
+      "explain": "Network layer = communication between hosts. Transport layer = communication between processes. This difference is the main split between the two layers."
+    },
+    {
+      "type": "tf",
+      "category": "Transport vs. network layer",
+      "q": "The transport layer relies on the network layer's services and can also enhance them.",
+      "answer": true,
+      "explain": "The transport layer sits on top of the network layer. For example, UDP is a no-frills extension of best-effort IP, while TCP adds reliable, in-order delivery on top of it."
+    },
+    {
+      "type": "mc",
+      "category": "Transport vs. network layer",
+      "q": "In the household analogy (12 kids in Ann's house send letters to 12 kids in Bill's house), what does the postal service stand for?",
+      "choices": [
+        "The transport-layer protocol",
+        "The network-layer protocol",
+        "The application processes",
+        "The sockets"
+      ],
+      "answer": 1,
+      "explain": "The postal service only moves letters from one house to another (host to host), which is the network layer's job. What happens inside each house is the transport layer's job."
+    },
+    {
+      "type": "mc",
+      "category": "Transport vs. network layer",
+      "q": "In the household analogy, what do Ann and Bill stand for?",
+      "choices": [
+        "Hosts",
+        "Application messages",
+        "The transport-layer protocol",
+        "The network-layer protocol"
+      ],
+      "answer": 2,
+      "explain": "Ann and Bill collect letters from the kids in their own house and hand out arriving letters to them. That is the transport layer's job. Houses = hosts, kids = processes, letters in envelopes = application messages, postal service = network layer."
+    },
+    {
+      "type": "mc",
+      "category": "Transport vs. network layer",
+      "q": "In the household analogy, which mapping is correct?",
+      "choices": [
+        "Hosts = kids, processes = houses",
+        "Hosts = houses, processes = kids",
+        "Hosts = letters, processes = envelopes",
+        "Hosts = the postal service, processes = Ann and Bill"
+      ],
+      "answer": 1,
+      "explain": "Each host (house) runs many processes (kids). Application messages are the letters in envelopes."
+    },
+    {
+      "type": "mc",
+      "category": "Transport vs. network layer",
+      "q": "A letter arrives at Ann's house and Ann gives it to the right child. Which networking function does this correspond to?",
+      "choices": [
+        "Routing at the network layer",
+        "Demultiplexing at the transport layer",
+        "Multiplexing at the transport layer",
+        "Congestion control"
+      ],
+      "answer": 1,
+      "explain": "Similarly, when a datagram arrives at a host, the host must deliver its contents to the right process. Doing that inside the host is transport-layer demultiplexing. The postal service (network layer) only gets the letter to the house."
+    },
+    {
+      "type": "mc",
+      "category": "Transport-layer actions",
+      "q": "In what order does the sending transport layer act?",
+      "choices": [
+        "Creates segment → determines segment header field values → is passed an application-layer message → passes segment to IP",
+        "Is passed an application-layer message → passes the message to IP → IP determines header fields → creates segment",
+        "Is passed an application-layer message → determines segment header field values → creates segment → passes segment to IP",
+        "Determines segment header field values → passes segment to IP → is passed an application-layer message → creates segment"
+      ],
+      "answer": 2,
+      "explain": "The application writes a message into a socket. The transport layer then fills in the segment header values, builds the segment (header + app message), and hands it to IP, which delivers it to the receiving host."
+    },
+    {
+      "type": "multi",
+      "category": "Transport-layer actions",
+      "q": "Which of the following are actions of the receiving transport layer?",
+      "choices": [
+        "Receives the segment from IP",
+        "Checks header values",
+        "Extracts the application-layer message",
+        "Demultiplexes the message up to the application via a socket",
+        "Determines the segment header field values"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "Determining header field values is a sender action. The receiver takes the segment from IP, checks the header, extracts the message and demultiplexes it to the correct socket."
+    },
+    {
+      "type": "mc",
+      "category": "Transport-layer actions",
+      "q": "One reason the receiving transport layer checks a segment's header values is to:",
+      "choices": [
+        "Choose the route the next segment will take",
+        "Make sure the segment has not been corrupted",
+        "Add a transport header for the network layer",
+        "Assign the sender a new IP address"
+      ],
+      "answer": 1,
+      "explain": "The receiver checks header fields, for example to confirm that the segment was not corrupted, before it extracts the message and demultiplexes it."
+    },
+    {
+      "type": "mc",
+      "category": "Transport-layer actions",
+      "q": "After building a segment, the sending transport layer passes it to:",
+      "choices": [
+        "The network layer (IP, in the Internet)",
+        "The application process through its socket",
+        "The link layer directly",
+        "The receiving host's transport layer directly"
+      ],
+      "answer": 0,
+      "explain": "The segment goes down to IP. The network layer is responsible for delivering the IP datagram from the sending host to the receiving host."
+    },
+    {
+      "type": "mc",
+      "category": "Transport-layer actions",
+      "q": "A slide shows a packet as \"Hn Ht HTTP msg\". Which statement is correct?",
+      "choices": [
+        "Hn is the transport header and Ht is the network-layer header",
+        "Ht is the transport-layer header, and Hn is the network-layer header placed in front of the segment",
+        "Both Hn and Ht are parts of the HTTP application message",
+        "Ht is added by the receiving host's transport layer"
+      ],
+      "answer": 1,
+      "explain": "The sending transport layer adds Ht to the HTTP message to form a segment. The network layer then adds Hn to form a datagram. The receiver removes them in reverse order."
+    },
+    {
+      "type": "multi",
+      "category": "TCP and UDP services",
+      "q": "Which services does TCP provide?",
+      "choices": [
+        "Reliable, in-order delivery",
+        "Congestion control",
+        "Flow control",
+        "Connection setup",
+        "Delay guarantees",
+        "Bandwidth guarantees"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "TCP: reliable in-order delivery, congestion control, flow control, connection setup. No Internet transport protocol provides delay or bandwidth guarantees."
+    },
+    {
+      "type": "mc",
+      "category": "TCP and UDP services",
+      "q": "Which description best fits UDP?",
+      "choices": [
+        "Reliable, connection-oriented transport with congestion control",
+        "Reliable delivery, but with no ordering guarantee",
+        "Guaranteed bandwidth with no connection setup",
+        "Unreliable, unordered delivery; a no-frills extension of best-effort IP"
+      ],
+      "answer": 3,
+      "explain": "UDP is a connectionless, best-effort service: delivery is unreliable and unordered, and it adds very little on top of IP."
+    },
+    {
+      "type": "multi",
+      "category": "TCP and UDP services",
+      "q": "Which services are NOT available from either TCP or UDP?",
+      "choices": [
+        "Delay guarantees",
+        "Bandwidth guarantees",
+        "Reliable, in-order delivery",
+        "Congestion control"
+      ],
+      "answer": [0, 1],
+      "explain": "TCP provides reliable in-order delivery and congestion control. Neither Internet transport protocol guarantees delay or bandwidth."
+    },
+    {
+      "type": "mc",
+      "category": "TCP and UDP services",
+      "q": "An interactive voice (phone call) application wants a guaranteed upper bound on the time between writing a message into a socket and its arrival at the other end. Which Internet transport protocol offers this?",
+      "choices": [
+        "TCP",
+        "UDP",
+        "Both TCP and UDP",
+        "Neither TCP nor UDP"
+      ],
+      "answer": 3,
+      "explain": "Delay guarantees would be valuable for interactive voice, but no Internet transport protocol provides them."
+    },
+    {
+      "type": "mc",
+      "category": "TCP and UDP services",
+      "q": "A streaming-video service wants a guaranteed rate, in megabits per second, between sender and receiver. What kind of service is this, and does the Internet transport layer provide it?",
+      "choices": [
+        "A bandwidth guarantee; provided by neither TCP nor UDP",
+        "A bandwidth guarantee; provided by TCP's congestion control",
+        "A delay guarantee; provided by UDP",
+        "Reliable data transfer; provided by TCP"
+      ],
+      "answer": 0,
+      "explain": "A guaranteed throughput between sender and receiver is a bandwidth guarantee. Like delay guarantees, it is not available from TCP or UDP."
+    },
+    {
+      "type": "text",
+      "category": "TCP and UDP services",
+      "q": "What does the acronym TCP stand for?",
+      "answer": ["Transmission Control Protocol"],
+      "explain": "TCP = Transmission Control Protocol: the Internet's reliable, connection-oriented transport protocol."
+    },
+    {
+      "type": "text",
+      "category": "TCP and UDP services",
+      "q": "What does the acronym UDP stand for?",
+      "answer": ["User Datagram Protocol"],
+      "explain": "UDP = User Datagram Protocol: the Internet's connectionless, best-effort transport protocol."
+    },
+    {
+      "type": "tf",
+      "category": "TCP and UDP services",
+      "q": "To provide reliability, flow control and congestion control, TCP sets up a connection and keeps connection state at both the sender and the receiver.",
+      "answer": true,
+      "explain": "TCP's reliability, flow control and congestion control need connection state on both sides, so TCP sets up a connection first."
+    },
+    {
+      "type": "tf",
+      "category": "TCP and UDP services",
+      "q": "UDP guarantees that messages arrive in the order they were sent.",
+      "answer": false,
+      "explain": "UDP delivery is unreliable and unordered. Messages may be lost or arrive out of order."
+    },
+    {
+      "type": "mc",
+      "category": "Multiplexing and demultiplexing",
+      "q": "What is demultiplexing at the receiving host?",
+      "choices": [
+        "Collecting data from several sockets and adding transport headers",
+        "Choosing the route a datagram takes through the network",
+        "Using header information to deliver received segments to the correct socket",
+        "Splitting a large message into several segments"
+      ],
+      "answer": 2,
+      "explain": "Demultiplexing (receiver) uses header info to deliver each received segment to the correct socket. Collecting data from sockets and adding headers is multiplexing (sender)."
+    },
+    {
+      "type": "mc",
+      "category": "Multiplexing and demultiplexing",
+      "q": "What is multiplexing at the sending host?",
+      "choices": [
+        "Handling data from multiple sockets and adding a transport header, which is later used for demultiplexing",
+        "Using header information to pick the socket for an arriving segment",
+        "Sending the same segment to many destination hosts at once",
+        "Combining several segments into one IP datagram"
+      ],
+      "answer": 0,
+      "explain": "The sender's transport layer gathers data from many sockets into segments and passes them down to the network layer. The header it adds carries the information the receiver needs for demultiplexing. Note that each IP datagram carries only one segment."
+    },
+    {
+      "type": "tf",
+      "category": "Multiplexing and demultiplexing",
+      "q": "Multiplexing and demultiplexing happen only at the transport layer.",
+      "answer": false,
+      "explain": "Multiplexing and demultiplexing happen at all layers of the protocol stack. They come up again at the network and link layers."
+    },
+    {
+      "type": "tf",
+      "category": "Multiplexing and demultiplexing",
+      "q": "Demultiplexing in a host can direct an arriving payload to one of several protocols running in that host, not only to one of several applications.",
+      "answer": true,
+      "explain": "Payloads arriving at a host may be headed for different applications or for different protocols running in that host. Sending each one to the right place is demultiplexing."
+    },
+    {
+      "type": "multi",
+      "category": "Multiplexing and demultiplexing",
+      "q": "When a host receives an IP datagram, which values can it use to send the segment inside to the appropriate socket?",
+      "choices": [
+        "Source IP address",
+        "Destination IP address",
+        "Source port number",
+        "Destination port number",
+        "The name of the destination application (e.g., \"firefox\")"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "The host uses IP addresses and port numbers to direct segments to sockets. The headers don't carry application names. Which of these values are actually used depends on the protocol: UDP uses the destination port only, TCP uses all four."
+    },
+    {
+      "type": "mc",
+      "category": "Multiplexing and demultiplexing",
+      "q": "Where are the source and destination port numbers carried?",
+      "choices": [
+        "In the IP datagram header, next to the IP addresses",
+        "Inside the application message",
+        "Only in the sockets; they are never sent",
+        "In the transport-layer (TCP/UDP) segment header"
+      ],
+      "answer": 3,
+      "explain": "The IP datagram carries the source and destination IP addresses. The segment it carries has source and destination port numbers as the first fields of its header."
+    },
+    {
+      "type": "num",
+      "category": "Multiplexing and demultiplexing",
+      "q": "In the TCP/UDP segment format, the first 32-bit row of the header holds the source port # and the destination port # side by side, each filling half the row. How many bits is each port number field?",
+      "answer": 16,
+      "explain": "32 bits split evenly between the two fields gives 16 bits each."
+    },
+    {
+      "type": "tf",
+      "category": "Multiplexing and demultiplexing",
+      "q": "Each IP datagram carries one transport-layer segment.",
+      "answer": true,
+      "explain": "Each datagram has source and destination IP addresses and carries exactly one transport-layer segment, which has source and destination port numbers."
+    },
+    {
+      "type": "mc",
+      "category": "Multiplexing and demultiplexing",
+      "q": "At an airport, business-class passengers are sent one way and economy another, and TSA PreCheck passengers go to a separate line. Which concept does this splitting and directing illustrate?",
+      "choices": [
+        "Multiplexing",
+        "Demultiplexing",
+        "Congestion control",
+        "Reliable data transfer"
+      ],
+      "answer": 1,
+      "explain": "Splitting one incoming stream and directing each item to its own class of service is demultiplexing. Highway exit ramps are another example. On-ramps merging cars onto a highway are an example of multiplexing."
+    },
+    {
+      "type": "mc",
+      "category": "Multiplexing and demultiplexing",
+      "q": "Cars from several on-ramps merging onto a single highway best illustrate:",
+      "choices": [
+        "Demultiplexing",
+        "Connection setup",
+        "Multiplexing",
+        "Flow control"
+      ],
+      "answer": 2,
+      "explain": "Many inputs funneled into one shared path is multiplexing, just like many sockets' data going down through the transport layer into IP."
+    },
+    {
+      "type": "mc",
+      "category": "Multiplexing and demultiplexing",
+      "q": "A client is running Skype, Netflix and Firefox when an HTTP reply arrives from a web server. How does the client's transport layer know to deliver the message to Firefox?",
+      "choices": [
+        "It reads the HTTP message to see which application requested it",
+        "It uses the segment's header information (port numbers, plus IP addresses) to identify Firefox's socket",
+        "The network layer hands the message directly to Firefox",
+        "It delivers a copy to every application and lets each one decide"
+      ],
+      "answer": 1,
+      "explain": "Demultiplexing uses header field values, not application data. The port numbers (with the IP addresses, for TCP) identify the socket that belongs to the browser."
+    },
+    {
+      "type": "mc",
+      "category": "UDP (connectionless) demultiplexing",
+      "q": "Which field(s) does a receiving host use to demultiplex a UDP segment to a socket?",
+      "choices": [
+        "Destination port number only",
+        "Source and destination port numbers",
+        "Source IP address and source port number",
+        "All four: source/destination IP addresses and source/destination port numbers"
+      ],
+      "answer": 0,
+      "explain": "UDP demultiplexing checks the destination port number and directs the segment to the socket that has that port number. TCP is the protocol that uses the full 4-tuple."
+    },
+    {
+      "type": "tf",
+      "category": "UDP (connectionless) demultiplexing",
+      "q": "Two UDP datagrams arrive at a host with the same destination port number but different source IP addresses and different source port numbers. They are delivered to the same socket.",
+      "answer": true,
+      "explain": "UDP demultiplexes on the destination port number only. Datagrams with the same destination port go to the same socket, wherever they came from."
+    },
+    {
+      "type": "mc",
+      "category": "UDP (connectionless) demultiplexing",
+      "q": "In the code `DatagramSocket mySocket1 = new DatagramSocket(12534);`, what is 12534?",
+      "choices": [
+        "The destination port number of the remote host",
+        "The destination IP address",
+        "The host-local port number of the new socket",
+        "The maximum segment size"
+      ],
+      "answer": 2,
+      "explain": "When you create a UDP socket you must give it a host-local port number. Arriving UDP segments whose destination port is 12534 are delivered to this socket."
+    },
+    {
+      "type": "multi",
+      "category": "UDP (connectionless) demultiplexing",
+      "q": "When a program creates a datagram to send into a UDP socket, what must it specify?",
+      "choices": [
+        "The destination IP address",
+        "The destination port number",
+        "A connection identifier obtained from a handshake",
+        "The remote host's source port number"
+      ],
+      "answer": [0, 1],
+      "explain": "Every UDP datagram must name its destination IP address and destination port number. UDP is connectionless, so there is no handshake and no connection identifier."
+    },
+    {
+      "type": "mc",
+      "category": "UDP (connectionless) demultiplexing",
+      "q": "Process P3 has a UDP socket bound to port 9157 and sends a datagram to process P1, whose UDP socket is bound to port 6428. P1 replies to P3. What port numbers does the reply carry?",
+      "choices": [
+        "source 9157, dest 6428",
+        "source 6428, dest 9157",
+        "source 6428, dest 6428",
+        "source 9157, dest 9157"
+      ],
+      "answer": 1,
+      "explain": "The original datagram has source 9157 and dest 6428. In the reply the two are swapped: P1's socket port 6428 becomes the source, and the destination 9157 comes from the source port of the datagram being answered."
+    },
+    {
+      "type": "num",
+      "category": "UDP (connectionless) demultiplexing",
+      "q": "Process P4 has a UDP socket bound to port 5775 and sends a datagram to process P1, whose UDP socket is bound to port 6428. What destination port number does P4's datagram carry?",
+      "answer": 6428,
+      "explain": "The destination port is the port of the receiving socket (P1's, 6428). The source port is P4's own socket port, 5775."
+    },
+    {
+      "type": "num",
+      "category": "UDP (connectionless) demultiplexing",
+      "q": "Continuing: P1 (UDP port 6428) replies to the datagram from P4 (UDP port 5775). What destination port number does P1's reply carry?",
+      "answer": 5775,
+      "explain": "The reply goes back to P4's socket, so its destination port is 5775, taken from the source port of the arriving datagram. Its source port is 6428."
+    },
+    {
+      "type": "mc",
+      "category": "UDP (connectionless) demultiplexing",
+      "q": "When a UDP process replies to a datagram it received, where does the reply's destination port number come from?",
+      "choices": [
+        "It is always the same as the replying process's own local port",
+        "It is chosen at random by the transport layer",
+        "From the source port number of the arriving datagram being replied to",
+        "From the network layer's routing table"
+      ],
+      "answer": 2,
+      "explain": "The source port of the arriving datagram identifies the sender's socket, so the reply uses it as its destination port."
+    },
+    {
+      "type": "num",
+      "category": "UDP (connectionless) demultiplexing",
+      "q": "A server has a UDP socket bound to port 5000. Host X and host Y (different IP addresses) each send datagrams to the server's port 5000, both from source port 3000. How many sockets at the server receive these datagrams?",
+      "answer": 1,
+      "explain": "UDP demultiplexes on the destination port only. Every datagram has destination port 5000, so they all go to the same socket."
+    },
+    {
+      "type": "multi",
+      "category": "TCP (connection-oriented) demultiplexing",
+      "q": "A TCP socket is identified by a 4-tuple. Which values make up that 4-tuple?",
+      "choices": [
+        "Source IP address",
+        "Source port number",
+        "Destination IP address",
+        "Destination port number",
+        "Length of the application payload"
+      ],
+      "answer": [0, 1, 2, 3],
+      "explain": "4-tuple = (source IP, source port, destination IP, destination port). The receiver uses all four values to direct a segment to the right socket."
+    },
+    {
+      "type": "tf",
+      "category": "TCP (connection-oriented) demultiplexing",
+      "q": "A TCP server can support many simultaneous TCP sockets, each identified by its own 4-tuple and each associated with a different connecting client.",
+      "answer": true,
+      "explain": "Because sockets are told apart by the full 4-tuple, a server can keep one socket per connecting client, even when they all use the same server port."
+    },
+    {
+      "type": "num",
+      "category": "TCP (connection-oriented) demultiplexing",
+      "q": "Web server B receives three TCP segments, all with destination IP B and destination port 80: one from (A, port 9157), one from (C, port 5775), and one from (C, port 9157). Into how many different sockets are they demultiplexed?",
+      "answer": 3,
+      "explain": "Each segment has a different 4-tuple, so each one goes to its own socket, even though all three share the destination IP B and port 80."
+    },
+    {
+      "type": "mc",
+      "category": "TCP (connection-oriented) demultiplexing",
+      "q": "Two TCP segments arrive at server B, port 80. One comes from host A, port 9157; the other comes from host C, also port 9157. Why are they delivered to different sockets?",
+      "choices": [
+        "TCP demultiplexes on the 4-tuple, and the two source IP addresses differ",
+        "TCP demultiplexes on the destination port only and assigns sockets round-robin",
+        "They are not; TCP delivers them to the same socket because the ports match",
+        "TCP compares the application data inside the segments"
+      ],
+      "answer": 0,
+      "explain": "The source ports and the destination (B, 80) are the same, but the source IPs (A and C) differ. That makes the 4-tuples different, so the segments go to different sockets."
+    },
+    {
+      "type": "mc",
+      "category": "TCP (connection-oriented) demultiplexing",
+      "q": "Suppose the three segments from (A, 9157), (C, 5775) and (C, 9157) were instead UDP datagrams sent to a single UDP socket bound to port 80 at server B. Where would they be delivered?",
+      "choices": [
+        "To three different sockets",
+        "To two sockets: one for host A and one for host C",
+        "All to the same socket",
+        "They would be dropped because the source ports repeat"
+      ],
+      "answer": 2,
+      "explain": "UDP demultiplexes on the destination port only. All three have destination port 80, so all go to the same socket. This is the main difference from TCP's 4-tuple demultiplexing."
+    },
+    {
+      "type": "mc",
+      "category": "TCP (connection-oriented) demultiplexing",
+      "q": "Web server B (port 80) sends a reply to client A, whose TCP socket uses port 9157. What are the reply's source and destination (IP, port)?",
+      "choices": [
+        "source (A, 9157), dest (B, 80)",
+        "source (B, 9157), dest (A, 80)",
+        "source (B, 80), dest (A, 80)",
+        "source (B, 80), dest (A, 9157)"
+      ],
+      "answer": 3,
+      "explain": "The reply reverses the client's segment, which had source (A, 9157) and destination (B, 80)."
+    },
+    {
+      "type": "tf",
+      "category": "TCP (connection-oriented) demultiplexing",
+      "q": "For TCP, the receiver uses only the destination port number to choose the socket.",
+      "answer": false,
+      "explain": "Destination-port-only demultiplexing is UDP's method. TCP is connection-oriented and uses all four values of the 4-tuple."
+    },
+    {
+      "type": "mc",
+      "category": "TCP (connection-oriented) demultiplexing",
+      "q": "Why can't a busy TCP web server demultiplex on the destination port number alone?",
+      "choices": [
+        "Port number fields are too short to identify a server",
+        "Many clients connect to the same server port (e.g., 80), and each connection has its own socket, so the source IP and port are needed to tell the connections apart",
+        "TCP segments do not carry a destination port number",
+        "The destination port number changes with every segment"
+      ],
+      "answer": 1,
+      "explain": "All the clients' segments have the same destination port (80). Only the source IP address and source port differ, so TCP needs the full 4-tuple to find each connection's socket."
+    }
+  ]
+}

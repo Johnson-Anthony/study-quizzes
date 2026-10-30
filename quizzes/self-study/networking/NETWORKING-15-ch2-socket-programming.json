@@ -1,0 +1,647 @@
+{
+  "title": "Networking 15: Socket Programming with UDP and TCP",
+  "course": "NETWORKING",
+  "questions": [
+    {
+      "type": "mc",
+      "category": "Sockets and transport services",
+      "q": "In the Internet architecture, what is a socket?",
+      "choices": [
+        "A physical connector on the network interface card",
+        "The door between an application process and the end-to-end transport protocol",
+        "A table a router uses to forward packets",
+        "A link-layer buffer that holds frames before transmission"
+      ],
+      "answer": 1,
+      "explain": "A socket is the interface (door) between the application layer program and the transport layer underneath it. It is the only API between application code and the Internet's transport services."
+    },
+    {
+      "type": "mc",
+      "category": "Sockets and transport services",
+      "q": "In a host's protocol stack, which part is controlled by the application developer rather than by the operating system?",
+      "choices": [
+        "The transport layer",
+        "The network and link layers",
+        "The application process",
+        "Everything above the physical layer"
+      ],
+      "answer": 2,
+      "explain": "Application programs run in user space, outside the OS. The transport layer and everything below it are inside the operating system. The socket sits between the two."
+    },
+    {
+      "type": "multi",
+      "category": "Sockets and transport services",
+      "q": "Which of these describe the service a TCP socket gives an application?",
+      "choices": [
+        "Reliable data transfer",
+        "Bytes delivered in order, as a stream",
+        "Flow control and congestion control",
+        "No handshake before data is sent",
+        "The destination address must be attached to every message"
+      ],
+      "answer": [0, 1, 2],
+      "explain": "TCP provides reliable, in-order byte-stream transfer with flow and congestion control. Skipping the handshake and attaching a destination address to every packet are properties of UDP."
+    },
+    {
+      "type": "mc",
+      "category": "Sockets and transport services",
+      "q": "From the application's point of view, what does UDP provide?",
+      "choices": [
+        "Reliable, in-order byte-stream transfer",
+        "Reliable datagrams that may arrive out of order",
+        "Unreliable transfer of groups of bytes (datagrams) between client and server processes",
+        "A connection set up by a handshake, but with no reliability"
+      ],
+      "answer": 2,
+      "explain": "UDP is an unreliable datagram service with no connection. Datagrams may be lost or arrive out of order."
+    },
+    {
+      "type": "tf",
+      "category": "Sockets and transport services",
+      "q": "The Internet provides a directory service where a client can look up which server offers a service and which port it listens on.",
+      "answer": false,
+      "explain": "The Internet has no such directory. The client simply has to know the server's host name (or IP address) and port number. A host name is then translated to an IP address with DNS."
+    },
+    {
+      "type": "num",
+      "category": "Sockets and transport services",
+      "q": "What is the well-known port number of a DNS server?",
+      "answer": 53,
+      "explain": "Well-known ports include 80 for HTTP, 25 for SMTP and 53 for DNS."
+    },
+    {
+      "type": "mc",
+      "category": "Sockets and transport services",
+      "q": "Which pairing of protocols with their well-known port numbers is correct?",
+      "choices": [
+        "HTTP: 25, SMTP: 80",
+        "HTTP: 80, SMTP: 25",
+        "HTTP: 53, SMTP: 25",
+        "HTTP: 80, SMTP: 53"
+      ],
+      "answer": 1,
+      "explain": "HTTP uses port 80, SMTP uses port 25 and DNS uses port 53."
+    },
+    {
+      "type": "mc",
+      "category": "Sockets and transport services",
+      "q": "A client knows only a server's host name, not its IP address. What has to happen before packets can be addressed to the server?",
+      "choices": [
+        "The client broadcasts the host name and waits for the server to answer",
+        "The host name is translated to an IP address by a query to the local DNS server",
+        "The server registers itself with the client's operating system",
+        "Nothing: the network layer routes packets by host name"
+      ],
+      "answer": 1,
+      "explain": "Packets are addressed by IP address, so a host name has to be resolved through DNS first."
+    },
+    {
+      "type": "tf",
+      "category": "UDP sockets",
+      "q": "With UDP sockets, the client and server perform a handshake before any application data is sent.",
+      "answer": false,
+      "explain": "UDP has no connection between client and server, so there is no handshake before data is sent."
+    },
+    {
+      "type": "mc",
+      "category": "UDP sockets",
+      "q": "Why does a UDP sender have to attach the destination IP address and port number to every packet it sends?",
+      "choices": [
+        "UDP encrypts each packet separately",
+        "UDP requires the server to acknowledge each packet",
+        "There is no connection between client and server, so the socket has no fixed destination",
+        "The operating system changes the destination port after every packet"
+      ],
+      "answer": 2,
+      "explain": "Without a connection, the UDP socket isn't tied to a particular peer, so every datagram has to carry its destination address and port explicitly (for example, the address argument to sendto())."
+    },
+    {
+      "type": "mc",
+      "category": "UDP sockets",
+      "q": "When a UDP server receives a datagram, how does it learn where to send its reply?",
+      "choices": [
+        "It looks up the client in a DNS directory",
+        "It extracts the sender's IP address and port number from the received packet",
+        "It reads them from the connection set up during the handshake",
+        "It always replies to port 12000 on the client"
+      ],
+      "answer": 1,
+      "explain": "The receiver extracts the sender's IP address and port from the received packet. In Python, recvfrom() returns them as clientAddress, and the server passes that to sendto()."
+    },
+    {
+      "type": "tf",
+      "category": "UDP sockets",
+      "q": "Data sent over a UDP socket may be lost or may arrive out of order.",
+      "answer": true,
+      "explain": "UDP is unreliable: transmitted data may be lost or received out of order."
+    },
+    {
+      "type": "mc",
+      "category": "UDP sockets",
+      "q": "In socket(AF_INET, SOCK_DGRAM), what does SOCK_DGRAM specify?",
+      "choices": [
+        "The socket uses IPv4",
+        "The socket is a TCP socket",
+        "The socket is a UDP (datagram) socket",
+        "The socket will be bound to a well-known port"
+      ],
+      "answer": 2,
+      "explain": "SOCK_DGRAM gives you a UDP datagram socket. SOCK_STREAM gives you a TCP socket. AF_INET is the argument that means an IPv4 Internet socket."
+    },
+    {
+      "type": "mc",
+      "category": "UDP sockets",
+      "q": "In a socket() call, what does AF_INET indicate?",
+      "choices": [
+        "An Internet socket that uses IPv4",
+        "A UDP socket",
+        "A socket that works only on the local machine",
+        "A socket bound to port 80"
+      ],
+      "answer": 0,
+      "explain": "When sockets were invented there were many kinds of network layers. AF_INET picks an Internet socket that uses IP version 4."
+    },
+    {
+      "type": "tf",
+      "category": "UDP sockets",
+      "q": "A UDP client has to call bind() to choose a port number before it can send a datagram.",
+      "answer": false,
+      "explain": "The client doesn't give a port number when it creates its socket. The operating system assigns one. A client can call bind() if it wants a specific port, but it doesn't have to."
+    },
+    {
+      "type": "mc",
+      "category": "UDP sockets",
+      "q": "In the example UDP server, which socket does the server use to send its reply?",
+      "choices": [
+        "A new socket created for each client",
+        "A socket created by recvfrom()",
+        "The same serverSocket it reads datagrams from",
+        "The client's socket, which arrives inside the datagram"
+      ],
+      "answer": 2,
+      "explain": "A UDP server reads from and writes to the same socket (serverSocket). It names the client's address in each sendto() call."
+    },
+    {
+      "type": "mc",
+      "category": "UDP sockets",
+      "q": "Why does the UDP server call bind() while the UDP client doesn't?",
+      "choices": [
+        "bind() is the call that sends the first datagram",
+        "Clients reach the server at a known port (12000), so the server can't let the OS pick an arbitrary port",
+        "The client's operating system doesn't allow bind()",
+        "bind() converts the server's host name to an IP address"
+      ],
+      "answer": 1,
+      "explain": "Clients send to the server's known port, so the server binds its socket to port 12000. The client can accept whatever port the OS assigns."
+    },
+    {
+      "type": "mc",
+      "category": "UDP sockets",
+      "q": "The UDP client calls clientSocket.sendto(message.encode(), (serverName, serverPort)), where serverName is a host name, not an IP address. Where is the name converted to an IP address?",
+      "choices": [
+        "In the server, after the datagram arrives",
+        "Inside the sendto() call, which does a DNS lookup",
+        "Nowhere: UDP datagrams are routed by host name",
+        "In a bind() call the client made earlier"
+      ],
+      "answer": 1,
+      "explain": "sendto() resolves the host name to an IP address for you, using DNS."
+    },
+    {
+      "type": "multi",
+      "category": "TCP sockets",
+      "q": "What has to be true before a TCP client can contact a server?",
+      "choices": [
+        "The server process is already running",
+        "The server has created a welcoming socket for clients to contact",
+        "The server has already created a connection socket for that client",
+        "The client has bound its socket to the server's port number"
+      ],
+      "answer": [0, 1],
+      "explain": "The server has to be running and must already have a welcoming (listening) socket. The connection socket for a client is created only after that client makes contact."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sockets",
+      "q": "When a new client contacts a TCP server, what does the server's TCP do?",
+      "choices": [
+        "Sends all of that client's data through the welcoming socket",
+        "Closes the welcoming socket until the client disconnects",
+        "Gives the client a new well-known port number",
+        "Creates a new socket dedicated to communicating with that particular client"
+      ],
+      "answer": 3,
+      "explain": "Each time a client makes contact, server TCP creates a new socket for talking to that client. This lets the server talk with several clients at once."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sockets",
+      "q": "What port number does the new socket created for a TCP client (the connection socket) have?",
+      "choices": [
+        "A random port chosen by the server's OS",
+        "The client's port number",
+        "The same port number as the welcoming (listening) socket",
+        "The welcoming socket's port number plus one"
+      ],
+      "answer": 2,
+      "explain": "The connection socket has the same port number as the welcoming socket. Connections are told apart by the client's IP address and port (demultiplexing, covered in Chapter 3)."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sockets",
+      "q": "Many clients connect to the same port on a TCP server. What is used to tell their connections apart?",
+      "choices": [
+        "Each client's source IP address and port number",
+        "The order in which the clients connected",
+        "The size of each client's first message",
+        "Each client's DNS name"
+      ],
+      "answer": 0,
+      "explain": "The client's source port number and IP address distinguish the connections."
+    },
+    {
+      "type": "tf",
+      "category": "TCP sockets",
+      "q": "After accept() returns, the TCP server should send its reply through the welcoming socket (serverSocket).",
+      "answer": false,
+      "explain": "The server talks to the client through the new socket that accept() returns (connectionSocket). The welcoming socket only receives the first contact from clients."
+    },
+    {
+      "type": "num",
+      "category": "TCP sockets",
+      "q": "A TCP server like the one in the example has just returned from accept() for its first client. How many sockets does the server process have open now?",
+      "answer": 2,
+      "explain": "It has two: the welcoming socket (serverSocket) and the connection socket that accept() created for this client."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sockets",
+      "q": "The server calls accept() on its welcoming socket, and no client has connected yet. What happens?",
+      "choices": [
+        "accept() returns None right away",
+        "The call blocks: the server waits inside accept() until a client connects",
+        "accept() raises an error",
+        "The server sends a connection request to all known clients"
+      ],
+      "answer": 1,
+      "explain": "accept() is a blocking call. The server waits in it until a client connects, and then it returns the new connection socket."
+    },
+    {
+      "type": "tf",
+      "category": "TCP sockets",
+      "q": "The handshake messages that set up a TCP connection are sent by the transport layer in the operating system, not by the application code.",
+      "answer": true,
+      "explain": "The handshake happens behind the scenes in TCP. When the client's connect() returns, the connection is already established."
+    },
+    {
+      "type": "mc",
+      "category": "TCP sockets",
+      "q": "How many sockets does the TCP client in the example create?",
+      "choices": [
+        "Two: a welcoming socket and a connection socket",
+        "One per message it sends",
+        "One: clientSocket, which it uses both to connect and to exchange messages",
+        "None: it uses the server's socket"
+      ],
+      "answer": 2,
+      "explain": "The client creates only clientSocket. The welcoming-socket/connection-socket split exists only on the server side."
+    },
+    {
+      "type": "tf",
+      "category": "TCP sockets",
+      "q": "In the example TCP server, once connectionSocket.close() has been called, the server can't accept any new clients.",
+      "answer": false,
+      "explain": "close() closes only the connection to this client. The welcoming socket stays open, so the loop goes back to accept() and waits for the next client."
+    },
+    {
+      "type": "mc",
+      "category": "Python socket code",
+      "q": "What does serverSocket.listen(1) do in the TCP server?",
+      "choices": [
+        "Reads one message from the client",
+        "Binds the socket to port 1",
+        "Makes the welcoming socket start listening for incoming TCP connection requests",
+        "Accepts exactly one client and then shuts the server down"
+      ],
+      "answer": 2,
+      "explain": "listen() puts the welcoming socket into listening mode so it can accept connection requests. It comes after bind() and before accept()."
+    },
+    {
+      "type": "text",
+      "category": "Python socket code",
+      "q": "Which socket method does the TCP client call to set up the connection to the server before it sends any data?",
+      "answer": ["connect", "connect()", "clientSocket.connect", "clientSocket.connect()"],
+      "explain": "clientSocket.connect((serverName, serverPort)). When it returns, the connection is established."
+    },
+    {
+      "type": "text",
+      "category": "Python socket code",
+      "q": "Which method, called on the TCP server's welcoming socket, returns a new socket for communicating with a client?",
+      "answer": ["accept", "accept()", "serverSocket.accept", "serverSocket.accept()"],
+      "explain": "connectionSocket, addr = serverSocket.accept(). It waits for a client and returns the new connection socket."
+    },
+    {
+      "type": "mc",
+      "category": "Python socket code",
+      "q": "The TCP client calls clientSocket.send(sentence.encode()) without naming the server, while the UDP client's sendto() includes (serverName, serverPort). Why?",
+      "choices": [
+        "TCP always sends to port 12000 by default",
+        "send() broadcasts to every host on the network",
+        "encode() stored the server's name inside the message",
+        "The TCP connection is already established, so the destination is known"
+      ],
+      "answer": 3,
+      "explain": "A connected TCP socket is attached to one particular peer, so there's no need to attach the server name and port to each send."
+    },
+    {
+      "type": "mc",
+      "category": "Python socket code",
+      "q": "In the examples, how is UDP's recvfrom() different from TCP's recv()?",
+      "choices": [
+        "recv() returns the data and the sender's address; recvfrom() returns only the data",
+        "recvfrom() returns the data and the sender's address; recv() returns only the data",
+        "recvfrom() works only on the server side",
+        "Only the server can call recv()"
+      ],
+      "answer": 1,
+      "explain": "UDP needs the sender's address in order to reply, so recvfrom() returns (message, address). On a TCP connection socket, recv() returns just the bytes."
+    },
+    {
+      "type": "mc",
+      "category": "Python socket code",
+      "q": "In what order does the example TCP server make its socket calls?",
+      "choices": [
+        "socket, listen, bind, accept, send, recv, close",
+        "socket, bind, listen, accept, recv, send, close",
+        "socket, accept, bind, listen, recv, send, close",
+        "socket, connect, bind, recv, send, close"
+      ],
+      "answer": 1,
+      "explain": "Create the welcoming socket, bind it to port 12000, listen, then loop: accept a client, recv its sentence, send the uppercased sentence back, and close the connection socket."
+    },
+    {
+      "type": "multi",
+      "category": "Python socket code",
+      "q": "Which calls appear in the TCP server example but not in the UDP server example?",
+      "choices": [
+        "listen()",
+        "accept()",
+        "bind()",
+        "socket()",
+        "sendto()"
+      ],
+      "answer": [0, 1],
+      "explain": "Both servers call socket() and bind(). Only the TCP server calls listen() and accept(). sendto() appears in the UDP server, not the TCP one."
+    },
+    {
+      "type": "mc",
+      "category": "Python socket code",
+      "q": "The server calls bind() on port 12000 while another process is already using that port. What happens?",
+      "choices": [
+        "The two processes share the port and split the incoming data",
+        "The OS quietly assigns a different port",
+        "bind() fails with an error",
+        "The other process is terminated"
+      ],
+      "answer": 2,
+      "explain": "bind() returns an error if the port is already in use. The example code doesn't check for this, although real code should."
+    },
+    {
+      "type": "mc",
+      "category": "Python socket code",
+      "q": "A student changes the UDP client's socket to socket(AF_INET, SOCK_STREAM) and leaves the rest of the UDP client code alone. Which step from the TCP client is still missing before data can be sent?",
+      "choices": [
+        "Calling clientSocket.listen(1)",
+        "Calling clientSocket.accept()",
+        "Calling clientSocket.bind(('', 12000))",
+        "Calling clientSocket.connect((serverName, serverPort))"
+      ],
+      "answer": 3,
+      "explain": "A TCP client has to connect() to the server before sending. listen() and accept() are server-side calls."
+    },
+    {
+      "type": "mc",
+      "category": "Python socket code",
+      "q": "Why do the examples call .encode() before sending and .decode() after receiving?",
+      "choices": [
+        "Sockets send and receive bytes, so strings are converted to bytes and back",
+        "To encrypt the message for security",
+        "To compress the message",
+        "To add the server's address to the message"
+      ],
+      "answer": 0,
+      "explain": "The socket carries bytes. encode() turns the string into bytes for sending, and decode() turns the received bytes back into a string."
+    },
+    {
+      "type": "mc",
+      "category": "Python socket code",
+      "q": "In the TCP server example, which variable holds the welcoming socket?",
+      "choices": [
+        "connectionSocket",
+        "serverSocket",
+        "addr",
+        "clientSocket"
+      ],
+      "answer": 1,
+      "explain": "serverSocket = socket(AF_INET, SOCK_STREAM) is the welcoming socket that gets bound and listens. connectionSocket is the per-client socket that accept() returns."
+    },
+    {
+      "type": "mc",
+      "category": "Timeouts and exceptions",
+      "q": "A program has to wait for replies from several different open sockets. Which approach does the material suggest?",
+      "choices": [
+        "settimeout() on its own",
+        "bind() the program to several ports",
+        "select() or multithreading",
+        "listen() with a larger number"
+      ],
+      "answer": 2,
+      "explain": "To wait for either a reply or a timeout, use a timer (settimeout()). To wait for replies from several sockets, use select() or multithreading."
+    },
+    {
+      "type": "mc",
+      "category": "Timeouts and exceptions",
+      "q": "A program calls s.settimeout(30) and then s.recv(), and no packet arrives within 30 seconds. What happens?",
+      "choices": [
+        "recv() returns an empty message and the program continues normally",
+        "recv() is interrupted and a timeout exception is raised",
+        "The socket closes itself and reopens",
+        "recv() keeps waiting until a packet arrives"
+      ],
+      "answer": 1,
+      "explain": "When the timer runs out, recv() is interrupted and raises a timeout exception. The program can catch it with try/except."
+    },
+    {
+      "type": "tf",
+      "category": "Timeouts and exceptions",
+      "q": "settimeout() applies only to the next operation on the socket, so it has to be called again before every recv().",
+      "answer": false,
+      "explain": "settimeout() sets a timeout on all future operations of that particular socket. The timer starts again each time recv() is called."
+    },
+    {
+      "type": "num",
+      "category": "Timeouts and exceptions",
+      "q": "A program calls s.settimeout(10). At t = 0 s it calls s.recv(), and a message arrives at t = 4 s. At t = 6 s it calls s.recv() again, and no packet ever arrives. At what time t, in seconds, is the timeout exception raised?",
+      "answer": 16,
+      "explain": "The timer stops when the first message arrives and starts again with the second recv() at t = 6. Ten seconds with no packet after that gives t = 16."
+    },
+    {
+      "type": "mc",
+      "category": "Timeouts and exceptions",
+      "q": "In a try-except block, when does the except block run?",
+      "choices": [
+        "Always, after the try block finishes",
+        "Only if the named exception is raised while the try block runs",
+        "Before the try block, to set up the handler",
+        "Only if the try block finishes without errors"
+      ],
+      "answer": 1,
+      "explain": "The except block runs only if the named exception occurs during the try block. Otherwise it is skipped."
+    },
+    {
+      "type": "mc",
+      "category": "Timeouts and exceptions",
+      "q": "An exception is raised partway through a try block. What happens to the rest of the statements in the try block?",
+      "choices": [
+        "They run first, and then the except block runs",
+        "The try block starts over from the top",
+        "They run after the except block finishes",
+        "They are skipped, and execution jumps directly into the except block"
+      ],
+      "answer": 3,
+      "explain": "When an exception is raised, execution jumps straight to the matching except block. The rest of the try block doesn't run."
+    },
+    {
+      "type": "mc",
+      "category": "Timeouts and exceptions",
+      "q": "In the villagers' TCP server (shepherd boy example), when does the 10-second timer start?",
+      "choices": [
+        "When connectionSocket.settimeout(10) is called",
+        "When serverSocket.listen(1) is called",
+        "When connectionSocket.recv() is called",
+        "When serverSocket.accept() returns"
+      ],
+      "answer": 2,
+      "explain": "settimeout(10) only sets the limit. The timer starts when recv() is called, and the timeout exception is raised if no message arrives within 10 seconds."
+    },
+    {
+      "type": "mc",
+      "category": "Timeouts and exceptions",
+      "q": "In the villagers' server, what makes the while counter < 3 loop end?",
+      "choices": [
+        "Three successful wolf reports",
+        "The boy closing his client socket once",
+        "Three timeouts, meaning the boy connected three times without sending a wolf location within 10 seconds",
+        "Ten connections from any client"
+      ],
+      "answer": 2,
+      "explain": "counter goes up only in the except timeout branch. After three timeouts the loop ends, and the villagers stop listening."
+    },
+    {
+      "type": "mc",
+      "category": "Timeouts and exceptions",
+      "q": "In the villagers' server, the boy connects and sends a wolf location within 10 seconds. What happens to counter?",
+      "choices": [
+        "It goes up by 1",
+        "It is reset to 0",
+        "It goes down by 1",
+        "It stays the same: a hunter is sent and the connection is closed"
+      ],
+      "answer": 3,
+      "explain": "No timeout occurs, so the try block finishes (send_hunter and the reply), the except block is skipped, and only the connection socket is closed."
+    },
+    {
+      "type": "mc",
+      "category": "Timeouts and exceptions",
+      "q": "In the villagers' server, settimeout(10) is called on connectionSocket. How does this affect serverSocket.accept()?",
+      "choices": [
+        "It doesn't: accept() on the welcoming socket still waits for a client with no timeout",
+        "accept() also times out after 10 seconds",
+        "accept() times out after 30 seconds",
+        "accept() is disabled until the connection socket closes"
+      ],
+      "answer": 0,
+      "explain": "A timeout applies to future operations on that specific socket only. Here that is the connection socket, not the welcoming socket."
+    },
+    {
+      "type": "multi",
+      "category": "Chapter 2 recap",
+      "q": "Which of these were named as important themes of the application-layer chapter?",
+      "choices": [
+        "Centralized vs. decentralized",
+        "Stateless vs. stateful",
+        "Scalability",
+        "Reliable vs. unreliable message transfer",
+        "Complexity at the network edge",
+        "Making routing decisions hop by hop in the network core"
+      ],
+      "answer": [0, 1, 2, 3, 4],
+      "explain": "The themes were: client/server request/reply, centralized vs. decentralized, stateless vs. stateful, scalability, reliable vs. unreliable message transfer, and complexity at the network edge."
+    },
+    {
+      "type": "mc",
+      "category": "Chapter 2 recap",
+      "q": "What does the theme \"complexity at the network edge\" mean?",
+      "choices": [
+        "Complexity goes into the end hosts rather than into the routers and switches deep inside the network",
+        "Routers at the edge of an ISP carry out most of the application logic",
+        "Edge networks have more complicated physical cabling than the core",
+        "Applications should avoid complex protocols at the edge"
+      ],
+      "answer": 0,
+      "explain": "Over and over, the chapter's applications put their complexity in the hosts at the edge, not in the network core."
+    },
+    {
+      "type": "mc",
+      "category": "Chapter 2 recap",
+      "q": "In the sample SMTP interaction, how does the client mark the end of the message body after the DATA command?",
+      "choices": [
+        "It sends the QUIT command",
+        "It sends an empty line",
+        "It sends a line containing only a period (.)",
+        "It waits for a 250 reply"
+      ],
+      "answer": 2,
+      "explain": "The server's 354 reply says to \"end with '.' on a line by itself\". After the client sends the lone period, the server replies \"250 Message accepted for delivery\"."
+    },
+    {
+      "type": "mc",
+      "category": "Chapter 2 recap",
+      "q": "In the sample SMTP interaction, what is the first command the client sends after the server's 220 greeting?",
+      "choices": [
+        "MAIL FROM",
+        "HELO",
+        "RCPT TO",
+        "DATA"
+      ],
+      "answer": 1,
+      "explain": "The sequence is HELO, MAIL FROM, RCPT TO, DATA, the message lines, \".\", and finally QUIT."
+    },
+    {
+      "type": "mc",
+      "category": "Chapter 2 recap",
+      "q": "Bob's local DNS server resolves http://netcinema.com/6Y7B23V, and the video is stored on the KingCDN CDN. What does netcinema's authoritative DNS server return?",
+      "choices": [
+        "The IP address of netcinema.com's web server",
+        "A CNAME pointing to a KingCDN.com name for the video",
+        "The video file itself",
+        "The address of Bob's local DNS server"
+      ],
+      "answer": 1,
+      "explain": "Netcinema's authoritative DNS returns a CNAME for the KingCDN.com name. KingCDN's authoritative DNS then resolves that name to a KingCDN server, and Bob streams the video from that server over HTTP."
+    },
+    {
+      "type": "mc",
+      "category": "Chapter 2 recap",
+      "q": "In the Netflix case study, what does Bob's client receive for the chosen video before it contacts a CDN server and starts streaming with DASH?",
+      "choices": [
+        "The full video file from the Amazon cloud",
+        "A CNAME record from Bob's local DNS",
+        "Account details from the registration servers",
+        "A manifest file for that specific video"
+      ],
+      "answer": 3,
+      "explain": "Bob browses videos (Amazon cloud), receives the manifest file for the video he picks, and then a DASH server (a CDN server) is chosen and contacted, and streaming begins."
+    }
+  ]
+}
