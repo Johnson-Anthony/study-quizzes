@@ -1,0 +1,725 @@
+{
+ "title": "CSC3710 Week 4: DFA to Regular Expression (State Elimination)",
+ "course": "CSC3710",
+ "source": "CSC3710 Week 4 JFLAP files dfa_to_regex01.jff, dfa_to_regex02.jff, dfa_to_regex03.jff and the Week 4 study lesson",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "Notation and algebra",
+   "q": "In the regular-expression notation used for state elimination, what does R + S mean?",
+   "choices": [
+    "The union of L(R) and L(S)",
+    "One or more copies of R, then S",
+    "R followed by S (concatenation)",
+    "Strings in both L(R) and L(S)"
+   ],
+   "answer": 0,
+   "explain": "+ is union. Concatenation is written RS, and 'one or more copies of R' is written RR*."
+  },
+  {
+   "type": "text",
+   "category": "Notation and algebra",
+   "q": "Simplify ∅* (the star of the empty language).",
+   "answer": [
+    "λ",
+    "lambda",
+    "ε",
+    "epsilon",
+    "empty string",
+    "the empty string"
+   ],
+   "explain": "Zero copies of anything gives the empty string, so ∅* = λ. That is why a removed state with no self-loop contributes λ (not ∅) as its loop factor."
+  },
+  {
+   "type": "mc",
+   "category": "Notation and algebra",
+   "q": "In this notation, how do you write 'one or more b's'?",
+   "choices": [
+    "bb*",
+    "b+",
+    "b*",
+    "b + λ"
+   ],
+   "answer": 0,
+   "explain": "Here + means union, so b+ is not 'one or more'. One b followed by any number of b's is bb*."
+  },
+  {
+   "type": "mc",
+   "category": "Notation and algebra",
+   "q": "Which expression is equal to b + aa*b?",
+   "choices": [
+    "a*b",
+    "aa*b",
+    "(a+b)*b",
+    "ab*"
+   ],
+   "answer": 0,
+   "explain": "Factor out b: b + aa*b = (λ + aa*)b, and λ + aa* = a*, so the result is a*b."
+  },
+  {
+   "type": "multi",
+   "category": "Notation and algebra",
+   "q": "Which of these are valid identities for all regular expressions R and S?",
+   "choices": [
+    "λ + RR* = R*",
+    "(R*)* = R*",
+    "(R + S)* = R* + S*",
+    "(RS)* = R*S*",
+    "R*R* = R*",
+    "∅* = ∅"
+   ],
+   "answer": [
+    0,
+    1,
+    4
+   ],
+   "explain": "With R = a and S = b: (a+b)* contains ab but a* + b* does not, and a*b* contains aab but (ab)* does not. ∅* = λ, not ∅."
+  },
+  {
+   "type": "tf",
+   "category": "Notation and algebra",
+   "q": "For every regular expression R, ∅R = ∅.",
+   "answer": true,
+   "explain": "Concatenating with the empty language gives no strings at all. A path through a missing edge does not exist."
+  },
+  {
+   "type": "multi",
+   "category": "Notation and algebra",
+   "q": "Remembering that * binds tighter than concatenation, which strings are in L(ab*)?",
+   "choices": [
+    "a",
+    "abbb",
+    "abab",
+    "b",
+    "ab"
+   ],
+   "answer": [
+    0,
+    1,
+    4
+   ],
+   "explain": "ab* means a(b*): one a followed by any number of b's. abab would need (ab)*."
+  },
+  {
+   "type": "mc",
+   "category": "Notation and algebra",
+   "q": "Using standard precedence (* first, then concatenation, then +), how is a + bc grouped?",
+   "choices": [
+    "a + (bc)",
+    "(a + b)c",
+    "a(b + c)",
+    "(a + b)(a + c)"
+   ],
+   "answer": 0,
+   "explain": "Concatenation binds tighter than +. This is why concatenating with a union label needs parentheses, as in a(a+b), not aa+b."
+  },
+  {
+   "type": "mc",
+   "category": "Setup",
+   "q": "Before eliminating states, why do you add a new state qf with λ-edges from each old final state?",
+   "choices": [
+    "The finishing step needs exactly one final state",
+    "A DFA is not allowed to have two final states",
+    "The λ-edges make the graph deterministic again",
+    "It deletes the states that cannot be reached"
+   ],
+   "answer": 0,
+   "explain": "Elimination ends with only the start state and a single final state. The λ-edges let each old final state reach qf without reading anything, so the language is unchanged."
+  },
+  {
+   "type": "mc",
+   "category": "Setup",
+   "q": "After adding qf and the λ-edges into it, what happens to the old final states?",
+   "choices": [
+    "They become non-final",
+    "They remain final too",
+    "They are deleted",
+    "They become start states"
+   ],
+   "answer": 0,
+   "explain": "qf is now the only final state. A string that used to end in an old final state is accepted by following that state's λ-edge to qf."
+  },
+  {
+   "type": "tf",
+   "category": "Setup",
+   "q": "Instead of adding a single new final state, you could solve separately for each final state and take the union of the resulting expressions.",
+   "answer": true,
+   "explain": "The language is the union of the strings ending in each final state, so the union of the per-final-state answers describes the same language."
+  },
+  {
+   "type": "tf",
+   "category": "Setup",
+   "q": "When eliminating states by hand, a missing edge can be treated as an edge labeled ∅.",
+   "answer": true,
+   "explain": "∅ + R = R and ∅R = R∅ = ∅, so an ∅ edge adds nothing and blocks any path through it, exactly like having no edge."
+  },
+  {
+   "type": "tf",
+   "category": "Setup",
+   "q": "DFA 01 over {a, b}: start q0; final q1, q3; transitions q0: a→q1, b→q2 | q1: a→q4, b→q1 | q2: a→q3, b→q2 | q3: a→q4, b→q2 | q4: a→q4, b→q3. State q4 loops to itself on a, so it is a dead state that can be deleted before elimination without changing the language.",
+   "answer": false,
+   "explain": "On b, q4 goes to q3, which is final, so q4 can still reach acceptance. For example aab is accepted by the path q0→q1→q4→q3. Deleting q4 would lose strings."
+  },
+  {
+   "type": "mc",
+   "category": "Setup",
+   "q": "Which states can be deleted before elimination without changing the language?",
+   "choices": [
+    "Unreachable states and states that can never reach a final state",
+    "States that have a self-loop and are not themselves final",
+    "Every non-final state with more than one incoming edge",
+    "States that can only be entered by reading the symbol a"
+   ],
+   "answer": 0,
+   "explain": "A state that can't be reached from the start, or that can't reach a final state, never lies on an accepting path, so removing it changes nothing."
+  },
+  {
+   "type": "mc",
+   "category": "Setup",
+   "q": "A graph has two edges from p to r, one labeled a and one labeled b. Merging them gives one edge labeled:",
+   "choices": [
+    "a+b",
+    "ab",
+    "(ab)*",
+    "a*b*"
+   ],
+   "answer": 0,
+   "explain": "Parallel edges mean 'read a or read b' to get from p to r, which is the union a+b."
+  },
+  {
+   "type": "mc",
+   "category": "Elimination rule",
+   "q": "When state q is removed, what is the new label on the edge p→r? (R_xy is the label on the edge from x to y.)",
+   "choices": [
+    "R_pr + R_pq (R_qq)* R_qr",
+    "R_pq (R_qq)* R_qr",
+    "R_pr + R_pq R_qq R_qr",
+    "R_pr (R_pq + R_qr)*"
+   ],
+   "answer": 0,
+   "explain": "Keep the existing direct edge R_pr, and add the paths that went into q, looped at q any number of times, then left to r."
+  },
+  {
+   "type": "mc",
+   "category": "Elimination rule",
+   "q": "Removing state q: p→q is labeled a, q has a self-loop labeled b, q→r is labeled c, and p→r already has the label d. What is the new p→r label?",
+   "choices": [
+    "d + ab*c",
+    "ab*c",
+    "d + abc",
+    "(d + a)b*c"
+   ],
+   "answer": 0,
+   "explain": "R_pr + R_pq (R_qq)* R_qr = d + ab*c. Dropping the existing d is the most common mistake."
+  },
+  {
+   "type": "mc",
+   "category": "Elimination rule",
+   "q": "Removing state q: p→q is labeled a, q has no self-loop, q→r is labeled a+b, and there is no existing p→r edge. What is the new p→r label?",
+   "choices": [
+    "a(a+b)",
+    "aa+b",
+    "a∅(a+b)",
+    "a(a+b)*"
+   ],
+   "answer": 0,
+   "explain": "No loop means the loop factor is ∅* = λ, which disappears. Parentheses are required: aa+b would mean (aa) + b. a∅(a+b) would equal ∅ and wrongly erase the path."
+  },
+  {
+   "type": "tf",
+   "category": "Elimination rule",
+   "q": "If the state being removed has no self-loop, the loop factor is ∅, so paths through that state are lost.",
+   "answer": false,
+   "explain": "The loop factor is (∅)* = λ, not ∅. It vanishes from the concatenation and the path survives as R_pq R_qr."
+  },
+  {
+   "type": "num",
+   "category": "Elimination rule",
+   "q": "You are about to remove state q. Three other states have edges into q, and q has edges out to two other states (ignoring q's own self-loop). At most how many edge labels does this step create or change?",
+   "answer": 6,
+   "explain": "One label for each (predecessor, successor) pair: 3 × 2 = 6. If a state is on both sides, one of those pairs is its own self-loop."
+  },
+  {
+   "type": "tf",
+   "category": "Elimination rule",
+   "q": "If p has an edge into q and q has an edge back to p, then removing q creates or extends a self-loop on p.",
+   "answer": true,
+   "explain": "The pair (p, p) is covered by the rule: R'_pp = R_pp + R_pq (R_qq)* R_qp, which is a self-loop on p."
+  },
+  {
+   "type": "mc",
+   "category": "Elimination rule",
+   "q": "Which state is usually the best one to eliminate next?",
+   "choices": [
+    "The one with the fewest in-edges × out-edges",
+    "The one with the most in-edges × out-edges",
+    "The start state, since it has no in-edges",
+    "The final state, since it has no out-edges"
+   ],
+   "answer": 0,
+   "explain": "Cheap states produce few new labels. Leave busy hub states for last. The start and final states are never eliminated."
+  },
+  {
+   "type": "mc",
+   "category": "Elimination rule",
+   "q": "In a generalized transition graph (GTG), edges are labeled with:",
+   "choices": [
+    "Regular expressions",
+    "Single symbols only",
+    "Sets of states",
+    "Pairs of input symbols"
+   ],
+   "answer": 0,
+   "explain": "A GTG is like an NFA whose edge labels are regular expressions. Following an edge labeled R reads any string in L(R)."
+  },
+  {
+   "type": "mc",
+   "category": "Two-state finish",
+   "q": "Two states remain: start i and final f. The loop on i is r1, i→f is r2, f→i is r3, and the loop on f is r4. Which expression is correct?",
+   "choices": [
+    "(r1* r2 r4* r3)* r1* r2 r4*",
+    "(r1* r2 r3 r4*)* r2 r4*",
+    "(r1 + r2 + r3 + r4)*",
+    "r1* r2* r3* r4*"
+   ],
+   "answer": 0,
+   "explain": "Go from i to f and back any number of times (r1* r2 r4* r3)*, then make the final trip r1* r2 r4*."
+  },
+  {
+   "type": "tf",
+   "category": "Two-state finish",
+   "q": "With labels r1 (loop on i), r2 (i→f), r3 (f→i), and r4 (loop on f), the expressions (r1* r2 r4* r3)* r1* r2 r4* and r1* r2 (r4 + r3 r1* r2)* describe the same language.",
+   "answer": true,
+   "explain": "Both describe every path from i to f. The second form reaches f once with r1* r2, then repeatedly either loops at f (r4) or goes back to i and returns (r3 r1* r2)."
+  },
+  {
+   "type": "mc",
+   "category": "Two-state finish",
+   "q": "In the two-state formula, if r1 = r3 = r4 = ∅, the expression reduces to:",
+   "choices": [
+    "r2",
+    "∅",
+    "r2*",
+    "λ"
+   ],
+   "answer": 0,
+   "explain": "The starred group contains ∅, so it is ∅* = λ. Also r1* = r4* = ∅* = λ, leaving λ r2 λ = r2."
+  },
+  {
+   "type": "mc",
+   "category": "Two-state finish",
+   "q": "For each of DFAs 01, 02, and 03, the state-elimination answer is just the label on the single edge q0→qf. Why?",
+   "choices": [
+    "q0 has no incoming edges and qf has no outgoing edges",
+    "Each λ-edge cancels the self-loops on q0 and on qf",
+    "Merging parallel edges removes all edges back into q0",
+    "q0 and qf are both final, so their loops are empty"
+   ],
+   "answer": 0,
+   "explain": "No edges enter q0 (so no loop on q0 and no qf→q0 edge), and the new qf has no out-edges (so no loop on qf). That makes r1 = r3 = r4 = ∅, leaving r2."
+  },
+  {
+   "type": "mc",
+   "category": "Two-state finish",
+   "q": "Two states remain with r1 = a (loop on start), r2 = b (start→final), r3 = ∅ (no final→start edge), and r4 = a (loop on final). Using (r1* r2 r4* r3)* r1* r2 r4*, what does the expression simplify to?",
+   "choices": [
+    "a*ba*",
+    "(a*ba*)*",
+    "a*b",
+    "ba*"
+   ],
+   "answer": 0,
+   "explain": "The group a*ba*∅ equals ∅, and ∅* = λ. What remains is r1* r2 r4* = a*ba*."
+  },
+  {
+   "type": "tf",
+   "category": "Two-state finish",
+   "q": "The start state and the single final state are never eliminated. Elimination stops when only those two remain.",
+   "answer": true,
+   "explain": "The answer is read from the edges between the start state and the final state, so both must survive. JFLAP refuses to collapse either one."
+  },
+  {
+   "type": "multi",
+   "category": "DFA 01",
+   "q": "DFA 01 over {a, b}: start q0; final q1, q3; transitions q0: a→q1, b→q2 | q1: a→q4, b→q1 | q2: a→q3, b→q2 | q3: a→q4, b→q2 | q4: a→q4, b→q3. After setup (new final state qf with λ-edges from q1 and q3), you remove q1 first. Which labels result?",
+   "choices": [
+    "q0→q4 = ab*a",
+    "q0→qf = ab*",
+    "q0→qf = a",
+    "q0→q4 = aa",
+    "q1→qf = b*"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "q1 has one in-edge (from q0, a), a loop b, and out-edges to q4 (a) and qf (λ). That gives 1 × 2 = 2 labels: ab*a and ab*λ = ab*."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 01",
+   "q": "DFA 01 over {a, b}: start q0; final q1, q3; transitions q0: a→q1, b→q2 | q1: a→q4, b→q1 | q2: a→q3, b→q2 | q3: a→q4, b→q2 | q4: a→q4, b→q3. After setup and removing q1, you remove q2. Which new self-loop appears?",
+   "choices": [
+    "q3→q3 labeled bb*a",
+    "q2→q2 labeled bb*",
+    "q3→q3 labeled ba",
+    "q0→q0 labeled bb*a"
+   ],
+   "answer": 0,
+   "explain": "q3 is both a predecessor (q3→q2 on b) and a successor (q2→q3 on a) of q2. With q2's loop b, the pair (q3, q3) gets b b* a = bb*a."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 01",
+   "q": "DFA 01 over {a, b}: start q0; final q1, q3; transitions q0: a→q1, b→q2 | q1: a→q4, b→q1 | q2: a→q3, b→q2 | q3: a→q4, b→q2 | q4: a→q4, b→q3. After setup and removing q1 then q2, the graph has q0→q3 = bb*a, q0→q4 = ab*a, q0→qf = ab*, q3→q3 = bb*a, q3→q4 = a, q3→qf = λ, q4→q4 = a, q4→q3 = b. You now remove q4. What is the new q3→q3 label?",
+   "choices": [
+    "bb*a + aa*b",
+    "aa*b",
+    "bb*a + ab",
+    "bb*aaa*b"
+   ],
+   "answer": 0,
+   "explain": "Existing loop bb*a, plus q3→q4 (a), q4's loop (a*), q4→q3 (b): bb*a + aa*b."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 01",
+   "q": "DFA 01 over {a, b}: start q0; final q1, q3; transitions q0: a→q1, b→q2 | q1: a→q4, b→q1 | q2: a→q3, b→q2 | q3: a→q4, b→q2 | q4: a→q4, b→q3. Eliminating in the order q1, q2, q4, q3 gives which expression?",
+   "choices": [
+    "ab* + (bb*a + ab*aa*b)(bb*a + aa*b)*",
+    "ab* + (bb*a + ab*aa*b)(bb*a + aa*b)",
+    "ab* + (bb*a + aa*b)(bb*a + ab*aa*b)*",
+    "(ab* + bb*a + ab*aa*b)(bb*a + aa*b)*"
+   ],
+   "answer": 0,
+   "explain": "q0→qf is ab*, plus the q0→q3 label (bb*a + ab*aa*b), then q3's loop starred (bb*a + aa*b)*, then the λ-edge to qf. The ungrouped version wrongly accepts abba, and the unstarred one misses ba."
+  },
+  {
+   "type": "multi",
+   "category": "DFA 01",
+   "q": "DFA 01 over {a, b}: start q0; final q1, q3; transitions q0: a→q1, b→q2 | q1: a→q4, b→q1 | q2: a→q3, b→q2 | q3: a→q4, b→q2 | q4: a→q4, b→q3. Which strings does it accept?",
+   "choices": [
+    "aabab",
+    "aba",
+    "bba",
+    "baabb",
+    "aaab",
+    "abba"
+   ],
+   "answer": [
+    0,
+    2,
+    4
+   ],
+   "explain": "aabab: q1, q4, q3, q4, q3 (accept). aba: q1, q1, q4 (reject). bba: q2, q2, q3 (accept). baabb: q2, q3, q4, q3, q2 (reject). aaab: q1, q4, q4, q3 (accept). abba: q1, q1, q1, q4 (reject)."
+  },
+  {
+   "type": "num",
+   "category": "DFA 01",
+   "q": "DFA 01 over {a, b}: start q0; final q1, q3; transitions q0: a→q1, b→q2 | q1: a→q4, b→q1 | q2: a→q3, b→q2 | q3: a→q4, b→q2 | q4: a→q4, b→q3. After adding qf with λ-edges from q1 and q3 (there are no parallel edges), JFLAP requires an edge for every ordered pair of states, including each state to itself, and fills the gaps with ∅. How many ∅ edges must be added?",
+   "answer": 24,
+   "explain": "6 states give 6² = 36 ordered pairs. There are 10 DFA transitions plus 2 λ-edges = 12 real edges, so 36 − 12 = 24."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 01",
+   "q": "DFA 01 over {a, b}: start q0; final q1, q3; transitions q0: a→q1, b→q2 | q1: a→q4, b→q1 | q2: a→q3, b→q2 | q3: a→q4, b→q2 | q4: a→q4, b→q3. After setup (qf with λ-edges from q1 and q3), which state would create or change the most labels if removed first (in-edges × out-edges, ignoring self-loops)?",
+   "choices": [
+    "q3",
+    "q1",
+    "q2",
+    "q4"
+   ],
+   "answer": 0,
+   "explain": "q3 has in-edges from q2 and q4 and out-edges to q2, q4, and qf: 2 × 3 = 6. q1, q2, and q4 each give 2. Leave q3 for last."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 01",
+   "q": "DFA 01 over {a, b}: start q0; final q1, q3; transitions q0: a→q1, b→q2 | q1: a→q4, b→q1 | q2: a→q3, b→q2 | q3: a→q4, b→q2 | q4: a→q4, b→q3. Which expression describes the strings that start at q3 and return to q3 for the first time?",
+   "choices": [
+    "bb*a + aa*b",
+    "ba + ab",
+    "b*a + a*b",
+    "(a+b)(a+b)"
+   ],
+   "answer": 0,
+   "explain": "Either step left to q2 on b, wait there (b*), and step back on a (bb*a), or step right to q4 on a, wait (a*), and step back on b (aa*b)."
+  },
+  {
+   "type": "multi",
+   "category": "DFA 02",
+   "q": "DFA 02 over {a, b}: start q0; final q3, q4; transitions q0: a→q2, b→q1 | q1: a→q1, b→q3 | q2: a→q4, b→q4 | q3: a→q5, b→q4 | q4: a→q4, b→q4 | q5: a→q5, b→q4. Which edges must be merged into a single edge labeled a+b during setup?",
+   "choices": [
+    "q2→q4",
+    "the self-loop q4→q4",
+    "q3→q4",
+    "q5→q4",
+    "the self-loop q1→q1"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "Only q2 and q4 go to the same state on both a and b. q3→q4, q5→q4, and q1→q1 are each a single transition."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 02",
+   "q": "DFA 02 over {a, b}: start q0; final q3, q4; transitions q0: a→q2, b→q1 | q1: a→q1, b→q3 | q2: a→q4, b→q4 | q3: a→q5, b→q4 | q4: a→q4, b→q4 | q5: a→q5, b→q4. After setup and removing q1 and q2, you remove q5. What is the new q3→q4 label (simplified)?",
+   "choices": [
+    "a*b",
+    "aa*b",
+    "ba*b",
+    "a*b*"
+   ],
+   "answer": 0,
+   "explain": "The existing q3→q4 edge b plus q3→q5 (a), q5's loop (a*), q5→q4 (b): b + aa*b = a*b. Writing only aa*b drops the existing edge."
+  },
+  {
+   "type": "text",
+   "category": "DFA 02",
+   "q": "DFA 02 over {a, b}: start q0; final q3, q4; transitions q0: a→q2, b→q1 | q1: a→q1, b→q3 | q2: a→q4, b→q4 | q3: a→q5, b→q4 | q4: a→q4, b→q4 | q5: a→q5, b→q4. A student removes q5 and writes the new q3→q4 label as aa*b, forgetting the existing edge. What is the shortest string the DFA accepts that the student's graph now rejects?",
+   "answer": [
+    "bbb"
+   ],
+   "explain": "bbb follows q0→q1→q3→q4, using the direct q3→q4 edge on b. That is the edge the student dropped. Every shorter accepted string (aa, ab, bb) avoids it."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 02",
+   "q": "DFA 02 over {a, b}: start q0; final q3, q4; transitions q0: a→q2, b→q1 | q1: a→q1, b→q3 | q2: a→q4, b→q4 | q3: a→q5, b→q4 | q4: a→q4, b→q4 | q5: a→q5, b→q4. Eliminating in the order q1, q2, q5, q3, q4 gives which expression?",
+   "choices": [
+    "ba*b + (a(a+b) + ba*ba*b)(a+b)*",
+    "ba*b + (aa+b + ba*ba*b)(a+b)*",
+    "(a(a+b) + ba*ba*b)(a+b)*",
+    "ba*b + (a(a+b) + ba*b)(a+b)*"
+   ],
+   "answer": 0,
+   "explain": "ba*b ends in q3. a(a+b) and ba*ba*b reach q4, then (a+b)* stays there. The version without parentheses is wrong, the one missing ba*b loses bb, and ba*b(a+b)* wrongly accepts bba."
+  },
+  {
+   "type": "multi",
+   "category": "DFA 02",
+   "q": "DFA 02 over {a, b}: start q0; final q3, q4; transitions q0: a→q2, b→q1 | q1: a→q1, b→q3 | q2: a→q4, b→q4 | q3: a→q5, b→q4 | q4: a→q4, b→q4 | q5: a→q5, b→q4. Which strings does it accept?",
+   "choices": [
+    "bbaab",
+    "babaa",
+    "aa",
+    "baaaa",
+    "bbbaa",
+    "a"
+   ],
+   "answer": [
+    0,
+    2,
+    4
+   ],
+   "explain": "bbaab: q1, q3, q5, q5, q4 (accept). babaa: q1, q1, q3, q5, q5 (reject). aa: q2, q4 (accept). baaaa: stays in q1 (reject). bbbaa: q1, q3, q4, q4, q4 (accept). a: q2 (reject)."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 02",
+   "q": "DFA 02 over {a, b}: start q0; final q3, q4; transitions q0: a→q2, b→q1 | q1: a→q1, b→q3 | q2: a→q4, b→q4 | q3: a→q5, b→q4 | q4: a→q4, b→q4 | q5: a→q5, b→q4. Which description matches exactly the accepted strings that begin with b?",
+   "choices": [
+    "Three or more b's, or exactly two b's with b as the last symbol",
+    "Two or more b's, with b as the last symbol in every case",
+    "Exactly two b's, or three or more b's with a as the last symbol",
+    "Two or more b's, no matter what the last symbol is"
+   ],
+   "answer": 0,
+   "explain": "The second b reaches q3 (accept). A third b anywhere afterward reaches q4, which accepts forever. With exactly two b's, a trailing a leaves you in q5 (reject). So bbba is accepted but bba is not."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 02",
+   "q": "DFA 02 over {a, b}: start q0; final q3, q4; transitions q0: a→q2, b→q1 | q1: a→q1, b→q3 | q2: a→q4, b→q4 | q3: a→q5, b→q4 | q4: a→q4, b→q4 | q5: a→q5, b→q4. After setup, suppose you remove q4 first (q4 has a self-loop a+b and a λ-edge to qf). What is the new q3→qf label?",
+   "choices": [
+    "λ + b(a+b)*",
+    "b(a+b)*",
+    "λ + (a+b)*",
+    "λ + b(a+b)"
+   ],
+   "answer": 0,
+   "explain": "The existing q3→qf edge λ, plus q3→q4 (b), q4's loop starred ((a+b)*), q4→qf (λ): λ + b(a+b)*."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 02",
+   "q": "DFA 02 over {a, b}: start q0; final q3, q4; transitions q0: a→q2, b→q1 | q1: a→q1, b→q3 | q2: a→q4, b→q4 | q3: a→q5, b→q4 | q4: a→q4, b→q4 | q5: a→q5, b→q4. Which states are useless (unreachable, or unable to reach a final state)?",
+   "choices": [
+    "None of them",
+    "q5 only",
+    "q4 and q5",
+    "q1 and q5"
+   ],
+   "answer": 0,
+   "explain": "Every state is reachable from q0, and every state can reach a final state. q5 escapes to q4 on b, and q1 reaches q3 on b."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 03",
+   "q": "DFA 03 over {a, b}: start q0; final q1, q3; transitions q0: a→q2, b→q1 | q1: a→q1, b→q2 | q2: a→q3, b→q3 | q3: a→q3, b→q1. After setup (qf with λ-edges from q1 and q3, q2→q3 merged into a+b), you remove q2 first. What is the new q1→q3 label?",
+   "choices": [
+    "b(a+b)",
+    "ba+b",
+    "b(a+b)*",
+    "ba*(a+b)"
+   ],
+   "answer": 0,
+   "explain": "q1→q2 is b, q2 has no loop (factor λ), and q2→q3 is a+b. The result is b(a+b), with parentheses because of precedence."
+  },
+  {
+   "type": "num",
+   "category": "DFA 03",
+   "q": "DFA 03 over {a, b}: start q0; final q1, q3; transitions q0: a→q2, b→q1 | q1: a→q1, b→q2 | q2: a→q3, b→q3 | q3: a→q3, b→q1. After setup (qf with λ-edges from q1 and q3), suppose you remove q1 first. How many edge labels are created or changed?",
+   "answer": 4,
+   "explain": "q1 has in-edges from q0 and q3 and out-edges to q2 and qf: 2 × 2 = 4. The labels are q0→q2 = a + ba*b, q0→qf = ba*, q3→q2 = ba*b, and q3→qf = λ + ba*."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 03",
+   "q": "DFA 03 over {a, b}: start q0; final q1, q3; transitions q0: a→q2, b→q1 | q1: a→q1, b→q2 | q2: a→q3, b→q3 | q3: a→q3, b→q1. After setup, you remove q2 and then q1. What is the self-loop on q3 now?",
+   "choices": [
+    "a + ba*b(a+b)",
+    "ba*b(a+b)",
+    "a + bb(a+b)",
+    "(a + ba*b)(a+b)"
+   ],
+   "answer": 0,
+   "explain": "The existing loop a, plus q3→q1 (b), q1's loop (a*), q1→q3 (b(a+b), from removing q2): a + ba*b(a+b)."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 03",
+   "q": "DFA 03 over {a, b}: start q0; final q1, q3; transitions q0: a→q2, b→q1 | q1: a→q1, b→q2 | q2: a→q3, b→q3 | q3: a→q3, b→q1. After setup, you remove q2 and then q1. What is the q3→qf label now?",
+   "choices": [
+    "λ + ba*",
+    "ba*",
+    "λ + b",
+    "λ + a*b"
+   ],
+   "answer": 0,
+   "explain": "The existing λ-edge from q3, plus q3→q1 (b), q1's loop (a*), q1→qf (λ): λ + ba*."
+  },
+  {
+   "type": "multi",
+   "category": "DFA 03",
+   "q": "DFA 03 over {a, b}: start q0; final q1, q3; transitions q0: a→q2, b→q1 | q1: a→q1, b→q2 | q2: a→q3, b→q3 | q3: a→q3, b→q1. Which strings does it accept?",
+   "choices": [
+    "bb",
+    "bbb",
+    "aab",
+    "aabb",
+    "baba",
+    "bab"
+   ],
+   "answer": [
+    1,
+    2,
+    4
+   ],
+   "explain": "bb: q1, q2 (reject). bbb: q1, q2, q3 (accept). aab: q2, q3, q1 (accept). aabb: q2, q3, q1, q2 (reject). baba: q1, q1, q2, q3 (accept). bab: q1, q1, q2 (reject)."
+  },
+  {
+   "type": "tf",
+   "category": "DFA 03",
+   "q": "DFA 03 over {a, b}: start q0; final q1, q3; transitions q0: a→q2, b→q1 | q1: a→q1, b→q2 | q2: a→q3, b→q3 | q3: a→q3, b→q1. If a nonempty string w is rejected, then both wa and wb are accepted.",
+   "answer": true,
+   "explain": "No transition enters q0, so a nonempty string ends in q1, q2, or q3. The only non-final one is q2, and q2 goes to the final state q3 on both a and b."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 03",
+   "q": "DFA 03 over {a, b}: start q0; final q1, q3; transitions q0: a→q2, b→q1 | q1: a→q1, b→q2 | q2: a→q3, b→q3 | q3: a→q3, b→q1. Suppose q0 were also a final state. How does the state-elimination answer change?",
+   "choices": [
+    "It becomes λ + (the old answer)",
+    "It becomes (the old answer)*",
+    "It becomes λ(the old answer)",
+    "It does not change at all"
+   ],
+   "answer": 0,
+   "explain": "Add a λ-edge q0→qf. Since q0 has no incoming edges, nothing else changes, and the final q0→qf label gains a λ term. Note λ(R) = R, so that choice adds nothing."
+  },
+  {
+   "type": "num",
+   "category": "DFA 03",
+   "q": "DFA 03 over {a, b}: start q0; final q1, q3; transitions q0: a→q2, b→q1 | q1: a→q1, b→q2 | q2: a→q3, b→q3 | q3: a→q3, b→q1. After adding qf with λ-edges and merging parallel edges, JFLAP requires an edge for every ordered pair of states, including each state to itself, and fills the gaps with ∅. How many ∅ edges must be added?",
+   "answer": 16,
+   "explain": "5 states give 25 pairs. The 8 transitions become 7 after merging q2→q3 into a+b, plus 2 λ-edges = 9 real edges, so 25 − 9 = 16."
+  },
+  {
+   "type": "mc",
+   "category": "DFA 03",
+   "q": "DFA 03 over {a, b}: start q0; final q1, q3; transitions q0: a→q2, b→q1 | q1: a→q1, b→q2 | q2: a→q3, b→q3 | q3: a→q3, b→q1. After setup, you remove q2 and then q3 (instead of q1). What is the new self-loop on q1?",
+   "choices": [
+    "a + b(a+b)a*b",
+    "b(a+b)a*b",
+    "a + b(a+b)b",
+    "(a + b(a+b))a*b"
+   ],
+   "answer": 0,
+   "explain": "The existing loop a, plus q1→q3 (b(a+b)), q3's loop (a*), q3→q1 (b): a + b(a+b)a*b."
+  },
+  {
+   "type": "tf",
+   "category": "Order and verification",
+   "q": "Eliminating states in a different order can produce a regular expression for a different language.",
+   "answer": false,
+   "explain": "Every elimination step preserves the language exactly. A different order changes only how the expression looks."
+  },
+  {
+   "type": "mc",
+   "category": "Order and verification",
+   "q": "Which method gives a quick check that your regular expression matches the DFA?",
+   "choices": [
+    "Trace several accepted and rejected strings through both",
+    "Confirm the regex has as many stars as the DFA has loops",
+    "Confirm the regex length equals the number of DFA edges",
+    "Check that every state name appears in the regex once"
+   ],
+   "answer": 0,
+   "explain": "Equivalent expressions can look very different. Tracing strings that the DFA accepts and rejects catches mistakes like a dropped existing edge."
+  },
+  {
+   "type": "mc",
+   "category": "Order and verification",
+   "q": "DFA 01's answer is ab* + (bb*a + ab*aa*b)(bb*a + aa*b)*. The DFA accepts baab along the path q0→q2→q3→q4→q3. How does the regex generate baab?",
+   "choices": [
+    "bb*a, then one round trip aa*b",
+    "ab*aa*b with both stars empty",
+    "ab* with b* matching aab",
+    "bb*a, then one round trip bb*a"
+   ],
+   "answer": 0,
+   "explain": "ba comes from bb*a with b* empty (q0→q2→q3). Then ab comes from aa*b with a* empty (q3→q4→q3)."
+  },
+  {
+   "type": "mc",
+   "category": "Order and verification",
+   "q": "Arden's rule: if X = AX + B and λ ∉ L(A), then X = A*B. In DFA 02, the strings leading from q5 to acceptance satisfy X5 = aX5 + bX4, where X4 = (a+b)*. What is X5?",
+   "choices": [
+    "a*b(a+b)*",
+    "ab(a+b)*",
+    "a*(b + (a+b)*)",
+    "(a + b(a+b)*)*"
+   ],
+   "answer": 0,
+   "explain": "Here A = a and B = bX4, so X5 = a*bX4 = a*b(a+b)*: any number of a's at q5, then b to q4, then anything."
+  },
+  {
+   "type": "tf",
+   "category": "Order and verification",
+   "q": "For DFA 01, eliminating in the order q2, q3, q1, q4 gives bb*a(bb*a)* + ab* + (bb*a(bb*a)*a + ab*a)(a + b(bb*a)*a)*b(bb*a)*. This describes the same language as ab* + (bb*a + ab*aa*b)(bb*a + aa*b)*.",
+   "answer": true,
+   "explain": "Both come from correct state elimination on the same DFA, so they describe the same language even though they look different. Tracing aab and baab (accepted) and bab and aa (rejected) agrees with both."
+  },
+  {
+   "type": "tf",
+   "category": "Order and verification",
+   "q": "DFAs, NFAs, and regular expressions describe exactly the same class of languages.",
+   "answer": true,
+   "explain": "This is Kleene's theorem: all three describe the regular languages. State elimination is the DFA-to-regex direction."
+  }
+ ]
+}
