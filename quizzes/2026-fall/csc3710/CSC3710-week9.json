@@ -1,0 +1,489 @@
+{
+ "title": "CSC3710 Week 9: A Nondeterministic PDA for Palindromes",
+ "course": "CSC3710",
+ "source": "CSC3710 Week 9 slides: NPA_palindromes.jff (JFLAP PDA)",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "JFLAP notation and stack operations",
+   "q": "A JFLAP PDA transition is labeled a, b; ab. Just before the move, b is on top of the stack. After the move, what is on top?",
+   "choices": [
+    "a, with b directly under it",
+    "b, with a directly under it",
+    "a, with the old b removed",
+    "b, and the stack is unchanged"
+   ],
+   "answer": 0,
+   "explain": "The label means read a, pop b, push 'ab'. The leftmost symbol of the push string ends up on top, so a sits on top of b. The net effect is 'push a'."
+  },
+  {
+   "type": "mc",
+   "category": "JFLAP notation and stack operations",
+   "q": "The stack is baZ (top first). The machine reads b using the transition b, b; λ. What is the stack afterward (top first)?",
+   "choices": [
+    "aZ",
+    "bbaZ",
+    "baZ",
+    "Z"
+   ],
+   "answer": 0,
+   "explain": "b, b; λ pops the b on top and pushes nothing, which leaves aZ."
+  },
+  {
+   "type": "tf",
+   "category": "JFLAP notation and stack operations",
+   "q": "In a JFLAP .jff file, a transition with an empty <read/> element is a λ-move: it reads no input symbol.",
+   "answer": true,
+   "explain": "An empty element (<read/> or <push/>) stands for λ. Both transitions into q2 have an empty <read/> element."
+  },
+  {
+   "type": "mc",
+   "category": "JFLAP notation and stack operations",
+   "q": "What does the transition λ, Z; Z do?",
+   "choices": [
+    "Reads nothing and leaves the stack as it was, but only fires when Z is on top",
+    "Reads nothing and pops Z, so the stack is completely empty after the move",
+    "Reads the next input symbol, whatever it is, and pushes Z on top of the stack",
+    "Reads nothing and pushes a second Z, so the stack ends up with Z on top of Z"
+   ],
+   "answer": 0,
+   "explain": "Read λ, pop Z, push Z: no input is used and the stack ends up the same. What it really does is test 'is Z on top?', which means everything pushed above the bottom marker has been removed."
+  },
+  {
+   "type": "num",
+   "category": "JFLAP notation and stack operations",
+   "q": "The stack is aZ (top first) and the machine applies b, a; ba. How many symbols are on the stack afterward, counting Z?",
+   "answer": 3,
+   "explain": "Pop a (leaving Z), then push 'ba' with b on top. The stack is baZ, which is 3 symbols. The net effect is 'push b'."
+  },
+  {
+   "type": "multi",
+   "category": "JFLAP notation and stack operations",
+   "q": "Which of these belong to this machine's stack alphabet Γ?",
+   "choices": [
+    "a",
+    "b",
+    "Z",
+    "λ",
+    "q0"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Γ = {a, b, Z}, where Z is the bottom-of-stack marker. λ is not a symbol (it means 'nothing'), and q0 is a state."
+  },
+  {
+   "type": "num",
+   "category": "Transitions of the machine",
+   "q": "How many transitions does the palindrome PDA have in total?",
+   "answer": 18,
+   "explain": "6 push loops in q0, 6 odd-middle moves from q0 to q1, 2 even-middle moves from q0 to q1, 2 match loops in q1, and 2 λ-moves into q2: 6 + 6 + 2 + 2 + 2 = 18."
+  },
+  {
+   "type": "num",
+   "category": "Transitions of the machine",
+   "q": "How many transitions go from q0 to q1?",
+   "answer": 8,
+   "explain": "6 odd-middle moves that read a symbol and keep the stack (one for each input symbol and top-of-stack pair), plus 2 even-middle moves that read a symbol and pop a matching one."
+  },
+  {
+   "type": "mc",
+   "category": "Transitions of the machine",
+   "q": "Which of these transitions means 'the symbol just read is the middle of an odd-length palindrome'?",
+   "choices": [
+    "q0 → q1 on a, b; b",
+    "q0 → q1 on a, a; λ",
+    "q0 → q1 on b, b; λ",
+    "q0 → q0 on a, b; ab"
+   ],
+   "answer": 0,
+   "explain": "The middle symbol of an odd palindrome has no partner, so the move reads it and leaves the stack alone (pop b, push b). a, a; λ and b, b; λ are even-middle moves that pop a match, and a, b; ab is a push loop."
+  },
+  {
+   "type": "mc",
+   "category": "Transitions of the machine",
+   "q": "Which of these is δ(q0, a, a)?",
+   "choices": [
+    "{(q0, aa), (q1, a), (q1, λ)}",
+    "{(q0, aa), (q1, a)}",
+    "{(q0, aa), (q1, λ)}",
+    "{(q0, aa), (q1, a), (q2, a)}"
+   ],
+   "answer": 0,
+   "explain": "There are three options: push a and stay in q0, treat this a as the odd middle (go to q1 with the stack unchanged), or treat it as the first symbol of the second half (go to q1 and pop the matching a). No move into q2 reads input."
+  },
+  {
+   "type": "multi",
+   "category": "Transitions of the machine",
+   "q": "Which of these transitions are in the machine?",
+   "choices": [
+    "q0 → q1 on b, a; a",
+    "q0 → q1 on b, a; λ",
+    "q1 → q1 on a, b; λ",
+    "q0 → q2 on λ, Z; Z",
+    "q1 → q2 on λ, Z; Z",
+    "q2 → q0 on λ, Z; Z"
+   ],
+   "answer": [
+    0,
+    3,
+    4
+   ],
+   "explain": "b, a; a is an odd-middle move. A pop-move into q1 needs the symbol read to match the top, so b, a; λ doesn't exist, and q1's only match loops are a, a; λ and b, b; λ. Both λ, Z; Z moves into q2 exist, and q2 has no outgoing transitions."
+  },
+  {
+   "type": "mc",
+   "category": "Transitions of the machine",
+   "q": "The machine is in q1, the next input symbol is a, and b is on top of the stack. What can it do?",
+   "choices": [
+    "Nothing: δ(q1, a, b) is empty, so this path dies",
+    "Pop the b and stay in q1",
+    "Push a and stay in q1",
+    "Take λ, Z; Z to q2 and keep reading there"
+   ],
+   "answer": 0,
+   "explain": "q1 only matches: a, a; λ and b, b; λ. Its λ-move needs Z on top. With a to read and b on top, no move applies."
+  },
+  {
+   "type": "mc",
+   "category": "Tracing computations",
+   "q": "On input abba, the machine reads the first two symbols with push loops and stays in q0. What is the stack then (top first)?",
+   "choices": [
+    "baZ",
+    "abZ",
+    "aZ",
+    "bZ"
+   ],
+   "answer": 0,
+   "explain": "a, Z; aZ gives aZ, then b, a; ba gives baZ. The last symbol read is on top, so the stack holds the prefix ab reversed."
+  },
+  {
+   "type": "mc",
+   "category": "Tracing computations",
+   "q": "In the accepting computation for abba, which move takes the machine from q0 to q1?",
+   "choices": [
+    "b, b; λ on the second b",
+    "b, a; a on the first b",
+    "b, b; b on the second b",
+    "a, a; λ on the final a"
+   ],
+   "answer": 0,
+   "explain": "abba is an even palindrome, so the path leaves q0 with an even-middle move. From (q0, ba, baZ) it reads the second b and pops the matching b, reaching (q1, a, aZ). Then a, a; λ and λ, Z; Z finish the computation."
+  },
+  {
+   "type": "mc",
+   "category": "Tracing computations",
+   "q": "In the accepting computation for aba, which configuration comes right after (q0, ba, aZ)?",
+   "choices": [
+    "(q1, a, aZ)",
+    "(q1, a, Z)",
+    "(q0, a, baZ)",
+    "(q2, ba, aZ)"
+   ],
+   "answer": 0,
+   "explain": "The b is the middle of this odd palindrome, so the machine uses b, a; a: it reads b, goes to q1, and leaves aZ alone. (q0, a, baZ) can also be reached, but that path ends in q0 and doesn't accept."
+  },
+  {
+   "type": "text",
+   "category": "Tracing computations",
+   "q": "On input babab, what is the stack (top first, written like aZ) right after the accepting computation moves from q0 into q1?",
+   "answer": [
+    "abZ",
+    "a b Z",
+    "abz"
+   ],
+   "explain": "(q0, babab, Z) ⊢ (q0, abab, bZ) ⊢ (q0, bab, abZ) ⊢ (q1, ab, abZ) using b, a; a. The middle b is the odd-middle guess, so the stack stays abZ."
+  },
+  {
+   "type": "num",
+   "category": "Tracing computations",
+   "q": "How many moves does the accepting computation for baab take, from (q0, baab, Z) to (q2, λ, Z)?",
+   "answer": 5,
+   "explain": "The moves are b, Z; bZ, then a, b; ab, then a, a; λ (the even guess), then b, b; λ, then λ, Z; Z. Each input symbol is read by exactly one move, plus one λ-move into q2, so a palindrome of length n takes n + 1 moves."
+  },
+  {
+   "type": "multi",
+   "category": "Tracing computations",
+   "q": "Which of these strings does the machine accept?",
+   "choices": [
+    "λ (the empty string)",
+    "b",
+    "ab",
+    "aab",
+    "abaaba",
+    "babba"
+   ],
+   "answer": [
+    0,
+    1,
+    4
+   ],
+   "explain": "The machine accepts exactly the palindromes over {a, b}. λ, b, and abaaba read the same backwards. ab, aab, and babba don't."
+  },
+  {
+   "type": "tf",
+   "category": "Acceptance",
+   "q": "If some computation path reaches the final state q2 while input is still unread, the string is accepted.",
+   "answer": false,
+   "explain": "Acceptance needs all of the input consumed and a final state. q2 has no outgoing transitions, so a path like that is stuck and doesn't accept."
+  },
+  {
+   "type": "tf",
+   "category": "Acceptance",
+   "q": "Under acceptance by final state, a string is accepted only if the stack is back down to just Z at the end.",
+   "answer": false,
+   "explain": "Final-state acceptance ignores whatever is left on the stack. In this machine the stack happens to be Z whenever q2 is reached, but that's because both moves into q2 need Z on top, not because the acceptance rule requires it."
+  },
+  {
+   "type": "tf",
+   "category": "Acceptance",
+   "q": "If one computation path on input w gets stuck without accepting, then w is rejected.",
+   "answer": false,
+   "explain": "A nondeterministic PDA accepts w if at least one path accepts. w is rejected only when every path dies. For aa, several branches die but one accepts, so aa is accepted."
+  },
+  {
+   "type": "mc",
+   "category": "Acceptance",
+   "q": "On input ab, one path reaches (q1, λ, aZ) by using b, a; a. Why doesn't this path accept?",
+   "choices": [
+    "q1 is not final, and the λ-move to q2 needs Z on top, but a is there",
+    "The input still has a b left to read, so the machine has to keep going",
+    "Z was popped earlier on this path, so the stack has lost its bottom marker",
+    "q1 is final, but the machine also needs the stack to be completely empty"
+   ],
+   "answer": 0,
+   "explain": "The input is used up, but q1 isn't final. The only way into q2 is λ, Z; Z, and it can't fire because the unmatched a is on top. That check is what makes sure everything pushed has been matched."
+  },
+  {
+   "type": "tf",
+   "category": "Acceptance",
+   "q": "Whenever this machine is in state q2, its stack is exactly Z.",
+   "answer": true,
+   "explain": "Both transitions into q2 are λ, Z; Z, so they need Z on top. Z is the bottom marker and is never popped, so Z on top means nothing else is on the stack."
+  },
+  {
+   "type": "mc",
+   "category": "Acceptance",
+   "q": "How does this machine accept the empty string λ?",
+   "choices": [
+    "In one move, q0 → q2 on λ, Z; Z, with no input read",
+    "q0 → q1 on λ, Z; Z, then q1 → q2 on λ, Z; Z",
+    "q0 is a final state, so it accepts without moving",
+    "It doesn't; λ is rejected because nothing is pushed"
+   ],
+   "answer": 0,
+   "explain": "q0 → q2 on λ, Z; Z reads nothing and reaches the final state with no input left. q0 isn't final, and this machine has no λ-moves from q0 to q1 (those belong to the common textbook design)."
+  },
+  {
+   "type": "mc",
+   "category": "Nondeterminism",
+   "q": "Why does this PDA need nondeterminism?",
+   "choices": [
+    "It reads left to right and can't tell where the middle of the input is",
+    "Deterministic PDAs can have at most two states, and this one needs three",
+    "Deterministic PDAs can't use a bottom-of-stack marker such as Z",
+    "Deterministic PDAs can't accept by final state, only by empty stack"
+   ],
+   "answer": 0,
+   "explain": "The machine has to switch from pushing to matching at the middle, but it can't see how long the input is. So it tries every possible split point. Paths that switch at the wrong place die, and for a palindrome the path that switches at the right place accepts."
+  },
+  {
+   "type": "tf",
+   "category": "Nondeterminism",
+   "q": "Some deterministic PDA accepts exactly the palindromes over {a, b}.",
+   "answer": false,
+   "explain": "The palindrome language is context-free but not deterministic context-free. A deterministic machine would have to commit to 'this is the middle' without knowing what comes next."
+  },
+  {
+   "type": "tf",
+   "category": "Nondeterminism",
+   "q": "Just as NFAs and DFAs recognize the same languages, nondeterministic PDAs accept exactly the same languages as deterministic PDAs.",
+   "answer": false,
+   "explain": "For finite automata, nondeterminism adds no power, since every NFA can be converted to a DFA. For PDAs it does add power: the palindromes have an NPDA but no DPDA."
+  },
+  {
+   "type": "num",
+   "category": "Nondeterminism",
+   "q": "The machine is in q0, the next input symbol is a, and a is on top of the stack. How many different moves can it make?",
+   "answer": 3,
+   "explain": "a, a; aa (push and stay in q0), a, a; a (odd middle, go to q1), and a, a; λ (even middle, pop and go to q1). There is no λ-move from q0 when a is on top."
+  },
+  {
+   "type": "num",
+   "category": "Nondeterminism",
+   "q": "The machine is in configuration (q0, ab, Z). How many different moves can it make?",
+   "answer": 3,
+   "explain": "a, Z; aZ (push a), a, Z; Z (treat a as the odd middle), and λ, Z; Z to q2, which competes with reading because Z is on top. There's no even-middle move, because that would need a on top."
+  },
+  {
+   "type": "tf",
+   "category": "Nondeterminism",
+   "q": "State q1 is deterministic: in any configuration, at most one move is available from q1.",
+   "answer": true,
+   "explain": "q1's input moves need a or b on top, and its λ-move needs Z on top. So for any top symbol, at most one move can apply."
+  },
+  {
+   "type": "mc",
+   "category": "Nondeterminism",
+   "q": "Which of these languages has a deterministic PDA?",
+   "choices": [
+    "{wcw^R : w ∈ {a,b}*}",
+    "{w ∈ {a,b}* : w = w^R}",
+    "{ww^R : w ∈ {a,b}*}",
+    "{w ∈ {a,b}* : w = w^R, w ≠ λ}"
+   ],
+   "answer": 0,
+   "explain": "In wcw^R the marker c shows exactly where the middle is, so the machine never has to guess. The other three all require guessing where the middle is, and none of them is deterministic context-free."
+  },
+  {
+   "type": "mc",
+   "category": "Why it accepts exactly the palindromes",
+   "q": "After the machine reads a prefix u while staying in q0, what does the stack hold (top first)?",
+   "choices": [
+    "u^R Z, the prefix reversed",
+    "u Z, the prefix in order",
+    "Z alone, nothing is kept",
+    "u u^R Z, the prefix twice"
+   ],
+   "answer": 0,
+   "explain": "Each push loop puts the symbol just read on top, so the last symbol of u is on top and the first is just above Z. Popping in q1 therefore checks the second half against u reversed."
+  },
+  {
+   "type": "mc",
+   "category": "Why it accepts exactly the palindromes",
+   "q": "A path reads u in q0, takes an odd-middle move on symbol c, and then accepts. What must the whole input have been?",
+   "choices": [
+    "u c u^R",
+    "u c c u^R",
+    "u u^R",
+    "u c u"
+   ],
+   "answer": 0,
+   "explain": "The odd-middle move leaves the stack as u^R Z. q1 pops one symbol for each input symbol and they have to match, so the rest of the input must be exactly u^R before Z is exposed."
+  },
+  {
+   "type": "num",
+   "category": "Why it accepts exactly the palindromes",
+   "q": "For a palindrome of length 7, on which input symbol (counting from 1) does the accepting computation leave q0?",
+   "answer": 4,
+   "explain": "For odd n it leaves on symbol (n + 1)/2 with an odd-middle move. Here symbols 1 to 3 are pushed, symbol 4 is the middle, and the last 3 are matched."
+  },
+  {
+   "type": "num",
+   "category": "Why it accepts exactly the palindromes",
+   "q": "For a palindrome of length 6, on which input symbol (counting from 1) does the accepting computation leave q0?",
+   "answer": 4,
+   "explain": "For even n ≥ 2 it leaves on symbol n/2 + 1 with an even-middle move. Symbols 1 to 3 are pushed, and symbol 4 is read while its partner, symbol 3, is popped."
+  },
+  {
+   "type": "num",
+   "category": "Why it accepts exactly the palindromes",
+   "q": "How many accepting computations does the machine have on input abaaba?",
+   "answer": 1,
+   "explain": "Every palindrome has exactly one accepting computation. Its length fixes where the path must leave q0 and which kind of guess it uses, and every other move is forced."
+  },
+  {
+   "type": "mc",
+   "category": "Why it accepts exactly the palindromes",
+   "q": "The grammar S → aSa | bSb | a | b | λ generates the same language. Which productions correspond to the PDA's odd-middle moves (read a symbol, keep the stack)?",
+   "choices": [
+    "S → a and S → b",
+    "S → aSa and S → bSb",
+    "S → λ",
+    "S → aSa and S → λ"
+   ],
+   "answer": 0,
+   "explain": "S → a | b produces one unmatched middle symbol, just like the keep-the-stack move. aSa and bSb add matched pairs (pushed in q0, popped in q1), and S → λ is the even center."
+  },
+  {
+   "type": "mc",
+   "category": "Modifying the machine",
+   "q": "Which transitions should be deleted so the machine accepts only even-length palindromes (including λ)?",
+   "choices": [
+    "The six q0 → q1 moves that read a symbol and keep the stack",
+    "The two q0 → q1 moves that read a symbol and pop a match",
+    "The two q1 → q1 loops that pop a matching symbol",
+    "The q0 → q2 move on λ, Z; Z and the two pop moves"
+   ],
+   "answer": 0,
+   "explain": "The keep-the-stack moves are the odd-middle guesses. Without them, every accepting path either goes straight from q0 to q2 (accepting λ) or uses an even-middle pop. Keep q0 → q2, because λ has even length."
+  },
+  {
+   "type": "multi",
+   "category": "Modifying the machine",
+   "q": "Which transitions should be deleted so the machine accepts only odd-length palindromes?",
+   "choices": [
+    "q0 → q1 on a, a; λ",
+    "q0 → q1 on b, b; λ",
+    "q0 → q2 on λ, Z; Z",
+    "q0 → q1 on a, Z; Z",
+    "q1 → q2 on λ, Z; Z",
+    "q1 → q1 on a, a; λ"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Delete the two even-middle pop moves and the direct q0 → q2 move (λ has length 0, which is even). Keep q1 → q2 and the match loops, since odd palindromes need them too."
+  },
+  {
+   "type": "mc",
+   "category": "Modifying the machine",
+   "q": "If q0 were also marked as a final state, what language would the machine accept?",
+   "choices": [
+    "Every string over {a, b}",
+    "Only the empty string",
+    "The palindromes, as before",
+    "Only even-length palindromes"
+   ],
+   "answer": 0,
+   "explain": "The push loops can read any input while staying in q0, so when the input runs out the machine is in a final state. λ is accepted too, because q0 is the start state."
+  },
+  {
+   "type": "multi",
+   "category": "Modifying the machine",
+   "q": "Suppose q2 is deleted and q1 is made the final state instead. Which of these strings would be accepted?",
+   "choices": [
+    "ab",
+    "ba",
+    "abb",
+    "λ (the empty string)"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Every nonempty string is now accepted: push all but the last symbol in q0, then take the odd-middle move on the last symbol. That reaches q1 with no input left, even though unmatched symbols are still on the stack. λ isn't accepted, because every move from q0 to q1 reads a symbol. The λ, Z; Z check into q2 is what forces everything pushed to be matched."
+  },
+  {
+   "type": "mc",
+   "category": "Modifying the machine",
+   "q": "Many textbooks instead use moves q0 → q1 on λ, y; y for each y ∈ {a, b, Z}. In that design, how is the empty string accepted?",
+   "choices": [
+    "q0 → q1 on λ, Z; Z, then q1 → q2 on λ, Z; Z",
+    "A direct q0 → q2 move on λ, Z; Z, as in this file",
+    "q0 is marked final, so λ is accepted with no moves",
+    "It isn't accepted; that design misses the empty string"
+   ],
+   "answer": 0,
+   "explain": "The λ-moves switch to matching without reading anything. For λ, the machine goes q0 → q1 on λ, Z; Z and then q1 → q2 on λ, Z; Z, so no direct q0 → q2 edge is needed."
+  },
+  {
+   "type": "mc",
+   "category": "Modifying the machine",
+   "q": "A deterministic PDA for {wcw^R : w ∈ {a,b}*} uses the same push loops in q0 and match loops in q1. Which transitions take it from q0 to q1?",
+   "choices": [
+    "c, y; y for each y in {a, b, Z}",
+    "λ, y; y for each y in {a, b, Z}",
+    "c, y; λ for each y in {a, b}",
+    "a, a; λ and b, b; λ"
+   ],
+   "answer": 0,
+   "explain": "Reading c marks the middle, so the machine moves to q1 without changing the stack, whatever is on top. Nothing has to be guessed, so each (state, input, top) combination allows at most one move."
+  }
+ ]
+}
