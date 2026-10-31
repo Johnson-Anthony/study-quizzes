@@ -109,6 +109,7 @@
     const pref = saved === 'all' ? Infinity : (saved ?? 1);
     app.innerHTML = `<div class="card"><h1>${esc(quiz.title)}</h1>
         <p class="muted">${total} questions across ${cats.length} categories${last ? ` · last attempt ${last.right}/${last.total}` : ''}</p>
+        ${quiz.source ? `<p class="muted"><small>${mdInline(quiz.source)}</small></p>` : ''}
         <h2>How many questions?</h2>
         <div class="choices">${shown.map((s, k) => `<button class="choice size${s.per === pref ? ' sel' : ''}" data-per="${s.per}">
           <span class="key">${k + 1}</span><span><strong>${s.n} questions</strong> · ${s.per === Infinity ? 'everything' : `${s.per} per category`}</span></button>`).join('')}</div>

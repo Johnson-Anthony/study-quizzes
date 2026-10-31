@@ -140,7 +140,7 @@
    "category": "Stop-and-wait utilization",
    "q": "Stop-and-wait over a 1 Gbps link with a 15 ms one-way propagation delay and 8000-bit packets. Compute U_sender (as a fraction, not a percent).",
    "answer": 0.00027,
-   "tolerance": 0.00001,
+   "tolerance": 1e-05,
    "explain": "L/R = 0.008 ms and RTT = 2 x 15 = 30 ms. U = 0.008 / (30 + 0.008) = 0.008 / 30.008 = 0.00027. The sender is busy only about 0.027% of the time."
   },
   {
@@ -182,7 +182,10 @@
     "Removing checksums to save header space",
     "A lower link transmission rate"
    ],
-   "answer": [0, 1],
+   "answer": [
+    0,
+    1
+   ],
    "explain": "Several unACKed packets must be told apart, so the sequence number range must grow beyond 0/1. The sender has to keep unACKed packets for possible retransmission, and the receiver may need to hold packets."
   },
   {
@@ -190,7 +193,7 @@
    "category": "Pipelining",
    "q": "Same link as before (1 Gbps, RTT = 30 ms, 8000-bit packets), but the sender now pipelines 3 packets per RTT. Compute U_sender (as a fraction).",
    "answer": 0.0008,
-   "tolerance": 0.00002,
+   "tolerance": 2e-05,
    "explain": "U = 3(L/R) / (RTT + L/R) = 3(0.008) / 30.008 = 0.024 / 30.008 = 0.0008. That is three times the stop-and-wait value (3 x 0.00027 = 0.00081). 3-packet pipelining triples utilization."
   },
   {
@@ -213,7 +216,12 @@
     "Routing tables",
     "Packet encryption"
    ],
-   "answer": [0, 1, 2, 3],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
    "explain": "Both pipelined protocols reuse the same toolkit (sequence numbers, ACKs, checksums, timeout/retransmit) but apply it differently."
   },
   {
@@ -307,9 +315,22 @@
    "type": "multi",
    "category": "Go-Back-N",
    "q": "Continuing the GBN example (N = 4, pkt2 lost): ACK0 arrives and the sender sends pkt4; ACK1 arrives and the sender sends pkt5. The receiver discards pkt3, pkt4 and pkt5. Then pkt2's timer expires. Which packets does the sender retransmit?",
-   "choices": ["pkt0", "pkt1", "pkt2", "pkt3", "pkt4", "pkt5", "pkt6"],
+   "choices": [
+    "pkt0",
+    "pkt1",
+    "pkt2",
+    "pkt3",
+    "pkt4",
+    "pkt5",
+    "pkt6"
+   ],
    "fixed": true,
-   "answer": [2, 3, 4, 5],
+   "answer": [
+    2,
+    3,
+    4,
+    5
+   ],
    "explain": "The window is now 2-5. A timeout for pkt2 resends pkt2 and every higher-numbered packet already sent in the window: 2, 3, 4, 5. The receiver then accepts them in order and sends ACK2-ACK5."
   },
   {
@@ -434,7 +455,11 @@
     "The receiver can always tell a retransmission from a new packet by looking at the sequence number",
     "In both the 'ACKs arrived' and 'ACKs lost' cases, the receiver sees exactly the same thing, so its behavior is identical"
    ],
-   "answer": [0, 1, 3],
+   "answer": [
+    0,
+    1,
+    3
+   ],
    "explain": "The receiver can't see the sender's side. Case (a): a new pkt0 is sent after pkt3. Case (b): the old pkt0 is retransmitted. Both look identical to the receiver, and 0 lies in its window, so in case (b) old data is wrongly accepted as new."
   },
   {
@@ -503,7 +528,11 @@
     "Receiver sends cumulative ACKs",
     "Sender keeps one timer for the oldest in-flight packet"
    ],
-   "answer": [0, 1, 2],
+   "answer": [
+    0,
+    1,
+    2
+   ],
    "explain": "Individual ACKs, per-packet timers and single-packet retransmission are SR. Cumulative ACKs and one timer for the oldest in-flight packet are GBN."
   },
   {
@@ -518,7 +547,15 @@
    "type": "text",
    "category": "Comparing GBN and SR",
    "q": "Go-Back-N's style of acknowledgment, where ACK(n) covers every packet up to and including n, is also used by TCP. What is this kind of ACK called?",
-   "answer": ["cumulative", "cumulative ACK", "cumulative ACKs", "cumulative acknowledgment", "cumulative acknowledgments", "cumulative acknowledgement", "cumulative acknowledgements"],
+   "answer": [
+    "cumulative",
+    "cumulative ACK",
+    "cumulative ACKs",
+    "cumulative acknowledgment",
+    "cumulative acknowledgments",
+    "cumulative acknowledgement",
+    "cumulative acknowledgements"
+   ],
    "explain": "Cumulative ACKs. TCP uses them, while Selective Repeat uses individual (selective) ACKs instead."
   },
   {
@@ -528,5 +565,6 @@
    "answer": true,
    "explain": "GBN re-ACKs the highest in-order packet (e.g., ACK1 again when pkt3 arrives after a lost pkt2). SR ACKs the specific packet (ACK3) and buffers it."
   }
- ]
+ ],
+ "source": "Based on Kurose & Ross's *Computer Networking: A Top-Down Approach* online lectures ([gaia.cs.umass.edu/kurose_ross](https://gaia.cs.umass.edu/kurose_ross/))."
 }

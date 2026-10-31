@@ -1,854 +1,1273 @@
 {
-  "title": "CSC2770 Module 3: Memory Hierarchy",
-  "course": "CSC2770",
-  "questions": [
-    {
-      "type": "mc",
-      "category": "Hierarchy and Trade-offs",
-      "q": "Memory has a \"pick two\" trade-off. If you want memory that is both low-cost and available in large quantities, what do you give up?",
-      "choices": ["Capacity", "Speed", "Non-volatility", "Random access"],
-      "answer": 1,
-      "explain": "Cheap and plentiful memory is much slower, as with main memory and disk. Fast and cheap means small quantities. Fast and large means costly."
-    },
-    {
-      "type": "mc",
-      "category": "Hierarchy and Trade-offs",
-      "q": "If you want fast memory at a low cost, what is the catch?",
-      "choices": ["You can only get it in small quantities", "It must be non-volatile", "It must be refreshed constantly", "It has to be accessed over a network"],
-      "answer": 0,
-      "explain": "Fast and cheap is only possible in small amounts. Larger quantities would be slower or pricier."
-    },
-    {
-      "type": "mc",
-      "category": "Hierarchy and Trade-offs",
-      "q": "The memory hierarchy organizes a computer's memory devices according to which three properties?",
-      "choices": ["Volatility, reliability, and power use", "Latency, bandwidth, and bus width", "Speed, cost, and capacity", "Size, age, and access frequency"],
-      "answer": 2,
-      "explain": "The memory hierarchy is the organization of memory devices according to their speed, cost, and capacity."
-    },
-    {
-      "type": "multi",
-      "category": "Hierarchy and Trade-offs",
-      "q": "Which statements describe memory closer to the CPU (toward the top of the hierarchy)?",
-      "choices": ["It is faster", "It is more expensive per byte", "It is available in smaller quantities", "It is non-volatile", "It holds files retrieved from remote servers"],
-      "answer": [0, 1, 2],
-      "explain": "Closer to the CPU, memory is faster, costlier per byte, and smaller. Registers and cache are volatile, and files from remote servers are held at L5 (local disks)."
-    },
-    {
-      "type": "mc",
-      "category": "Hierarchy and Trade-offs",
-      "q": "In the memory hierarchy pyramid, what does main memory (L4) hold?",
-      "choices": ["Words retrieved from cache memory", "Cache lines retrieved from L3 cache", "Disk blocks retrieved from local disks", "Files retrieved from disks on remote network servers"],
-      "answer": 2,
-      "explain": "Each level holds data from the level directly below it. Registers hold words, caches hold cache lines, main memory holds disk blocks, and local disks hold files from remote servers."
-    },
-    {
-      "type": "text",
-      "category": "Hierarchy and Trade-offs",
-      "q": "Which hierarchy level (L0 through L6) is local secondary storage, such as local disks?",
-      "answer": ["L5", "l5", "5", "Level 5", "level 5"],
-      "explain": "L0 registers, L1 to L3 cache (SRAM), L4 main memory (DRAM), L5 local secondary storage, L6 remote secondary storage."
-    },
-    {
-      "type": "mc",
-      "category": "Hierarchy and Trade-offs",
-      "q": "Roughly how long does an access to RAM take?",
-      "choices": ["0 cycles", "4 to 75 cycles", "Hundreds of cycles", "Tens of millions of cycles"],
-      "fixed": true,
-      "answer": 2,
-      "explain": "Registers: 0 cycles. Cache: 4 to 75 cycles. RAM: hundreds of cycles. Disk: tens of millions of cycles."
-    },
-    {
-      "type": "mc",
-      "category": "Hierarchy and Trade-offs",
-      "q": "Which storage type has an access time of about 4 to 75 cycles?",
-      "choices": ["Registers", "Cache", "RAM", "Disk"],
-      "fixed": true,
-      "answer": 1,
-      "explain": "Cache is 4 to 75 cycles, between registers (0 cycles) and RAM (hundreds of cycles)."
-    },
-    {
-      "type": "mc",
-      "category": "Hierarchy and Trade-offs",
-      "q": "Why can CPU registers be accessed with virtually zero delay?",
-      "choices": ["They are small flip-flops located directly on the CPU, so no bus is needed", "They are built from DRAM that is refreshed constantly", "They are the largest memory in the system, so data is always present", "They are synchronized to both edges of the clock"],
-      "answer": 0,
-      "explain": "Registers store information in simple flip-flops right on the CPU. Their small size and proximity mean no bus trip and essentially zero delay."
-    },
-    {
-      "type": "multi",
-      "category": "Hierarchy and Trade-offs",
-      "q": "Which are limitations of CPU registers?",
-      "choices": ["Not suited to reliable storage over long periods", "Minimal retention", "Minimal error-checking", "Must be refreshed hundreds of times per second", "Must be reached over the system bus"],
-      "answer": [0, 1, 2],
-      "explain": "Registers are optimized for speed, not for reliable long-term storage, with minimal retention and error-checking. Refreshing is a DRAM trait, and registers need no bus."
-    },
-    {
-      "type": "tf",
-      "category": "Hierarchy and Trade-offs",
-      "q": "Each level of the memory hierarchy holds copies of data retrieved from the level directly below it.",
-      "answer": true,
-      "explain": "In effect each level acts as a cache for the next level down."
-    },
-
-    {
-      "type": "mc",
-      "category": "DRAM and SRAM",
-      "q": "What does each DRAM memory cell consist of?",
-      "choices": ["Four to six transistors and no capacitor", "One capacitor and one transistor", "A floating-gate transistor that traps electrons", "Magnetized grains on a platter"],
-      "answer": 1,
-      "explain": "DRAM cell = one capacitor (stores the bit) + one transistor (controls access). Four to six transistors with no capacitor describes SRAM."
-    },
-    {
-      "type": "mc",
-      "category": "DRAM and SRAM",
-      "q": "In a DRAM cell, what is the transistor's job?",
-      "choices": ["It stores the bit as an electrical charge", "It controls access to the capacitor for reading, writing, and refreshing", "It keeps the cell synchronized with the system clock", "It forms a bistable circuit that holds the bit"],
-      "answer": 1,
-      "explain": "The capacitor stores the bit. The transistor, a semiconductor such as silicon that can conduct or block electricity, gates access to it."
-    },
-    {
-      "type": "mc",
-      "category": "DRAM and SRAM",
-      "q": "Why is DRAM called \"dynamic\"?",
-      "choices": ["Its capacity can grow at runtime", "It changes clock speed on demand", "Its capacitors cannot hold charge indefinitely, so it must be refreshed hundreds of times per second", "It switches between cache and main-memory roles"],
-      "answer": 2,
-      "explain": "The constant refreshing needed to keep the capacitor's charge is what makes DRAM dynamic."
-    },
-    {
-      "type": "mc",
-      "category": "DRAM and SRAM",
-      "q": "To read a DRAM bit, the transistor opens access to the capacitor. If charge flows out, which bit is read?",
-      "choices": ["0", "1", "It depends on the clock edge", "No value until the cell is refreshed"],
-      "answer": 1,
-      "explain": "Charged capacitor = 1, so charge flowing out reads as 1. No charge reads as 0."
-    },
-    {
-      "type": "text",
-      "category": "DRAM and SRAM",
-      "q": "SRAM's transistors form a circuit that can stably hold either of two states as long as power is supplied. What is this kind of circuit called?",
-      "answer": ["bistable", "bistable circuit", "a bistable circuit", "Bistable", "Bistable circuit"],
-      "explain": "A bistable circuit: high-voltage state = 1, low-voltage state = 0."
-    },
-    {
-      "type": "tf",
-      "category": "DRAM and SRAM",
-      "q": "Because SRAM does not need to be refreshed, it keeps its data even when power is removed.",
-      "answer": false,
-      "explain": "SRAM is still volatile. It holds its state only as long as power is supplied. \"Static\" only means no refresh is needed."
-    },
-    {
-      "type": "multi",
-      "category": "DRAM and SRAM",
-      "q": "Why is SRAM faster and more stable than DRAM?",
-      "choices": ["No time is spent charging, discharging, and refreshing capacitors", "There is no charge leakage, so there is less risk of data loss or corruption", "It is stored on remote servers with redundancy", "It uses only one transistor per cell", "It stores bits magnetically"],
-      "answer": [0, 1],
-      "explain": "SRAM has no capacitor, so it skips the capacitor's charge/discharge/refresh time and has no leakage."
-    },
-    {
-      "type": "mc",
-      "category": "DRAM and SRAM",
-      "q": "Which pairing of RAM type and typical use is correct?",
-      "choices": ["SRAM for main memory, DRAM for cache", "SRAM for cache, DRAM for main memory", "SRAM for local disks, DRAM for registers", "Both are used only for secondary storage"],
-      "answer": 1,
-      "explain": "SRAM is used for L1 to L3 cache. DRAM is used for main memory (L4)."
-    },
-    {
-      "type": "mc",
-      "category": "DRAM and SRAM",
-      "q": "In SRAM, how is a 1 bit represented?",
-      "choices": ["A charged capacitor", "A high-voltage state of the bistable circuit", "A floating gate full of electrons", "A magnetized grain"],
-      "answer": 1,
-      "explain": "In SRAM, high voltage = 1 and low voltage = 0. A charged capacitor is DRAM's representation."
-    },
-    {
-      "type": "tf",
-      "category": "DRAM and SRAM",
-      "q": "\"Random access\" means any item can be accessed in constant time without traversing other items first.",
-      "answer": true,
-      "explain": "That is the meaning of random access in RAM."
-    },
-    {
-      "type": "mc",
-      "category": "DRAM and SRAM",
-      "q": "Physically, what is the capacitor in a DRAM cell?",
-      "choices": ["Two conductive plates separated by a non-conductive, insulating material", "A spinning magnetic platter", "A loop of four to six transistors", "A silicon gate that traps electrons"],
-      "answer": 0,
-      "explain": "One plate holds positive charge and one holds negative charge, with insulation between them. It briefly stores and releases charge."
-    },
-
-    {
-      "type": "mc",
-      "category": "SDRAM and DDR",
-      "q": "What distinguishes SDRAM from earlier DRAM?",
-      "choices": ["It needs no refresh", "It operates in sync with the system clock", "It uses capacitors instead of transistors", "It is non-volatile"],
-      "answer": 1,
-      "explain": "Synchronous DRAM is DRAM that operates in sync with the system clock."
-    },
-    {
-      "type": "mc",
-      "category": "SDRAM and DDR",
-      "q": "What problem did asynchronous DRAM cause?",
-      "choices": ["It lost data on every clock tick", "It carried out commands on its own internal timing, so the CPU might have to wait, creating a bottleneck between the CPU and main memory", "It could be read but never written", "It required a network connection to operate"],
-      "answer": 1,
-      "explain": "The memory controller sent commands, but the DRAM executed them on its own schedule. The CPU could stall waiting, reducing performance."
-    },
-    {
-      "type": "mc",
-      "category": "SDRAM and DDR",
-      "q": "Why wasn't DRAM synchronized with the system clock from the start?",
-      "choices": ["Early CPUs were slower and computers were costlier, so syncing was not considered necessary or feasible", "The system clock had not yet been invented", "Synchronizing would have made DRAM non-volatile", "SRAM already handled all main-memory traffic"],
-      "answer": 0,
-      "explain": "The bottleneck only became noticeable, and therefore a problem, as computers became more efficient."
-    },
-    {
-      "type": "mc",
-      "category": "SDRAM and DDR",
-      "q": "How does DDR SDRAM double the work done per clock cycle?",
-      "choices": ["It uses two memory controllers", "It performs one operation on the rising edge and one on the falling edge of each clock tick", "It doubles the number of capacitors per cell", "It skips every other refresh"],
-      "answer": 1,
-      "explain": "Each clock tick has a rising and a falling edge. DDR does one operation on each, making it twice as fast as earlier SDRAM."
-    },
-    {
-      "type": "num",
-      "category": "SDRAM and DDR",
-      "q": "How many operations does DDR SDRAM perform per clock cycle?",
-      "answer": 2,
-      "explain": "One on the rising edge and one on the falling edge."
-    },
-    {
-      "type": "text",
-      "category": "SDRAM and DDR",
-      "q": "DRAM that ran on its own timing, before SDRAM, is sometimes called by what abbreviation?",
-      "answer": ["ADRAM", "adram", "asynchronous DRAM", "Asynchronous DRAM", "asynchronous dram"],
-      "explain": "ADRAM, asynchronous DRAM."
-    },
-    {
-      "type": "mc",
-      "category": "SDRAM and DDR",
-      "q": "What does the system clock do?",
-      "choices": ["Stores the date and time in non-volatile memory", "Generates pulses that coordinate operations across the computer", "Refreshes SRAM cells", "Decides which cache line to evict"],
-      "answer": 1,
-      "explain": "For example, each tick might correspond to one step of the fetch-and-execute cycle."
-    },
-    {
-      "type": "mc",
-      "category": "SDRAM and DDR",
-      "q": "Before SDRAM, which component sent read/write commands to the DRAM?",
-      "choices": ["The memory controller", "The L1 cache", "The disk controller", "The CPU registers"],
-      "answer": 0,
-      "explain": "The memory controller sent commands, and the DRAM carried them out on its own internal timing."
-    },
-    {
-      "type": "tf",
-      "category": "SDRAM and DDR",
-      "q": "DDR2, DDR3, DDR4, and DDR5 are successive improvements on DDR SDRAM.",
-      "answer": true,
-      "explain": "They all build on double data rate SDRAM, which most computers use today."
-    },
-    {
-      "type": "num",
-      "category": "SDRAM and DDR",
-      "q": "Around what year did SDRAM arrive, ending the era of DRAM running on its own timing?",
-      "answer": 1992,
-      "tolerance": 1,
-      "explain": "About 1992."
-    },
-
-    {
-      "type": "tf",
-      "category": "Secondary Storage",
-      "q": "Both local and remote secondary storage are non-volatile.",
-      "answer": true,
-      "explain": "Their data remains after the program ends and/or power is removed. That is why they are also called permanent storage."
-    },
-    {
-      "type": "mc",
-      "category": "Secondary Storage",
-      "q": "Compared with remote secondary storage, local secondary storage has:",
-      "choices": ["More latency and less reliability", "Less latency and greater reliability", "Less latency but less reliability", "The same latency, since both use disks"],
-      "answer": 1,
-      "explain": "Local storage is connected directly to the machine. Remote storage depends on a network, which makes it slower and less reliable."
-    },
-    {
-      "type": "multi",
-      "category": "Secondary Storage",
-      "q": "Remote secondary storage is slower and less reliable than local storage. Which benefits does it often offer in exchange?",
-      "choices": ["Cost-effectiveness", "Scalability", "Remote access", "Lower latency than local disks", "No dependence on a network"],
-      "answer": [0, 1, 2],
-      "explain": "Remote storage (such as Google Drive, AWS, Dropbox) trades speed and reliability for cost-effectiveness, scalability, and remote access."
-    },
-    {
-      "type": "multi",
-      "category": "Secondary Storage",
-      "q": "Which are examples of local secondary storage?",
-      "choices": ["Hard disk drive", "Solid state drive", "USB drive", "DVD", "Google Drive", "Dropbox"],
-      "answer": [0, 1, 2, 3],
-      "explain": "Local storage connects directly: HDDs, SSDs, external drives, optical discs. Google Drive and Dropbox are cloud (remote) storage."
-    },
-    {
-      "type": "mc",
-      "category": "Secondary Storage",
-      "q": "In a hard disk drive, what is seek time?",
-      "choices": ["Time for the arm to move the head to the correct location (track)", "Time for the disk to spin the correct location under the head", "Time to actually read or write the data", "Time for the OS to find the file in its directory"],
-      "fixed": true,
-      "answer": 0,
-      "explain": "Seek time = the arm moves. Rotational latency = waiting for the spin. Transfer time = the actual read or write."
-    },
-    {
-      "type": "mc",
-      "category": "Secondary Storage",
-      "q": "In a hard disk drive, what is rotational latency?",
-      "choices": ["Time for the arm to move the head to the correct location (track)", "Time for the disk to spin the correct location under the head", "Time to actually read or write the data", "Time for the OS to find the file in its directory"],
-      "fixed": true,
-      "answer": 1,
-      "explain": "The platter spins at a fixed rate, so after the seek you wait for the right spot to rotate under the head."
-    },
-    {
-      "type": "multi",
-      "category": "Secondary Storage",
-      "q": "Which HDD access delays does an SSD avoid entirely?",
-      "choices": ["Seek time", "Rotational latency", "Transfer time"],
-      "answer": [0, 1],
-      "explain": "SSDs have no moving parts, so there is no arm to move and no platter to spin. Data still has to be transferred."
-    },
-    {
-      "type": "mc",
-      "category": "Secondary Storage",
-      "q": "How does an HDD read a bit?",
-      "choices": ["The read/write head detects the magnetic polarization of a grain on the platter", "The head measures charge flowing out of a capacitor", "A floating gate releases trapped electrons", "A bistable circuit is sampled for high or low voltage"],
-      "answer": 0,
-      "explain": "HDDs store bits by magnetizing grains on a spinning disk. Reading detects the polarization, and writing changes it."
-    },
-    {
-      "type": "mc",
-      "category": "Secondary Storage",
-      "q": "How do SSDs store information?",
-      "choices": ["Magnetized grains on spinning platters", "NAND flash memory: floating-gate transistors that trap electrons", "Capacitors refreshed hundreds of times per second", "Bistable SRAM circuits"],
-      "answer": 1,
-      "explain": "SSDs store information as trapped electrical signals using NAND flash memory."
-    },
-    {
-      "type": "mc",
-      "category": "Secondary Storage",
-      "q": "In the NAND flash model presented in this module, what does a floating gate containing trapped electrons represent?",
-      "choices": ["0", "1", "An erased block", "A bad sector"],
-      "answer": 1,
-      "explain": "In this material, a gate containing electrons = 1 and an empty gate = 0. (Real flash devices often label these the other way around, but this is the convention the material uses.)"
-    },
-    {
-      "type": "multi",
-      "category": "Secondary Storage",
-      "q": "Which are disadvantages of SSDs compared with HDDs?",
-      "choices": ["They wear out more quickly because of how they write data", "Recovering data from them is much more difficult", "They consume more power", "They are more prone to mechanical failure", "They suffer from seek time"],
-      "answer": [0, 1],
-      "explain": "SSDs use less power and fail mechanically less often because nothing spins. Their downsides are faster wear and harder data recovery."
-    },
-    {
-      "type": "tf",
-      "category": "Secondary Storage",
-      "q": "NAND flash memory resembles a NAND logic gate in structure and also functions exactly like one.",
-      "answer": false,
-      "explain": "The structure resembles a NOT AND gate, but it does not function like one."
-    },
-    {
-      "type": "text",
-      "category": "Secondary Storage",
-      "q": "What is it called when an HDD's arm moves radially to position the read/write head over a particular track?",
-      "answer": ["seek", "a seek", "Seek", "seeking", "Seeking"],
-      "explain": "A seek. The time it takes is the seek time."
-    },
-    {
-      "type": "tf",
-      "category": "Secondary Storage",
-      "q": "An HDD's read/write head flies over the disk surface on a thin cushion of air.",
-      "answer": true,
-      "explain": "The head sits at the end of the arm and flies just above the spinning platter."
-    },
-
-    {
-      "type": "mc",
-      "category": "Locality",
-      "q": "What is temporal locality?",
-      "choices": ["If a program accesses an address, it is likely to access that same address again soon", "If a program accesses an address, it is likely to access nearby addresses soon", "Programs tend to access memory in random order", "Data that has been in memory longer is accessed more often"],
-      "answer": 0,
-      "explain": "Temporal = same place, again soon. Spatial = nearby place, soon."
-    },
-    {
-      "type": "mc",
-      "category": "Locality",
-      "q": "What is spatial locality?",
-      "choices": ["If a program accesses an address, it is likely to access that same address again soon", "If a program accesses an address, it is likely to access nearby addresses soon", "Programs tend to access memory in random order", "Data that has been in memory longer is accessed more often"],
-      "answer": 1,
-      "explain": "Spatial locality is about nearby addresses, such as walking through an array."
-    },
-    {
-      "type": "mc",
-      "category": "Locality",
-      "q": "In the loop  for (int i = 0; i < n; i++) total += a[i];  the variable total is read and written on every iteration. Which kind of locality does that illustrate?",
-      "choices": ["Spatial", "Temporal", "Stride-k", "Neither"],
-      "answer": 1,
-      "explain": "The same address (total) is reused again and again, which is temporal locality."
-    },
-    {
-      "type": "mc",
-      "category": "Locality",
-      "q": "Walking through an array one element after another, in storage order, is a classic example of which kind of locality?",
-      "choices": ["Temporal", "Spatial", "Remote", "Random"],
-      "answer": 1,
-      "explain": "Each access is to an address next to the previous one, which is spatial locality."
-    },
-    {
-      "type": "mc",
-      "category": "Locality",
-      "q": "How does the operating system exploit locality?",
-      "choices": ["By using RAM as a cache for disk, keeping recently referenced items in RAM", "By refreshing DRAM more often", "By choosing big endian byte order", "By converting column-major arrays to row-major"],
-      "answer": 0,
-      "explain": "The OS keeps the most recently referenced items in RAM to avoid slow disk access. This involves paging and virtual address space."
-    },
-    {
-      "type": "multi",
-      "category": "Locality",
-      "q": "At which layers is the principle of locality exploited?",
-      "choices": ["Hardware (keeping recently referenced blocks in cache)", "Operating system (using RAM as a cache for disk)", "Applications (writing code that maximizes locality)", "The system clock (adjusting pulse timing)"],
-      "answer": [0, 1, 2],
-      "explain": "Locality is exploited in hardware, the operating system, and applications."
-    },
-    {
-      "type": "mc",
-      "category": "Locality",
-      "q": "Program A fills array[1000] and then immediately sums it. Program B fills array[1000], then fills a second new_array[1000], then sums array. Why is B likely slower when it sums array?",
-      "choices": ["The work in between risks evicting array from cache, so the sum causes more misses", "Summing requires new_array to be refreshed first", "B stores array in column-major order", "B has a larger stride when summing"],
-      "answer": 0,
-      "explain": "B has bad temporal locality: by the time array is reused, it may no longer be in cache. A reuses the data right away while it is still cached."
-    },
-    {
-      "type": "tf",
-      "category": "Locality",
-      "q": "A program that reuses data soon after loading it has good temporal locality, because the data is likely still in cache.",
-      "answer": true,
-      "explain": "Using data again as soon as possible after loading it keeps accesses in fast cache."
-    },
-    {
-      "type": "mc",
-      "category": "Locality",
-      "q": "Why is it useful to be able to predict which memory a program will access next?",
-      "choices": ["So the data can be loaded into faster storage ahead of time, avoiding long RAM and disk access times", "So the OS can delete files that will not be used", "So DRAM refreshes can be skipped", "So the CPU can switch endianness"],
-      "answer": 0,
-      "explain": "Locality makes that prediction possible, which lets the hierarchy keep the right data in fast memory."
-    },
-
-    {
-      "type": "mc",
-      "category": "Matrices and Stride",
-      "q": "How do C and C++ lay out a 2D array such as int m[R][C] in memory?",
-      "choices": ["Row-major order", "Column-major order", "As separate rows scattered around memory", "In whatever order the program first accesses it"],
-      "answer": 0,
-      "explain": "C-family languages store the whole of row 0, then row 1, and so on, as one contiguous series."
-    },
-    {
-      "type": "mc",
-      "category": "Matrices and Stride",
-      "q": "Which sequence is the column-major storage order of a 3x3 matrix?",
-      "choices": ["a00, a01, a02, a10, a11, a12, a20, a21, a22", "a00, a10, a20, a01, a11, a21, a02, a12, a22", "a22, a21, a20, a12, a11, a10, a02, a01, a00", "a00, a11, a22, a01, a12, a20, a02, a10, a21"],
-      "answer": 1,
-      "explain": "Column-major stores column 0 completely, then column 1, then column 2. The first option is row-major."
-    },
-    {
-      "type": "mc",
-      "category": "Matrices and Stride",
-      "q": "In C++, which loop over int m[R][C] has good spatial locality?",
-      "choices": ["Outer loop over i (rows), inner loop over j (columns), accessing m[i][j]", "Outer loop over j (columns), inner loop over i (rows), accessing m[i][j]", "Both are equally good, because RAM access is constant time", "Neither, because 2D arrays are not stored contiguously"],
-      "answer": 0,
-      "explain": "Row-wise iteration visits elements in the order they are stored (stride-1). In C/C++, the innermost loop should vary the last index."
-    },
-    {
-      "type": "num",
-      "category": "Matrices and Stride",
-      "q": "Column-wise iteration over a 3x3 matrix stored in row-major order has a stride-k reference pattern. What is k?",
-      "answer": 3,
-      "explain": "Each step down a column skips a full row of 3 elements, so it is stride-3."
-    },
-    {
-      "type": "num",
-      "category": "Matrices and Stride",
-      "q": "What stride does column-wise iteration have over a row-major matrix declared int m[6][8] (6 rows, 8 columns)?",
-      "answer": 8,
-      "explain": "Column-wise iteration over a row-major R x C matrix is stride-C. Here C = 8."
-    },
-    {
-      "type": "num",
-      "category": "Matrices and Stride",
-      "q": "What stride does row-wise iteration over a row-major matrix have?",
-      "answer": 1,
-      "explain": "Row-wise iteration visits each element in storage order, which is stride-1, the best case for spatial locality."
-    },
-    {
-      "type": "num",
-      "category": "Matrices and Stride",
-      "q": "In a 3x3 matrix stored in row-major order, at what 0-based position in the flat sequence is a12 stored?",
-      "answer": 5,
-      "explain": "Position = i * C + j = 1 * 3 + 2 = 5. Order: a00, a01, a02, a10, a11, a12, ..."
-    },
-    {
-      "type": "num",
-      "category": "Matrices and Stride",
-      "q": "For the row-major array int m[6][8], at what 0-based position in the flat sequence is m[2][3] stored?",
-      "answer": 19,
-      "explain": "Position = i * C + j = 2 * 8 + 3 = 19."
-    },
-    {
-      "type": "num",
-      "category": "Matrices and Stride",
-      "q": "In a 3x3 matrix stored in column-major order, at what 0-based position is a12 (row 1, column 2) stored?",
-      "answer": 7,
-      "explain": "Column-major: a00, a10, a20, a01, a11, a21, a02, a12, a22. a12 is at position 7."
-    },
-    {
-      "type": "mc",
-      "category": "Matrices and Stride",
-      "q": "In a 3x3 matrix stored in row-major order, which element comes immediately after a02 in memory?",
-      "choices": ["a03", "a10", "a12", "a11"],
-      "answer": 1,
-      "explain": "Row 0 ends at a02, and row 1 begins with a10."
-    },
-    {
-      "type": "tf",
-      "category": "Matrices and Stride",
-      "q": "Column-wise iteration over a row-major matrix has bad spatial locality because it keeps jumping along the array.",
-      "answer": true,
-      "explain": "It visits a00, a10, a20, a01, ..., skipping a row's worth of elements on each step."
-    },
-    {
-      "type": "mc",
-      "category": "Matrices and Stride",
-      "q": "To access the \"center\" element of a 3x3 matrix, which row and column do you use?",
-      "choices": ["Row 1, column 1", "Row 2, column 2", "Row 1, column 2", "Row 0, column 0"],
-      "answer": 0,
-      "explain": "Indices start at 0, so the middle of 0, 1, 2 is 1."
-    },
-
-    {
-      "type": "mc",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "Why is cache memory needed between the registers and main memory?",
-      "choices": ["Registers are too small to hold much information, and main memory is too slow for optimal performance", "Main memory is non-volatile and cannot be written quickly", "Registers must be accessed over the bus", "Disks cannot store data permanently"],
-      "answer": 0,
-      "explain": "Cache fills the gap. Because the CPU often reuses the same or nearby data, keeping it in cache saves time."
-    },
-    {
-      "type": "tf",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "Moving toward the CPU (L3 to L2 to L1), each cache level is larger and slower than the one before it.",
-      "answer": false,
-      "explain": "Moving toward the CPU, each level is smaller and faster and holds data the CPU accesses more frequently."
-    },
-    {
-      "type": "mc",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "Where is cache memory most often located?",
-      "choices": ["Directly on the CPU chip, or on a separate chip very close by", "On the hard disk platters", "On a remote network server", "Inside the DRAM modules"],
-      "answer": 0,
-      "explain": "Cache is high-speed memory located near the CPU."
-    },
-    {
-      "type": "mc",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "What is the typical size range of a cache line?",
-      "choices": ["1 to 8 bytes", "16 to 256 bytes", "4 to 64 kilobytes", "1 to 16 megabytes"],
-      "fixed": true,
-      "answer": 1,
-      "explain": "Cache lines are fixed and small, typically 16 to 256 bytes."
-    },
-    {
-      "type": "mc",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "The CPU requests data from one memory address that is not in cache. What gets loaded into cache?",
-      "choices": ["Only the requested byte", "The entire cache line containing that address", "The entire program", "The whole matrix row being accessed"],
-      "answer": 1,
-      "explain": "The whole cache line comes in, so the requested byte's neighbors are already cached."
-    },
-    {
-      "type": "mc",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "Fetching whole cache lines at once helps a program take advantage of which kind of locality?",
-      "choices": ["Temporal", "Spatial", "Remote", "Neither"],
-      "answer": 1,
-      "explain": "Nearby data arrives along with the requested data, so later accesses to neighbors hit. That is spatial locality."
-    },
-    {
-      "type": "mc",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "What happens on a cache miss?",
-      "choices": ["The data is fetched from main memory, a new cache line is loaded into cache, and the data is sent to the CPU", "The CPU skips the instruction", "The data is sent directly to the CPU from cache", "The whole cache is flushed"],
-      "answer": 0,
-      "explain": "A miss is the suboptimal case. On a hit, the data goes straight from cache to the CPU."
-    },
-    {
-      "type": "mc",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "What is the miss penalty?",
-      "choices": ["The fraction of memory references that miss", "The additional time required when a miss occurs", "The number of lines evicted per miss", "The extra hardware cost of adding cache"],
-      "answer": 1,
-      "explain": "Miss penalty = how much performance is lost per miss. The fraction that miss is the miss rate."
-    },
-    {
-      "type": "num",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "A program makes 200 memory references and 30 of them miss. What is the hit rate, as a decimal?",
-      "answer": 0.85,
-      "tolerance": 0.005,
-      "explain": "Hits = 170, and 170 / 200 = 0.85. (Miss rate = 0.15.)"
-    },
-    {
-      "type": "num",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "A program's hit rate is 0.93. What is its miss rate, as a decimal?",
-      "answer": 0.07,
-      "tolerance": 0.005,
-      "explain": "Every reference either hits or misses, so hit rate + miss rate = 1."
-    },
-    {
-      "type": "num",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "Suppose a cache line is 64 bytes and an int is 4 bytes. How many ints fit in one cache line?",
-      "answer": 16,
-      "explain": "64 / 4 = 16."
-    },
-    {
-      "type": "num",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "With 64-byte cache lines and 4-byte ints, a stride-1 scan of a large int array misses only on the first access to each line. What is the miss rate, as a decimal?",
-      "answer": 0.0625,
-      "tolerance": 0.001,
-      "explain": "Each line holds 16 ints: 1 miss followed by 15 hits, so the miss rate is 1/16 = 0.0625."
-    },
-    {
-      "type": "mc",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "Registers, cache, and main memory all offer constant-time access. Why does the order in which a program touches data still affect performance?",
-      "choices": ["What matters is where in the hierarchy the data currently lives. In-order access turns more accesses into cache hits and avoids slow trips to RAM over the bus.", "Constant-time access only applies to the first access of each item", "Out-of-order access forces DRAM to switch endianness", "In-order access lets the CPU skip refresh cycles"],
-      "answer": 0,
-      "explain": "Each device is constant time, but cache (4 to 75 cycles) and RAM (hundreds of cycles) differ hugely. Fewer reads from slower memory means less time spent and less bus traffic."
-    },
-    {
-      "type": "tf",
-      "category": "Cache Lines, Hits, and Misses",
-      "q": "Components other than the CPU, such as disk drives, can have their own cache memory.",
-      "answer": true,
-      "explain": "For example, an SSD contains its own cache chip."
-    },
-
-    {
-      "type": "mc",
-      "category": "Replacement Policies",
-      "q": "Which cache line does LRU (Least Recently Used) evict?",
-      "choices": ["The line that was accessed least recently", "The line that was loaded earliest", "A line chosen at random", "The line that was accessed most often"],
-      "fixed": true,
-      "answer": 0,
-      "explain": "LRU evicts by last use, not by load time."
-    },
-    {
-      "type": "mc",
-      "category": "Replacement Policies",
-      "q": "Which cache line does FIFO (First-In, First-Out) evict?",
-      "choices": ["The line that was accessed least recently", "The line that was loaded earliest", "A line chosen at random", "The line that was accessed most often"],
-      "fixed": true,
-      "answer": 1,
-      "explain": "FIFO evicts by age: the oldest-loaded line goes first, however recently it was used."
-    },
-    {
-      "type": "mc",
-      "category": "Replacement Policies",
-      "q": "Which replacement policy is the quickest because it does zero tracking, making it a good fit for L1 cache?",
-      "choices": ["LRU", "FIFO", "Random replacement"],
-      "answer": 2,
-      "explain": "Random replacement has no bookkeeping, so it is fast. However, it is unpredictable and cannot be optimized."
-    },
-    {
-      "type": "mc",
-      "category": "Replacement Policies",
-      "q": "Which replacement policy rewards strong temporal locality but is more complex to implement?",
-      "choices": ["LRU", "FIFO", "Random replacement"],
-      "answer": 0,
-      "explain": "LRU keeps recently used lines, which rewards reuse, but it must track usage."
-    },
-    {
-      "type": "mc",
-      "category": "Replacement Policies",
-      "q": "Which replacement policy is simple to implement but can punish temporal locality?",
-      "choices": ["LRU", "FIFO", "Random replacement"],
-      "answer": 1,
-      "explain": "FIFO may evict a line that was loaded long ago but is still heavily used."
-    },
-    {
-      "type": "num",
-      "category": "Replacement Policies",
-      "q": "A cache holds 2 lines and starts empty. The access sequence is X, Y, X, Z, X. How many hits occur under LRU?",
-      "answer": 2,
-      "explain": "X miss, Y miss, X hit, Z miss (evicts Y, the least recently used), X hit. 2 hits."
-    },
-    {
-      "type": "num",
-      "category": "Replacement Policies",
-      "q": "A cache holds 2 lines and starts empty. The access sequence is X, Y, X, Z, X. How many hits occur under FIFO?",
-      "answer": 1,
-      "explain": "X miss, Y miss, X hit, Z miss (evicts X, the oldest loaded), X miss. 1 hit."
-    },
-    {
-      "type": "num",
-      "category": "Replacement Policies",
-      "q": "A cache holds 3 lines and starts empty. The access sequence is A, B, A, C, A, D, A. How many hits occur under LRU?",
-      "answer": 3,
-      "explain": "A miss, B miss, A hit, C miss, A hit, D miss (evicts B, the least recently used), A hit. 3 hits."
-    },
-    {
-      "type": "mc",
-      "category": "Replacement Policies",
-      "q": "A 3-line cache starts empty and sees A, B, A, C, A, D. Under FIFO, which line is evicted to make room for D?",
-      "choices": ["A", "B", "C", "Nothing is evicted"],
-      "fixed": true,
-      "answer": 0,
-      "explain": "A was loaded first, so FIFO evicts it even though it is used constantly. LRU would have evicted B instead."
-    },
-    {
-      "type": "tf",
-      "category": "Replacement Policies",
-      "q": "Random replacement is predictable and can be tuned to a program's access pattern.",
-      "answer": false,
-      "explain": "Random replacement is unpredictable and cannot be optimized. Its advantage is speed."
-    },
-    {
-      "type": "mc",
-      "category": "Replacement Policies",
-      "q": "Why does a cache need a replacement policy at all?",
-      "choices": ["When a miss brings a new line into the cache, an older line must be overwritten", "To decide when DRAM cells are refreshed", "To choose between big and little endian", "To decide which disk track to seek to"],
-      "answer": 0,
-      "explain": "Cache is small. The replacement policy decides which existing line gets evicted."
-    },
-
-    {
-      "type": "mc",
-      "category": "Endianness",
-      "q": "What does \"endianness\" refer to?",
-      "choices": ["The order in which a system stores and/or interprets bytes", "The order of bits within a cache tag", "The direction a disk platter spins", "The order in which cache lines are evicted"],
-      "answer": 0,
-      "explain": "Endianness is byte order for values that span multiple addresses."
-    },
-    {
-      "type": "mc",
-      "category": "Endianness",
-      "q": "In a big endian system, which byte of a multi-byte value is stored at the lowest address?",
-      "choices": ["The most significant byte", "The least significant byte", "A middle byte", "Whichever byte is accessed most often"],
-      "answer": 0,
-      "explain": "Big endian puts the big end (MSB) first. Little endian puts the LSB first."
-    },
-    {
-      "type": "mc",
-      "category": "Endianness",
-      "q": "The 4-byte value 0x12345678 is stored starting at address 0x200 on a little endian machine. Which byte is at address 0x200?",
-      "choices": ["12", "78", "87", "21"],
-      "answer": 1,
-      "explain": "Little endian puts the least significant byte first: 78 56 34 12 at 0x200 to 0x203."
-    },
-    {
-      "type": "mc",
-      "category": "Endianness",
-      "q": "Which byte sequence shows 0xA1B2C3D4 stored big endian at addresses 0x10 through 0x13 (lowest address first)?",
-      "choices": ["A1 B2 C3 D4", "D4 C3 B2 A1", "4D 3C 2B 1A", "1A 2B 3C 4D"],
-      "answer": 0,
-      "explain": "Big endian stores MSB to LSB, the same order you write the number. Little endian would be D4 C3 B2 A1."
-    },
-    {
-      "type": "text",
-      "category": "Endianness",
-      "q": "A little endian machine shows the bytes EF BE AD DE at increasing addresses. What 32-bit value is stored, in hex?",
-      "answer": ["0xDEADBEEF", "DEADBEEF", "0xdeadbeef", "deadbeef", "0xDeadBeef", "DeadBeef"],
-      "explain": "Reverse the byte order (not the digits): DE AD BE EF, which is 0xDEADBEEF."
-    },
-    {
-      "type": "mc",
-      "category": "Endianness",
-      "q": "How is the 2-byte value 0x1234 stored in little endian (lowest address first)?",
-      "choices": ["12 34", "34 12", "43 21", "21 43"],
-      "answer": 1,
-      "explain": "Endianness reverses bytes, not hex digits. Each byte keeps its normal internal order."
-    },
-    {
-      "type": "mc",
-      "category": "Endianness",
-      "q": "Which byte order makes increments, addition/subtraction, and even/odd checks simpler and faster?",
-      "choices": ["Big endian", "Little endian", "Neither; they are identical for arithmetic"],
-      "answer": 1,
-      "explain": "Little endian always has the least significant byte first, which is where arithmetic and parity checks start."
-    },
-    {
-      "type": "mc",
-      "category": "Endianness",
-      "q": "Which byte order is easier for humans to read and makes comparing value sizes and checking the sign bit easier in hardware?",
-      "choices": ["Big endian", "Little endian", "Neither; they are identical"],
-      "answer": 0,
-      "explain": "Big endian matches how people write numbers, and the most significant byte (containing the sign bit) sits at the lowest address."
-    },
-    {
-      "type": "num",
-      "category": "Endianness",
-      "q": "On a big endian machine, an 8-byte long holding decimal 5 is mistakenly read as a 4-byte int from the same starting address. What value is read?",
-      "answer": 0,
-      "explain": "Big endian layout: 00 00 00 00 00 00 00 05. The first four bytes are all 00, so the int reads 0 instead of 5."
-    },
-    {
-      "type": "mc",
-      "category": "Endianness",
-      "q": "An 8-byte long holding 5 is mistakenly read as a 4-byte int from the same starting address. Under which byte order is the value still read correctly as 5?",
-      "choices": ["Big endian", "Little endian", "Both", "Neither"],
-      "answer": 1,
-      "explain": "Little endian layout: 05 00 00 00 00 00 00 00. The first four bytes, 05 00 00 00, read least to most significant, give 00000005 = 5."
-    },
-    {
-      "type": "mc",
-      "category": "Endianness",
-      "q": "The 8-byte value 01 23 FE ED BA BE F0 0D is stored little endian at addresses 0x01 through 0x08. Which byte is at address 0x04?",
-      "choices": ["ED", "BA", "BE", "FE"],
-      "answer": 1,
-      "explain": "Little endian layout: 0D F0 BE BA ED FE 23 01 at 0x01 to 0x08, so 0x04 holds BA."
-    },
-    {
-      "type": "mc",
-      "category": "Endianness",
-      "q": "Where do the terms \"big endian\" and \"little endian\" come from?",
-      "choices": ["Gulliver's Travels by Jonathan Swift, where the Lilliputians fight over which end of a hard-boiled egg to eat first", "The surnames of two early CPU designers", "Whether the outer or inner edge of a disk platter is read first", "An early networking standard's names for packet headers"],
-      "answer": 0,
-      "explain": "Swift (1726): big-endians eat the big end of the egg first, and little-endians eat the little end first."
-    },
-    {
-      "type": "tf",
-      "category": "Endianness",
-      "q": "The choice between big and little endian is unimportant in most cases, as long as every part of the system or network uses the same endianness.",
-      "answer": true,
-      "explain": "Endianness only causes trouble when machines that disagree exchange data without translation."
-    },
-    {
-      "type": "multi",
-      "category": "Endianness",
-      "q": "Two machines use different endianness. What can translate the byte order so they don't misread each other's data?",
-      "choices": ["The operating system", "Software", "Special libraries", "The DRAM refresh circuitry", "The cache replacement policy"],
-      "answer": [0, 1, 2],
-      "explain": "Byte-order translation can be handled by the OS, software, special libraries, and so on."
-    },
-    {
-      "type": "tf",
-      "category": "Endianness",
-      "q": "Little endian reverses the order of the hex digits inside each byte as well as the order of the bytes.",
-      "answer": false,
-      "explain": "Only the byte order is reversed. Little endian is read right-to-left across bytes but left-to-right within a byte."
-    },
-    {
-      "type": "tf",
-      "category": "Endianness",
-      "q": "In modern computers, each memory address refers to 1 byte (8 bits) of data.",
-      "answer": true,
-      "explain": "That is why any value larger than one byte must be spread across several consecutive addresses, which raises the question of byte order."
-    }
-  ]
+ "title": "CSC2770 Module 3: Memory Hierarchy",
+ "course": "CSC2770",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "Hierarchy and Trade-offs",
+   "q": "Memory has a \"pick two\" trade-off. If you want memory that is both low-cost and available in large quantities, what do you give up?",
+   "choices": [
+    "Capacity",
+    "Speed",
+    "Non-volatility",
+    "Random access"
+   ],
+   "answer": 1,
+   "explain": "Cheap and plentiful memory is much slower, as with main memory and disk. Fast and cheap means small quantities. Fast and large means costly."
+  },
+  {
+   "type": "mc",
+   "category": "Hierarchy and Trade-offs",
+   "q": "If you want fast memory at a low cost, what is the catch?",
+   "choices": [
+    "You can only get it in small quantities",
+    "It must be non-volatile",
+    "It must be refreshed constantly",
+    "It has to be accessed over a network"
+   ],
+   "answer": 0,
+   "explain": "Fast and cheap is only possible in small amounts. Larger quantities would be slower or pricier."
+  },
+  {
+   "type": "mc",
+   "category": "Hierarchy and Trade-offs",
+   "q": "The memory hierarchy organizes a computer's memory devices according to which three properties?",
+   "choices": [
+    "Volatility, reliability, and power use",
+    "Latency, bandwidth, and bus width",
+    "Speed, cost, and capacity",
+    "Size, age, and access frequency"
+   ],
+   "answer": 2,
+   "explain": "The memory hierarchy is the organization of memory devices according to their speed, cost, and capacity."
+  },
+  {
+   "type": "multi",
+   "category": "Hierarchy and Trade-offs",
+   "q": "Which statements describe memory closer to the CPU (toward the top of the hierarchy)?",
+   "choices": [
+    "It is faster",
+    "It is more expensive per byte",
+    "It is available in smaller quantities",
+    "It is non-volatile",
+    "It holds files retrieved from remote servers"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Closer to the CPU, memory is faster, costlier per byte, and smaller. Registers and cache are volatile, and files from remote servers are held at L5 (local disks)."
+  },
+  {
+   "type": "mc",
+   "category": "Hierarchy and Trade-offs",
+   "q": "In the memory hierarchy pyramid, what does main memory (L4) hold?",
+   "choices": [
+    "Words retrieved from cache memory",
+    "Cache lines retrieved from L3 cache",
+    "Disk blocks retrieved from local disks",
+    "Files retrieved from disks on remote network servers"
+   ],
+   "answer": 2,
+   "explain": "Each level holds data from the level directly below it. Registers hold words, caches hold cache lines, main memory holds disk blocks, and local disks hold files from remote servers."
+  },
+  {
+   "type": "text",
+   "category": "Hierarchy and Trade-offs",
+   "q": "Which hierarchy level (L0 through L6) is local secondary storage, such as local disks?",
+   "answer": [
+    "L5",
+    "l5",
+    "5",
+    "Level 5",
+    "level 5"
+   ],
+   "explain": "L0 registers, L1 to L3 cache (SRAM), L4 main memory (DRAM), L5 local secondary storage, L6 remote secondary storage."
+  },
+  {
+   "type": "mc",
+   "category": "Hierarchy and Trade-offs",
+   "q": "Roughly how long does an access to RAM take?",
+   "choices": [
+    "0 cycles",
+    "4 to 75 cycles",
+    "Hundreds of cycles",
+    "Tens of millions of cycles"
+   ],
+   "fixed": true,
+   "answer": 2,
+   "explain": "Registers: 0 cycles. Cache: 4 to 75 cycles. RAM: hundreds of cycles. Disk: tens of millions of cycles."
+  },
+  {
+   "type": "mc",
+   "category": "Hierarchy and Trade-offs",
+   "q": "Which storage type has an access time of about 4 to 75 cycles?",
+   "choices": [
+    "Registers",
+    "Cache",
+    "RAM",
+    "Disk"
+   ],
+   "fixed": true,
+   "answer": 1,
+   "explain": "Cache is 4 to 75 cycles, between registers (0 cycles) and RAM (hundreds of cycles)."
+  },
+  {
+   "type": "mc",
+   "category": "Hierarchy and Trade-offs",
+   "q": "Why can CPU registers be accessed with virtually zero delay?",
+   "choices": [
+    "They are small flip-flops located directly on the CPU, so no bus is needed",
+    "They are built from DRAM that is refreshed constantly",
+    "They are the largest memory in the system, so data is always present",
+    "They are synchronized to both edges of the clock"
+   ],
+   "answer": 0,
+   "explain": "Registers store information in simple flip-flops right on the CPU. Their small size and proximity mean no bus trip and essentially zero delay."
+  },
+  {
+   "type": "multi",
+   "category": "Hierarchy and Trade-offs",
+   "q": "Which are limitations of CPU registers?",
+   "choices": [
+    "Not suited to reliable storage over long periods",
+    "Minimal retention",
+    "Minimal error-checking",
+    "Must be refreshed hundreds of times per second",
+    "Must be reached over the system bus"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Registers are optimized for speed, not for reliable long-term storage, with minimal retention and error-checking. Refreshing is a DRAM trait, and registers need no bus."
+  },
+  {
+   "type": "tf",
+   "category": "Hierarchy and Trade-offs",
+   "q": "Each level of the memory hierarchy holds copies of data retrieved from the level directly below it.",
+   "answer": true,
+   "explain": "In effect each level acts as a cache for the next level down."
+  },
+  {
+   "type": "mc",
+   "category": "DRAM and SRAM",
+   "q": "What does each DRAM memory cell consist of?",
+   "choices": [
+    "Four to six transistors and no capacitor",
+    "One capacitor and one transistor",
+    "A floating-gate transistor that traps electrons",
+    "Magnetized grains on a platter"
+   ],
+   "answer": 1,
+   "explain": "DRAM cell = one capacitor (stores the bit) + one transistor (controls access). Four to six transistors with no capacitor describes SRAM."
+  },
+  {
+   "type": "mc",
+   "category": "DRAM and SRAM",
+   "q": "In a DRAM cell, what is the transistor's job?",
+   "choices": [
+    "It stores the bit as an electrical charge",
+    "It controls access to the capacitor for reading, writing, and refreshing",
+    "It keeps the cell synchronized with the system clock",
+    "It forms a bistable circuit that holds the bit"
+   ],
+   "answer": 1,
+   "explain": "The capacitor stores the bit. The transistor, a semiconductor such as silicon that can conduct or block electricity, gates access to it."
+  },
+  {
+   "type": "mc",
+   "category": "DRAM and SRAM",
+   "q": "Why is DRAM called \"dynamic\"?",
+   "choices": [
+    "Its capacity can grow at runtime",
+    "It changes clock speed on demand",
+    "Its capacitors cannot hold charge indefinitely, so it must be refreshed hundreds of times per second",
+    "It switches between cache and main-memory roles"
+   ],
+   "answer": 2,
+   "explain": "The constant refreshing needed to keep the capacitor's charge is what makes DRAM dynamic."
+  },
+  {
+   "type": "mc",
+   "category": "DRAM and SRAM",
+   "q": "To read a DRAM bit, the transistor opens access to the capacitor. If charge flows out, which bit is read?",
+   "choices": [
+    "0",
+    "1",
+    "It depends on the clock edge",
+    "No value until the cell is refreshed"
+   ],
+   "answer": 1,
+   "explain": "Charged capacitor = 1, so charge flowing out reads as 1. No charge reads as 0."
+  },
+  {
+   "type": "text",
+   "category": "DRAM and SRAM",
+   "q": "SRAM's transistors form a circuit that can stably hold either of two states as long as power is supplied. What is this kind of circuit called?",
+   "answer": [
+    "bistable",
+    "bistable circuit",
+    "a bistable circuit",
+    "Bistable",
+    "Bistable circuit"
+   ],
+   "explain": "A bistable circuit: high-voltage state = 1, low-voltage state = 0."
+  },
+  {
+   "type": "tf",
+   "category": "DRAM and SRAM",
+   "q": "Because SRAM does not need to be refreshed, it keeps its data even when power is removed.",
+   "answer": false,
+   "explain": "SRAM is still volatile. It holds its state only as long as power is supplied. \"Static\" only means no refresh is needed."
+  },
+  {
+   "type": "multi",
+   "category": "DRAM and SRAM",
+   "q": "Why is SRAM faster and more stable than DRAM?",
+   "choices": [
+    "No time is spent charging, discharging, and refreshing capacitors",
+    "There is no charge leakage, so there is less risk of data loss or corruption",
+    "It is stored on remote servers with redundancy",
+    "It uses only one transistor per cell",
+    "It stores bits magnetically"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "SRAM has no capacitor, so it skips the capacitor's charge/discharge/refresh time and has no leakage."
+  },
+  {
+   "type": "mc",
+   "category": "DRAM and SRAM",
+   "q": "Which pairing of RAM type and typical use is correct?",
+   "choices": [
+    "SRAM for main memory, DRAM for cache",
+    "SRAM for cache, DRAM for main memory",
+    "SRAM for local disks, DRAM for registers",
+    "Both are used only for secondary storage"
+   ],
+   "answer": 1,
+   "explain": "SRAM is used for L1 to L3 cache. DRAM is used for main memory (L4)."
+  },
+  {
+   "type": "mc",
+   "category": "DRAM and SRAM",
+   "q": "In SRAM, how is a 1 bit represented?",
+   "choices": [
+    "A charged capacitor",
+    "A high-voltage state of the bistable circuit",
+    "A floating gate full of electrons",
+    "A magnetized grain"
+   ],
+   "answer": 1,
+   "explain": "In SRAM, high voltage = 1 and low voltage = 0. A charged capacitor is DRAM's representation."
+  },
+  {
+   "type": "tf",
+   "category": "DRAM and SRAM",
+   "q": "\"Random access\" means any item can be accessed in constant time without traversing other items first.",
+   "answer": true,
+   "explain": "That is the meaning of random access in RAM."
+  },
+  {
+   "type": "mc",
+   "category": "DRAM and SRAM",
+   "q": "Physically, what is the capacitor in a DRAM cell?",
+   "choices": [
+    "Two conductive plates separated by a non-conductive, insulating material",
+    "A spinning magnetic platter",
+    "A loop of four to six transistors",
+    "A silicon gate that traps electrons"
+   ],
+   "answer": 0,
+   "explain": "One plate holds positive charge and one holds negative charge, with insulation between them. It briefly stores and releases charge."
+  },
+  {
+   "type": "mc",
+   "category": "SDRAM and DDR",
+   "q": "What distinguishes SDRAM from earlier DRAM?",
+   "choices": [
+    "It needs no refresh",
+    "It operates in sync with the system clock",
+    "It uses capacitors instead of transistors",
+    "It is non-volatile"
+   ],
+   "answer": 1,
+   "explain": "Synchronous DRAM is DRAM that operates in sync with the system clock."
+  },
+  {
+   "type": "mc",
+   "category": "SDRAM and DDR",
+   "q": "What problem did asynchronous DRAM cause?",
+   "choices": [
+    "It lost data on every clock tick",
+    "It carried out commands on its own internal timing, so the CPU might have to wait, creating a bottleneck between the CPU and main memory",
+    "It could be read but never written",
+    "It required a network connection to operate"
+   ],
+   "answer": 1,
+   "explain": "The memory controller sent commands, but the DRAM executed them on its own schedule. The CPU could stall waiting, reducing performance."
+  },
+  {
+   "type": "mc",
+   "category": "SDRAM and DDR",
+   "q": "Why wasn't DRAM synchronized with the system clock from the start?",
+   "choices": [
+    "Early CPUs were slower and computers were costlier, so syncing was not considered necessary or feasible",
+    "The system clock had not yet been invented",
+    "Synchronizing would have made DRAM non-volatile",
+    "SRAM already handled all main-memory traffic"
+   ],
+   "answer": 0,
+   "explain": "The bottleneck only became noticeable, and therefore a problem, as computers became more efficient."
+  },
+  {
+   "type": "mc",
+   "category": "SDRAM and DDR",
+   "q": "How does DDR SDRAM double the work done per clock cycle?",
+   "choices": [
+    "It uses two memory controllers",
+    "It performs one operation on the rising edge and one on the falling edge of each clock tick",
+    "It doubles the number of capacitors per cell",
+    "It skips every other refresh"
+   ],
+   "answer": 1,
+   "explain": "Each clock tick has a rising and a falling edge. DDR does one operation on each, making it twice as fast as earlier SDRAM."
+  },
+  {
+   "type": "num",
+   "category": "SDRAM and DDR",
+   "q": "How many operations does DDR SDRAM perform per clock cycle?",
+   "answer": 2,
+   "explain": "One on the rising edge and one on the falling edge."
+  },
+  {
+   "type": "text",
+   "category": "SDRAM and DDR",
+   "q": "DRAM that ran on its own timing, before SDRAM, is sometimes called by what abbreviation?",
+   "answer": [
+    "ADRAM",
+    "adram",
+    "asynchronous DRAM",
+    "Asynchronous DRAM",
+    "asynchronous dram"
+   ],
+   "explain": "ADRAM, asynchronous DRAM."
+  },
+  {
+   "type": "mc",
+   "category": "SDRAM and DDR",
+   "q": "What does the system clock do?",
+   "choices": [
+    "Stores the date and time in non-volatile memory",
+    "Generates pulses that coordinate operations across the computer",
+    "Refreshes SRAM cells",
+    "Decides which cache line to evict"
+   ],
+   "answer": 1,
+   "explain": "For example, each tick might correspond to one step of the fetch-and-execute cycle."
+  },
+  {
+   "type": "mc",
+   "category": "SDRAM and DDR",
+   "q": "Before SDRAM, which component sent read/write commands to the DRAM?",
+   "choices": [
+    "The memory controller",
+    "The L1 cache",
+    "The disk controller",
+    "The CPU registers"
+   ],
+   "answer": 0,
+   "explain": "The memory controller sent commands, and the DRAM carried them out on its own internal timing."
+  },
+  {
+   "type": "tf",
+   "category": "SDRAM and DDR",
+   "q": "DDR2, DDR3, DDR4, and DDR5 are successive improvements on DDR SDRAM.",
+   "answer": true,
+   "explain": "They all build on double data rate SDRAM, which most computers use today."
+  },
+  {
+   "type": "num",
+   "category": "SDRAM and DDR",
+   "q": "Around what year did SDRAM arrive, ending the era of DRAM running on its own timing?",
+   "answer": 1992,
+   "tolerance": 1,
+   "explain": "About 1992."
+  },
+  {
+   "type": "tf",
+   "category": "Secondary Storage",
+   "q": "Both local and remote secondary storage are non-volatile.",
+   "answer": true,
+   "explain": "Their data remains after the program ends and/or power is removed. That is why they are also called permanent storage."
+  },
+  {
+   "type": "mc",
+   "category": "Secondary Storage",
+   "q": "Compared with remote secondary storage, local secondary storage has:",
+   "choices": [
+    "More latency and less reliability",
+    "Less latency and greater reliability",
+    "Less latency but less reliability",
+    "The same latency, since both use disks"
+   ],
+   "answer": 1,
+   "explain": "Local storage is connected directly to the machine. Remote storage depends on a network, which makes it slower and less reliable."
+  },
+  {
+   "type": "multi",
+   "category": "Secondary Storage",
+   "q": "Remote secondary storage is slower and less reliable than local storage. Which benefits does it often offer in exchange?",
+   "choices": [
+    "Cost-effectiveness",
+    "Scalability",
+    "Remote access",
+    "Lower latency than local disks",
+    "No dependence on a network"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Remote storage (such as Google Drive, AWS, Dropbox) trades speed and reliability for cost-effectiveness, scalability, and remote access."
+  },
+  {
+   "type": "multi",
+   "category": "Secondary Storage",
+   "q": "Which are examples of local secondary storage?",
+   "choices": [
+    "Hard disk drive",
+    "Solid state drive",
+    "USB drive",
+    "DVD",
+    "Google Drive",
+    "Dropbox"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "explain": "Local storage connects directly: HDDs, SSDs, external drives, optical discs. Google Drive and Dropbox are cloud (remote) storage."
+  },
+  {
+   "type": "mc",
+   "category": "Secondary Storage",
+   "q": "In a hard disk drive, what is seek time?",
+   "choices": [
+    "Time for the arm to move the head to the correct location (track)",
+    "Time for the disk to spin the correct location under the head",
+    "Time to actually read or write the data",
+    "Time for the OS to find the file in its directory"
+   ],
+   "fixed": true,
+   "answer": 0,
+   "explain": "Seek time = the arm moves. Rotational latency = waiting for the spin. Transfer time = the actual read or write."
+  },
+  {
+   "type": "mc",
+   "category": "Secondary Storage",
+   "q": "In a hard disk drive, what is rotational latency?",
+   "choices": [
+    "Time for the arm to move the head to the correct location (track)",
+    "Time for the disk to spin the correct location under the head",
+    "Time to actually read or write the data",
+    "Time for the OS to find the file in its directory"
+   ],
+   "fixed": true,
+   "answer": 1,
+   "explain": "The platter spins at a fixed rate, so after the seek you wait for the right spot to rotate under the head."
+  },
+  {
+   "type": "multi",
+   "category": "Secondary Storage",
+   "q": "Which HDD access delays does an SSD avoid entirely?",
+   "choices": [
+    "Seek time",
+    "Rotational latency",
+    "Transfer time"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "SSDs have no moving parts, so there is no arm to move and no platter to spin. Data still has to be transferred."
+  },
+  {
+   "type": "mc",
+   "category": "Secondary Storage",
+   "q": "How does an HDD read a bit?",
+   "choices": [
+    "The read/write head detects the magnetic polarization of a grain on the platter",
+    "The head measures charge flowing out of a capacitor",
+    "A floating gate releases trapped electrons",
+    "A bistable circuit is sampled for high or low voltage"
+   ],
+   "answer": 0,
+   "explain": "HDDs store bits by magnetizing grains on a spinning disk. Reading detects the polarization, and writing changes it."
+  },
+  {
+   "type": "mc",
+   "category": "Secondary Storage",
+   "q": "How do SSDs store information?",
+   "choices": [
+    "Magnetized grains on spinning platters",
+    "NAND flash memory: floating-gate transistors that trap electrons",
+    "Capacitors refreshed hundreds of times per second",
+    "Bistable SRAM circuits"
+   ],
+   "answer": 1,
+   "explain": "SSDs store information as trapped electrical signals using NAND flash memory."
+  },
+  {
+   "type": "mc",
+   "category": "Secondary Storage",
+   "q": "In the NAND flash model presented in this module, what does a floating gate containing trapped electrons represent?",
+   "choices": [
+    "0",
+    "1",
+    "An erased block",
+    "A bad sector"
+   ],
+   "answer": 1,
+   "explain": "In this material, a gate containing electrons = 1 and an empty gate = 0. (Real flash devices often label these the other way around, but this is the convention the material uses.)"
+  },
+  {
+   "type": "multi",
+   "category": "Secondary Storage",
+   "q": "Which are disadvantages of SSDs compared with HDDs?",
+   "choices": [
+    "They wear out more quickly because of how they write data",
+    "Recovering data from them is much more difficult",
+    "They consume more power",
+    "They are more prone to mechanical failure",
+    "They suffer from seek time"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "SSDs use less power and fail mechanically less often because nothing spins. Their downsides are faster wear and harder data recovery."
+  },
+  {
+   "type": "tf",
+   "category": "Secondary Storage",
+   "q": "NAND flash memory resembles a NAND logic gate in structure and also functions exactly like one.",
+   "answer": false,
+   "explain": "The structure resembles a NOT AND gate, but it does not function like one."
+  },
+  {
+   "type": "text",
+   "category": "Secondary Storage",
+   "q": "What is it called when an HDD's arm moves radially to position the read/write head over a particular track?",
+   "answer": [
+    "seek",
+    "a seek",
+    "Seek",
+    "seeking",
+    "Seeking"
+   ],
+   "explain": "A seek. The time it takes is the seek time."
+  },
+  {
+   "type": "tf",
+   "category": "Secondary Storage",
+   "q": "An HDD's read/write head flies over the disk surface on a thin cushion of air.",
+   "answer": true,
+   "explain": "The head sits at the end of the arm and flies just above the spinning platter."
+  },
+  {
+   "type": "mc",
+   "category": "Locality",
+   "q": "What is temporal locality?",
+   "choices": [
+    "If a program accesses an address, it is likely to access that same address again soon",
+    "If a program accesses an address, it is likely to access nearby addresses soon",
+    "Programs tend to access memory in random order",
+    "Data that has been in memory longer is accessed more often"
+   ],
+   "answer": 0,
+   "explain": "Temporal = same place, again soon. Spatial = nearby place, soon."
+  },
+  {
+   "type": "mc",
+   "category": "Locality",
+   "q": "What is spatial locality?",
+   "choices": [
+    "If a program accesses an address, it is likely to access that same address again soon",
+    "If a program accesses an address, it is likely to access nearby addresses soon",
+    "Programs tend to access memory in random order",
+    "Data that has been in memory longer is accessed more often"
+   ],
+   "answer": 1,
+   "explain": "Spatial locality is about nearby addresses, such as walking through an array."
+  },
+  {
+   "type": "mc",
+   "category": "Locality",
+   "q": "In the loop  for (int i = 0; i < n; i++) total += a[i];  the variable total is read and written on every iteration. Which kind of locality does that illustrate?",
+   "choices": [
+    "Spatial",
+    "Temporal",
+    "Stride-k",
+    "Neither"
+   ],
+   "answer": 1,
+   "explain": "The same address (total) is reused again and again, which is temporal locality."
+  },
+  {
+   "type": "mc",
+   "category": "Locality",
+   "q": "Walking through an array one element after another, in storage order, is a classic example of which kind of locality?",
+   "choices": [
+    "Temporal",
+    "Spatial",
+    "Remote",
+    "Random"
+   ],
+   "answer": 1,
+   "explain": "Each access is to an address next to the previous one, which is spatial locality."
+  },
+  {
+   "type": "mc",
+   "category": "Locality",
+   "q": "How does the operating system exploit locality?",
+   "choices": [
+    "By using RAM as a cache for disk, keeping recently referenced items in RAM",
+    "By refreshing DRAM more often",
+    "By choosing big endian byte order",
+    "By converting column-major arrays to row-major"
+   ],
+   "answer": 0,
+   "explain": "The OS keeps the most recently referenced items in RAM to avoid slow disk access. This involves paging and virtual address space."
+  },
+  {
+   "type": "multi",
+   "category": "Locality",
+   "q": "At which layers is the principle of locality exploited?",
+   "choices": [
+    "Hardware (keeping recently referenced blocks in cache)",
+    "Operating system (using RAM as a cache for disk)",
+    "Applications (writing code that maximizes locality)",
+    "The system clock (adjusting pulse timing)"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Locality is exploited in hardware, the operating system, and applications."
+  },
+  {
+   "type": "mc",
+   "category": "Locality",
+   "q": "Program A fills array[1000] and then immediately sums it. Program B fills array[1000], then fills a second new_array[1000], then sums array. Why is B likely slower when it sums array?",
+   "choices": [
+    "The work in between risks evicting array from cache, so the sum causes more misses",
+    "Summing requires new_array to be refreshed first",
+    "B stores array in column-major order",
+    "B has a larger stride when summing"
+   ],
+   "answer": 0,
+   "explain": "B has bad temporal locality: by the time array is reused, it may no longer be in cache. A reuses the data right away while it is still cached."
+  },
+  {
+   "type": "tf",
+   "category": "Locality",
+   "q": "A program that reuses data soon after loading it has good temporal locality, because the data is likely still in cache.",
+   "answer": true,
+   "explain": "Using data again as soon as possible after loading it keeps accesses in fast cache."
+  },
+  {
+   "type": "mc",
+   "category": "Locality",
+   "q": "Why is it useful to be able to predict which memory a program will access next?",
+   "choices": [
+    "So the data can be loaded into faster storage ahead of time, avoiding long RAM and disk access times",
+    "So the OS can delete files that will not be used",
+    "So DRAM refreshes can be skipped",
+    "So the CPU can switch endianness"
+   ],
+   "answer": 0,
+   "explain": "Locality makes that prediction possible, which lets the hierarchy keep the right data in fast memory."
+  },
+  {
+   "type": "mc",
+   "category": "Matrices and Stride",
+   "q": "How do C and C++ lay out a 2D array such as int m[R][C] in memory?",
+   "choices": [
+    "Row-major order",
+    "Column-major order",
+    "As separate rows scattered around memory",
+    "In whatever order the program first accesses it"
+   ],
+   "answer": 0,
+   "explain": "C-family languages store the whole of row 0, then row 1, and so on, as one contiguous series."
+  },
+  {
+   "type": "mc",
+   "category": "Matrices and Stride",
+   "q": "Which sequence is the column-major storage order of a 3x3 matrix?",
+   "choices": [
+    "a00, a01, a02, a10, a11, a12, a20, a21, a22",
+    "a00, a10, a20, a01, a11, a21, a02, a12, a22",
+    "a22, a21, a20, a12, a11, a10, a02, a01, a00",
+    "a00, a11, a22, a01, a12, a20, a02, a10, a21"
+   ],
+   "answer": 1,
+   "explain": "Column-major stores column 0 completely, then column 1, then column 2. The first option is row-major."
+  },
+  {
+   "type": "mc",
+   "category": "Matrices and Stride",
+   "q": "In C++, which loop over int m[R][C] has good spatial locality?",
+   "choices": [
+    "Outer loop over i (rows), inner loop over j (columns), accessing m[i][j]",
+    "Outer loop over j (columns), inner loop over i (rows), accessing m[i][j]",
+    "Both are equally good, because RAM access is constant time",
+    "Neither, because 2D arrays are not stored contiguously"
+   ],
+   "answer": 0,
+   "explain": "Row-wise iteration visits elements in the order they are stored (stride-1). In C/C++, the innermost loop should vary the last index."
+  },
+  {
+   "type": "num",
+   "category": "Matrices and Stride",
+   "q": "Column-wise iteration over a 3x3 matrix stored in row-major order has a stride-k reference pattern. What is k?",
+   "answer": 3,
+   "explain": "Each step down a column skips a full row of 3 elements, so it is stride-3."
+  },
+  {
+   "type": "num",
+   "category": "Matrices and Stride",
+   "q": "What stride does column-wise iteration have over a row-major matrix declared int m[6][8] (6 rows, 8 columns)?",
+   "answer": 8,
+   "explain": "Column-wise iteration over a row-major R x C matrix is stride-C. Here C = 8."
+  },
+  {
+   "type": "num",
+   "category": "Matrices and Stride",
+   "q": "What stride does row-wise iteration over a row-major matrix have?",
+   "answer": 1,
+   "explain": "Row-wise iteration visits each element in storage order, which is stride-1, the best case for spatial locality."
+  },
+  {
+   "type": "num",
+   "category": "Matrices and Stride",
+   "q": "In a 3x3 matrix stored in row-major order, at what 0-based position in the flat sequence is a12 stored?",
+   "answer": 5,
+   "explain": "Position = i * C + j = 1 * 3 + 2 = 5. Order: a00, a01, a02, a10, a11, a12, ..."
+  },
+  {
+   "type": "num",
+   "category": "Matrices and Stride",
+   "q": "For the row-major array int m[6][8], at what 0-based position in the flat sequence is m[2][3] stored?",
+   "answer": 19,
+   "explain": "Position = i * C + j = 2 * 8 + 3 = 19."
+  },
+  {
+   "type": "num",
+   "category": "Matrices and Stride",
+   "q": "In a 3x3 matrix stored in column-major order, at what 0-based position is a12 (row 1, column 2) stored?",
+   "answer": 7,
+   "explain": "Column-major: a00, a10, a20, a01, a11, a21, a02, a12, a22. a12 is at position 7."
+  },
+  {
+   "type": "mc",
+   "category": "Matrices and Stride",
+   "q": "In a 3x3 matrix stored in row-major order, which element comes immediately after a02 in memory?",
+   "choices": [
+    "a03",
+    "a10",
+    "a12",
+    "a11"
+   ],
+   "answer": 1,
+   "explain": "Row 0 ends at a02, and row 1 begins with a10."
+  },
+  {
+   "type": "tf",
+   "category": "Matrices and Stride",
+   "q": "Column-wise iteration over a row-major matrix has bad spatial locality because it keeps jumping along the array.",
+   "answer": true,
+   "explain": "It visits a00, a10, a20, a01, ..., skipping a row's worth of elements on each step."
+  },
+  {
+   "type": "mc",
+   "category": "Matrices and Stride",
+   "q": "To access the \"center\" element of a 3x3 matrix, which row and column do you use?",
+   "choices": [
+    "Row 1, column 1",
+    "Row 2, column 2",
+    "Row 1, column 2",
+    "Row 0, column 0"
+   ],
+   "answer": 0,
+   "explain": "Indices start at 0, so the middle of 0, 1, 2 is 1."
+  },
+  {
+   "type": "mc",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "Why is cache memory needed between the registers and main memory?",
+   "choices": [
+    "Registers are too small to hold much information, and main memory is too slow for optimal performance",
+    "Main memory is non-volatile and cannot be written quickly",
+    "Registers must be accessed over the bus",
+    "Disks cannot store data permanently"
+   ],
+   "answer": 0,
+   "explain": "Cache fills the gap. Because the CPU often reuses the same or nearby data, keeping it in cache saves time."
+  },
+  {
+   "type": "tf",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "Moving toward the CPU (L3 to L2 to L1), each cache level is larger and slower than the one before it.",
+   "answer": false,
+   "explain": "Moving toward the CPU, each level is smaller and faster and holds data the CPU accesses more frequently."
+  },
+  {
+   "type": "mc",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "Where is cache memory most often located?",
+   "choices": [
+    "Directly on the CPU chip, or on a separate chip very close by",
+    "On the hard disk platters",
+    "On a remote network server",
+    "Inside the DRAM modules"
+   ],
+   "answer": 0,
+   "explain": "Cache is high-speed memory located near the CPU."
+  },
+  {
+   "type": "mc",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "What is the typical size range of a cache line?",
+   "choices": [
+    "1 to 8 bytes",
+    "16 to 256 bytes",
+    "4 to 64 kilobytes",
+    "1 to 16 megabytes"
+   ],
+   "fixed": true,
+   "answer": 1,
+   "explain": "Cache lines are fixed and small, typically 16 to 256 bytes."
+  },
+  {
+   "type": "mc",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "The CPU requests data from one memory address that is not in cache. What gets loaded into cache?",
+   "choices": [
+    "Only the requested byte",
+    "The entire cache line containing that address",
+    "The entire program",
+    "The whole matrix row being accessed"
+   ],
+   "answer": 1,
+   "explain": "The whole cache line comes in, so the requested byte's neighbors are already cached."
+  },
+  {
+   "type": "mc",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "Fetching whole cache lines at once helps a program take advantage of which kind of locality?",
+   "choices": [
+    "Temporal",
+    "Spatial",
+    "Remote",
+    "Neither"
+   ],
+   "answer": 1,
+   "explain": "Nearby data arrives along with the requested data, so later accesses to neighbors hit. That is spatial locality."
+  },
+  {
+   "type": "mc",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "What happens on a cache miss?",
+   "choices": [
+    "The data is fetched from main memory, a new cache line is loaded into cache, and the data is sent to the CPU",
+    "The CPU skips the instruction",
+    "The data is sent directly to the CPU from cache",
+    "The whole cache is flushed"
+   ],
+   "answer": 0,
+   "explain": "A miss is the suboptimal case. On a hit, the data goes straight from cache to the CPU."
+  },
+  {
+   "type": "mc",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "What is the miss penalty?",
+   "choices": [
+    "The fraction of memory references that miss",
+    "The additional time required when a miss occurs",
+    "The number of lines evicted per miss",
+    "The extra hardware cost of adding cache"
+   ],
+   "answer": 1,
+   "explain": "Miss penalty = how much performance is lost per miss. The fraction that miss is the miss rate."
+  },
+  {
+   "type": "num",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "A program makes 200 memory references and 30 of them miss. What is the hit rate, as a decimal?",
+   "answer": 0.85,
+   "tolerance": 0.005,
+   "explain": "Hits = 170, and 170 / 200 = 0.85. (Miss rate = 0.15.)"
+  },
+  {
+   "type": "num",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "A program's hit rate is 0.93. What is its miss rate, as a decimal?",
+   "answer": 0.07,
+   "tolerance": 0.005,
+   "explain": "Every reference either hits or misses, so hit rate + miss rate = 1."
+  },
+  {
+   "type": "num",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "Suppose a cache line is 64 bytes and an int is 4 bytes. How many ints fit in one cache line?",
+   "answer": 16,
+   "explain": "64 / 4 = 16."
+  },
+  {
+   "type": "num",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "With 64-byte cache lines and 4-byte ints, a stride-1 scan of a large int array misses only on the first access to each line. What is the miss rate, as a decimal?",
+   "answer": 0.0625,
+   "tolerance": 0.001,
+   "explain": "Each line holds 16 ints: 1 miss followed by 15 hits, so the miss rate is 1/16 = 0.0625."
+  },
+  {
+   "type": "mc",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "Registers, cache, and main memory all offer constant-time access. Why does the order in which a program touches data still affect performance?",
+   "choices": [
+    "What matters is where in the hierarchy the data currently lives. In-order access turns more accesses into cache hits and avoids slow trips to RAM over the bus.",
+    "Constant-time access only applies to the first access of each item",
+    "Out-of-order access forces DRAM to switch endianness",
+    "In-order access lets the CPU skip refresh cycles"
+   ],
+   "answer": 0,
+   "explain": "Each device is constant time, but cache (4 to 75 cycles) and RAM (hundreds of cycles) differ hugely. Fewer reads from slower memory means less time spent and less bus traffic."
+  },
+  {
+   "type": "tf",
+   "category": "Cache Lines, Hits, and Misses",
+   "q": "Components other than the CPU, such as disk drives, can have their own cache memory.",
+   "answer": true,
+   "explain": "For example, an SSD contains its own cache chip."
+  },
+  {
+   "type": "mc",
+   "category": "Replacement Policies",
+   "q": "Which cache line does LRU (Least Recently Used) evict?",
+   "choices": [
+    "The line that was accessed least recently",
+    "The line that was loaded earliest",
+    "A line chosen at random",
+    "The line that was accessed most often"
+   ],
+   "fixed": true,
+   "answer": 0,
+   "explain": "LRU evicts by last use, not by load time."
+  },
+  {
+   "type": "mc",
+   "category": "Replacement Policies",
+   "q": "Which cache line does FIFO (First-In, First-Out) evict?",
+   "choices": [
+    "The line that was accessed least recently",
+    "The line that was loaded earliest",
+    "A line chosen at random",
+    "The line that was accessed most often"
+   ],
+   "fixed": true,
+   "answer": 1,
+   "explain": "FIFO evicts by age: the oldest-loaded line goes first, however recently it was used."
+  },
+  {
+   "type": "mc",
+   "category": "Replacement Policies",
+   "q": "Which replacement policy is the quickest because it does zero tracking, making it a good fit for L1 cache?",
+   "choices": [
+    "LRU",
+    "FIFO",
+    "Random replacement"
+   ],
+   "answer": 2,
+   "explain": "Random replacement has no bookkeeping, so it is fast. However, it is unpredictable and cannot be optimized."
+  },
+  {
+   "type": "mc",
+   "category": "Replacement Policies",
+   "q": "Which replacement policy rewards strong temporal locality but is more complex to implement?",
+   "choices": [
+    "LRU",
+    "FIFO",
+    "Random replacement"
+   ],
+   "answer": 0,
+   "explain": "LRU keeps recently used lines, which rewards reuse, but it must track usage."
+  },
+  {
+   "type": "mc",
+   "category": "Replacement Policies",
+   "q": "Which replacement policy is simple to implement but can punish temporal locality?",
+   "choices": [
+    "LRU",
+    "FIFO",
+    "Random replacement"
+   ],
+   "answer": 1,
+   "explain": "FIFO may evict a line that was loaded long ago but is still heavily used."
+  },
+  {
+   "type": "num",
+   "category": "Replacement Policies",
+   "q": "A cache holds 2 lines and starts empty. The access sequence is X, Y, X, Z, X. How many hits occur under LRU?",
+   "answer": 2,
+   "explain": "X miss, Y miss, X hit, Z miss (evicts Y, the least recently used), X hit. 2 hits."
+  },
+  {
+   "type": "num",
+   "category": "Replacement Policies",
+   "q": "A cache holds 2 lines and starts empty. The access sequence is X, Y, X, Z, X. How many hits occur under FIFO?",
+   "answer": 1,
+   "explain": "X miss, Y miss, X hit, Z miss (evicts X, the oldest loaded), X miss. 1 hit."
+  },
+  {
+   "type": "num",
+   "category": "Replacement Policies",
+   "q": "A cache holds 3 lines and starts empty. The access sequence is A, B, A, C, A, D, A. How many hits occur under LRU?",
+   "answer": 3,
+   "explain": "A miss, B miss, A hit, C miss, A hit, D miss (evicts B, the least recently used), A hit. 3 hits."
+  },
+  {
+   "type": "mc",
+   "category": "Replacement Policies",
+   "q": "A 3-line cache starts empty and sees A, B, A, C, A, D. Under FIFO, which line is evicted to make room for D?",
+   "choices": [
+    "A",
+    "B",
+    "C",
+    "Nothing is evicted"
+   ],
+   "fixed": true,
+   "answer": 0,
+   "explain": "A was loaded first, so FIFO evicts it even though it is used constantly. LRU would have evicted B instead."
+  },
+  {
+   "type": "tf",
+   "category": "Replacement Policies",
+   "q": "Random replacement is predictable and can be tuned to a program's access pattern.",
+   "answer": false,
+   "explain": "Random replacement is unpredictable and cannot be optimized. Its advantage is speed."
+  },
+  {
+   "type": "mc",
+   "category": "Replacement Policies",
+   "q": "Why does a cache need a replacement policy at all?",
+   "choices": [
+    "When a miss brings a new line into the cache, an older line must be overwritten",
+    "To decide when DRAM cells are refreshed",
+    "To choose between big and little endian",
+    "To decide which disk track to seek to"
+   ],
+   "answer": 0,
+   "explain": "Cache is small. The replacement policy decides which existing line gets evicted."
+  },
+  {
+   "type": "mc",
+   "category": "Endianness",
+   "q": "What does \"endianness\" refer to?",
+   "choices": [
+    "The order in which a system stores and/or interprets bytes",
+    "The order of bits within a cache tag",
+    "The direction a disk platter spins",
+    "The order in which cache lines are evicted"
+   ],
+   "answer": 0,
+   "explain": "Endianness is byte order for values that span multiple addresses."
+  },
+  {
+   "type": "mc",
+   "category": "Endianness",
+   "q": "In a big endian system, which byte of a multi-byte value is stored at the lowest address?",
+   "choices": [
+    "The most significant byte",
+    "The least significant byte",
+    "A middle byte",
+    "Whichever byte is accessed most often"
+   ],
+   "answer": 0,
+   "explain": "Big endian puts the big end (MSB) first. Little endian puts the LSB first."
+  },
+  {
+   "type": "mc",
+   "category": "Endianness",
+   "q": "The 4-byte value 0x12345678 is stored starting at address 0x200 on a little endian machine. Which byte is at address 0x200?",
+   "choices": [
+    "12",
+    "78",
+    "87",
+    "21"
+   ],
+   "answer": 1,
+   "explain": "Little endian puts the least significant byte first: 78 56 34 12 at 0x200 to 0x203."
+  },
+  {
+   "type": "mc",
+   "category": "Endianness",
+   "q": "Which byte sequence shows 0xA1B2C3D4 stored big endian at addresses 0x10 through 0x13 (lowest address first)?",
+   "choices": [
+    "A1 B2 C3 D4",
+    "D4 C3 B2 A1",
+    "4D 3C 2B 1A",
+    "1A 2B 3C 4D"
+   ],
+   "answer": 0,
+   "explain": "Big endian stores MSB to LSB, the same order you write the number. Little endian would be D4 C3 B2 A1."
+  },
+  {
+   "type": "text",
+   "category": "Endianness",
+   "q": "A little endian machine shows the bytes EF BE AD DE at increasing addresses. What 32-bit value is stored, in hex?",
+   "answer": [
+    "0xDEADBEEF",
+    "DEADBEEF",
+    "0xdeadbeef",
+    "deadbeef",
+    "0xDeadBeef",
+    "DeadBeef"
+   ],
+   "explain": "Reverse the byte order (not the digits): DE AD BE EF, which is 0xDEADBEEF."
+  },
+  {
+   "type": "mc",
+   "category": "Endianness",
+   "q": "How is the 2-byte value 0x1234 stored in little endian (lowest address first)?",
+   "choices": [
+    "12 34",
+    "34 12",
+    "43 21",
+    "21 43"
+   ],
+   "answer": 1,
+   "explain": "Endianness reverses bytes, not hex digits. Each byte keeps its normal internal order."
+  },
+  {
+   "type": "mc",
+   "category": "Endianness",
+   "q": "Which byte order makes increments, addition/subtraction, and even/odd checks simpler and faster?",
+   "choices": [
+    "Big endian",
+    "Little endian",
+    "Neither; they are identical for arithmetic"
+   ],
+   "answer": 1,
+   "explain": "Little endian always has the least significant byte first, which is where arithmetic and parity checks start."
+  },
+  {
+   "type": "mc",
+   "category": "Endianness",
+   "q": "Which byte order is easier for humans to read and makes comparing value sizes and checking the sign bit easier in hardware?",
+   "choices": [
+    "Big endian",
+    "Little endian",
+    "Neither; they are identical"
+   ],
+   "answer": 0,
+   "explain": "Big endian matches how people write numbers, and the most significant byte (containing the sign bit) sits at the lowest address."
+  },
+  {
+   "type": "num",
+   "category": "Endianness",
+   "q": "On a big endian machine, an 8-byte long holding decimal 5 is mistakenly read as a 4-byte int from the same starting address. What value is read?",
+   "answer": 0,
+   "explain": "Big endian layout: 00 00 00 00 00 00 00 05. The first four bytes are all 00, so the int reads 0 instead of 5."
+  },
+  {
+   "type": "mc",
+   "category": "Endianness",
+   "q": "An 8-byte long holding 5 is mistakenly read as a 4-byte int from the same starting address. Under which byte order is the value still read correctly as 5?",
+   "choices": [
+    "Big endian",
+    "Little endian",
+    "Both",
+    "Neither"
+   ],
+   "answer": 1,
+   "explain": "Little endian layout: 05 00 00 00 00 00 00 00. The first four bytes, 05 00 00 00, read least to most significant, give 00000005 = 5."
+  },
+  {
+   "type": "mc",
+   "category": "Endianness",
+   "q": "The 8-byte value 01 23 FE ED BA BE F0 0D is stored little endian at addresses 0x01 through 0x08. Which byte is at address 0x04?",
+   "choices": [
+    "ED",
+    "BA",
+    "BE",
+    "FE"
+   ],
+   "answer": 1,
+   "explain": "Little endian layout: 0D F0 BE BA ED FE 23 01 at 0x01 to 0x08, so 0x04 holds BA."
+  },
+  {
+   "type": "mc",
+   "category": "Endianness",
+   "q": "Where do the terms \"big endian\" and \"little endian\" come from?",
+   "choices": [
+    "Gulliver's Travels by Jonathan Swift, where the Lilliputians fight over which end of a hard-boiled egg to eat first",
+    "The surnames of two early CPU designers",
+    "Whether the outer or inner edge of a disk platter is read first",
+    "An early networking standard's names for packet headers"
+   ],
+   "answer": 0,
+   "explain": "Swift (1726): big-endians eat the big end of the egg first, and little-endians eat the little end first."
+  },
+  {
+   "type": "tf",
+   "category": "Endianness",
+   "q": "The choice between big and little endian is unimportant in most cases, as long as every part of the system or network uses the same endianness.",
+   "answer": true,
+   "explain": "Endianness only causes trouble when machines that disagree exchange data without translation."
+  },
+  {
+   "type": "multi",
+   "category": "Endianness",
+   "q": "Two machines use different endianness. What can translate the byte order so they don't misread each other's data?",
+   "choices": [
+    "The operating system",
+    "Software",
+    "Special libraries",
+    "The DRAM refresh circuitry",
+    "The cache replacement policy"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Byte-order translation can be handled by the OS, software, special libraries, and so on."
+  },
+  {
+   "type": "tf",
+   "category": "Endianness",
+   "q": "Little endian reverses the order of the hex digits inside each byte as well as the order of the bytes.",
+   "answer": false,
+   "explain": "Only the byte order is reversed. Little endian is read right-to-left across bytes but left-to-right within a byte."
+  },
+  {
+   "type": "tf",
+   "category": "Endianness",
+   "q": "In modern computers, each memory address refers to 1 byte (8 bits) of data.",
+   "answer": true,
+   "explain": "That is why any value larger than one byte must be spread across several consecutive addresses, which raises the question of byte order."
+  }
+ ]
 }

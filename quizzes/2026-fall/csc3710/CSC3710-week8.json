@@ -1,0 +1,573 @@
+{
+ "title": "CSC3710 Week 8: DFA Reachability, Minimization, and Equivalence",
+ "course": "CSC3710",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "DFA definition and .jff files",
+   "q": "In a JFLAP .jff file, which XML element, placed inside a state element, marks that state as accepting?",
+   "choices": [
+    "final",
+    "initial",
+    "accept",
+    "read"
+   ],
+   "answer": 0,
+   "explain": "An empty final element inside a state marks it accepting. An empty initial element marks the start state. In both example files, q3 through q8 carry the final tag."
+  },
+  {
+   "type": "mc",
+   "category": "DFA definition and .jff files",
+   "q": "A .jff transition element has from = 4, to = 3, read = c. What does it mean? (In these files, id n is named qn.)",
+   "choices": [
+    "δ(q3, c) = q4",
+    "δ(q4, c) = q3",
+    "δ(q4, q3) = c",
+    "δ(c, q4) = q3"
+   ],
+   "answer": 1,
+   "explain": "from is the source state, to is the target, and read is the input symbol. So reading c in q4 moves to q3."
+  },
+  {
+   "type": "tf",
+   "category": "DFA definition and .jff files",
+   "q": "Changing the x and y values of a state in a .jff file can change the language the automaton accepts.",
+   "answer": false,
+   "explain": "x and y only set where the state is drawn on the canvas. They have no effect on the machine."
+  },
+  {
+   "type": "num",
+   "category": "DFA definition and .jff files",
+   "q": "A complete DFA has 9 states and the alphabet {a, b, c}. How many transitions must it have?",
+   "answer": 27,
+   "explain": "A complete DFA has exactly one move for every (state, symbol) pair: 9 × 3 = 27. Both example files have exactly 27 transitions."
+  },
+  {
+   "type": "multi",
+   "category": "DFA definition and .jff files",
+   "q": "Which of these states of Example 1 are non-final?",
+   "choices": [
+    "q0",
+    "q1",
+    "q2",
+    "q3",
+    "q4",
+    "q8"
+   ],
+   "fixed": true,
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "F = {q3, q4, q5, q6, q7, q8}. Only q0, q1 and q2 are non-final."
+  },
+  {
+   "type": "tf",
+   "category": "DFA definition and .jff files",
+   "q": "In a DFA, the transition function δ must be total: exactly one move for every (state, symbol) pair.",
+   "answer": true,
+   "explain": "δ : Q × Σ → Q is a function defined on every pair. A DFA with no missing moves is called complete."
+  },
+  {
+   "type": "text",
+   "category": "Tracing strings",
+   "q": "Trace caab on Example 1, starting in q0. In which state does it end?",
+   "answer": [
+    "q2",
+    "Q2",
+    "2"
+   ],
+   "explain": "q0 →c q6 →a q4 →a q1 →b q2. q2 is non-final, so caab is rejected."
+  },
+  {
+   "type": "tf",
+   "category": "Tracing strings",
+   "q": "Example 1 accepts the empty string ε.",
+   "answer": false,
+   "explain": "On ε the machine stays in the start state q0. q0 is non-final, so ε is rejected."
+  },
+  {
+   "type": "mc",
+   "category": "Tracing strings",
+   "q": "On Example 2, in which state does the string bcbc end?",
+   "choices": [
+    "q6",
+    "q7",
+    "q8",
+    "q5"
+   ],
+   "answer": 1,
+   "explain": "q0 →b q1 →c q5 →b q8 →c q7. In Example 2, δ(q5, b) = q8 and δ(q8, c) = q7. q7 is final, so it accepts."
+  },
+  {
+   "type": "mc",
+   "category": "Tracing strings",
+   "q": "Which of these strings does Example 1 reject?",
+   "choices": [
+    "abc",
+    "cacb",
+    "bbaa",
+    "cbb"
+   ],
+   "answer": 2,
+   "explain": "bbaa: q0 →b q1 →b q2 →a q0 →a q0, which is non-final. The others end in final states: abc in q5, cacb in q5 (q6, q4, q3, q5), cbb in q7."
+  },
+  {
+   "type": "multi",
+   "category": "Tracing strings",
+   "q": "Which of these strings does Example 1 accept?",
+   "choices": [
+    "bca",
+    "caab",
+    "cc",
+    "aab",
+    "cbaca",
+    "abcbb"
+   ],
+   "answer": [
+    0,
+    2,
+    5
+   ],
+   "explain": "bca: q1, q5, q3 (accept). caab: q6, q4, q1, q2 (reject). cc: q6, q6 (accept). aab: q0, q0, q1 (reject). cbaca: q6, q7, q4, q3, q2 (reject). abcbb: q0, q1, q5, q5, q5 (accept)."
+  },
+  {
+   "type": "tf",
+   "category": "Tracing strings",
+   "q": "bcbb is accepted by both Example 1 and Example 2, even though the two machines pass through different states on it.",
+   "answer": true,
+   "explain": "Example 1: q0 → q1 → q5 → q5 → q5. Example 2: q0 → q1 → q5 → q8 → q5. Both accept. The paths differ, but q5 and q8 are equivalent, so the results always agree."
+  },
+  {
+   "type": "text",
+   "category": "Reachable states",
+   "q": "Which state of Example 1 cannot be reached from the start state?",
+   "answer": [
+    "q8",
+    "Q8",
+    "8"
+   ],
+   "explain": "Breadth-first search from q0 reaches q0 through q7. q8 is never a target of any transition, so it is unreachable."
+  },
+  {
+   "type": "mc",
+   "category": "Reachable states",
+   "q": "Using only Example 1's transition table, how can you tell that the unreachable state is unreachable?",
+   "choices": [
+    "It never appears as a target in any column",
+    "It has no outgoing transitions",
+    "Its row has a self-loop on every symbol",
+    "Its row matches the row of a reachable state"
+   ],
+   "answer": 0,
+   "explain": "q8 is not the start state, and it never appears in any a, b or c target column. It has three outgoing arrows but no incoming ones."
+  },
+  {
+   "type": "tf",
+   "category": "Reachable states",
+   "q": "Deleting an unreachable state, together with its outgoing transitions, never changes the language of a DFA.",
+   "answer": true,
+   "explain": "No computation from the start state ever enters an unreachable state, so removing it cannot change which strings are accepted."
+  },
+  {
+   "type": "num",
+   "category": "Reachable states",
+   "q": "How many of Example 2's 9 states are reachable from q0?",
+   "answer": 9,
+   "explain": "In Example 2, δ(q5, b) = q8, so q8 is now reachable (for example by bcb). All 9 states are reachable."
+  },
+  {
+   "type": "text",
+   "category": "Reachable states",
+   "q": "Give the shortest string that takes Example 2 from q0 to q8.",
+   "answer": [
+    "bcb"
+   ],
+   "explain": "The only transition into q8 is δ(q5, b) = q8. The shortest way to reach q5 is bc (q0 →b q1 →c q5), so the shortest string is bcb, and it is the only one of length 3."
+  },
+  {
+   "type": "tf",
+   "category": "Reachable states",
+   "q": "Example 1 has a dead (trap) state: a non-final state from which no final state can be reached.",
+   "answer": false,
+   "explain": "The only non-final states are q0, q1 and q2, and each one reaches a final state on c (q6, q5 and q6). Every state can reach a final state."
+  },
+  {
+   "type": "mc",
+   "category": "Distinguishable states",
+   "q": "Which single symbol distinguishes q3 from q5?",
+   "choices": [
+    "b",
+    "a",
+    "c",
+    "none, they are equivalent"
+   ],
+   "answer": 1,
+   "explain": "q3 →a q2 (non-final), but q5 →a q3 (final). On b both go to final states (q5 and q5 or q8), and on c both go to final states (q3 and q6)."
+  },
+  {
+   "type": "mc",
+   "category": "Distinguishable states",
+   "q": "What is the shortest string that distinguishes q2 from q6?",
+   "choices": [
+    "ε",
+    "a",
+    "c",
+    "ca"
+   ],
+   "answer": 0,
+   "explain": "q2 is non-final and q6 is final, so the empty string already separates them. ε distinguishes every final state from every non-final state."
+  },
+  {
+   "type": "tf",
+   "category": "Distinguishable states",
+   "q": "q0 and q1 are distinguishable, because δ(q0, c) = q6 and δ(q1, c) = q5 are different states.",
+   "answer": false,
+   "explain": "What matters is the group of each target, not the target itself. q6 and q5 are both in class B, and on a and b both states stay in {q0, q1, q2}. q0 ≡ q1."
+  },
+  {
+   "type": "tf",
+   "category": "Distinguishable states",
+   "q": "A final state and a non-final state can never be equivalent.",
+   "answer": true,
+   "explain": "The empty string ε is accepted from the final state and rejected from the non-final one. That is why minimization always starts by splitting final from non-final."
+  },
+  {
+   "type": "text",
+   "category": "Distinguishable states",
+   "q": "Give a one-symbol string that distinguishes q4 from q7.",
+   "answer": [
+    "a"
+   ],
+   "explain": "q4 →a q1 (non-final), but q7 →a q4 (final). On b they go to q5 and q7, and on c to q3 and q7, all final, so a is the only one-symbol choice."
+  },
+  {
+   "type": "multi",
+   "category": "Distinguishable states",
+   "q": "Which of these pairs of states in Example 1 are equivalent (indistinguishable)?",
+   "choices": [
+    "q0 and q2",
+    "q3 and q4",
+    "q4 and q5",
+    "q6 and q7",
+    "q2 and q3",
+    "q5 and q7"
+   ],
+   "answer": [
+    0,
+    1,
+    3,
+    5
+   ],
+   "explain": "The equivalence classes are {q0, q1, q2}, {q3, q4} and {q5, q6, q7}. q4 and q5 are separated by a. q2 and q3 are separated by ε."
+  },
+  {
+   "type": "num",
+   "category": "Distinguishable states",
+   "q": "Every distinguishable pair of states in Example 1 has a shortest distinguishing string. What is the greatest length among those shortest strings?",
+   "answer": 1,
+   "explain": "Final vs. non-final pairs are separated by ε (length 0). Pairs from {q3, q4} vs. {q5, q6, q7} are separated by a (length 1). All other pairs are equivalent. This matches the refinement needing only one split."
+  },
+  {
+   "type": "mc",
+   "category": "Partition refinement",
+   "q": "Partition refinement on Example 2 starts with N = {q0, q1, q2} and F = {q3, ..., q8}. On which symbol does F split in the first round?",
+   "choices": [
+    "a only",
+    "b only",
+    "c only",
+    "both a and c"
+   ],
+   "answer": 0,
+   "explain": "On a, q3 and q4 leave F (to q2 and q1), while q5 to q8 stay in F. Every b-move and c-move from F stays in F, so b and c cannot split it."
+  },
+  {
+   "type": "mc",
+   "category": "Partition refinement",
+   "q": "With groups N = {q0, q1, q2} and F = {q3, ..., q8}, what is q4's signature (the groups of its a-, b- and c-targets)?",
+   "choices": [
+    "N N F",
+    "F F F",
+    "N F F",
+    "F N F"
+   ],
+   "answer": 2,
+   "explain": "q4 →a q1 (N), q4 →b q5 (F), q4 →c q3 (F), so the signature is N F F, the same as q3's."
+  },
+  {
+   "type": "mc",
+   "category": "Partition refinement",
+   "q": "In Example 2, what does the final group F = {q3, ..., q8} split into after the first round?",
+   "choices": [
+    "{q3, q4} and {q5, q6, q7, q8}",
+    "{q3, q5} and {q4, q6, q7, q8}",
+    "{q3, q4, q5} and {q6, q7, q8}",
+    "{q5, q8} and {q3, q4, q6, q7}"
+   ],
+   "answer": 0,
+   "explain": "q3 and q4 have signature N F F, and q5, q6, q7, q8 have F F F. That gives A = {q3, q4} and B = {q5, q6, q7, q8}."
+  },
+  {
+   "type": "tf",
+   "category": "Partition refinement",
+   "q": "The non-final group {q0, q1, q2} never splits during refinement.",
+   "answer": true,
+   "explain": "In every round, q0, q1 and q2 share one signature: a and b stay in N, and c goes to a state in B (q6, q5, q6)."
+  },
+  {
+   "type": "mc",
+   "category": "Partition refinement",
+   "q": "When does partition refinement stop?",
+   "choices": [
+    "When a full round produces no new split",
+    "When one symbol fails to split a group",
+    "After exactly two rounds, always",
+    "When each group has at most two states"
+   ],
+   "answer": 0,
+   "explain": "Keep refining until a full round over every group and every symbol causes no split. Stopping after one symbol fails is a common mistake."
+  },
+  {
+   "type": "tf",
+   "category": "Partition refinement",
+   "q": "In Example 1, q5's second-round signature differs from q6's because δ(q5, b) = q5 rather than q7.",
+   "answer": false,
+   "explain": "Signatures use groups. q5 and q7 are both in B, so q5's signature is A B B, the same as q6's."
+  },
+  {
+   "type": "num",
+   "category": "Table-filling algorithm",
+   "q": "Example 1 with q8 removed has 8 states. How many unordered pairs of states does the table-filling table have?",
+   "answer": 28,
+   "explain": "8 · 7 / 2 = 28 pairs."
+  },
+  {
+   "type": "num",
+   "category": "Table-filling algorithm",
+   "q": "In Example 1 with q8 removed, how many pairs are marked in pass 0 (one final state, one non-final state)?",
+   "answer": 15,
+   "explain": "3 non-final states (q0, q1, q2) × 5 final states (q3 to q7) = 15 pairs."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "Why is the pair {q3, q5} marked in pass 1?",
+   "choices": [
+    "On a they go to {q2, q3}, already marked",
+    "On b they go to {q5, q5}, already marked",
+    "On c they go to {q3, q6}, already marked",
+    "One is final and the other is non-final"
+   ],
+   "answer": 0,
+   "explain": "q3 →a q2 and q5 →a q3. {q2, q3} is a non-final/final pair, marked in pass 0, so {q3, q5} gets marked. Both q3 and q5 are final, so pass 0 does not mark it."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "In the table-filling algorithm, when does an unmarked pair {p, q} get marked?",
+   "choices": [
+    "When some symbol x sends it to a marked pair",
+    "When every symbol x sends it to a marked pair",
+    "When some symbol x sends p and q to one state",
+    "When p and q have equally many transitions"
+   ],
+   "answer": 0,
+   "explain": "If {δ(p, x), δ(q, x)} is already marked for any one symbol x, then p and q are distinguishable. Put x in front of the string that separates the successors."
+  },
+  {
+   "type": "num",
+   "category": "Table-filling algorithm",
+   "q": "Run the table-filling algorithm on Example 2 (all 9 states reachable). How many pairs are never marked?",
+   "answer": 10,
+   "explain": "36 pairs in total. 18 are marked in pass 0 and 8 in pass 1. The 10 unmarked pairs are 3 within {q0, q1, q2}, 1 within {q3, q4} and 6 within {q5, q6, q7, q8}."
+  },
+  {
+   "type": "tf",
+   "category": "Table-filling algorithm",
+   "q": "Table-filling and partition refinement can produce different equivalence classes for the same DFA.",
+   "answer": false,
+   "explain": "Both compute the indistinguishability relation, so they always give the same classes. Here both give {q0, q1, q2}, {q3, q4}, {q5, q6, q7}."
+  },
+  {
+   "type": "num",
+   "category": "Minimal DFA and its language",
+   "q": "How many states does the minimal DFA for Example 1 have?",
+   "answer": 3,
+   "explain": "Remove q8, then merge the classes N = {q0, q1, q2}, A = {q3, q4} and B = {q5, q6, q7}. Example 2 also minimizes to 3 states."
+  },
+  {
+   "type": "mc",
+   "category": "Minimal DFA and its language",
+   "q": "In the minimal DFA with classes N = {q0, q1, q2}, A = {q3, q4} and B = {q5, q6, q7}, what is δ'(A, b)?",
+   "choices": [
+    "N",
+    "A",
+    "B",
+    "There is no such move"
+   ],
+   "answer": 2,
+   "explain": "Pick any member: q3 →b q5 and q4 →b q5, and q5 is in B. So δ'(A, b) = B."
+  },
+  {
+   "type": "mc",
+   "category": "Minimal DFA and its language",
+   "q": "In the same minimal DFA, what is δ'(B, a)?",
+   "choices": [
+    "A",
+    "B",
+    "N",
+    "A or B, depending on the member"
+   ],
+   "answer": 0,
+   "explain": "q5 →a q3, q6 →a q4 and q7 →a q4, and all of these are in A. Every member gives the same class because the partition is stable."
+  },
+  {
+   "type": "mc",
+   "category": "Minimal DFA and its language",
+   "q": "Which description matches L, the language accepted by Example 1?",
+   "choices": [
+    "A c turns it on; while on, aa (ignoring c's) turns it off; accept if on",
+    "Contains at least one c and never contains the substring aa",
+    "Contains at least one c, and an even number of a's after the first c",
+    "Ends in c, or ends in a after an odd number of a's in total"
+   ],
+   "answer": 0,
+   "explain": "N is off. c moves N to B. While on, a moves B to A, a second a moves A to N, and b moves A back to B. c loops in A and B. A and B are final. Counterexamples to the others: caac is accepted even though it contains aa; ca is accepted with one a after the c; cab is accepted and ends in b."
+  },
+  {
+   "type": "multi",
+   "category": "Minimal DFA and its language",
+   "q": "Using the on/off description of L, which of these strings are in L?",
+   "choices": [
+    "caac",
+    "cbaa",
+    "acaa",
+    "ccab",
+    "cacca",
+    "bbc"
+   ],
+   "answer": [
+    0,
+    3,
+    5
+   ],
+   "explain": "caac: off after aa, then c turns it back on (accept). cbaa: the final aa turns it off (reject). acaa: on, then aa turns it off (reject). ccab: on, and there is no aa (accept). cacca: ignoring c's, aa turns it off (reject). bbc: the last c turns it on (accept)."
+  },
+  {
+   "type": "tf",
+   "category": "Minimal DFA and its language",
+   "q": "To get a DFA for the complement of L, take the 3-state minimal DFA, make N the only final state, and keep every transition the same.",
+   "answer": true,
+   "explain": "Swapping final and non-final states complements the language. This works because the DFA is complete, so every string ends in some state."
+  },
+  {
+   "type": "mc",
+   "category": "Minimal DFA and its language",
+   "q": "In the regular expression ((a+b)* c (b + c + a c* b)* a c* a)* (a+b)* c (b + c + a c* b)* (ε + a c*) for L, which piece takes the machine from on (B) back to off (N)?",
+   "choices": [
+    "a c* a",
+    "(a+b)* c",
+    "(b + c + a c* b)*",
+    "(ε + a c*)"
+   ],
+   "answer": 0,
+   "explain": "a moves B to A, c* loops in A, and the second a moves A to N. (a+b)* c goes from off to B, (b + c + a c* b)* loops at B, and (ε + a c*) ends in B or A."
+  },
+  {
+   "type": "mc",
+   "category": "Minimal DFA and its language",
+   "q": "In the on/off description of L, what does class A = {q3, q4} mean?",
+   "choices": [
+    "On, and the last non-c symbol was a single a",
+    "On, and the last non-c symbol was not an a",
+    "Off, and no c has been read yet",
+    "Off, right after two a's in a row"
+   ],
+   "answer": 0,
+   "explain": "A is on with one a pending: another a switches it off, b goes to B, and c is ignored. B is on with no pending a, and N is off."
+  },
+  {
+   "type": "tf",
+   "category": "DFA equivalence",
+   "q": "Example 1 and Example 2 accept the same language.",
+   "answer": true,
+   "explain": "Both minimize to the same 3-state DFA (N, A, B). The minimal DFA is unique up to renaming, so L(Example 1) = L(Example 2)."
+  },
+  {
+   "type": "mc",
+   "category": "DFA equivalence",
+   "q": "Example 2 differs from Example 1 only in δ(q5, b), which is q8 instead of q5. Why doesn't this change the language?",
+   "choices": [
+    "q8 is equivalent to q5, so either target behaves the same",
+    "q8 is unreachable, so the new move is never used",
+    "q5 and q8 are both final, and that is all that matters",
+    "No input string ever takes the b-move out of q5"
+   ],
+   "answer": 0,
+   "explain": "q5 and q8 are both in class B. Redirecting a transition to another state in the same class never changes the language. Being final is not enough: redirecting to the final state q3 does change it."
+  },
+  {
+   "type": "mc",
+   "category": "DFA equivalence",
+   "q": "Suppose Example 1 is changed so that δ(q5, b) = q3. What happens?",
+   "choices": [
+    "The language changes: q5's signature becomes A A B",
+    "Nothing changes: q3 is final, just like q5",
+    "Nothing changes: q3 and q5 are equivalent",
+    "The language changes: q3 becomes unreachable"
+   ],
+   "answer": 0,
+   "explain": "q3 is in class A, so q5's signature becomes (A, A, B) while q6 and q7 keep (A, B, B). B splits and the language changes. q3 is still reachable (for example via q4 on c)."
+  },
+  {
+   "type": "text",
+   "category": "DFA equivalence",
+   "q": "With δ(q5, b) changed to q3 in Example 1, give the shortest string that the original machine and the modified machine classify differently.",
+   "answer": [
+    "bcba"
+   ],
+   "explain": "Original: q0 →b q1 →c q5 →b q5 →a q3 (accept). Modified: q0 →b q1 →c q5 →b q3 →a q2 (reject). q5 can only be reached by bc in two steps, and bcb itself is accepted by both, so the shortest witness has length 4."
+  },
+  {
+   "type": "tf",
+   "category": "DFA equivalence",
+   "q": "Every regular language has a minimal complete DFA that is unique up to renaming of states.",
+   "answer": true,
+   "explain": "This is the Myhill–Nerode uniqueness result. It is why minimizing two DFAs and comparing the results tests whether they are equivalent."
+  },
+  {
+   "type": "tf",
+   "category": "DFA equivalence",
+   "q": "If you leave an unreachable state in before minimizing, it always merges into an existing class, as q8 does in Example 1.",
+   "answer": false,
+   "explain": "q8 merges into B only by luck, because its signature (A, B, B) matches B's. An unreachable state that isn't equivalent to any reachable state forms its own class, and the result isn't minimal. Remove unreachable states first."
+  },
+  {
+   "type": "mc",
+   "category": "DFA equivalence",
+   "q": "Which is a reliable way to test whether two DFAs accept the same language?",
+   "choices": [
+    "Minimize both and compare them up to renaming",
+    "Check that they have the same number of states",
+    "Check that they have the same final states",
+    "Run a handful of test strings on both"
+   ],
+   "answer": 0,
+   "explain": "Minimal DFAs are unique up to renaming, so equivalent machines minimize to the same DFA. Examples 1 and 2 have different pictures but the same language. Finitely many test strings can never prove equivalence."
+  },
+  {
+   "type": "mc",
+   "category": "DFA equivalence",
+   "q": "In JFLAP, with two automata open, which menu item reports whether they accept the same language?",
+   "choices": [
+    "Test → Compare Equivalence",
+    "Convert → Minimize DFA",
+    "Input → Multiple Run",
+    "Input → Fast Run"
+   ],
+   "answer": 0,
+   "explain": "Test → Compare Equivalence lets you pick another open automaton and reports whether the two are equivalent. On Example 1 vs. Example 2 it should report that they are."
+  }
+ ]
+}
