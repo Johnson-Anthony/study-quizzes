@@ -1,0 +1,688 @@
+{
+ "title": "CSC2400 Module 12: Genetic Algorithms",
+ "course": "CSC2400",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "GA fundamentals",
+   "q": "In a genetic algorithm, what is the job of the fitness function?",
+   "choices": [
+    "Score a candidate so better ones can be favored",
+    "Choose which two candidates become parents",
+    "Randomly flip bits to add new genetic material",
+    "Decide how many generations the run will last"
+   ],
+   "answer": 0,
+   "explain": "The fitness function scores each candidate (higher is better). Selection then uses those scores to favor fitter candidates. In this program, fitness() counts the 1s."
+  },
+  {
+   "type": "mc",
+   "category": "GA fundamentals",
+   "q": "In geneticBinary.cpp, what plays the role of a single gene?",
+   "choices": [
+    "One '0' or '1' character in a string",
+    "One 20-character string",
+    "The vector of 50 strings",
+    "One pass of the generation loop"
+   ],
+   "answer": 0,
+   "explain": "A gene is one position in the chromosome, here one char bit. The 20-character string is the chromosome, the vector is the population, and one loop pass is a generation."
+  },
+  {
+   "type": "mc",
+   "category": "GA fundamentals",
+   "q": "In geneticBinary.cpp, what does one generation correspond to?",
+   "choices": [
+    "One iteration of the for (generation ...) loop",
+    "One call to crossover()",
+    "One tournament inside selectParent()",
+    "One bit flip inside mutate()"
+   ],
+   "answer": 0,
+   "explain": "Each pass of the generation loop evaluates the population, keeps the elite, breeds 49 children and replaces the population."
+  },
+  {
+   "type": "tf",
+   "category": "GA fundamentals",
+   "q": "The GA in geneticBinary.cpp is guaranteed to reach fitness 20/20 before it stops.",
+   "answer": false,
+   "explain": "A GA is a random heuristic. This one stops after 100 generations no matter what, so it can end without finding 20/20, and two runs can give different results."
+  },
+  {
+   "type": "tf",
+   "category": "GA fundamentals",
+   "q": "The fitness function is the only part of the program that knows which problem is being solved; selection, crossover and mutation would work unchanged on a different bit-string problem.",
+   "answer": true,
+   "explain": "Selection only compares fitness scores, and crossover and mutation only move or flip bits. Swapping in a different fitness() changes the problem."
+  },
+  {
+   "type": "num",
+   "category": "GA fundamentals",
+   "q": "How many different 20-bit strings are there (the size of this program's search space)?",
+   "answer": 1048576,
+   "tolerance": 0,
+   "explain": "2^20 = 1,048,576."
+  },
+  {
+   "type": "num",
+   "category": "GA fundamentals",
+   "q": "With 50 individuals per generation and at most 100 generations, about how many strings does one run evaluate at most?",
+   "answer": 5000,
+   "tolerance": 100,
+   "explain": "About 100 x 50 = 5,000, a tiny fraction of the 1,048,576 possible strings. That is the point of using a GA instead of brute force."
+  },
+  {
+   "type": "mc",
+   "category": "GA fundamentals",
+   "q": "A person can solve 'maximize the number of 1s' instantly. Why is it still a useful demo problem for a GA?",
+   "choices": [
+    "You can see progress directly as fitness out of 20",
+    "No other method is able to solve it",
+    "It has exactly one candidate solution",
+    "Its fitness function needs no computation at all"
+   ],
+   "answer": 0,
+   "explain": "You always know how close the GA is (fitness out of 20), so you can watch selection, crossover and mutation work. The same code could solve a harder problem with a different fitness()."
+  },
+  {
+   "type": "num",
+   "category": "Fitness and initialization",
+   "q": "What does fitness() return for the chromosome 11010011100000111101?",
+   "answer": 11,
+   "tolerance": 0,
+   "explain": "Fitness is the number of '1' characters: 1101 has 3, 0011 has 2, 1000 has 1, 0011 has 2, 1101 has 3. Total 11."
+  },
+  {
+   "type": "num",
+   "category": "Fitness and initialization",
+   "q": "What is the expected fitness of one string made by randomChromosome()?",
+   "answer": 10,
+   "tolerance": 0,
+   "explain": "Each of the 20 bits is '1' with probability 1/2, so the fitness is Binomial(20, 0.5) with mean 20 x 0.5 = 10."
+  },
+  {
+   "type": "num",
+   "category": "Fitness and initialization",
+   "q": "What is the standard deviation of the fitness of one random 20-bit string (each bit '1' with probability 1/2)? Give two decimal places.",
+   "answer": 2.24,
+   "tolerance": 0.01,
+   "explain": "sd = sqrt(20 x 0.5 x 0.5) = sqrt(5), about 2.24."
+  },
+  {
+   "type": "mc",
+   "category": "Fitness and initialization",
+   "q": "In the random first generation of 50 strings, what is the best fitness usually around?",
+   "choices": [
+    "14 to 16",
+    "10",
+    "19 to 20",
+    "6 to 8"
+   ],
+   "answer": 0,
+   "explain": "10 is the average of one string. The best of 50 is higher: there is about a 95% chance that at least one scores 14 or more, and about a 26% chance that one scores 16 or more."
+  },
+  {
+   "type": "tf",
+   "category": "Fitness and initialization",
+   "q": "In randomChromosome(), each bit is '1' with probability 1/2, independently of the other bits.",
+   "answer": true,
+   "explain": "Each bit comes from its own randomInt(0, 1) call: 0 gives '0' and 1 gives '1'."
+  },
+  {
+   "type": "mc",
+   "category": "Fitness and initialization",
+   "q": "About how likely is it that the optimum (all 1s) is already in the random generation 0 of 50 strings?",
+   "choices": [
+    "About 50/2^20, roughly 0.005%",
+    "About 1/20, roughly 5%",
+    "About 1/50, roughly 2%",
+    "About 1/2, roughly 50%"
+   ],
+   "answer": 0,
+   "explain": "Each string is all 1s with probability 2^-20. Then 1 - (1 - 2^-20)^50 is about 50/2^20, about 4.8 x 10^-5."
+  },
+  {
+   "type": "tf",
+   "category": "Fitness and initialization",
+   "q": "fitness() takes time proportional to STRING_LENGTH, because it looks at every character once.",
+   "answer": true,
+   "explain": "It is a range-based for over the characters, so it runs in O(L) time."
+  },
+  {
+   "type": "mc",
+   "category": "Tournament selection",
+   "q": "How does selectParent() choose a parent?",
+   "choices": [
+    "The best of 3 randomly picked individuals",
+    "The best individual in the whole population",
+    "One individual picked uniformly at random",
+    "One of the top 3 individuals, at random"
+   ],
+   "answer": 0,
+   "explain": "It is tournament selection of size 3: one random pick, then 2 more in the loop, and the fittest of those 3 is returned."
+  },
+  {
+   "type": "tf",
+   "category": "Tournament selection",
+   "q": "Within a single tournament in selectParent(), the same individual can be picked more than once.",
+   "answer": true,
+   "explain": "Each pick is an independent randomInt(0, POPULATION_SIZE - 1), so picks are with replacement."
+  },
+  {
+   "type": "mc",
+   "category": "Tournament selection",
+   "q": "A tournament picks, in this order, X (fitness 13), Y (fitness 16), Z (fitness 16). Which individual does selectParent() return?",
+   "choices": [
+    "Y",
+    "Z",
+    "X",
+    "Y or Z, chosen at random"
+   ],
+   "answer": 0,
+   "explain": "Start with X (13). Y: 16 > 13, so Y. Z: 16 > 16 is false, so Y stays. The strict > means ties keep the earlier pick."
+  },
+  {
+   "type": "num",
+   "category": "Tournament selection",
+   "q": "Population size 50, tournament size 3, no ties. To 4 decimal places, what is the probability that the unique best individual wins one tournament?",
+   "answer": 0.0588,
+   "tolerance": 0.0005,
+   "explain": "The best wins whenever it is picked at least once: 1 - (49/50)^3 is about 0.0588. A uniform random pick would give only 0.02."
+  },
+  {
+   "type": "num",
+   "category": "Tournament selection",
+   "q": "How many tournaments does selectParent() run in one generation of this program?",
+   "answer": 98,
+   "tolerance": 0,
+   "explain": "There are 49 children (50 minus the 1 elite), and each needs 2 tournaments (parent1 and parent2): 49 x 2 = 98."
+  },
+  {
+   "type": "mc",
+   "category": "Tournament selection",
+   "q": "Assume no ties. When can the unique worst individual win a tournament?",
+   "choices": [
+    "All 3 picks are that individual",
+    "It is the first of the 3 picks",
+    "The other two picks tie each other",
+    "It can never win a tournament"
+   ],
+   "answer": 0,
+   "explain": "Any other pick would beat it. So it wins only when all 3 picks are the worst individual, with probability (1/50)^3 = 0.000008."
+  },
+  {
+   "type": "multi",
+   "category": "Tournament selection",
+   "q": "What happens if you increase the tournament size?",
+   "choices": [
+    "More selection pressure",
+    "Faster loss of diversity",
+    "Parents are chosen purely at random",
+    "The best fitness can start to decrease"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "Bigger tournaments return the population's best more often, so improvement is faster at first but diversity collapses faster. Random parents would come from a size-1 tournament. Elitism still keeps the best fitness from dropping."
+  },
+  {
+   "type": "tf",
+   "category": "Tournament selection",
+   "q": "With a tournament size of 1, parents would be chosen purely at random and there would be no selection pressure.",
+   "answer": true,
+   "explain": "One pick means there is nothing to compare, so fitness plays no part in choosing parents and fitness just drifts."
+  },
+  {
+   "type": "tf",
+   "category": "Tournament selection",
+   "q": "The two tournaments for one child can both return the same individual. Then the child is a copy of that parent, apart from any mutation.",
+   "answer": true,
+   "explain": "The two tournaments are independent. Crossing a string with itself gives the same string back, at any cut point."
+  },
+  {
+   "type": "text",
+   "category": "Single-point crossover",
+   "q": "parent1 = 10101010101010101010, parent2 = 11111111110000000000, point = 5. What child string does crossover() return?",
+   "answer": [
+    "10101111110000000000"
+   ],
+   "explain": "parent1.substr(0, 5) = 10101 and parent2.substr(5) = 111110000000000 (indices 5 to 19). Joined, that gives 10101111110000000000."
+  },
+  {
+   "type": "num",
+   "category": "Single-point crossover",
+   "q": "parent1 is all 0s (00000000000000000000), parent2 is all 1s (11111111111111111111), and the cut point is 7. What is the child's fitness before mutation?",
+   "answer": 13,
+   "tolerance": 0,
+   "explain": "The first 7 characters come from parent1 (all 0s) and the last 13 come from parent2 (all 1s), so fitness = 13."
+  },
+  {
+   "type": "num",
+   "category": "Single-point crossover",
+   "q": "With STRING_LENGTH = 20, how many different cut points can crossover() choose?",
+   "answer": 19,
+   "tolerance": 0,
+   "explain": "point = randomInt(1, STRING_LENGTH - 1) = randomInt(1, 19), inclusive: 19 values."
+  },
+  {
+   "type": "mc",
+   "category": "Single-point crossover",
+   "q": "If crossover() were allowed to pick point = 0, what would the child be?",
+   "choices": [
+    "An exact copy of parent2",
+    "An exact copy of parent1",
+    "An empty string",
+    "The complement of parent1"
+   ],
+   "answer": 0,
+   "explain": "parent1.substr(0, 0) is empty, and parent2.substr(0) is all of parent2. The range [1, 19] makes sure each parent gives at least one gene."
+  },
+  {
+   "type": "tf",
+   "category": "Single-point crossover",
+   "q": "If every individual in the population has '0' at index 7, crossover can still produce a child with '1' at index 7.",
+   "answer": false,
+   "explain": "Crossover only rearranges bit values the parents already have. Only mutation can create a bit value the whole population lacks."
+  },
+  {
+   "type": "tf",
+   "category": "Single-point crossover",
+   "q": "Each call to crossover() in this program produces two children: head-of-parent1 + tail-of-parent2, and the mirror image.",
+   "answer": false,
+   "explain": "It returns only parent1.substr(0, point) + parent2.substr(point). The mirror child is never built."
+  },
+  {
+   "type": "mc",
+   "category": "Single-point crossover",
+   "q": "In this program, how often is crossover used when making a child?",
+   "choices": [
+    "Always; every child comes from crossover",
+    "With probability 0.01 for each child",
+    "Only when the two parents are different",
+    "With probability 0.5 for each child"
+   ],
+   "answer": 0,
+   "explain": "There is no crossover-rate parameter. Every child is crossover(parent1, parent2), then mutated."
+  },
+  {
+   "type": "tf",
+   "category": "Single-point crossover",
+   "q": "A new random cut point is chosen for each child.",
+   "answer": true,
+   "explain": "randomInt(1, STRING_LENGTH - 1) is called inside crossover(), which runs once per child."
+  },
+  {
+   "type": "mc",
+   "category": "Mutation",
+   "q": "What does MUTATION_RATE = 0.01 mean in this program?",
+   "choices": [
+    "Each bit independently flips with probability 0.01",
+    "Each child is mutated with probability 0.01",
+    "Exactly one bit flips in 1% of all children",
+    "1% of the population is replaced by random strings"
+   ],
+   "answer": 0,
+   "explain": "mutate() loops over every bit and flips it when randomDouble() < MUTATION_RATE. The rate is per bit, not per chromosome."
+  },
+  {
+   "type": "num",
+   "category": "Mutation",
+   "q": "With 20 bits and MUTATION_RATE = 0.01, what is the expected number of bits mutation flips in one child?",
+   "answer": 0.2,
+   "tolerance": 0.001,
+   "explain": "20 x 0.01 = 0.2."
+  },
+  {
+   "type": "num",
+   "category": "Mutation",
+   "q": "With 20 bits and MUTATION_RATE = 0.01, what is the probability that a child has no bits flipped at all? Give 3 decimal places.",
+   "answer": 0.818,
+   "tolerance": 0.002,
+   "explain": "0.99^20 is about 0.818. So about 82% of children are not mutated, and only about 18% get at least one flip (not 1%)."
+  },
+  {
+   "type": "num",
+   "category": "Mutation",
+   "q": "About how many bit flips does mutation cause across one whole generation (all the children together)?",
+   "answer": 9.8,
+   "tolerance": 0.05,
+   "explain": "49 children x 0.2 expected flips each = 9.8. The elite is never mutated."
+  },
+  {
+   "type": "tf",
+   "category": "Mutation",
+   "q": "Mutation can lower a child's fitness.",
+   "answer": true,
+   "explain": "Mutation is random. Flipping a 0 to 1 helps, and flipping a 1 to 0 hurts. Selection is what keeps the good changes."
+  },
+  {
+   "type": "num",
+   "category": "Mutation",
+   "q": "If MUTATION_RATE were raised to 0.05 (STRING_LENGTH still 20), what would be the expected number of bit flips per child?",
+   "answer": 1,
+   "tolerance": 0.001,
+   "explain": "20 x 0.05 = 1.0."
+  },
+  {
+   "type": "mc",
+   "category": "Mutation",
+   "q": "What is the main purpose of mutation in this GA?",
+   "choices": [
+    "Add new bit values and keep diversity",
+    "Choose the fittest parents more often",
+    "Keep the best fitness from ever dropping",
+    "Combine the parts of two parents"
+   ],
+   "answer": 0,
+   "explain": "Mutation adds new genetic material so the population can escape states where crossover alone is stuck. Selection favors fit parents, elitism prevents drops, and crossover combines parents."
+  },
+  {
+   "type": "num",
+   "category": "Mutation",
+   "q": "Late in a run, every individual is the same 19/20 string, with a single 0 at position j. To 4 decimal places, what is the probability that one child comes out as 20/20?",
+   "answer": 0.0083,
+   "tolerance": 0.0003,
+   "explain": "Crossover of identical parents changes nothing, so mutation must flip bit j and none of the other 19: 0.01 x 0.99^19 is about 0.0083. With 49 children that is about a 1/3 chance per generation."
+  },
+  {
+   "type": "tf",
+   "category": "Elitism and the main loop",
+   "q": "The elite individual copied into newPopulation is mutated just like the children.",
+   "answer": false,
+   "explain": "best is pushed into newPopulation directly, and only child is passed to mutate(), so the elite is copied unchanged."
+  },
+  {
+   "type": "mc",
+   "category": "Elitism and the main loop",
+   "q": "What is a consequence of elitism in this program?",
+   "choices": [
+    "The best fitness never decreases between generations",
+    "Every child is at least as fit as its parents",
+    "The population can never lose its diversity",
+    "The optimum is always found within 100 generations"
+   ],
+   "answer": 0,
+   "explain": "Each generation's best is copied unchanged into the next one, so the printed best fitness is non-decreasing. Children can still be worse than their parents."
+  },
+  {
+   "type": "num",
+   "category": "Elitism and the main loop",
+   "q": "How many children are created by crossover and mutation in each generation?",
+   "answer": 49,
+   "tolerance": 0,
+   "explain": "newPopulation starts with the 1 elite, and children are added while its size is below 50: 50 - 1 = 49."
+  },
+  {
+   "type": "multi",
+   "category": "Elitism and the main loop",
+   "q": "Which of these can end the program's run?",
+   "choices": [
+    "Some individual reaches fitness 20",
+    "All 100 generations finish",
+    "The best fitness stays the same for 10 generations",
+    "All individuals become identical"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "The loop breaks when fitness(best) == STRING_LENGTH, or ends after generations 0 to 99. The program never checks for stagnation or convergence."
+  },
+  {
+   "type": "tf",
+   "category": "Elitism and the main loop",
+   "q": "If all 100 generations finish without a 20/20 string, the program prints a message saying the optimum was not found.",
+   "answer": false,
+   "explain": "Only success prints a message (\"Optimal solution found!\"). When the budget runs out, the loop just ends silently."
+  },
+  {
+   "type": "mc",
+   "category": "Elitism and the main loop",
+   "q": "Within one generation, in what order does main() do these steps?",
+   "choices": [
+    "Find best, elitism, select, crossover, mutate, replace",
+    "Select, crossover, mutate, find best, elitism, replace",
+    "Elitism, find best, select, mutate, crossover, replace",
+    "Find best, select, crossover, elitism, mutate, replace"
+   ],
+   "answer": 0,
+   "explain": "STEP 3 finds and prints the best (and stops if it is 20). STEP 4 pushes it into newPopulation. STEP 5 repeats select x2, crossover, mutate, add. Then population = newPopulation."
+  },
+  {
+   "type": "mc",
+   "category": "Elitism and the main loop",
+   "q": "What does the line printed for 'Generation 0' describe?",
+   "choices": [
+    "The random initial population",
+    "The first population made by crossover",
+    "The population after one round of mutation",
+    "Only the elite individual"
+   ],
+   "answer": 0,
+   "explain": "Generation 0 is evaluated before any breeding, so its best comes from the 50 random strings made in STEP 1."
+  },
+  {
+   "type": "tf",
+   "category": "Elitism and the main loop",
+   "q": "When several individuals tie for the highest fitness, the STEP 3 scan keeps the one that appears first in the population.",
+   "answer": true,
+   "explain": "best starts as population[0] and is replaced only when fitness(chromosome) > fitness(best). A tie does not replace it."
+  },
+  {
+   "type": "tf",
+   "category": "Elitism and the main loop",
+   "q": "Without elitism, the best fitness could go down from one generation to the next.",
+   "answer": true,
+   "explain": "The best individual might win no tournament, or its children might be worse or damaged by mutation, so it could disappear."
+  },
+  {
+   "type": "num",
+   "category": "Tuning and balance",
+   "q": "MUTATION_RATE is set to 0, and by bad luck every string in the initial population has '0' at index 7. What is the highest fitness the GA can ever reach?",
+   "answer": 19,
+   "tolerance": 0,
+   "explain": "Crossover only copies existing bit values, so index 7 stays '0' in every individual forever. Only mutation could change it."
+  },
+  {
+   "type": "mc",
+   "category": "Tuning and balance",
+   "q": "What happens if MUTATION_RATE is set to 1.0?",
+   "choices": [
+    "Each child is the complement of its crossover result",
+    "Each child is basically an unrelated random string",
+    "Each child is an exact copy of its first parent",
+    "Exactly one bit flips in every single child"
+   ],
+   "answer": 0,
+   "explain": "randomDouble() < 1.0 is always true, so every bit flips. Fit parents give unfit children. The elite still survives, so the best fitness does not drop."
+  },
+  {
+   "type": "tf",
+   "category": "Tuning and balance",
+   "q": "With MUTATION_RATE = 0.5, each child is essentially a random string, so the GA behaves like random search.",
+   "answer": true,
+   "explain": "Each bit becomes a coin flip, which erases whatever selection and crossover produced."
+  },
+  {
+   "type": "multi",
+   "category": "Tuning and balance",
+   "q": "Which parts of this program mainly drive exploitation (focusing on what already works)?",
+   "choices": [
+    "Tournament selection",
+    "Elitism",
+    "Mutation",
+    "Random initialization"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "Selection favors fitter parents, and elitism keeps the best. Mutation (and partly crossover) drives exploration."
+  },
+  {
+   "type": "mc",
+   "category": "Tuning and balance",
+   "q": "Too much exploitation (too little exploration) tends to cause what?",
+   "choices": [
+    "Premature convergence",
+    "Random search",
+    "Undefined behavior",
+    "A std::out_of_range exception"
+   ],
+   "answer": 0,
+   "explain": "Everyone becomes a copy of one decent but non-optimal string and nothing changes. Too much exploration gives random search instead."
+  },
+  {
+   "type": "tf",
+   "category": "Tuning and balance",
+   "q": "Raising MAX_GENERATIONS lets the GA reach 20/20 even when MUTATION_RATE is 0 and some bit position is '0' in every individual.",
+   "answer": false,
+   "explain": "With no mutation, the missing '1' can never appear, so extra generations do not help."
+  },
+  {
+   "type": "mc",
+   "category": "Tuning and balance",
+   "q": "What is the main trade-off of a bigger POPULATION_SIZE?",
+   "choices": [
+    "More diversity, but more work per generation",
+    "Less work per generation, but faster diversity loss",
+    "No effect, because only the best is ever kept",
+    "The best fitness becomes able to decrease"
+   ],
+   "answer": 0,
+   "explain": "A bigger population keeps more diversity and usually needs fewer generations, but each generation costs more. A smaller one is cheaper but gets stuck more easily."
+  },
+  {
+   "type": "mc",
+   "category": "Tuning and balance",
+   "q": "What goes wrong if STRING_LENGTH is set to 1?",
+   "choices": [
+    "crossover() calls randomInt(1, 0), so min > max",
+    "fitness() always returns 0 for every string",
+    "mutate() is no longer able to flip any bits",
+    "The population size also drops to 1"
+   ],
+   "answer": 0,
+   "explain": "randomInt(1, STRING_LENGTH - 1) becomes randomInt(1, 0), and a uniform_int_distribution with min > max is undefined behavior. STRING_LENGTH must be at least 2."
+  },
+  {
+   "type": "tf",
+   "category": "Tuning and balance",
+   "q": "Keeping too many elites per generation leaves fewer new children and less exploration.",
+   "answer": true,
+   "explain": "More elites keep more good solutions safe, but every elite slot is one less child, so there is less exploration."
+  },
+  {
+   "type": "text",
+   "category": "C++ details",
+   "q": "mt19937 is the standard C++ name for which pseudo-random number generator?",
+   "answer": [
+    "Mersenne Twister",
+    "the Mersenne Twister",
+    "Mersenne-Twister"
+   ],
+   "explain": "mt19937 is the 32-bit Mersenne Twister from <random>."
+  },
+  {
+   "type": "mc",
+   "category": "C++ details",
+   "q": "What can randomInt(0, 1) return?",
+   "choices": [
+    "0 or 1",
+    "Always 0",
+    "A double in [0, 1)",
+    "0, 1 or 2"
+   ],
+   "answer": 0,
+   "explain": "uniform_int_distribution<int>(min, max) includes both endpoints."
+  },
+  {
+   "type": "mc",
+   "category": "C++ details",
+   "q": "What range of values can randomDouble() return?",
+   "choices": [
+    "[0, 1)",
+    "[0, 1]",
+    "(0, 1)",
+    "(0, 1]"
+   ],
+   "answer": 0,
+   "fixed": true,
+   "explain": "uniform_real_distribution<double>(0.0, 1.0) includes 0 and excludes 1."
+  },
+  {
+   "type": "tf",
+   "category": "C++ details",
+   "q": "Because rng is seeded with random_device{}(), two runs of the program usually give different output.",
+   "answer": true,
+   "explain": "random_device{}() gets a seed from the OS, so the generator starts in a different state on each run."
+  },
+  {
+   "type": "mc",
+   "category": "C++ details",
+   "q": "How could you make every run of the program produce the same output, for example to debug it?",
+   "choices": [
+    "Seed it with a constant, e.g. mt19937 rng(42);",
+    "Call random_device{}() twice instead of once",
+    "Create a new mt19937 inside every function",
+    "Use uniform_real_distribution everywhere"
+   ],
+   "answer": 0,
+   "explain": "A fixed seed makes the generator produce the same sequence every run."
+  },
+  {
+   "type": "mc",
+   "category": "C++ details",
+   "q": "If mutate() looped with for (char bit : chromosome) instead of for (char& bit : chromosome), what would happen?",
+   "choices": [
+    "Mutation silently has no effect",
+    "The code no longer compiles",
+    "Every bit is flipped every time",
+    "The elite also gets mutated"
+   ],
+   "answer": 0,
+   "explain": "Without the reference, bit is a copy, so flipping it does not change the string. The child comes back unmutated."
+  },
+  {
+   "type": "mc",
+   "category": "C++ details",
+   "q": "In crossover(), what does parent2.substr(point) return?",
+   "choices": [
+    "Everything from index point to the end",
+    "The first point characters",
+    "Only the character at index point",
+    "Characters 0 through point, inclusive"
+   ],
+   "answer": 0,
+   "explain": "substr(pos) takes everything from pos to the end. substr(0, point) takes the first point characters (indices 0 to point - 1)."
+  },
+  {
+   "type": "tf",
+   "category": "C++ details",
+   "q": "For a 20-character string s, s.substr(20) throws std::out_of_range.",
+   "answer": false,
+   "explain": "A position equal to the length is legal and returns \"\". Only a position greater than size(), such as s.substr(21), throws std::out_of_range."
+  },
+  {
+   "type": "mc",
+   "category": "C++ details",
+   "q": "Why does selectParent() take its population as const vector<string>&?",
+   "choices": [
+    "It avoids copying all 50 strings on each call",
+    "It lets the function reorder the population",
+    "It makes the 3 picks happen without replacement",
+    "It lets the function edit the chosen strings"
+   ],
+   "answer": 0,
+   "explain": "The reference avoids a copy on each of the 98 calls per generation, and const blocks any changes. It has nothing to do with how picks are made."
+  },
+  {
+   "type": "tf",
+   "category": "C++ details",
+   "q": "fitness() is recomputed every time two individuals are compared; for an expensive fitness function you would cache each individual's score.",
+   "answer": true,
+   "explain": "Each comparison recomputes both sides, and the best's fitness is computed again when printing and checking. That is fine for an O(L) bit count but wasteful for a costly fitness function."
+  }
+ ]
+}
