@@ -1,0 +1,538 @@
+{
+ "title": "CSC 2400 Module 11 Part 2: The 0/1 Knapsack Problem (Dynamic Programming)",
+ "course": "CSC2400",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "Problem definition",
+   "q": "In the 0/1 knapsack problem, what does the capacity C limit?",
+   "choices": [
+    "The total size of the chosen items",
+    "The total value of the chosen items",
+    "The number of items that may be chosen",
+    "The value of the single most valuable item"
+   ],
+   "answer": 0,
+   "explain": "The constraint is sum of s_i over the chosen set S ≤ C. Value is what we maximize; size is what the capacity limits."
+  },
+  {
+   "type": "tf",
+   "category": "Problem definition",
+   "q": "An optimal 0/1 knapsack solution must use exactly C units of capacity.",
+   "answer": false,
+   "explain": "The constraint is ≤ C, not = C. In the worked example (C = 6) the optimum {3, 4} uses only 5 units for value 8, while the exact fill {1, 3} is worth only 7."
+  },
+  {
+   "type": "mc",
+   "category": "Problem definition",
+   "q": "What does the \"0/1\" in 0/1 knapsack mean?",
+   "choices": [
+    "Each item is either taken once or not taken at all",
+    "Each item may be taken as any fraction from 0 to 1",
+    "Every item has a value of either 0 or 1",
+    "The knapsack is either completely empty or completely full"
+   ],
+   "answer": 0,
+   "explain": "Each item is taken exactly once (1) or not at all (0). No fractions of an item and no extra copies."
+  },
+  {
+   "type": "tf",
+   "category": "Problem definition",
+   "q": "Because values are nonnegative and the empty set is always feasible, the optimal knapsack value is never negative.",
+   "answer": true,
+   "explain": "The empty set has total size 0 ≤ C and value 0, so the optimum is at least 0."
+  },
+  {
+   "type": "mc",
+   "category": "Problem definition",
+   "q": "Checking every possible subset of n items by brute force examines how many subsets?",
+   "choices": [
+    "2^n",
+    "n^2",
+    "n!",
+    "nC"
+   ],
+   "answer": 0,
+   "explain": "Each item is in or out, so there are 2^n subsets (16 for the 4-item worked example). That is exponential, which DP avoids by reusing answers to overlapping subproblems."
+  },
+  {
+   "type": "multi",
+   "category": "Problem definition",
+   "q": "Which of these are assumptions of the knapsack formulation in this lesson?",
+   "choices": [
+    "Item sizes are positive integers",
+    "The capacity C is a nonnegative integer",
+    "Item values are nonnegative",
+    "Each item's value is at least its size",
+    "Items are listed in order of decreasing value"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "The input has nonnegative values, positive integer sizes and a nonnegative integer capacity. Integer sizes and capacity let the DP make one column per capacity 0..C. Nothing relates value to size, and the items can come in any order."
+  },
+  {
+   "type": "mc",
+   "category": "Subproblems and recurrence",
+   "q": "What does A[i][c] represent?",
+   "choices": [
+    "Max value using only items 1..i with total size at most c",
+    "Max value using items i..n with total size exactly c",
+    "Min total size needed to reach value c using items 1..i",
+    "The value of item i when the remaining capacity is c"
+   ],
+   "answer": 0,
+   "explain": "A[i][c] is the maximum value obtainable using only items 1 through i with capacity at most c. The index i is an item prefix and c is a capacity limit."
+  },
+  {
+   "type": "mc",
+   "category": "Subproblems and recurrence",
+   "q": "If item i does not fit (s_i > c), what is A[i][c]?",
+   "choices": [
+    "A[i-1][c]",
+    "v_i + A[i-1][c]",
+    "0",
+    "A[i][c-1]"
+   ],
+   "answer": 0,
+   "explain": "An item that is too large must be excluded, so the best value is the best using items 1..i-1 with the same capacity: A[i][c] = A[i-1][c]."
+  },
+  {
+   "type": "mc",
+   "category": "Subproblems and recurrence",
+   "q": "When item i fits (s_i ≤ c), which expression is the \"include item i\" option?",
+   "choices": [
+    "v_i + A[i-1][c - s_i]",
+    "v_i + A[i][c - s_i]",
+    "s_i + A[i-1][c - v_i]",
+    "v_i + A[i-1][c]"
+   ],
+   "answer": 0,
+   "explain": "Including item i adds its value v_i, uses up its size s_i, and fills the leftover capacity c - s_i from items 1..i-1 only (row i-1), because item i is already used."
+  },
+  {
+   "type": "tf",
+   "category": "Subproblems and recurrence",
+   "q": "The base case A[i][0] = 0 for every i depends on the assumption that every item size is positive.",
+   "answer": true,
+   "explain": "With positive sizes nothing fits in capacity 0, so only the empty set is feasible. A size-0 item with positive value would fit in capacity 0 and make A[i][0] positive."
+  },
+  {
+   "type": "mc",
+   "category": "Subproblems and recurrence",
+   "q": "Maximum-weight independent set on a path needs only one index per subproblem (a prefix). Why does knapsack also need a capacity index?",
+   "choices": [
+    "Including an item leaves a subproblem with less room",
+    "Items must be sorted by size before the table is filled",
+    "The capacity determines how many items are available",
+    "Each item's value changes as the capacity changes"
+   ],
+   "answer": 0,
+   "explain": "In the include case the leftover problem has a different capacity, c - s_i. A subproblem described only by \"items 1..i\" cannot record how much room is left, so the table is two-dimensional."
+  },
+  {
+   "type": "text",
+   "category": "Subproblems and recurrence",
+   "q": "The property that an optimal solution is built from optimal solutions to smaller subproblems is called what?",
+   "answer": [
+    "optimal substructure"
+   ],
+   "explain": "Optimal substructure: an optimal knapsack solution either excludes the last item (reducing to fewer items, same capacity) or includes it (reducing to fewer items, capacity C - s_n)."
+  },
+  {
+   "type": "mc",
+   "category": "Subproblems and recurrence",
+   "q": "Which table entry holds the answer to the original problem with n items and capacity C?",
+   "choices": [
+    "A[n][C]",
+    "A[0][C]",
+    "A[n][0]",
+    "A[1][C]"
+   ],
+   "answer": 0,
+   "explain": "A[n][C] is the best value using all n items with capacity at most C, which is the original problem. A[0][C] and A[n][0] are base cases equal to 0."
+  },
+  {
+   "type": "num",
+   "category": "Filling the table",
+   "q": "Worked example: C = 6; item 1 (value 3, size 4), item 2 (value 2, size 3), item 3 (value 4, size 2), item 4 (value 4, size 3). Given A[2][5] = 3 and A[2][3] = 2, compute A[3][5].",
+   "answer": 6,
+   "explain": "Item 3 (s = 2) fits: max(A[2][5], 4 + A[2][3]) = max(3, 4 + 2) = 6. This is items 2 and 3."
+  },
+  {
+   "type": "num",
+   "category": "Filling the table",
+   "q": "Worked example: C = 6; item 1 (value 3, size 4), item 2 (value 2, size 3), item 3 (value 4, size 2), item 4 (value 4, size 3). Compute A[2][4].",
+   "answer": 3,
+   "explain": "Row 1 is 0,0,0,0,3,3,3. Item 2 (s = 3) fits at c = 4: max(A[1][4], 2 + A[1][1]) = max(3, 2 + 0) = 3. Excluding item 2 wins."
+  },
+  {
+   "type": "num",
+   "category": "Filling the table",
+   "q": "Worked example: C = 6; item 1 (value 3, size 4), item 2 (value 2, size 3), item 3 (value 4, size 2), item 4 (value 4, size 3). Row 3 of the table is 0, 0, 4, 4, 4, 6, 7 for c = 0..6. Compute A[4][5].",
+   "answer": 8,
+   "explain": "Item 4 (s = 3) fits: max(A[3][5], 4 + A[3][2]) = max(6, 4 + 4) = 8. This is items 3 and 4."
+  },
+  {
+   "type": "num",
+   "category": "Filling the table",
+   "q": "Item i has value 5 and size 2. You know A[i-1][6] = 9 and A[i-1][4] = 3. What is A[i][6]?",
+   "answer": 9,
+   "explain": "max(A[i-1][6], 5 + A[i-1][6 - 2]) = max(9, 5 + 3) = max(9, 8) = 9. Excluding item i is better here."
+  },
+  {
+   "type": "num",
+   "category": "Filling the table",
+   "q": "C = 5; item 1 (value 4, size 1), item 2 (value 5, size 2), item 3 (value 7, size 3). Fill the table and give A[3][5].",
+   "answer": 12,
+   "explain": "Row 1: 0,4,4,4,4,4. Row 2: 0,4,5,9,9,9 (e.g. A[2][3] = max(4, 5 + A[1][1]) = 9). Row 3: 0,4,5,9,11,12, with A[3][5] = max(A[2][5], 7 + A[2][2]) = max(9, 12) = 12 (items 2 and 3, size 5)."
+  },
+  {
+   "type": "mc",
+   "category": "Filling the table",
+   "q": "When item i fits, the cell A[i][c] is computed from which two cells?",
+   "choices": [
+    "A[i-1][c] and A[i-1][c - s_i]",
+    "A[i][c-1] and A[i-1][c]",
+    "A[i-1][c] and A[i][c - s_i]",
+    "A[i-1][c-1] and A[i-1][c - v_i]"
+   ],
+   "answer": 0,
+   "explain": "It reads the cell directly above, (i-1, c), and the cell one row up and s_i columns to the left, (i-1, c - s_i). Both are in the previous row."
+  },
+  {
+   "type": "tf",
+   "category": "Filling the table",
+   "q": "In the full 2-D table, sweeping the capacities within a row from C down to 0 (instead of 0 up to C) would change the computed values.",
+   "answer": false,
+   "explain": "Every cell in row i depends only on row i-1, which is already complete, so the sweep order within a row does not matter in the 2-D table. Order only matters in the 1-D version."
+  },
+  {
+   "type": "mc",
+   "category": "Reconstruction",
+   "q": "While reconstructing the chosen items at cell (i, c), you find A[i][c] ≠ A[i-1][c]. What do you do?",
+   "choices": [
+    "Take item i and set c to c - s_i",
+    "Skip item i and leave c unchanged",
+    "Take item i and leave c unchanged",
+    "Skip item i and set c to c - s_i"
+   ],
+   "answer": 0,
+   "explain": "If the exclude value A[i-1][c] does not equal A[i][c], the include option produced the maximum, so item i was taken and its size is removed from the remaining capacity. Then move to row i-1."
+  },
+  {
+   "type": "tf",
+   "category": "Reconstruction",
+   "q": "On a tie (A[i][c] = A[i-1][c] even though including item i would also reach that value), excluding item i still leads to an optimal selection.",
+   "answer": true,
+   "explain": "A[i-1][c] already achieves the optimal value, so excluding is always safe. The standard rule excludes on ties."
+  },
+  {
+   "type": "mc",
+   "category": "Reconstruction",
+   "q": "Worked example: C = 6; items (value, size) = (3, 4), (2, 3), (4, 2), (4, 3). Reconstruction starts at A[4][6] = 8 and takes item 4. Which cell is examined next?",
+   "choices": [
+    "A[3][3]",
+    "A[3][6]",
+    "A[4][3]",
+    "A[3][4]"
+   ],
+   "answer": 0,
+   "explain": "Taking item 4 moves to row 3 and reduces capacity by s_4 = 3, from 6 to 3. A[3][3] = 4 ≠ A[2][3] = 2, so item 3 is taken next, giving {3, 4}."
+  },
+  {
+   "type": "multi",
+   "category": "Reconstruction",
+   "q": "C = 5; item 1 (value 4, size 1), item 2 (value 5, size 2), item 3 (value 7, size 3). The table rows for c = 0..5 are row 1: 0,4,4,4,4,4; row 2: 0,4,5,9,9,9; row 3: 0,4,5,9,11,12. Which items does the standard backward reconstruction select?",
+   "choices": [
+    "Item 1",
+    "Item 2",
+    "Item 3"
+   ],
+   "fixed": true,
+   "answer": [
+    1,
+    2
+   ],
+   "explain": "A[3][5] = 12 ≠ A[2][5] = 9: take item 3, c = 5 - 3 = 2. A[2][2] = 5 ≠ A[1][2] = 4: take item 2, c = 0. A[1][0] = 0 = A[0][0]: skip item 1. Selection {2, 3}, size 5, value 12."
+  },
+  {
+   "type": "mc",
+   "category": "Reconstruction",
+   "q": "C = 4; item 1 (value 5, size 4) and item 2 (value 5, size 4). The table gives A[1][4] = 5 and A[2][4] = 5. Using the rule that excludes on ties, which items are selected?",
+   "choices": [
+    "Item 1 only",
+    "Item 2 only",
+    "Both items",
+    "Neither item"
+   ],
+   "answer": 0,
+   "explain": "A[2][4] = A[1][4] = 5 is a tie, so item 2 is skipped and c stays 4. A[1][4] = 5 ≠ A[0][4] = 0, so item 1 is taken. Both items together have size 8, which does not fit."
+  },
+  {
+   "type": "mc",
+   "category": "Reconstruction",
+   "q": "Once the full table is filled, how long does reconstructing the chosen items take?",
+   "choices": [
+    "O(n)",
+    "O(C)",
+    "O(nC)",
+    "O(2^n)"
+   ],
+   "answer": 0,
+   "explain": "The backward walk does one comparison per item (rows n down to 1), so it is O(n). It needs the full 2-D table because it compares each row with the row before it."
+  },
+  {
+   "type": "num",
+   "category": "Complexity",
+   "q": "There are n = 30 items and capacity C = 99. How many entries does the full DP table have?",
+   "answer": 3100,
+   "explain": "The table has (n + 1) rows and (C + 1) columns: 31 × 100 = 3,100 entries."
+  },
+  {
+   "type": "mc",
+   "category": "Complexity",
+   "q": "What are the time and space costs of the full 2-D knapsack DP?",
+   "choices": [
+    "O(nC) time, O(nC) space",
+    "O(nC) time, O(n) space",
+    "O(n^2) time, O(nC) space",
+    "O(2^n) time, O(C) space"
+   ],
+   "answer": 0,
+   "explain": "There are (n + 1)(C + 1) = O(nC) subproblems with O(1) work each, plus O(n) reconstruction, for O(nC) time. Storing the full table takes O(nC) space."
+  },
+  {
+   "type": "tf",
+   "category": "Complexity",
+   "q": "The O(nC) knapsack DP runs in time polynomial in the length of its input (the number of bits needed to write the input).",
+   "answer": false,
+   "explain": "C takes only O(log C) bits to write, but the work grows with the numeric value of C. If C has b bits, C can be about 2^b, so the algorithm is pseudo-polynomial, not polynomial in input length."
+  },
+  {
+   "type": "mc",
+   "category": "Complexity",
+   "q": "Why is the O(nC) knapsack algorithm called pseudo-polynomial?",
+   "choices": [
+    "Work grows with C's numeric value, which can be exponential in its bit length",
+    "It is polynomial only after the items are sorted by value-to-size ratio",
+    "It is polynomial on average but exponential on worst-case inputs",
+    "It needs polynomial time but an exponential amount of memory"
+   ],
+   "answer": 0,
+   "explain": "O(nC) is polynomial in n and in the magnitude of C, but C needs only about log2 C bits, so the running time can be exponential in the input's bit length."
+  },
+  {
+   "type": "mc",
+   "category": "Complexity",
+   "q": "If the capacity C is written with b bits, the O(nC) running time is, in the worst case:",
+   "choices": [
+    "O(n · 2^b)",
+    "O(n · b)",
+    "O(n · b^2)",
+    "O(n + b)"
+   ],
+   "answer": 0,
+   "explain": "A b-bit number can be as large as about 2^b, so O(nC) = O(n · 2^b), which is exponential in the bit length of C."
+  },
+  {
+   "type": "num",
+   "category": "Complexity",
+   "q": "With n fixed, the capacity grows from C = 255 (8 bits) to C = 65,535 (16 bits). By what factor does the number of DP table columns grow?",
+   "answer": 256,
+   "explain": "Columns go from C + 1 = 256 to 65,536, a factor of 256, while the capacity's written length only doubles from 8 to 16 bits. This is why the runtime is pseudo-polynomial."
+  },
+  {
+   "type": "mc",
+   "category": "Complexity",
+   "q": "Using total work ≈ (number of subproblems) × (work per subproblem) + reconstruction, how much work does the knapsack DP do per subproblem?",
+   "choices": [
+    "O(1)",
+    "O(n)",
+    "O(C)",
+    "O(log C)"
+   ],
+   "answer": 0,
+   "explain": "Each cell needs at most one addition and one comparison, so O(1). With O(nC) cells and O(n) reconstruction, the total is O(nC)."
+  },
+  {
+   "type": "mc",
+   "category": "1-D array and unbounded knapsack",
+   "q": "In the O(C)-space 1-D version of 0/1 knapsack, how should c be looped for each item i?",
+   "choices": [
+    "From C down to s_i",
+    "From s_i up to C",
+    "From 0 up to C",
+    "In any order"
+   ],
+   "answer": 0,
+   "explain": "Capacities must be processed in decreasing order so that dp[c - s_i] still holds the value from before item i was considered, and item i cannot be used twice."
+  },
+  {
+   "type": "num",
+   "category": "1-D array and unbounded knapsack",
+   "q": "One item with value 5 and size 3, C = 9. A 1-D array starting at all zeros is updated with c going UP from 3 to 9 using dp[c] = max(dp[c], 5 + dp[c - 3]). What is dp[9] at the end?",
+   "answer": 15,
+   "explain": "Going up: dp[3] = 5, dp[6] = 5 + dp[3] = 10, dp[9] = 5 + dp[6] = 15, which counts the item three times. That is unbounded behavior; the correct 0/1 answer (looping down) is 5."
+  },
+  {
+   "type": "tf",
+   "category": "1-D array and unbounded knapsack",
+   "q": "The 1-D version finds the optimal value in O(C) space, but the standard backward walk cannot recover the chosen items from it.",
+   "answer": true,
+   "explain": "The 1-D array overwrites earlier rows, so A[i][c] can no longer be compared with A[i-1][c]. Use the full table if you need the selected items."
+  },
+  {
+   "type": "mc",
+   "category": "1-D array and unbounded knapsack",
+   "q": "A student uses A[i][c] = max(A[i-1][c], v_i + A[i][c - s_i]). Which problem does this actually solve?",
+   "choices": [
+    "Unbounded knapsack (unlimited copies)",
+    "Fractional knapsack (partial items)",
+    "Knapsack that must be filled exactly",
+    "0/1 knapsack, just using less memory"
+   ],
+   "answer": 0,
+   "explain": "Reading the current row i in the include case lets A[i][c - s_i] already contain item i, so the item can be counted more than once. For 0/1 knapsack the include term must read row i-1."
+  },
+  {
+   "type": "mc",
+   "category": "1-D array and unbounded knapsack",
+   "q": "Why does looping c downward make the 1-D array correct for 0/1 knapsack?",
+   "choices": [
+    "dp[c - s_i] still holds its row i-1 value when read",
+    "Larger capacities never read smaller capacities",
+    "It processes the items in decreasing order of size",
+    "It forces each capacity to be filled exactly"
+   ],
+   "answer": 0,
+   "explain": "Going from high c to low c, the smaller index c - s_i has not been overwritten yet in this pass, so it still reflects items 1..i-1 only and item i is used at most once."
+  },
+  {
+   "type": "mc",
+   "category": "1-D array and unbounded knapsack",
+   "q": "In the 1-D loop for c from C down to s_i, what happens to dp[c] for capacities c < s_i during item i's pass?",
+   "choices": [
+    "It is left unchanged",
+    "It is reset to 0",
+    "It becomes v_i",
+    "It copies dp[c + s_i]"
+   ],
+   "answer": 0,
+   "explain": "Item i does not fit at those capacities, so the loop skips them and they keep their previous value, which is exactly the exclude value A[i-1][c]."
+  },
+  {
+   "type": "num",
+   "category": "Greedy and common mistakes",
+   "q": "C = 10; item X (value 7, size 6), item Y (value 5, size 5), item Z (value 5, size 5). Greedy by highest value-to-size ratio takes items in ratio order whenever they still fit. What total value does it get?",
+   "answer": 7,
+   "explain": "X has the best ratio (about 1.17), so greedy takes X and has 4 units left; Y and Z (size 5) no longer fit, total 7. The optimal choice is {Y, Z}: size 10, value 10."
+  },
+  {
+   "type": "num",
+   "category": "Greedy and common mistakes",
+   "q": "C = 6; item A (value 9, size 5), item B (value 6, size 3), item C (value 6, size 3). Greedy by largest value takes A and gets 9. What is the optimal value?",
+   "answer": 12,
+   "explain": "After A only 1 unit remains, so greedy stops at 9. Taking B and C uses size 6 for value 12. A with B or C has size 8, which is too big."
+  },
+  {
+   "type": "tf",
+   "category": "Greedy and common mistakes",
+   "q": "Choosing items by greatest value-to-size ratio always gives an optimal 0/1 knapsack solution.",
+   "answer": false,
+   "explain": "Items cannot be split, so a high-ratio item can leave awkward unused space. Example: C = 4 with items (v 5, s 3), (v 3, s 2), (v 3, s 2). Ratio greedy gets 5, but the two small items give 6."
+  },
+  {
+   "type": "mc",
+   "category": "Greedy and common mistakes",
+   "q": "For the case where item i fits, a student writes the include option as s_i + A[i-1][c - v_i]. What is wrong?",
+   "choices": [
+    "Size and value are swapped",
+    "It reads the current row, so items repeat",
+    "It should read row i+1 instead of row i-1",
+    "Nothing; it equals the correct include term"
+   ],
+   "answer": 0,
+   "explain": "The size is subtracted from the capacity index (c - s_i) and the value is added to the result (v_i + ...). The correct term is v_i + A[i-1][c - s_i]."
+  },
+  {
+   "type": "multi",
+   "category": "Greedy and common mistakes",
+   "q": "Which of these are mistakes when solving 0/1 knapsack with DP?",
+   "choices": [
+    "Reading A[i][c - s_i] in the include case",
+    "Requiring the total size to equal C exactly",
+    "Subtracting the item's size from the capacity index",
+    "Calling the O(nC) algorithm polynomial in input length",
+    "Copying A[i-1][c] when item i is larger than c"
+   ],
+   "answer": [
+    0,
+    1,
+    3
+   ],
+   "explain": "Reading row i allows reuse (unbounded knapsack), the constraint is ≤ C rather than = C, and O(nC) is pseudo-polynomial. Subtracting s_i from c and copying A[i-1][c] when the item does not fit are both correct."
+  },
+  {
+   "type": "mc",
+   "category": "C++ implementation",
+   "q": "In the C++ implementation, DP row i corresponds to item i (1-based). Where is item i's size stored?",
+   "choices": [
+    "sizes[i - 1]",
+    "sizes[i]",
+    "sizes[i + 1]",
+    "sizes[n - i]"
+   ],
+   "answer": 0,
+   "explain": "C++ vectors are 0-indexed, so item i's data is at values[i - 1] and sizes[i - 1]. Forgetting the - 1 is an off-by-one bug."
+  },
+  {
+   "type": "mc",
+   "category": "C++ implementation",
+   "q": "The table is declared as vector<vector<int>> dp(n + 1, vector<int>(capacity + 1, 0)). Why does it have n + 1 rows?",
+   "choices": [
+    "Row 0 is the no-items base case",
+    "Row n + 1 stores the reconstruction",
+    "The extra row holds each item's size",
+    "C++ vectors cannot have exactly n rows"
+   ],
+   "answer": 0,
+   "explain": "Rows 0..n: row 0 means no items are available and is all zeros (the base case A[0][c] = 0), which the zero initialization already sets. Likewise capacity + 1 columns cover c = 0..C."
+  },
+  {
+   "type": "tf",
+   "category": "C++ implementation",
+   "q": "The C++ loop first sets dp[i][c] = dp[i - 1][c], then, only if the item fits, replaces it with the include value when that is larger. This computes the same values as the two-case recurrence.",
+   "answer": true,
+   "explain": "Starting from the exclude value and taking the max with the include value only when sizes[i - 1] ≤ c is exactly the two cases: copy when the item does not fit, max of exclude and include when it does."
+  },
+  {
+   "type": "mc",
+   "category": "C++ implementation",
+   "q": "Why does the program call reverse on the selected vector before printing it?",
+   "choices": [
+    "The walk finds items from n down to 1",
+    "The DP table was filled from row n to row 0",
+    "Items must be printed by decreasing value",
+    "reverse removes the items that were tied"
+   ],
+   "answer": 0,
+   "explain": "Reconstruction walks i from n down to 1, so items are collected last to first. Reversing prints them in increasing item order."
+  },
+  {
+   "type": "text",
+   "category": "C++ implementation",
+   "q": "The program is run with n = 3, capacity 4, and items (value, size): item 1 (5, 3), item 2 (4, 2), item 3 (3, 2). What does it print after \"Selected item numbers:\"? (Give the item numbers separated by spaces.)",
+   "answer": [
+    "2 3",
+    "2, 3",
+    "2,3",
+    "{2, 3}",
+    "{2,3}"
+   ],
+   "explain": "Rows for c = 0..4: row 1: 0,0,0,5,5; row 2: 0,0,4,5,5; row 3: 0,0,4,5,7. A[3][4] = 7 ≠ 5: take item 3, c = 2. A[2][2] = 4 ≠ 0: take item 2, c = 0. Skip item 1. After reverse it prints \"2 3\" (maximum value 7)."
+  }
+ ]
+}
