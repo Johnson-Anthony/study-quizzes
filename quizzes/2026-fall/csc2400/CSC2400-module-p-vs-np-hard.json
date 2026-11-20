@@ -1,0 +1,567 @@
+{
+ "title": "P vs. NP, NP-Hardness, and Reductions",
+ "course": "CSC2400",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "Polynomial time and input size",
+   "q": "Which of these running times is polynomial?",
+   "choices": [
+    "O(n^100)",
+    "O(2^n)",
+    "O(n!)",
+    "O(2^(√n))"
+   ],
+   "answer": 0,
+   "explain": "A running time is polynomial if it is bounded by O(n^k) for some fixed constant k. O(n^100) has k = 100. The others are superpolynomial."
+  },
+  {
+   "type": "multi",
+   "category": "Polynomial time and input size",
+   "q": "Which of these functions of n are superpolynomial?",
+   "choices": [
+    "n^3",
+    "n log n",
+    "2^n",
+    "n!",
+    "n^50",
+    "2^(√n)"
+   ],
+   "answer": [
+    2,
+    3,
+    5
+   ],
+   "explain": "n^3, n^50, and n log n (bounded by n^2) are polynomial. 2^n and n! are superpolynomial. 2^(√n) is also superpolynomial even though it grows more slowly than 2^n. Non-polynomial does not automatically mean exponential."
+  },
+  {
+   "type": "tf",
+   "category": "Polynomial time and input size",
+   "q": "An O(n^100) algorithm is guaranteed to be practical, because it runs in polynomial time.",
+   "answer": false,
+   "explain": "O(n^100) is polynomial, but it may be useless on realistic inputs. Polynomial time is a theoretical classification, not a promise that a program is fast in practice."
+  },
+  {
+   "type": "tf",
+   "category": "Polynomial time and input size",
+   "q": "Every non-polynomial running time is exponential, like 2^n.",
+   "answer": false,
+   "explain": "Some non-polynomial functions, such as 2^(√n), grow more slowly than 2^n. Non-polynomial does not automatically mean exponential."
+  },
+  {
+   "type": "tf",
+   "category": "Polynomial time and input size",
+   "q": "O(n log n) counts as polynomial time.",
+   "answer": true,
+   "explain": "n log n is bounded above by n^2, so it fits the O(n^k) definition with a fixed constant k."
+  },
+  {
+   "type": "mc",
+   "category": "Polynomial time and input size",
+   "q": "In complexity theory, the running time of an algorithm is measured against what?",
+   "choices": [
+    "The number of bits needed to write the input",
+    "The largest numeric value in the input",
+    "The number of lines of code in the algorithm",
+    "The running time measured in seconds"
+   ],
+   "answer": 0,
+   "explain": "Complexity is measured against the length of the input representation, usually the number of bits needed to describe the instance."
+  },
+  {
+   "type": "mc",
+   "category": "Polynomial time and input size",
+   "q": "The 0/1 Knapsack dynamic programming algorithm runs in O(nC), where C is the numeric capacity. Why is this not considered polynomial time?",
+   "choices": [
+    "C needs only O(log C) bits to write, so C can be exponential in the input length",
+    "The DP table has two dimensions, which makes any such algorithm exponential",
+    "Knapsack is an optimization problem, so no algorithm for it is polynomial",
+    "The product nC always grows faster than 2^n, regardless of the capacity"
+   ],
+   "answer": 0,
+   "explain": "Input size is measured in bits. C takes only O(log C) bits, so C can be exponentially large relative to the input length. O(nC) is polynomial in the value of C, not in the input length."
+  },
+  {
+   "type": "text",
+   "category": "Polynomial time and input size",
+   "q": "An algorithm whose running time is polynomial in a numeric value from the input (such as O(nC) for Knapsack) but not in the input's length is called ____.",
+   "answer": [
+    "pseudo-polynomial",
+    "pseudopolynomial",
+    "pseudo polynomial",
+    "pseudo-polynomial time",
+    "pseudopolynomial time"
+   ],
+   "explain": "Being polynomial in a numeric value is not the same as being polynomial in the input length. Such algorithms are called pseudo-polynomial."
+  },
+  {
+   "type": "text",
+   "category": "TSP and MST",
+   "q": "In graph terms, the Traveling Salesman Problem asks for a minimum-cost ____ cycle, one that visits every vertex exactly once and returns to the start. (One word)",
+   "answer": [
+    "Hamiltonian",
+    "hamiltonian"
+   ],
+   "explain": "A TSP tour is a Hamiltonian cycle. TSP seeks the cheapest one."
+  },
+  {
+   "type": "num",
+   "category": "TSP and MST",
+   "q": "In symmetric TSP on a complete undirected graph, how many distinct tours are there on n = 5 cities?",
+   "answer": 12,
+   "explain": "Fix the start city and order the rest: (n-1)! ways. A route and its reverse are the same tour, so divide by 2: 4!/2 = 24/2 = 12."
+  },
+  {
+   "type": "num",
+   "category": "TSP and MST",
+   "q": "In symmetric TSP on a complete undirected graph, how many distinct tours are there on n = 7 cities?",
+   "answer": 360,
+   "explain": "(n-1)!/2 = 6!/2 = 720/2 = 360."
+  },
+  {
+   "type": "num",
+   "category": "TSP and MST",
+   "q": "A brute-force symmetric TSP solver checks every distinct tour. When the number of cities grows from 7 to 8, by what exact factor does the number of tours grow?",
+   "answer": 7,
+   "explain": "7 cities: 6!/2 = 360 tours. 8 cities: 7!/2 = 2,520 tours. 2,520 / 360 = 7. In general, going from n to n+1 cities multiplies (n-1)! by n."
+  },
+  {
+   "type": "num",
+   "category": "TSP and MST",
+   "q": "A graph has vertices a, b, c, d and edges a-b (cost 1), b-d (2), a-d (3), a-c (4), c-d (5). What is the total cost of its minimum spanning tree?",
+   "answer": 7,
+   "explain": "Kruskal-style: take a-b (1), take b-d (2), skip a-d (3) because it closes the cycle a-b-d, take a-c (4). Total 1 + 2 + 4 = 7."
+  },
+  {
+   "type": "num",
+   "category": "TSP and MST",
+   "q": "The same graph (vertices a, b, c, d; edges a-b cost 1, b-d cost 2, a-d cost 3, a-c cost 4, c-d cost 5) has exactly one Hamiltonian cycle. What is its cost?",
+   "answer": 12,
+   "explain": "Edge b-c is missing, so c's only neighbors are a and d, and the tour must pass through a-c-d. Then b must link d back to a. The tour a-c-d-b-a costs 4 + 5 + 2 + 1 = 12. The MST (cost 7) is not a tour."
+  },
+  {
+   "type": "tf",
+   "category": "TSP and MST",
+   "q": "Every connected weighted graph that has a minimum spanning tree also has a Hamiltonian cycle.",
+   "answer": false,
+   "explain": "Every connected graph has an MST, but a graph can have an MST and no Hamiltonian cycle. An MST is a tree with no cycle; a tour is a single cycle through all vertices."
+  },
+  {
+   "type": "tf",
+   "category": "TSP and MST",
+   "q": "Because brute-force TSP must check (n-1)!/2 tours, we know no polynomial-time algorithm for TSP exists.",
+   "answer": false,
+   "explain": "A slow brute-force algorithm does not prove that no faster algorithm exists. Whether a fast TSP algorithm exists is unknown, which is the P vs. NP question in practical form."
+  },
+  {
+   "type": "mc",
+   "category": "TSP and MST",
+   "q": "Which of these is most likely TSP in disguise?",
+   "choices": [
+    "Ordering tasks where each step's cost depends on the previous task",
+    "Linking all buildings with the cheapest possible cable network",
+    "Checking whether two computers in a network are connected",
+    "Finding the shortest route between two specific cities"
+   ],
+   "answer": 0,
+   "explain": "Whenever tasks are done in a sequence and each step's cost depends on the previous task, the problem is TSP in disguise. Cheapest cable network is an MST problem; connectivity and point-to-point shortest routes are easier problems."
+  },
+  {
+   "type": "mc",
+   "category": "P and NP",
+   "q": "Which is the definition of NP?",
+   "choices": [
+    "Decision problems whose YES instances have certificates verifiable in polynomial time",
+    "Problems that cannot be solved in polynomial time",
+    "Decision problems solvable by a deterministic polynomial-time algorithm",
+    "Problems to which every problem in NP reduces in polynomial time"
+   ],
+   "answer": 0,
+   "explain": "NP is about polynomial-time verification of YES certificates. Solvable in deterministic polynomial time is the definition of P. Every NP problem reducing to it is the definition of NP-hard. NP does not mean 'cannot be solved in polynomial time.'"
+  },
+  {
+   "type": "tf",
+   "category": "P and NP",
+   "q": "The 'N' in NP stands for 'non', as in non-polynomial.",
+   "answer": false,
+   "explain": "The 'N' comes from nondeterministic polynomial-time computation, an equivalent definition of NP. NP does not mean non-polynomial; in fact P ⊆ NP."
+  },
+  {
+   "type": "mc",
+   "category": "P and NP",
+   "q": "Why is every problem in P also in NP?",
+   "choices": [
+    "A verifier can simply solve the problem itself in polynomial time",
+    "Every problem in P is also NP-hard, so it is in NP",
+    "NP is defined as all problems that are not in P",
+    "Problems in P have certificates that are always empty"
+   ],
+   "answer": 0,
+   "explain": "If a problem can be solved in polynomial time, a verifier can confirm a YES answer in polynomial time by solving the problem and ignoring the certificate. So P ⊆ NP."
+  },
+  {
+   "type": "tf",
+   "category": "P and NP",
+   "q": "It has been proved that P ≠ NP.",
+   "answer": false,
+   "explain": "Whether P = NP is an open problem. Neither P = NP nor P ≠ NP has been established."
+  },
+  {
+   "type": "tf",
+   "category": "P and NP",
+   "q": "For a problem to be in NP, YES answers must be checkable in polynomial time given a certificate; NP membership says nothing about how quickly a solution can be found.",
+   "answer": true,
+   "explain": "Verifying means checking a proposed certificate against the instance. Solving means computing the answer from the instance alone. NP only requires that checking be fast."
+  },
+  {
+   "type": "multi",
+   "category": "P and NP",
+   "q": "Which of these decision problems are known to be in P?",
+   "choices": [
+    "Is a graph connected?",
+    "Does an unweighted graph contain a path from s to t?",
+    "Does a weighted graph have a spanning tree of cost at most B?",
+    "Does a graph contain a Hamiltonian cycle?",
+    "Does a weighted graph have a TSP tour of cost at most B?"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Connectivity, s-t reachability, and spanning tree of cost at most B are all in P. Hamiltonian Cycle and decision TSP are NP-complete, and no polynomial-time algorithm is known for them."
+  },
+  {
+   "type": "mc",
+   "category": "P and NP",
+   "q": "For the Hamiltonian Cycle problem, what serves as a certificate for a YES instance?",
+   "choices": [
+    "A proposed ordering of the vertices",
+    "A minimum spanning tree of the graph",
+    "A proof that no such cycle exists",
+    "The total number of edges in the graph"
+   ],
+   "answer": 0,
+   "explain": "A proposed ordering of the vertices can be checked in polynomial time to confirm it is a valid Hamiltonian cycle in G. That is why Hamiltonian Cycle is in NP."
+  },
+  {
+   "type": "multi",
+   "category": "P and NP",
+   "q": "A verifier for decision TSP receives a graph, a budget B, and a proposed tour as the certificate. Which checks must it perform?",
+   "choices": [
+    "Every city appears exactly once in the proposed order",
+    "Each consecutive pair, including last back to first, is joined by an edge",
+    "The total cost of the tour is at most B",
+    "No cheaper tour exists anywhere in the graph",
+    "The tour contains every edge of a minimum spanning tree"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "The verifier confirms the certificate is a valid tour (each city once, consecutive cities joined by edges, returning to the start) and that its cost is within budget. Decision TSP asks only whether some tour costs at most B, so it does not need to show no cheaper tour exists, and MST edges are irrelevant."
+  },
+  {
+   "type": "mc",
+   "category": "NP-hard and NP-complete",
+   "q": "A problem is NP-complete when it is:",
+   "choices": [
+    "In NP and NP-hard",
+    "In P and NP-hard",
+    "NP-hard but not in NP",
+    "In NP but not in P"
+   ],
+   "answer": 0,
+   "explain": "NP-complete = NP ∩ NP-hard. The problem must be in NP and also be NP-hard."
+  },
+  {
+   "type": "tf",
+   "category": "NP-hard and NP-complete",
+   "q": "Every NP-hard problem is NP-complete.",
+   "answer": false,
+   "explain": "NP-complete problems must also be in NP. An NP-hard problem need not be in NP; it does not even have to be a decision problem."
+  },
+  {
+   "type": "tf",
+   "category": "NP-hard and NP-complete",
+   "q": "An NP-hard problem must be a decision problem.",
+   "answer": false,
+   "explain": "Optimization problems can be NP-hard. For example, optimization TSP is NP-hard. NP and NP-complete contain only decision problems; NP-hard does not have that restriction."
+  },
+  {
+   "type": "mc",
+   "category": "NP-hard and NP-complete",
+   "q": "How is the optimization version of TSP (find a minimum-cost tour) classified?",
+   "choices": [
+    "NP-hard, but not in NP",
+    "NP-complete",
+    "In P",
+    "In NP, but not NP-hard"
+   ],
+   "answer": 0,
+   "explain": "Optimization TSP is NP-hard. It is not in NP because NP contains only decision problems, so calling it 'in NP' or 'NP-complete' is a category error."
+  },
+  {
+   "type": "mc",
+   "category": "NP-hard and NP-complete",
+   "q": "How is decision TSP ('Is there a tour of cost at most B?') classified, under standard formulations?",
+   "choices": [
+    "NP-complete",
+    "In P",
+    "NP-hard but not in NP",
+    "Neither in NP nor NP-hard"
+   ],
+   "answer": 0,
+   "explain": "A tour certificate can be checked in polynomial time, so decision TSP is in NP. Reducing Hamiltonian Cycle to it shows it is NP-hard. Together these make it NP-complete."
+  },
+  {
+   "type": "tf",
+   "category": "NP-hard and NP-complete",
+   "q": "If someone found a polynomial-time exact algorithm for any single NP-complete problem, that would prove P = NP.",
+   "answer": true,
+   "explain": "Every NP problem reduces in polynomial time to each NP-complete problem, so a polynomial-time algorithm for one of them would put all of NP in P."
+  },
+  {
+   "type": "tf",
+   "category": "NP-hard and NP-complete",
+   "q": "It has been proved that every algorithm for an NP-hard problem requires exponential time.",
+   "answer": false,
+   "explain": "NP-hardness is a reduction-based classification, not a proven exponential lower bound. No one has proved that NP-complete problems lack polynomial-time exact algorithms."
+  },
+  {
+   "type": "tf",
+   "category": "NP-hard and NP-complete",
+   "q": "Someone found an O(2^n) algorithm for problem Z, so Z is NP-hard.",
+   "answer": false,
+   "explain": "An exponential-time algorithm is only an upper bound on the work needed; a faster algorithm might exist. NP-hardness requires a reduction from a known NP-hard problem."
+  },
+  {
+   "type": "multi",
+   "category": "NP-hard and NP-complete",
+   "q": "To prove that a decision problem X is NP-complete, which facts must you establish?",
+   "choices": [
+    "X is in NP",
+    "X is NP-hard",
+    "X is in P",
+    "X has no polynomial-time algorithm",
+    "X has an exponential-time algorithm"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "NP-completeness takes two separate facts: membership (X is in NP) and hardness (X is NP-hard). An exponential-time algorithm proves neither, and no one can currently prove an NP-complete problem has no polynomial-time algorithm."
+  },
+  {
+   "type": "mc",
+   "category": "Reductions",
+   "q": "You want to show a new problem X is NP-hard, and you know problem Y is NP-hard. Which reduction should you construct?",
+   "choices": [
+    "Reduce Y to X (Y ≤p X)",
+    "Reduce X to Y (X ≤p Y)",
+    "Either direction proves it",
+    "Run brute force on X and time it"
+   ],
+   "answer": 0,
+   "explain": "The direction rule is known hard problem to new problem. With Y ≤p X, a fast algorithm for X would give a fast algorithm for Y, so X must be at least as hard as Y."
+  },
+  {
+   "type": "mc",
+   "category": "Reductions",
+   "q": "Suppose A ≤p B and B has a polynomial-time algorithm. What follows?",
+   "choices": [
+    "A is in P",
+    "B is NP-hard",
+    "A is NP-hard",
+    "Nothing can be concluded about A"
+   ],
+   "answer": 0,
+   "explain": "Transform an instance of A into an instance of B, run B's polynomial-time algorithm, and return its answer. So A ≤p B and B ∈ P imply A ∈ P."
+  },
+  {
+   "type": "mc",
+   "category": "Reductions",
+   "q": "A is known to be NP-hard. You construct a polynomial-time reduction B ≤p A, but not the reverse. What have you shown about B?",
+   "choices": [
+    "Nothing about B's hardness; B is no harder than A",
+    "B is NP-hard, since it reduces to an NP-hard problem",
+    "B is in P, since reducing to A makes B easy to solve",
+    "B is NP-complete, since A's hardness transfers to B"
+   ],
+   "answer": 0,
+   "explain": "Reducing the new problem to a known hard one shows only that B is no harder than A. Hardness flows to the problem on the right of ≤p, which here is A."
+  },
+  {
+   "type": "tf",
+   "category": "Reductions",
+   "q": "If A ≤p B, then A is at least as hard as B.",
+   "answer": false,
+   "explain": "Backwards. A ≤p B means A is no harder than B (up to polynomial overhead); equivalently, B is at least as hard as A."
+  },
+  {
+   "type": "tf",
+   "category": "Reductions",
+   "q": "If A ≤p B and A is in P, then B is in P.",
+   "answer": false,
+   "explain": "Easiness transfers from B to A, not from A to B. A ≤p B with B ∈ P gives A ∈ P, but knowing A is easy says nothing about B."
+  },
+  {
+   "type": "mc",
+   "category": "Reductions",
+   "q": "In a many-one reduction f from decision problem A to decision problem B, which condition must hold?",
+   "choices": [
+    "x ∈ A if and only if f(x) ∈ B",
+    "If x ∈ A then f(x) ∈ B, with no reverse condition",
+    "f(x) ∈ B for every instance x",
+    "x ∈ B if and only if f(x) ∈ A"
+   ],
+   "answer": 0,
+   "explain": "The transformation must preserve the answer in both directions: x is a YES instance of A exactly when f(x) is a YES instance of B. It must also run in polynomial time."
+  },
+  {
+   "type": "mc",
+   "category": "Reductions",
+   "q": "In the reduction from Hamiltonian Cycle to decision TSP, a complete graph is built on the n vertices of G, with cost 1 for edges in G and cost 2 for edges not in G. What budget B is used?",
+   "choices": [
+    "n",
+    "2n",
+    "n - 1",
+    "n + 1"
+   ],
+   "answer": 0,
+   "explain": "Every tour uses exactly n edges, each costing at least 1, so B = n means a tour fits the budget only if it uses edges of G alone."
+  },
+  {
+   "type": "mc",
+   "category": "Reductions",
+   "q": "In the Hamiltonian Cycle to decision TSP construction (cost 1 for edges of G, cost 2 otherwise, budget n), why does a tour of cost at most n give a Hamiltonian cycle in G?",
+   "choices": [
+    "Its n edges each cost at least 1, so every one must be a cost-1 edge of G",
+    "Every tour of the complete graph is automatically a Hamiltonian cycle of G",
+    "The budget n equals the cost of a minimum spanning tree of G",
+    "Cost-2 edges are removed from the complete graph before the search"
+   ],
+   "answer": 0,
+   "explain": "A tour has exactly n edges, each costing at least 1. Even one cost-2 edge pushes the total to at least n + 1. So a tour within budget uses only cost-1 edges, which are exactly the edges of G."
+  },
+  {
+   "type": "num",
+   "category": "Reductions",
+   "q": "In the Hamiltonian Cycle to decision TSP construction with n = 4 (cost 1 for edges of G, cost 2 otherwise), what is the lowest possible cost of a tour that uses exactly one cost-2 edge?",
+   "answer": 5,
+   "explain": "A tour on 4 vertices has 4 edges: 3(1) + 2 = 5, which exceeds the budget of 4. So any tour within budget uses only edges of G."
+  },
+  {
+   "type": "tf",
+   "category": "Reductions",
+   "q": "The Hamiltonian Cycle to decision TSP construction runs in polynomial time, because it assigns one cost to each pair of the n vertices, which is O(n^2) work.",
+   "answer": true,
+   "explain": "The construction only has to assign a cost of 1 or 2 to each pair of vertices and set B = n. That is polynomial in the size of G, as a reduction requires."
+  },
+  {
+   "type": "mc",
+   "category": "Coping with hard problems",
+   "q": "Solving maximum-weight independent set only on path graphs, in O(n) time with an exact answer, gives up which desirable property?",
+   "choices": [
+    "Generality",
+    "Speed",
+    "Optimality",
+    "None; it keeps all three"
+   ],
+   "answer": 0,
+   "explain": "Restricting the input gives up generality. The method is fast and exact, but only for a restricted class of inputs. MWIS on general graphs is NP-hard."
+  },
+  {
+   "type": "mc",
+   "category": "Coping with hard problems",
+   "q": "Which approach to a hard optimization problem gives up speed rather than generality or optimality?",
+   "choices": [
+    "Using an exact exponential-time algorithm",
+    "Restricting to path graphs",
+    "Using a heuristic",
+    "Using an approximation algorithm"
+   ],
+   "answer": 0,
+   "explain": "An exact exponential-time algorithm stays general and optimal but accepts a higher worst-case runtime. Restricting inputs gives up generality; heuristics and approximation algorithms give up exact optimality."
+  },
+  {
+   "type": "mc",
+   "category": "Coping with hard problems",
+   "q": "In the path-graph MWIS recurrence A[i] = max(A[i-1], A[i-2] + w_i), what does the term A[i-2] + w_i represent?",
+   "choices": [
+    "Take vertex i, which rules out its neighbor i-1",
+    "Skip vertex i and keep the best answer for i-1",
+    "Take both vertex i and vertex i-1",
+    "Skip both vertex i-1 and vertex i-2"
+   ],
+   "answer": 0,
+   "explain": "Taking vertex i adds w_i but rules out its neighbor i-1, so the rest of the solution comes from the first i-2 vertices. A[i-1] is the option of skipping vertex i."
+  },
+  {
+   "type": "num",
+   "category": "Coping with hard problems",
+   "q": "A path graph has vertices v1, v2, v3, v4 in order with weights 1, 4, 5, 4. Using A[i] = max(A[i-1], A[i-2] + w_i) with A[0] = 0, what is the maximum total weight of an independent set?",
+   "answer": 8,
+   "explain": "A[1] = 1, A[2] = max(1, 0 + 4) = 4, A[3] = max(4, 1 + 5) = 6, A[4] = max(6, 4 + 4) = 8. The best set is {v2, v4}."
+  },
+  {
+   "type": "mc",
+   "category": "Coping with hard problems",
+   "q": "What is the difference between a heuristic and an approximation algorithm?",
+   "choices": [
+    "An approximation algorithm has a proven bound on its distance from optimal; a heuristic may not",
+    "A heuristic always finds the optimum; an approximation algorithm only gets close",
+    "An approximation algorithm runs in exponential time; a heuristic runs in polynomial time",
+    "None; the two terms are interchangeable names for the same idea"
+   ],
+   "answer": 0,
+   "explain": "A heuristic is a practical strategy that often works well but may have no formal quality guarantee. An approximation algorithm is designed with a provable bound on how far its answer can be from optimal."
+  },
+  {
+   "type": "tf",
+   "category": "Coping with hard problems",
+   "q": "If an algorithm usually gets within 10% of optimal on a set of test instances, that establishes it as an approximation algorithm guaranteed to be within 10% on every valid input.",
+   "answer": false,
+   "explain": "'Usually within 10% on our tests' is an experimental observation. 'Guaranteed within 10% on every valid input' is an approximation guarantee, and it requires a mathematical proof."
+  },
+  {
+   "type": "multi",
+   "category": "Coping with hard problems",
+   "q": "In which situations can an exact exponential-time algorithm still be useful?",
+   "choices": [
+    "On small instances",
+    "As a benchmark for judging heuristics",
+    "When the problem has exploitable structure",
+    "On very large inputs that need an answer immediately"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Exact exponential-time algorithms are useful on small instances, as benchmarks for heuristics, and when the problem has exploitable structure. They scale poorly, so they are a bad fit for large inputs that need immediate answers."
+  },
+  {
+   "type": "tf",
+   "category": "Coping with hard problems",
+   "q": "Pruning, branch-and-bound, and memoization can speed up exact search in practice, but they do not automatically make the worst-case running time polynomial.",
+   "answer": true,
+   "explain": "These techniques can help on many instances, but they do not by themselves change the worst-case complexity."
+  },
+  {
+   "type": "tf",
+   "category": "Coping with hard problems",
+   "q": "A brute-force solver's runtimes grow rapidly on instances of size 5, 10, and 15. This shows that the problem is NP-hard.",
+   "answer": false,
+   "explain": "A slow algorithm says little about the best possible algorithm, and experiments do not prove NP-hardness. That requires a polynomial-time reduction from a known NP-hard problem to this one."
+  },
+  {
+   "type": "tf",
+   "category": "Coping with hard problems",
+   "q": "If an algorithm ran quickly on every test case in an experiment, that proves it has an O(n^2) worst-case bound.",
+   "answer": false,
+   "explain": "An experimental result ('faster on these test cases') is different from a complexity claim ('O(n^2) worst-case bound'). Experiments alone do not prove worst-case complexity."
+  }
+ ]
+}
