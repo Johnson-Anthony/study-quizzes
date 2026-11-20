@@ -1,0 +1,531 @@
+{
+ "title": "MATH2010 Module 13: Gram-Schmidt, QR Factorization, and Least Squares",
+ "course": "MATH2010",
+ "questions": [
+  {
+   "type": "num",
+   "category": "Gram-Schmidt process",
+   "q": "Apply Gram-Schmidt to x₁ = (1, −1, −1, 1, 1) and x₂ = (2, 1, 4, −4, 2). With v₁ = x₁, the next vector is v₂ = x₂ − c·v₁. What is c?",
+   "answer": -1,
+   "tolerance": 0,
+   "explain": "c = (x₂·v₁)/(v₁·v₁). x₂·v₁ = 2 − 1 − 4 − 4 + 2 = −5 and v₁·v₁ = 5, so c = −1. That gives v₂ = x₂ + v₁ = (3, 0, 3, −3, 3). Check: v₂·v₁ = 3 + 0 − 3 − 3 + 3 = 0."
+  },
+  {
+   "type": "mc",
+   "category": "Gram-Schmidt process",
+   "q": "Gram-Schmidt has produced v₁ = (1, −1, −1, 1, 1) and v₂ = (3, 0, 3, −3, 3). The next basis vector is x₃ = (5, −4, −3, 7, 1). What is v₃?",
+   "choices": [
+    "(2, 0, 2, 2, −2)",
+    "(0, 0, 0, 4, −4)",
+    "(1, 0, 1, 3, −3)",
+    "(10, −8, −6, 10, 6)"
+   ],
+   "answer": 0,
+   "explain": "x₃·v₁ = 5 + 4 + 3 + 7 + 1 = 20 and v₁·v₁ = 5, so the coefficient is 4. x₃·v₂ = 15 + 0 − 9 − 21 + 3 = −12 and v₂·v₂ = 36, so the coefficient is −1/3. v₃ = x₃ − 4v₁ + (1/3)v₂ = (5, −4, −3, 7, 1) − (4, −4, −4, 4, 4) + (1, 0, 1, −1, 1) = (2, 0, 2, 2, −2). Check: v₃·v₁ = 0 and v₃·v₂ = 0. (0, 0, 0, 4, −4) comes from a sign error on the v₂ term, and (1, 0, 1, 3, −3) leaves out the v₂ term."
+  },
+  {
+   "type": "mc",
+   "category": "Gram-Schmidt process",
+   "q": "Apply Gram-Schmidt to x₁ = (1, 0, 1) and x₂ = (3, 2, 1), without rescaling. What is v₂?",
+   "choices": [
+    "(1, 2, −1)",
+    "(2, 2, 0)",
+    "(−1, 2, −3)",
+    "(5, 2, 3)"
+   ],
+   "answer": 0,
+   "explain": "v₁ = x₁. x₂·v₁ = 3 + 0 + 1 = 4 and v₁·v₁ = 2, so the coefficient is 2. v₂ = (3, 2, 1) − 2(1, 0, 1) = (1, 2, −1). Check: (1, 2, −1)·(1, 0, 1) = 1 + 0 − 1 = 0. (2, 2, 0) is x₂ − x₁, which uses the wrong coefficient and is not orthogonal to v₁."
+  },
+  {
+   "type": "tf",
+   "category": "Gram-Schmidt process",
+   "q": "True or false: in Gram-Schmidt, v₃ = x₃ − [(x₃·x₁)/(x₁·x₁)]x₁ − [(x₃·x₂)/(x₂·x₂)]x₂.",
+   "answer": false,
+   "explain": "You project onto the new orthogonal vectors, not the original ones: v₃ = x₃ − [(x₃·v₁)/(v₁·v₁)]v₁ − [(x₃·v₂)/(v₂·v₂)]v₂. The x's are generally not orthogonal, so the projection formula only works with the v's."
+  },
+  {
+   "type": "tf",
+   "category": "Gram-Schmidt process",
+   "q": "True or false: during Gram-Schmidt you may replace v₂ by a nonzero multiple of it, for example (1/3)v₂ to clear a common factor, before computing v₃. This does not change v₃.",
+   "answer": true,
+   "explain": "The projection onto c·v is the same as the projection onto v, so later vectors don't change. Example: with v₁ = (1, −1, −1, 1, 1), v₂' = (1, 0, 1, −1, 1) and x₃ = (5, −4, −3, 7, 1), the coefficient on v₂' is −4/4 = −1, and v₃ = x₃ − 4v₁ + v₂' = (2, 0, 2, 2, −2). That is the same result you get with v₂ = (3, 0, 3, −3, 3)."
+  },
+  {
+   "type": "mc",
+   "category": "Gram-Schmidt process",
+   "q": "Gram-Schmidt is applied to x₁, x₂, x₃, and the computation gives v₃ = 0 (with no arithmetic errors). What does this tell you?",
+   "choices": [
+    "x₃ is in Span{x₁, x₂}",
+    "x₃ is orthogonal to x₁ and x₂",
+    "x₁, x₂, x₃ are orthonormal",
+    "x₃ is a unit vector"
+   ],
+   "answer": 0,
+   "explain": "v₃ = x₃ − proj onto Span{v₁, v₂} = x₃ − proj onto Span{x₁, x₂}. It is zero exactly when x₃ already lies in that span, so {x₁, x₂, x₃} is linearly dependent. Discard that vector and continue."
+  },
+  {
+   "type": "multi",
+   "category": "Gram-Schmidt process",
+   "q": "Gram-Schmidt (without normalizing) is applied to a basis {x₁, …, xₚ} of a subspace W, producing v₁, …, vₚ. Which statements are true?",
+   "choices": [
+    "{v₁, …, vₚ} is an orthogonal basis for W",
+    "Span{v₁, …, vₖ} = Span{x₁, …, xₖ} for each k",
+    "v₁ = x₁",
+    "Every vₖ has length 1",
+    "vₖ = xₖ for every k"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Gram-Schmidt gives an orthogonal basis of W and keeps the spans of the first k vectors the same at every stage. It starts with v₁ = x₁. The vₖ are only orthogonal, not unit length; you normalize at the end to get an orthonormal basis. vₖ = xₖ holds only if xₖ was already orthogonal to the earlier vectors."
+  },
+  {
+   "type": "num",
+   "category": "Orthogonal and orthonormal bases",
+   "q": "To find an orthogonal basis for Col(A), apply Gram-Schmidt to the columns a₁ = (1, −1, 0, 1, 1), a₂ = (3, −3, 2, 5, 5), a₃ = (5, 1, 3, 2, 8). With v₁ = a₁, what is the coefficient (a₂·v₁)/(v₁·v₁)?",
+   "answer": 4,
+   "tolerance": 0,
+   "explain": "a₂·v₁ = 3 + 3 + 0 + 5 + 5 = 16 and v₁·v₁ = 1 + 1 + 0 + 1 + 1 = 4, so the coefficient is 4. Then v₂ = a₂ − 4v₁ = (−1, 1, 2, 1, 1). Check: v₂·v₁ = −1 − 1 + 0 + 1 + 1 = 0."
+  },
+  {
+   "type": "mc",
+   "category": "Orthogonal and orthonormal bases",
+   "q": "Continuing Gram-Schmidt on the columns of A: v₁ = (1, −1, 0, 1, 1), v₂ = (−1, 1, 2, 1, 1), and the third column is a₃ = (5, 1, 3, 2, 8). What is v₃?",
+   "choices": [
+    "(3, 3, 0, −3, 3)",
+    "(0, 6, 6, 0, 6)",
+    "(1.5, 4.5, 3, −1.5, 4.5)",
+    "(3, 3, −21, −24, −18)"
+   ],
+   "answer": 0,
+   "explain": "a₃·v₁ = 5 − 1 + 0 + 2 + 8 = 14, so the coefficient is 14/4 = 7/2. a₃·v₂ = −5 + 1 + 6 + 2 + 8 = 12, so the coefficient is 12/8 = 3/2. v₃ = a₃ − (7/2)v₁ − (3/2)v₂ = (3, 3, 0, −3, 3). Check: v₃·v₁ = 0 and v₃·v₂ = 0. (0, 6, 6, 0, 6) has a sign error on the v₂ term, (1.5, 4.5, 3, −1.5, 4.5) leaves out the v₂ term, and (3, 3, −21, −24, −18) leaves out the denominators."
+  },
+  {
+   "type": "multi",
+   "category": "Orthogonal and orthonormal bases",
+   "q": "A has columns a₁ = (1, 1, 1, 1) and a₂ = (2, 1, 0, −1). Gram-Schmidt starts with v₁ = a₁. Which vectors could be the second vector of the resulting orthogonal basis for Col(A)? Nonzero rescaling is allowed.",
+   "choices": [
+    "(3, 1, −1, −3)",
+    "(1.5, 0.5, −0.5, −1.5)",
+    "(−3, −1, 1, 3)",
+    "(2, 1, 0, −1)",
+    "(1, 0, −1, −2)"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "a₂·v₁ = 2 + 1 + 0 − 1 = 2 and v₁·v₁ = 4, so v₂ = a₂ − (1/2)v₁ = (1.5, 0.5, −0.5, −1.5). Any nonzero multiple, such as (3, 1, −1, −3) or (−3, −1, 1, 3), works too. (2, 1, 0, −1) is a₂ itself and (1, 0, −1, −2) is a₂ − a₁. Neither is orthogonal to (1, 1, 1, 1)."
+  },
+  {
+   "type": "num",
+   "category": "Orthogonal and orthonormal bases",
+   "q": "To make an orthonormal basis, you divide v₂ = (3, 0, 3, −3, 3) by its length. What is ‖v₂‖?",
+   "answer": 6,
+   "tolerance": 0,
+   "explain": "‖v₂‖ = √(9 + 0 + 9 + 9 + 9) = √36 = 6, so u₂ = v₂/6 = (1/2)(1, 0, 1, −1, 1)."
+  },
+  {
+   "type": "mc",
+   "category": "Orthogonal and orthonormal bases",
+   "q": "Normalize v₃ = (2, 0, 2, 2, −2).",
+   "choices": [
+    "(1/2)(1, 0, 1, 1, −1)",
+    "(1/4)(1, 0, 1, 1, −1)",
+    "(1/16)(2, 0, 2, 2, −2)",
+    "(1/√2)(1, 0, 1, 1, −1)"
+   ],
+   "answer": 0,
+   "explain": "‖v₃‖ = √(4 + 0 + 4 + 4 + 4) = √16 = 4, so u₃ = (1/4)(2, 0, 2, 2, −2) = (1/2)(1, 0, 1, 1, −1). Dividing by 16 uses ‖v₃‖² instead of ‖v₃‖."
+  },
+  {
+   "type": "tf",
+   "category": "Orthogonal and orthonormal bases",
+   "q": "True or false: Gram-Schmidt on the three columns of a 5×3 matrix A gives three nonzero orthogonal vectors. Therefore the columns of A are linearly independent and dim Col(A) = 3.",
+   "answer": true,
+   "explain": "A zero vector would appear exactly when some column is in the span of the earlier columns. Since none appeared, the columns are independent, and the three nonzero orthogonal vectors form a basis for Col(A)."
+  },
+  {
+   "type": "tf",
+   "category": "Orthogonal and orthonormal bases",
+   "q": "True or false: an orthogonal set of nonzero vectors is automatically linearly independent.",
+   "answer": true,
+   "explain": "Suppose c₁v₁ + … + cₚvₚ = 0. Dot both sides with vⱼ. Every cross term vanishes, leaving cⱼ(vⱼ·vⱼ) = 0. Since vⱼ ≠ 0, cⱼ = 0. This is why the output of Gram-Schmidt is a basis."
+  },
+  {
+   "type": "multi",
+   "category": "QR factorization",
+   "q": "A is an m×n matrix with linearly independent columns, and A = QR is its QR factorization. Which statements are true?",
+   "choices": [
+    "Q is m×n and its columns form an orthonormal basis for Col(A)",
+    "R is n×n and upper triangular",
+    "The diagonal entries of R are positive",
+    "QQᵀ = Iₘ",
+    "R is m×m"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Q has the same shape as A and orthonormal columns spanning Col(A). R is n×n, upper triangular, and invertible, with positive diagonal. QᵀQ = Iₙ always holds, but QQᵀ is the projection onto Col(A) and equals Iₘ only when Q is square."
+  },
+  {
+   "type": "mc",
+   "category": "QR factorization",
+   "q": "Gram-Schmidt and normalization have given you Q for a QR factorization of A. How do you compute R?",
+   "choices": [
+    "R = QᵀA",
+    "R = AQᵀ",
+    "R = AᵀQ",
+    "R = QAᵀ"
+   ],
+   "answer": 0,
+   "explain": "Q has orthonormal columns, so QᵀQ = I. Multiplying A = QR on the left by Qᵀ gives QᵀA = QᵀQR = R. Equivalently, rᵢⱼ = uᵢ·aⱼ. AᵀQ gives Rᵀ, which is lower triangular."
+  },
+  {
+   "type": "mc",
+   "category": "QR factorization",
+   "q": "Find a QR factorization of A with columns a₁ = (1, −1, 1) and a₂ = (3, 3, 3). What is the second column of Q?",
+   "choices": [
+    "(1/√6)(1, 2, 1)",
+    "(1/√3)(1, 2, 1)",
+    "(1/√6)(1, −2, 1)",
+    "(1/√3)(1, 1, 1)"
+   ],
+   "answer": 0,
+   "explain": "v₁ = a₁ with v₁·v₁ = 3. a₂·v₁ = 3 − 3 + 3 = 3, so the coefficient is 1 and v₂ = (3, 3, 3) − (1, −1, 1) = (2, 4, 2), which scales to (1, 2, 1). Its length is √6, so u₂ = (1/√6)(1, 2, 1). Check: (1, 2, 1)·(1, −1, 1) = 0."
+  },
+  {
+   "type": "mc",
+   "category": "QR factorization",
+   "q": "For A with columns a₁ = (1, −1, 1) and a₂ = (3, 3, 3), Q has columns u₁ = (1/√3)(1, −1, 1) and u₂ = (1/√6)(1, 2, 1). What is R?",
+   "choices": [
+    "rows (√3, √3) and (0, 2√6)",
+    "rows (√3, 0) and (√3, 2√6)",
+    "rows (3, 3) and (0, 24)",
+    "rows (√3, 1) and (0, √6)"
+   ],
+   "answer": 0,
+   "explain": "R = QᵀA, so rᵢⱼ = uᵢ·aⱼ. r₁₁ = 3/√3 = √3, r₁₂ = (3 − 3 + 3)/√3 = √3, r₂₁ = (1 − 2 + 1)/√6 = 0, r₂₂ = (3 + 6 + 3)/√6 = 12/√6 = 2√6. Check: √3·u₁ + 2√6·u₂ = (1, −1, 1) + (2, 4, 2) = (3, 3, 3) = a₂."
+  },
+  {
+   "type": "mc",
+   "category": "QR factorization",
+   "q": "A has columns a₁ = (2, 0, 0) and a₂ = (1, 1, 3). In its QR factorization, what is R?",
+   "choices": [
+    "rows (2, 1) and (0, √10)",
+    "rows (2, 1/2) and (0, √10)",
+    "rows (1, 1) and (0, √10)",
+    "rows (2, 1) and (0, 10)"
+   ],
+   "answer": 0,
+   "explain": "v₁ = (2, 0, 0), so u₁ = (1, 0, 0) and r₁₁ = ‖v₁‖ = 2. v₂ = a₂ − (2/4)v₁ = (0, 1, 3), so ‖v₂‖ = √10 and u₂ = (0, 1, 3)/√10. r₁₂ = u₁·a₂ = 1 and r₂₂ = u₂·a₂ = 10/√10 = √10. Note that r₁₂ is u₁·a₂, not the Gram-Schmidt coefficient 1/2. Check: 1·u₁ + √10·u₂ = (1, 1, 3) = a₂."
+  },
+  {
+   "type": "num",
+   "category": "QR factorization",
+   "q": "In a QR factorization, u₁ = (1/2)(1, −1, 0, 1, 1) and the second column of A is a₂ = (3, −3, 2, 5, 5). What is the entry r₁₂ of R?",
+   "answer": 8,
+   "tolerance": 0,
+   "explain": "r₁₂ = u₁·a₂ = (1/2)(3 + 3 + 0 + 5 + 5) = 16/2 = 8."
+  },
+  {
+   "type": "tf",
+   "category": "QR factorization",
+   "q": "True or false: if Q is a 5×3 matrix with orthonormal columns, then QQᵀ = I₅.",
+   "answer": false,
+   "explain": "QᵀQ = I₃ holds, but QQᵀ is the 5×5 matrix of orthogonal projection onto Col(Q). It has rank 3, so it cannot be I₅. QQᵀ = I only when Q is square."
+  },
+  {
+   "type": "tf",
+   "category": "QR factorization",
+   "q": "True or false: in a QR factorization built with Gram-Schmidt, each diagonal entry rₖₖ of R equals ‖vₖ‖, where vₖ is the unscaled Gram-Schmidt vector.",
+   "answer": true,
+   "explain": "rₖₖ = uₖ·aₖ = ‖vₖ‖ > 0. Example: for a₁ = (1, −1, 1) and a₂ = (3, 3, 3), v₂ = (2, 4, 2) and r₂₂ = 2√6 = ‖(2, 4, 2)‖. If you rescaled v₂ to (1, 2, 1), its length √6 is not r₂₂."
+  },
+  {
+   "type": "mc",
+   "category": "Least squares: normal equations",
+   "q": "The least-squares solutions of Ax = b are exactly the solutions of which equation?",
+   "choices": [
+    "AᵀAx̂ = Aᵀb",
+    "Ax̂ = b",
+    "AAᵀx̂ = Ab",
+    "AᵀAx̂ = b"
+   ],
+   "answer": 0,
+   "explain": "At a least-squares solution, the residual b − Ax̂ is orthogonal to Col(A), so Aᵀ(b − Ax̂) = 0. That is the same as AᵀAx̂ = Aᵀb. Ax = b itself is usually inconsistent."
+  },
+  {
+   "type": "text",
+   "category": "Least squares: normal equations",
+   "q": "What is the name of the system AᵀAx = Aᵀb, whose solutions are exactly the least-squares solutions of Ax = b?",
+   "answer": [
+    "normal equations",
+    "the normal equations",
+    "normal equation",
+    "the normal equation"
+   ],
+   "explain": "These are the normal equations. Their name comes from the requirement that the residual b − Ax̂ be normal (orthogonal) to every column of A."
+  },
+  {
+   "type": "multi",
+   "category": "Least squares: normal equations",
+   "q": "A is m×n. Which conditions are each equivalent to the statement 'Ax = b has a unique least-squares solution for every b'?",
+   "choices": [
+    "The columns of A are linearly independent",
+    "AᵀA is invertible",
+    "A is square",
+    "b is in Col(A)",
+    "Ax = b is consistent"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "Unique least-squares solutions, independent columns of A, and invertible AᵀA are all equivalent. When they hold, x̂ = (AᵀA)⁻¹Aᵀb. A need not be square, and b usually is not in Col(A)."
+  },
+  {
+   "type": "tf",
+   "category": "Least squares: normal equations",
+   "q": "True or false: the normal equations AᵀAx = Aᵀb always have at least one solution, even when Ax = b is inconsistent.",
+   "answer": true,
+   "explain": "proj of b onto Col(A) always lies in Col(A), so Ax = proj_Col(A) b is always consistent. Its solutions are exactly the solutions of the normal equations."
+  },
+  {
+   "type": "tf",
+   "category": "Least squares: normal equations",
+   "q": "True or false: a least-squares solution x̂ of Ax = b always satisfies Ax̂ = b.",
+   "answer": false,
+   "explain": "Ax̂ = b̂ = proj of b onto Col(A). This equals b only when b is already in Col(A), meaning the system is consistent. Otherwise the least-squares error ‖b − Ax̂‖ is positive."
+  },
+  {
+   "type": "mc",
+   "category": "Least squares: normal equations",
+   "q": "Which statement is always true of the residual b − Ax̂ when x̂ is a least-squares solution of Ax = b?",
+   "choices": [
+    "It is orthogonal to every column of A",
+    "It is a scalar multiple of the vector b",
+    "It lies in the column space of A",
+    "It is the zero vector whenever m > n"
+   ],
+   "answer": 0,
+   "explain": "Ax̂ is the orthogonal projection of b onto Col(A), so b − Ax̂ is orthogonal to Col(A) and therefore to each column. This is the standard check: Aᵀ(b − Ax̂) = 0."
+  },
+  {
+   "type": "mc",
+   "category": "Least squares: normal equations",
+   "q": "A has rows (1, 1, 0), (1, 1, 0), (1, 0, 1), (1, 0, 1) and b = (1, 3, 8, 2). Why does Ax = b have infinitely many least-squares solutions?",
+   "choices": [
+    "Its columns are linearly dependent",
+    "b is orthogonal to every column of A",
+    "AᵀA is an invertible matrix",
+    "The system Ax = b is consistent"
+   ],
+   "answer": 0,
+   "explain": "Column 1 = column 2 + column 3, so the columns are dependent and AᵀA = [[4, 2, 2], [2, 2, 0], [2, 0, 2]] is singular. The normal equations then have a free variable. b is not orthogonal to the columns (b·column 1 = 14), and Ax = b is inconsistent because b is not of the form (p, p, q, q)."
+  },
+  {
+   "type": "multi",
+   "category": "Least squares: normal equations",
+   "q": "A has rows (1, 1, 0), (1, 1, 0), (1, 0, 1), (1, 0, 1) and b = (1, 3, 8, 2). Which vectors are least-squares solutions of Ax = b?",
+   "choices": [
+    "(5, −3, 0)",
+    "(2, 0, 3)",
+    "(4, −2, 1)",
+    "(5, −3, 1)",
+    "(2, 2, 5)"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "AᵀA = [[4, 2, 2], [2, 2, 0], [2, 0, 2]] and Aᵀb = (14, 4, 10). Row reducing gives x₁ = 5 − x₃, x₂ = −3 + x₃, with x₃ free, so x̂ = (5, −3, 0) + t(−1, 1, 1). Here t = 0, 3, 1 give the first three choices. Each of them gives Ax̂ = (2, 2, 5, 5). (5, −3, 1) and (2, 2, 5) are not of this form."
+  },
+  {
+   "type": "num",
+   "category": "Least squares: normal equations",
+   "q": "A has rows (1, 1, 0), (1, 1, 0), (1, 0, 1), (1, 0, 1) and b = (1, 3, 8, 2). Every least-squares solution gives Ax̂ = (2, 2, 5, 5). What is the least-squares error ‖b − Ax̂‖? (3 decimal places)",
+   "answer": 4.4721,
+   "tolerance": 0.01,
+   "explain": "b − Ax̂ = (−1, 1, 3, −3), so the error is √(1 + 1 + 9 + 9) = √20 = 2√5 ≈ 4.472. Check: the residual has dot product 0 with (1, 1, 1, 1), (1, 1, 0, 0) and (0, 0, 1, 1)."
+  },
+  {
+   "type": "num",
+   "category": "Least squares: normal equations",
+   "q": "A has rows (1, 0), (0, 1), (1, 1) and b = (1, 1, 0). Find the least-squares solution with the normal equations, then give the least-squares error ‖b − Ax̂‖. (3 decimal places)",
+   "answer": 1.1547,
+   "tolerance": 0.01,
+   "explain": "AᵀA = [[2, 1], [1, 2]] and Aᵀb = (1, 1). Solving 2x₁ + x₂ = 1, x₁ + 2x₂ = 1 gives x̂ = (1/3, 1/3). Then Ax̂ = (1/3, 1/3, 2/3) and b − Ax̂ = (2/3, 2/3, −2/3), which is orthogonal to both columns. The error is √(4/3) = 2/√3 ≈ 1.155."
+  },
+  {
+   "type": "mc",
+   "category": "Least squares with QR",
+   "q": "A has linearly independent columns and A = QR. Which equation does the least-squares solution x̂ of Ax = b satisfy?",
+   "choices": [
+    "Rx̂ = Qᵀb",
+    "Qx̂ = Rᵀb",
+    "Rx̂ = Qb",
+    "Qᵀx̂ = Rb"
+   ],
+   "answer": 0,
+   "explain": "x̂ = R⁻¹Qᵀb. In practice, compute Qᵀb and solve Rx̂ = Qᵀb by back-substitution. R is upper triangular, so this is quick."
+  },
+  {
+   "type": "mc",
+   "category": "Least squares with QR",
+   "q": "Why do the normal equations AᵀAx̂ = Aᵀb reduce to Rx̂ = Qᵀb when A = QR?",
+   "choices": [
+    "AᵀA = RᵀR, and Rᵀ is invertible",
+    "Q is square, so Q⁻¹ = Qᵀ",
+    "R is symmetric, so Rᵀ = R",
+    "QQᵀ = I for any Q from Gram-Schmidt"
+   ],
+   "answer": 0,
+   "explain": "AᵀA = RᵀQᵀQR = RᵀR and Aᵀb = RᵀQᵀb. So the normal equations read RᵀRx̂ = RᵀQᵀb. Since R is invertible, so is Rᵀ, and you can cancel it. Q need not be square, R is triangular rather than symmetric, and QQᵀ is generally not I."
+  },
+  {
+   "type": "mc",
+   "category": "Least squares with QR",
+   "q": "Q = (1/2)·[rows (1, −1), (1, 1), (1, −1), (1, 1)] and b = (−1, 6, 5, 7). What is Qᵀb?",
+   "choices": [
+    "(17/2, 9/2)",
+    "(17, 9)",
+    "(17/2, 7/2)",
+    "(17/4, 9/4)"
+   ],
+   "answer": 0,
+   "explain": "First entry: (1/2)(−1 + 6 + 5 + 7) = 17/2. Second entry: (1/2)(1 + 6 − 5 + 7) = 9/2, where the first term is (−1)(−1) = +1. (17, 9) leaves out the factor 1/2."
+  },
+  {
+   "type": "num",
+   "category": "Least squares with QR",
+   "q": "A = QR with R = [[2, 3], [0, 5]], and Qᵀb = (17/2, 9/2). Solve Rx̂ = Qᵀb by back-substitution. What is x̂₁?",
+   "answer": 2.9,
+   "tolerance": 0.001,
+   "explain": "Row 2: 5x₂ = 9/2, so x₂ = 9/10. Row 1: 2x₁ + 3(9/10) = 17/2, so 2x₁ = 85/10 − 27/10 = 58/10 and x₁ = 29/10 = 2.9. Therefore x̂ = (2.9, 0.9)."
+  },
+  {
+   "type": "num",
+   "category": "Least squares with QR",
+   "q": "A has rows (1, −1), (1, 4), (1, −1), (1, 4), b = (−1, 6, 5, 7), and the least-squares solution is x̂ = (2.9, 0.9). What is the least-squares error ‖b − Ax̂‖? (2 decimal places)",
+   "answer": 4.3012,
+   "tolerance": 0.01,
+   "explain": "Ax̂ = (2.9 − 0.9, 2.9 + 3.6, 2.9 − 0.9, 2.9 + 3.6) = (2, 6.5, 2, 6.5). b − Ax̂ = (−3, −0.5, 3, 0.5), so the error is √(9 + 0.25 + 9 + 0.25) = √18.5 ≈ 4.30. Check: the residual is orthogonal to both columns (−3 − 0.5 + 3 + 0.5 = 0 and 3 − 2 − 3 + 2 = 0)."
+  },
+  {
+   "type": "mc",
+   "category": "Least squares with QR",
+   "q": "A has rows (1, 3), (1, −1), (1, 3), (1, −1), with A = QR where Q = (1/2)·[rows (1, 1), (1, −1), (1, 1), (1, −1)] and R = [[2, 2], [0, 4]]. For b = (5, 1, 3, −1), what is the least-squares solution x̂?",
+   "choices": [
+    "(1, 1)",
+    "(2, 1)",
+    "(4, 4)",
+    "(0, 1)"
+   ],
+   "answer": 0,
+   "explain": "Qᵀb = ((5 + 1 + 3 − 1)/2, (5 − 1 + 3 + 1)/2) = (4, 4). Back-substitute in Rx̂ = (4, 4): 4x₂ = 4 gives x₂ = 1, and 2x₁ + 2(1) = 4 gives x₁ = 1. (4, 4) is Qᵀb itself, and (2, 1) ignores the r₁₂ term."
+  },
+  {
+   "type": "num",
+   "category": "Least squares with QR",
+   "q": "A has rows (1, 3), (1, −1), (1, 3), (1, −1), b = (5, 1, 3, −1), and the least-squares solution is x̂ = (1, 1). What is the least-squares error ‖b − Ax̂‖?",
+   "answer": 2,
+   "tolerance": 0.001,
+   "explain": "Ax̂ = (4, 0, 4, 0), so b − Ax̂ = (1, 1, −1, −1) and the error is √4 = 2. Check: the residual has dot product 0 with (1, 1, 1, 1) and with (3, −1, 3, −1)."
+  },
+  {
+   "type": "tf",
+   "category": "Least squares with QR",
+   "q": "True or false: if A = QR with Q having orthonormal columns, then the projection of b onto Col(A) is b̂ = Ax̂ = QQᵀb.",
+   "answer": true,
+   "explain": "Ax̂ = QRx̂ = Q(Qᵀb) = QQᵀb. QQᵀ is the projection matrix onto Col(Q) = Col(A). For example, with Q = (1/2)[rows (1, −1), (1, 1), (1, −1), (1, 1)] and b = (−1, 6, 5, 7), QQᵀb = (17/2)q₁ + (9/2)q₂ = (2, 6.5, 2, 6.5)."
+  },
+  {
+   "type": "mc",
+   "category": "Least-squares lines",
+   "q": "What does the least-squares line y = β₀ + β₁x minimize?",
+   "choices": [
+    "The sum of the squared vertical distances to the points",
+    "The sum of the squared perpendicular distances to the points",
+    "The sum of the absolute vertical distances to the points",
+    "The largest vertical distance from any point to the line"
+   ],
+   "answer": 0,
+   "explain": "It minimizes ‖y − Xβ‖² = Σ(yᵢ − (β₀ + β₁xᵢ))², the sum of the squared vertical residuals."
+  },
+  {
+   "type": "mc",
+   "category": "Least-squares lines",
+   "q": "To fit y = β₀ + β₁x to the points (1, 2), (2, 3), (3, 5), (4, 7), you write Xβ = y with β = (β₀, β₁). What is the design matrix X?",
+   "choices": [
+    "rows (1, 1), (1, 2), (1, 3), (1, 4)",
+    "rows (1, 2), (2, 3), (3, 5), (4, 7)",
+    "rows (1, 1), (2, 1), (3, 1), (4, 1)",
+    "rows (1, 2), (1, 3), (1, 5), (1, 7)"
+   ],
+   "answer": 0,
+   "explain": "Row i is (1, xᵢ). The column of 1's multiplies the intercept β₀ and the x-column multiplies the slope β₁. The y-values go in the observation vector y = (2, 3, 5, 7), not in X."
+  },
+  {
+   "type": "num",
+   "category": "Least-squares lines",
+   "q": "For the points (1, 2), (2, 3), (3, 5), (4, 7), the normal equations XᵀXβ = Xᵀy have Xᵀy = (Σyᵢ, Σxᵢyᵢ). What is Σxᵢyᵢ?",
+   "answer": 51,
+   "tolerance": 0,
+   "explain": "Σxᵢyᵢ = 1·2 + 2·3 + 3·5 + 4·7 = 2 + 6 + 15 + 28 = 51. Together with Σyᵢ = 17, n = 4, Σxᵢ = 10, Σxᵢ² = 30, the normal equations are [[4, 10], [10, 30]]β = (17, 51)."
+  },
+  {
+   "type": "mc",
+   "category": "Least-squares lines",
+   "q": "What is the least-squares line for the points (1, 2), (2, 3), (3, 5), (4, 7)?",
+   "choices": [
+    "y = 1.7x",
+    "y = 4.25 + 1.7x",
+    "y = 1/3 + (5/3)x",
+    "y = −0.5 + 1.9x"
+   ],
+   "answer": 0,
+   "explain": "Solve [[4, 10], [10, 30]]β = (17, 51). The determinant is 120 − 100 = 20, so β = (1/20)[[30, −10], [−10, 4]](17, 51) = (1/20)(0, 34) = (0, 1.7). The line is y = 1.7x. y = 1/3 + (5/3)x just joins the first and last points. 4.25 is the intercept you get with the centered variable x − 2.5, not with x."
+  },
+  {
+   "type": "num",
+   "category": "Least-squares lines",
+   "q": "The least-squares line for the points (1, 2), (2, 3), (3, 5), (4, 7) is y = 1.7x. What is the least-squares error ‖y − Xβ‖? (3 decimal places)",
+   "answer": 0.5477,
+   "tolerance": 0.005,
+   "explain": "Predicted values are (1.7, 3.4, 5.1, 6.8), so the residuals are (0.3, −0.4, −0.1, 0.2). The error is √(0.09 + 0.16 + 0.01 + 0.04) = √0.3 ≈ 0.548. Check: the residuals sum to 0 and are orthogonal to (1, 2, 3, 4)."
+  },
+  {
+   "type": "num",
+   "category": "Least-squares lines",
+   "q": "Find the least-squares line y = β₀ + β₁x for the points (0, 1), (1, 3), (2, 4), (3, 4). What is the intercept β₀?",
+   "answer": 1.5,
+   "tolerance": 0.001,
+   "explain": "n = 4, Σx = 6, Σx² = 14, Σy = 12, Σxy = 0 + 3 + 8 + 12 = 23. Solve [[4, 6], [6, 14]]β = (12, 23). The determinant is 20, so β₀ = (14·12 − 6·23)/20 = 30/20 = 1.5 and β₁ = (4·23 − 6·12)/20 = 1. The line is y = 1.5 + x. Its residuals (−0.5, 0.5, 0.5, −0.5) sum to 0 and are orthogonal to (0, 1, 2, 3)."
+  },
+  {
+   "type": "tf",
+   "category": "Least-squares lines",
+   "q": "True or false: if the data points do not all have the same x-value, the least-squares line is unique.",
+   "answer": true,
+   "explain": "The columns of X are (1, …, 1) and (x₁, …, xₙ). They are linearly independent exactly when the xᵢ are not all equal. In that case XᵀX is invertible and the normal equations have exactly one solution."
+  },
+  {
+   "type": "text",
+   "category": "Least-squares lines",
+   "q": "When fitting y = β₀ + β₁x, the vector ε = y − Xβ (observed values minus predicted values) is called the ______ vector.",
+   "answer": [
+    "residual",
+    "residual vector",
+    "the residual vector"
+   ],
+   "explain": "ε is the residual vector. The least-squares line makes ‖ε‖ as small as possible, and at the solution ε is orthogonal to both columns of X."
+  }
+ ]
+}
