@@ -1,0 +1,633 @@
+{
+ "title": "MATH2010 Module 14: Diagonalization of Symmetric Matrices & the Singular Value Decomposition",
+ "course": "MATH2010",
+ "questions": [
+  {
+   "type": "tf",
+   "category": "Symmetric matrices and the spectral theorem",
+   "q": "Every n×n real symmetric matrix is orthogonally diagonalizable.",
+   "answer": true,
+   "explain": "By the Spectral Theorem, a symmetric matrix A can always be written as A = PDPᵀ with P orthogonal and D diagonal. In fact an n×n matrix is orthogonally diagonalizable if and only if it is symmetric."
+  },
+  {
+   "type": "text",
+   "category": "Symmetric matrices and the spectral theorem",
+   "q": "Fill in the blank (one word): an n×n real matrix is orthogonally diagonalizable if and only if it is ____.",
+   "answer": [
+    "symmetric",
+    "a symmetric matrix"
+   ],
+   "explain": "Orthogonally diagonalizable ⇔ symmetric (Aᵀ = A). If A = PDPᵀ then Aᵀ = PDᵀPᵀ = PDPᵀ = A, and the Spectral Theorem gives the converse."
+  },
+  {
+   "type": "tf",
+   "category": "Symmetric matrices and the spectral theorem",
+   "q": "If x and y are any two eigenvectors of a symmetric matrix A, then x · y = 0.",
+   "answer": false,
+   "explain": "Only eigenvectors belonging to DIFFERENT eigenvalues are guaranteed to be orthogonal. Two eigenvectors in the same eigenspace need not be: for A = [5 8 −4; 8 5 −4; −4 −4 −1], both (1, 0, 2) and (0, 1, 2) are eigenvectors for λ = −3, but their dot product is 4."
+  },
+  {
+   "type": "tf",
+   "category": "Symmetric matrices and the spectral theorem",
+   "q": "A real symmetric matrix can have a non-real (complex) eigenvalue.",
+   "answer": false,
+   "explain": "The Spectral Theorem says an n×n real symmetric matrix has n real eigenvalues, counting multiplicities."
+  },
+  {
+   "type": "mc",
+   "category": "Symmetric matrices and the spectral theorem",
+   "q": "Which of the following is NOT guaranteed by the Spectral Theorem for an n×n symmetric matrix A?",
+   "choices": [
+    "A has n real eigenvalues, counting multiplicities",
+    "Each eigenspace's dimension equals that eigenvalue's multiplicity",
+    "Eigenspaces for different eigenvalues are orthogonal",
+    "Every eigenvalue of A is positive"
+   ],
+   "answer": 3,
+   "explain": "Symmetric matrices can have negative (or zero) eigenvalues: [2 3; 3 2] has eigenvalues 5 and −1. The other three statements are parts of the Spectral Theorem."
+  },
+  {
+   "type": "multi",
+   "category": "Symmetric matrices and the spectral theorem",
+   "q": "Which of these matrices are orthogonally diagonalizable? (Rows are separated by semicolons.)",
+   "choices": [
+    "[1 2; 2 1]",
+    "[1 2; 3 4]",
+    "[0 −1; 1 0]",
+    "[5 0 0; 0 −2 0; 0 0 7]",
+    "[2 1; 0 2]",
+    "[4 −1 0; −1 4 2; 0 2 −3]"
+   ],
+   "answer": [
+    0,
+    3,
+    5
+   ],
+   "explain": "Orthogonally diagonalizable ⇔ symmetric, so just check Aᵀ = A (each entry aᵢⱼ equals aⱼᵢ). [1 2; 2 1], the diagonal matrix, and [4 −1 0; −1 4 2; 0 2 −3] are symmetric. [1 2; 3 4], [0 −1; 1 0] and [2 1; 0 2] are not."
+  },
+  {
+   "type": "mc",
+   "category": "Symmetric matrices and the spectral theorem",
+   "q": "To prove that eigenvectors of a symmetric A with Ax = λ₁x, Ay = λ₂y, λ₁ ≠ λ₂ are orthogonal, one writes λ₁(x·y) = (Ax)ᵀy = xᵀAᵀy = xᵀAy = λ₂(x·y). Which step uses the symmetry of A?",
+   "choices": [
+    "Writing (Ax)ᵀy as xᵀAᵀy",
+    "Replacing xᵀAᵀy by xᵀAy",
+    "Replacing xᵀAy by λ₂(x·y)",
+    "Concluding x·y = 0 from (λ₁ − λ₂)(x·y) = 0"
+   ],
+   "answer": 1,
+   "explain": "Aᵀ = A is exactly what lets you replace xᵀAᵀy by xᵀAy. The rule (Ax)ᵀ = xᵀAᵀ holds for any matrix, Ay = λ₂y is just the eigenvector equation, and the last step only needs λ₁ ≠ λ₂."
+  },
+  {
+   "type": "tf",
+   "category": "Symmetric matrices and the spectral theorem",
+   "q": "If A = PDPᵀ where P is orthogonal and D is diagonal, then A must be symmetric.",
+   "answer": true,
+   "explain": "Aᵀ = (PDPᵀ)ᵀ = (Pᵀ)ᵀDᵀPᵀ = PDPᵀ = A, because a diagonal D satisfies Dᵀ = D."
+  },
+  {
+   "type": "mc",
+   "category": "Symmetric matrices and the spectral theorem",
+   "q": "Which of these matrices is orthogonal, i.e. satisfies PᵀP = I? (Rows are separated by semicolons.)",
+   "choices": [
+    "(1/√2)[1 −1; 1 1]",
+    "[1 −1; 1 1]",
+    "(1/2)[1 −1; 1 1]",
+    "(1/√2)[1 1; 1 1]"
+   ],
+   "answer": 0,
+   "explain": "An orthogonal matrix needs orthonormal columns: perpendicular AND length 1. [1 −1; 1 1] has perpendicular columns of length √2 (PᵀP = 2I), so it must be scaled by 1/√2. Scaling by 1/2 gives length √2/2, and (1/√2)[1 1; 1 1] has identical, non-perpendicular columns."
+  },
+  {
+   "type": "num",
+   "category": "Symmetric matrices and the spectral theorem",
+   "q": "A symmetric 4×4 matrix has characteristic polynomial (λ − 3)²(λ − 5)². What is the dimension of its eigenspace for λ = 3?",
+   "answer": 2,
+   "explain": "For a symmetric matrix, the dimension of each eigenspace equals the eigenvalue's multiplicity as a root of the characteristic polynomial. λ = 3 has multiplicity 2."
+  },
+  {
+   "type": "mc",
+   "category": "Orthogonal diagonalization",
+   "q": "What are the eigenvalues of A = [2 3; 3 2]? (Rows are separated by semicolons.)",
+   "choices": [
+    "5 and −1",
+    "5 and 1",
+    "2 and 3",
+    "−5 and 1"
+   ],
+   "answer": 0,
+   "explain": "det(A − λI) = (2 − λ)² − 9 = λ² − 4λ − 5 = (λ − 5)(λ + 1), so λ = 5 and λ = −1."
+  },
+  {
+   "type": "mc",
+   "category": "Orthogonal diagonalization",
+   "q": "Which choice of P and D gives A = PDPᵀ for A = [2 3; 3 2]? (Rows are separated by semicolons.)",
+   "choices": [
+    "P = (1/√2)[1 −1; 1 1], D = [5 0; 0 −1]",
+    "P = (1/√2)[1 −1; 1 1], D = [−1 0; 0 5]",
+    "P = [1 −1; 1 1], D = [5 0; 0 −1]",
+    "P = (1/√2)[1 1; −1 1], D = [5 0; 0 −1]"
+   ],
+   "answer": 0,
+   "explain": "The columns of (1/√2)[1 −1; 1 1] are (1, 1)/√2 (eigenvector for 5) and (−1, 1)/√2 (eigenvector for −1), so D must list 5 then −1. Swapping D's order mismatches the columns. Without the 1/√2, P is not orthogonal (PDPᵀ = 2A). In the last choice the first column (1, −1)/√2 is an eigenvector for −1, not 5."
+  },
+  {
+   "type": "mc",
+   "category": "Orthogonal diagonalization",
+   "q": "A = [5 8 −4; 8 5 −4; −4 −4 −1] (rows separated by semicolons) has eigenvalues 15 (multiplicity 1) and −3 (multiplicity 2). Which vector spans the eigenspace for λ = 15?",
+   "choices": [
+    "(2, 2, −1)",
+    "(1, 0, 2)",
+    "(1, −1, 0)",
+    "(2, −2, 1)"
+   ],
+   "answer": 0,
+   "explain": "A(2, 2, −1) = (10 + 16 + 4, 16 + 10 + 4, −8 − 8 + 1) = (30, 30, −15) = 15(2, 2, −1). Shortcut: the λ = −3 eigenspace is the plane 2x₁ + 2x₂ − x₃ = 0, and the λ = 15 eigenspace must be orthogonal to it, so it is spanned by the normal (2, 2, −1). (1, 0, 2) and (1, −1, 0) lie in the λ = −3 plane."
+  },
+  {
+   "type": "mc",
+   "category": "Orthogonal diagonalization",
+   "q": "In the λ = −3 eigenspace of A = [5 8 −4; 8 5 −4; −4 −4 −1], the basis vectors x₂ = (1, 0, 2) and x₃ = (0, 1, 2) are not orthogonal. Gram–Schmidt gives w₃ = x₃ − ((x₃·x₂)/(x₂·x₂))x₂. Which vector is w₃ a multiple of?",
+   "choices": [
+    "(−4, 5, 2)",
+    "(4, 5, −2)",
+    "(−1, 1, 0)",
+    "(2, 2, −1)"
+   ],
+   "answer": 0,
+   "explain": "x₃·x₂ = 4 and x₂·x₂ = 5, so w₃ = (0, 1, 2) − (4/5)(1, 0, 2) = (−4/5, 1, 2/5), which is (1/5)(−4, 5, 2). Check: (−4, 5, 2)·(1, 0, 2) = 0, and 2(−4) + 2(5) − 2 = 0, so it is still in the eigenspace."
+  },
+  {
+   "type": "tf",
+   "category": "Orthogonal diagonalization",
+   "q": "When orthogonally diagonalizing a symmetric matrix, you must apply Gram–Schmidt across eigenvectors from different eigenspaces to make them orthogonal.",
+   "answer": false,
+   "explain": "Eigenvectors of a symmetric matrix for different eigenvalues are automatically orthogonal. Gram–Schmidt is only needed inside an eigenspace of dimension ≥ 2 whose basis vectors are not already orthogonal."
+  },
+  {
+   "type": "multi",
+   "category": "Orthogonal diagonalization",
+   "q": "A is the 4×4 matrix with rows (4, 0, 1, 0), (0, 4, 0, 1), (1, 0, 4, 0), (0, 1, 0, 4). Its eigenvalues are 5, 5, 3, 3. Which vectors are eigenvectors of A for λ = 3?",
+   "choices": [
+    "(1, 0, −1, 0)",
+    "(0, 1, 0, −1)",
+    "(1, 1, −1, −1)",
+    "(1, 0, 1, 0)",
+    "(0, 1, 0, 1)",
+    "(1, −1, 0, 0)"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "A − 3I gives x₁ + x₃ = 0 and x₂ + x₄ = 0. (1, 0, −1, 0), (0, 1, 0, −1) and their sum (1, 1, −1, −1) satisfy both equations. (1, 0, 1, 0) and (0, 1, 0, 1) are eigenvectors for λ = 5, and (1, −1, 0, 0) is not an eigenvector at all."
+  },
+  {
+   "type": "num",
+   "category": "Orthogonal diagonalization",
+   "q": "The symmetric matrix A = [5 8 −4; 8 5 −4; −4 −4 −1] (rows separated by semicolons) has eigenvalue 15 and one other eigenvalue λ of multiplicity 2. Use the trace to find λ.",
+   "answer": -3,
+   "explain": "The trace equals the sum of the eigenvalues: 5 + 5 − 1 = 9 = 15 + 2λ, so λ = −3."
+  },
+  {
+   "type": "mc",
+   "category": "Orthogonal diagonalization",
+   "q": "Why is it convenient that P is orthogonal in A = PDPᵀ?",
+   "choices": [
+    "P⁻¹ equals Pᵀ, so no inverse is computed",
+    "It makes every eigenvalue of A positive",
+    "It forces D to be the identity matrix",
+    "It guarantees that A is invertible"
+   ],
+   "answer": 0,
+   "explain": "Orthonormal columns give PᵀP = I, so P⁻¹ = Pᵀ and PDP⁻¹ becomes PDPᵀ. That doesn't affect the signs of the eigenvalues, doesn't make D = I, and doesn't make A invertible (0 can be an eigenvalue)."
+  },
+  {
+   "type": "mc",
+   "category": "Orthogonal diagonalization",
+   "q": "A = [1 2; 2 −2] (rows separated by semicolons) has eigenvalues 2 and −3. Which unit vector is an eigenvector for λ = −3?",
+   "choices": [
+    "(1/√5)(1, −2)",
+    "(1/√5)(2, 1)",
+    "(1/√2)(1, −1)",
+    "(1, −2)"
+   ],
+   "answer": 0,
+   "explain": "A + 3I = [4 2; 2 1] gives 2x₁ + x₂ = 0, so (1, −2) spans the eigenspace. Its length is √5, so the unit vector is (1/√5)(1, −2). (2, 1)/√5 is the unit eigenvector for λ = 2, and (1, −2) itself is not a unit vector."
+  },
+  {
+   "type": "num",
+   "category": "Orthogonal diagonalization",
+   "q": "For A = [2 3; 3 2], u₁ = (1/√2)(1, 1) for λ = 5 and u₂ = (1/√2)(−1, 1) for λ = −1, so the spectral decomposition is A = 5u₁u₁ᵀ − u₂u₂ᵀ. What is the (1, 2) entry of the matrix 5u₁u₁ᵀ?",
+   "answer": 2.5,
+   "tolerance": 0.001,
+   "explain": "u₁u₁ᵀ = (1/2)[1 1; 1 1], so 5u₁u₁ᵀ has every entry 2.5. Check: u₂u₂ᵀ = (1/2)[1 −1; −1 1] has (1, 2) entry −0.5, and 2.5 − (−0.5) = 3, which is the (1, 2) entry of A."
+  },
+  {
+   "type": "mc",
+   "category": "Singular values",
+   "q": "The singular values of an m×n matrix A are defined as:",
+   "choices": [
+    "Square roots of the eigenvalues of AᵀA",
+    "The eigenvalues of A",
+    "Square roots of the eigenvalues of A",
+    "Absolute values of the diagonal entries of A"
+   ],
+   "answer": 0,
+   "explain": "σᵢ = √λᵢ, where λ₁, …, λₙ are the eigenvalues of the n×n symmetric matrix AᵀA, listed in decreasing order."
+  },
+  {
+   "type": "tf",
+   "category": "Singular values",
+   "q": "The singular values of a square matrix A are always the same as its eigenvalues.",
+   "answer": false,
+   "explain": "Generally they differ. A = [2 −1; 2 2] has complex eigenvalues 2 ± i√2, but its singular values are 3 and 2. They coincide (up to sign) only in special cases such as symmetric matrices."
+  },
+  {
+   "type": "num",
+   "category": "Singular values",
+   "q": "Find the largest singular value σ₁ of A = [2 −1; 2 2] (rows separated by semicolons).",
+   "answer": 3,
+   "explain": "AᵀA = [8 2; 2 5], with characteristic polynomial λ² − 13λ + 36 = (λ − 9)(λ − 4). So σ₁ = √9 = 3 and σ₂ = √4 = 2."
+  },
+  {
+   "type": "mc",
+   "category": "Singular values",
+   "q": "Why are the eigenvalues of AᵀA never negative?",
+   "choices": [
+    "If AᵀAv = λv with ‖v‖ = 1, then λ = ‖Av‖² ≥ 0",
+    "Because every entry of AᵀA is a positive number",
+    "Because AᵀA is always a diagonal matrix",
+    "Because the entries of A get squared in AᵀA"
+   ],
+   "answer": 0,
+   "explain": "‖Av‖² = (Av)ᵀ(Av) = vᵀAᵀAv = λvᵀv = λ, and a squared length can't be negative. AᵀA can have negative entries (e.g. [9 −9; −9 9]) and is usually not diagonal."
+  },
+  {
+   "type": "tf",
+   "category": "Singular values",
+   "q": "If vᵢ is a unit eigenvector of AᵀA for the eigenvalue λᵢ, then the length ‖Avᵢ‖ equals the singular value σᵢ.",
+   "answer": true,
+   "explain": "‖Avᵢ‖² = vᵢᵀAᵀAvᵢ = λᵢ, so ‖Avᵢ‖ = √λᵢ = σᵢ."
+  },
+  {
+   "type": "tf",
+   "category": "Singular values",
+   "q": "If A is symmetric, its singular values are the absolute values of its eigenvalues.",
+   "answer": true,
+   "explain": "For symmetric A, AᵀA = A², whose eigenvalues are the squares λ² of A's eigenvalues, so σ = √(λ²) = |λ|. For example, [2 3; 3 2] has eigenvalues 5 and −1 and singular values 5 and 1."
+  },
+  {
+   "type": "num",
+   "category": "Singular values",
+   "q": "Find the largest singular value σ₁ of A = [1 2; 2 4] (rows separated by semicolons).",
+   "answer": 5,
+   "explain": "AᵀA = [5 10; 10 20] has trace 25 and determinant 0, so its eigenvalues are 25 and 0. Then σ₁ = 5 and σ₂ = 0 (rank 1). Since A is symmetric, you can also take |eigenvalues of A| = 5 and 0."
+  },
+  {
+   "type": "num",
+   "category": "Singular values",
+   "q": "A is the 3×2 matrix with rows (1, 1), (0, 1), (1, 0). What is its smaller singular value σ₂?",
+   "answer": 1,
+   "explain": "AᵀA = [2 1; 1 2] (dot products of the columns (1, 0, 1) and (1, 1, 0)). Its eigenvalues are 3 and 1, so σ₁ = √3 and σ₂ = 1."
+  },
+  {
+   "type": "num",
+   "category": "Singular values",
+   "q": "Find σ₁ for A = [3 0; 4 5] (rows separated by semicolons). Give two decimal places.",
+   "answer": 6.708,
+   "tolerance": 0.01,
+   "explain": "AᵀA = [25 20; 20 25], with eigenvalues 45 and 5. So σ₁ = √45 = 3√5 ≈ 6.71 and σ₂ = √5 ≈ 2.24. Check: σ₁σ₂ = 15 = |det A|."
+  },
+  {
+   "type": "num",
+   "category": "Singular values",
+   "q": "A 2×2 matrix has det A = −12 and largest singular value σ₁ = 4. What is σ₂?",
+   "answer": 3,
+   "explain": "det(AᵀA) = (det A)², so σ₁²σ₂² = 144 and σ₁σ₂ = |det A| = 12. Then σ₂ = 12/4 = 3."
+  },
+  {
+   "type": "mc",
+   "category": "Singular values",
+   "q": "An m×n matrix A has singular values 7, 4, 0, 0. Which statement must be true?",
+   "choices": [
+    "rank A = 2 and n = 4",
+    "rank A = 4 and n = 4",
+    "rank A = 2 and m = 4",
+    "rank A = 4 and m = 2"
+   ],
+   "answer": 0,
+   "explain": "Rank = number of non-zero singular values = 2. There is one singular value per eigenvalue of the n×n matrix AᵀA, so n = 4. Nothing here fixes m (it only has to be at least 2)."
+  },
+  {
+   "type": "mc",
+   "category": "Singular values",
+   "q": "{v₁, …, vₙ} is an orthonormal basis of eigenvectors of AᵀA with λ₁ ≥ … ≥ λᵣ > 0 and the remaining eigenvalues 0. Which set is an orthogonal basis for Col(A)?",
+   "choices": [
+    "{Av₁, …, Avᵣ}",
+    "{v₁, …, vᵣ}",
+    "{Av₁, …, Avₙ}",
+    "{vᵣ₊₁, …, vₙ}"
+   ],
+   "answer": 0,
+   "explain": "(Avᵢ)·(Avⱼ) = vᵢᵀAᵀAvⱼ = λⱼ(vᵢ·vⱼ) = 0 for i ≠ j, and ‖Avᵢ‖² = λᵢ, so Avᵢ ≠ 0 exactly for i ≤ r. Including i > r would add zero vectors, and the vᵢ themselves live in ℝⁿ, not in Col(A). This is why rank A = r."
+  },
+  {
+   "type": "mc",
+   "category": "Computing an SVD",
+   "q": "A is a 5×3 matrix. In its SVD A = UΣVᵀ (U and V orthogonal), what are the sizes of U, Σ and V?",
+   "choices": [
+    "U: 5×5, Σ: 5×3, V: 3×3",
+    "U: 3×3, Σ: 3×5, V: 5×5",
+    "U: 5×5, Σ: 3×3, V: 3×3",
+    "U: 3×3, Σ: 5×3, V: 5×5"
+   ],
+   "answer": 0,
+   "explain": "For an m×n matrix, U is m×m, Σ is m×n (the same shape as A) and V is n×n. Here m = 5 and n = 3."
+  },
+  {
+   "type": "mc",
+   "category": "Computing an SVD",
+   "q": "In A = UΣVᵀ, where do the columns of V come from?",
+   "choices": [
+    "Orthonormal eigenvectors of AᵀA",
+    "Orthonormal eigenvectors of A",
+    "The columns of A, normalized",
+    "Orthonormal eigenvectors of AAᵀ"
+   ],
+   "answer": 0,
+   "explain": "V = [v₁ … vₙ], where the vᵢ are an orthonormal basis of ℝⁿ made of eigenvectors of the n×n symmetric matrix AᵀA, in decreasing order of eigenvalue. You get them by orthogonally diagonalizing AᵀA."
+  },
+  {
+   "type": "mc",
+   "category": "Computing an SVD",
+   "q": "For i ≤ r (r = rank A), how is the column uᵢ of U computed?",
+   "choices": [
+    "uᵢ = (1/σᵢ)Avᵢ",
+    "uᵢ = σᵢAvᵢ",
+    "uᵢ = (1/σᵢ)Aᵀvᵢ",
+    "uᵢ = (1/λᵢ)Avᵢ"
+   ],
+   "answer": 0,
+   "explain": "‖Avᵢ‖ = σᵢ, so dividing Avᵢ by σᵢ gives a unit vector. These uᵢ are automatically orthonormal, and AV = UΣ follows."
+  },
+  {
+   "type": "num",
+   "category": "Computing an SVD",
+   "q": "For A = [2 −1; 2 2] (rows separated by semicolons), what is the (1, 1) entry of AᵀA?",
+   "answer": 8,
+   "explain": "Aᵀ = [2 2; −1 2], and the (1, 1) entry of AᵀA is the first column of A dotted with itself: 2² + 2² = 8. (The full product is [8 2; 2 5]. The (1, 1) entry of AAᵀ would be 5, which is a different matrix.)"
+  },
+  {
+   "type": "mc",
+   "category": "Computing an SVD",
+   "q": "For A = [2 −1; 2 2], AᵀA has eigenvalues 9 and 4 with unit eigenvectors v₁ = (1/√5)(2, 1) and v₂ = (1/√5)(−1, 2). What is u₁?",
+   "choices": [
+    "(1/√5)(1, 2)",
+    "(1/√5)(3, 6)",
+    "(1/√5)(2, 1)",
+    "(1/√5)(−2, 1)"
+   ],
+   "answer": 0,
+   "explain": "Av₁ = (1/√5)(4 − 1, 4 + 2) = (1/√5)(3, 6). Dividing by σ₁ = 3 gives u₁ = (1/√5)(1, 2). (1/√5)(2, 1) is v₁ and (1/√5)(−2, 1) is u₂."
+  },
+  {
+   "type": "mc",
+   "category": "Computing an SVD",
+   "q": "A = [3 0; 4 5] (rows separated by semicolons) has σ₂ = √5 and v₂ = (1/√2)(−1, 1). What is u₂?",
+   "choices": [
+    "(1/√10)(−3, 1)",
+    "(1/√10)(1, 3)",
+    "(1/√2)(−3, 1)",
+    "(1/√10)(3, 1)"
+   ],
+   "answer": 0,
+   "explain": "Av₂ = (1/√2)(−3, −4 + 5) = (1/√2)(−3, 1). Dividing by σ₂ = √5 gives (1/√10)(−3, 1). (1/√10)(1, 3) is u₁, and (1/√2)(−3, 1) forgets to divide by σ₂."
+  },
+  {
+   "type": "tf",
+   "category": "Computing an SVD",
+   "q": "In A = UΣVᵀ, the matrix Σ is always square.",
+   "answer": false,
+   "explain": "Σ is m×n, the same shape as A. Its upper-left corner holds σ₁, …, σᵣ on the diagonal and every other entry is 0. It is square only when A is."
+  },
+  {
+   "type": "num",
+   "category": "Computing an SVD",
+   "q": "A = [1 −1; −2 2; 2 −2] (a 3×2 matrix, rows separated by semicolons). Find σ₁ to two decimal places.",
+   "answer": 4.243,
+   "tolerance": 0.01,
+   "explain": "AᵀA = [9 −9; −9 9], with eigenvalues 18 and 0. So σ₁ = √18 = 3√2 ≈ 4.24, σ₂ = 0 and rank A = 1."
+  },
+  {
+   "type": "mc",
+   "category": "Computing an SVD",
+   "q": "For A = [1 −1; −2 2; 2 −2] with v₁ = (1/√2)(1, −1) and σ₁ = 3√2, what is u₁?",
+   "choices": [
+    "(1/3, −2/3, 2/3)",
+    "(1, −2, 2)",
+    "(1/3, 2/3, 2/3)",
+    "(2/3, −1/3, 2/3)"
+   ],
+   "answer": 0,
+   "explain": "Av₁ = (1/√2)(2, −4, 4). Dividing by 3√2 gives (2, −4, 4)/6 = (1/3, −2/3, 2/3), a unit vector. (1, −2, 2) has length 3, so it is not normalized."
+  },
+  {
+   "type": "mc",
+   "category": "Computing an SVD",
+   "q": "For the 3×2 matrix A = [1 −1; −2 2; 2 −2], rank A = 1, so only u₁ = Av₁/σ₁ comes from the formula. How do you get u₂ and u₃ for the 3×3 matrix U?",
+   "choices": [
+    "Extend {u₁} to an orthonormal basis of ℝ³",
+    "Use uᵢ = Avᵢ/σᵢ for i = 2, 3 as for u₁",
+    "Set u₂ and u₃ to the zero vector of ℝ³",
+    "Leave them out, so U is a 3×1 matrix"
+   ],
+   "answer": 0,
+   "explain": "The remaining columns are chosen so that U is orthogonal: find vectors orthogonal to u₁ (here, solutions of x₁ − 2x₂ + 2x₃ = 0), apply Gram–Schmidt and normalize. The formula fails because σ₂ = 0, zero columns would make U non-orthogonal, and U must be 3×3."
+  },
+  {
+   "type": "tf",
+   "category": "Computing an SVD",
+   "q": "If you compute the columns of U separately, as unit eigenvectors of AAᵀ, then UΣVᵀ is guaranteed to equal A.",
+   "answer": false,
+   "explain": "Each eigenvector is only determined up to sign (or up to a choice of basis in a repeated eigenspace), so independently chosen uᵢ may not match the vᵢ, and then UΣVᵀ ≠ A. Use uᵢ = Avᵢ/σᵢ to tie each uᵢ to its vᵢ."
+  },
+  {
+   "type": "mc",
+   "category": "Low-rank approximation",
+   "q": "Which expression is the outer-product form of the SVD of A, where r = rank A?",
+   "choices": [
+    "A = σ₁u₁v₁ᵀ + ⋯ + σᵣuᵣvᵣᵀ",
+    "A = σ₁v₁u₁ᵀ + ⋯ + σᵣvᵣuᵣᵀ",
+    "A = σ₁u₁ᵀv₁ + ⋯ + σᵣuᵣᵀvᵣ",
+    "A = λ₁u₁v₁ᵀ + ⋯ + λᵣuᵣvᵣᵀ"
+   ],
+   "answer": 0,
+   "explain": "Multiplying out UΣVᵀ gives A = Σ σᵢuᵢvᵢᵀ. Each uᵢvᵢᵀ is an m×n column-times-row matrix. vᵢuᵢᵀ has the wrong shape (n×m), uᵢᵀvᵢ is a scalar, and the weights are σᵢ, not λᵢ = σᵢ²."
+  },
+  {
+   "type": "tf",
+   "category": "Low-rank approximation",
+   "q": "Each term σᵢuᵢvᵢᵀ in the outer-product form of the SVD of an m×n matrix is an m×n matrix of rank 1.",
+   "answer": true,
+   "explain": "uᵢ is m×1 and vᵢᵀ is 1×n, so uᵢvᵢᵀ is m×n. Every column is a multiple of uᵢ, so the rank is 1."
+  },
+  {
+   "type": "num",
+   "category": "Low-rank approximation",
+   "q": "Using dist(A, B) = √(sum of |aᵢⱼ − bᵢⱼ|² over all entries), find dist(A, B) for A = [1 2; 3 4] and B = [1 0; 0 4] (rows separated by semicolons). Give two decimal places.",
+   "answer": 3.606,
+   "tolerance": 0.01,
+   "explain": "A − B = [0 2; 3 0], so dist = √(0 + 4 + 9 + 0) = √13 ≈ 3.61."
+  },
+  {
+   "type": "multi",
+   "category": "Low-rank approximation",
+   "q": "Which statements about dist(A, B) = √(Σᵢ Σⱼ |aᵢⱼ − bᵢⱼ|²) for m×n matrices are correct?",
+   "choices": [
+    "It is the Euclidean distance with each matrix treated as a list of mn numbers",
+    "dist(A, B) = dist(B, A)",
+    "dist(A, B) = 0 only when A = B",
+    "It equals the largest single difference |aᵢⱼ − bᵢⱼ|",
+    "It is only defined for square matrices"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "It is the ordinary Euclidean distance on the mn entries (the Frobenius norm of A − B), so it is symmetric and zero only when every entry agrees. It adds up all squared differences, not just the largest, and it works for any m×n shape."
+  },
+  {
+   "type": "text",
+   "category": "Low-rank approximation",
+   "q": "Name the theorem stating that Aₖ = σ₁u₁v₁ᵀ + ⋯ + σₖuₖvₖᵀ is the closest matrix to A, in the distance dist, among all matrices of rank at most k.",
+   "answer": [
+    "Mirsky",
+    "Mirsky theorem",
+    "Mirsky's theorem",
+    "Eckart-Young-Mirsky",
+    "Eckart–Young–Mirsky",
+    "Eckart-Young-Mirsky theorem",
+    "Eckart–Young–Mirsky theorem",
+    "Eckart-Young",
+    "Eckart–Young",
+    "Eckart-Young theorem",
+    "Eckart–Young theorem"
+   ],
+   "explain": "The Mirsky (Eckart–Young–Mirsky) theorem: dist(A, Aₖ) = min{dist(A, B) : rank(B) ≤ k}."
+  },
+  {
+   "type": "tf",
+   "category": "Low-rank approximation",
+   "q": "If B is any matrix of rank at most k, then dist(A, B) ≥ dist(A, Aₖ), where Aₖ is the SVD truncated after k terms.",
+   "answer": true,
+   "explain": "This is the Mirsky (Eckart–Young–Mirsky) theorem: truncating the SVD gives the best rank-≤k approximation, so no other rank-≤k matrix is closer to A."
+  },
+  {
+   "type": "mc",
+   "category": "Low-rank approximation",
+   "q": "For A = [2 −1; 2 2], σ₁ = 3, u₁ = (1/√5)(1, 2) and v₁ = (1/√5)(2, 1). What is the best rank-1 approximation A₁ = σ₁u₁v₁ᵀ? (Rows are separated by semicolons.)",
+   "choices": [
+    "[1.2 0.6; 2.4 1.2]",
+    "[0.4 0.2; 0.8 0.4]",
+    "[1.2 2.4; 0.6 1.2]",
+    "[2 0; 2 0]"
+   ],
+   "answer": 0,
+   "explain": "u₁v₁ᵀ = (1/5)[1; 2][2 1] = (1/5)[2 1; 4 2]. Multiplying by 3 gives [1.2 0.6; 2.4 1.2]. [0.4 0.2; 0.8 0.4] forgets σ₁, and [1.2 2.4; 0.6 1.2] is the transpose (σ₁v₁u₁ᵀ)."
+  },
+  {
+   "type": "num",
+   "category": "Low-rank approximation",
+   "q": "For A = [2 −1; 2 2] (singular values 3 and 2) and its best rank-1 approximation A₁ = [1.2 0.6; 2.4 1.2], compute dist(A, A₁).",
+   "answer": 2,
+   "tolerance": 0.001,
+   "explain": "A − A₁ = [0.8 −1.6; −0.4 0.8], so dist = √(0.64 + 2.56 + 0.16 + 0.64) = √4 = 2. This equals σ₂, the singular value that was thrown away."
+  },
+  {
+   "type": "num",
+   "category": "Low-rank approximation",
+   "q": "A has singular values σ₁ = 6, σ₂ = 4, σ₃ = 3 (rank 3). Using dist(A, Aₖ) = √(σₖ₊₁² + ⋯ + σᵣ²), find dist(A, A₁).",
+   "answer": 5,
+   "tolerance": 0.001,
+   "explain": "The error comes from the discarded singular values: √(4² + 3²) = √25 = 5."
+  },
+  {
+   "type": "tf",
+   "category": "Low-rank approximation",
+   "q": "If k = r = rank A, then the truncated sum Aₖ = σ₁u₁v₁ᵀ + ⋯ + σₖuₖvₖᵀ equals A exactly.",
+   "answer": true,
+   "explain": "The outer-product form says A = σ₁u₁v₁ᵀ + ⋯ + σᵣuᵣvᵣᵀ, so keeping all r terms reproduces A and dist(A, Aᵣ) = 0."
+  },
+  {
+   "type": "num",
+   "category": "Image compression",
+   "q": "A 200×320 gray-scale image (stored as a 200×320 matrix A) is sent as its rank-k SVD approximation by transmitting σ₁, …, σₖ, u₁, …, uₖ and v₁, …, vₖ. How many numbers are sent when k = 10?",
+   "answer": 5210,
+   "explain": "Each term needs 1 number (σᵢ) + 200 (uᵢ) + 320 (vᵢ) = 521 numbers, so k = 10 costs 5,210 numbers, versus 200 · 320 = 64,000 for the raw image (about 8%)."
+  },
+  {
+   "type": "num",
+   "category": "Image compression",
+   "q": "For the 200×320 image sent as a rank-k SVD approximation (521k numbers), what is the largest k that still sends fewer numbers than the raw 64,000-pixel image?",
+   "answer": 122,
+   "explain": "521k < 64,000 means k < 122.8, so k ≤ 122 (521 · 122 = 63,562, but 521 · 123 = 64,083 > 64,000)."
+  },
+  {
+   "type": "mc",
+   "category": "Image compression",
+   "q": "A 200×320 image is stored as a 200×320 matrix A = UΣVᵀ (one row per line of pixels). How many entries do the vectors uᵢ and vᵢ have?",
+   "choices": [
+    "uᵢ has 200 entries and vᵢ has 320",
+    "uᵢ has 320 entries and vᵢ has 200",
+    "Both uᵢ and vᵢ have 320 entries",
+    "Both uᵢ and vᵢ have 200 entries"
+   ],
+   "answer": 0,
+   "explain": "For an m×n matrix, U is m×m and V is n×n, so uᵢ ∈ ℝ²⁰⁰ (m = 200) and vᵢ ∈ ℝ³²⁰ (n = 320)."
+  },
+  {
+   "type": "num",
+   "category": "Image compression",
+   "q": "A 768×1024 gray-scale image is sent using its rank-50 SVD approximation (σᵢ, uᵢ and vᵢ for i = 1, …, 50). How many numbers are sent?",
+   "answer": 89650,
+   "explain": "k(m + n + 1) = 50 · (768 + 1024 + 1) = 50 · 1793 = 89,650 numbers, versus 768 · 1024 = 786,432 for the raw image (about 11.4%)."
+  },
+  {
+   "type": "num",
+   "category": "Image compression",
+   "q": "A 100×100 gray-scale image is sent as a rank-k SVD approximation, costing k(m + n + 1) numbers. What is the largest k for which this sends fewer numbers than the raw image?",
+   "answer": 49,
+   "explain": "201k < 10,000 means k < 49.75, so k ≤ 49 (201 · 49 = 9,849, but 201 · 50 = 10,050)."
+  },
+  {
+   "type": "num",
+   "category": "Image compression",
+   "q": "For the 200×320 image, suppose that instead of sending σᵢ and uᵢ separately you send the product σᵢuᵢ together with vᵢ. How many numbers are sent for k = 20?",
+   "answer": 10400,
+   "explain": "Each term now needs 200 (σᵢuᵢ) + 320 (vᵢ) = 520 numbers, so 20 · 520 = 10,400."
+  },
+  {
+   "type": "mc",
+   "category": "Image compression",
+   "q": "Why does the received rank-k image Aₖ look close to the original A?",
+   "choices": [
+    "By the Mirsky theorem, Aₖ is the closest rank-k matrix to A",
+    "Aₖ equals A exactly for every k ≥ 1",
+    "The SVD stores every pixel value without loss",
+    "The vectors uᵢ and vᵢ have integer entries from 0 to 255"
+   ],
+   "answer": 0,
+   "explain": "Aₖ minimizes dist(A, B) over all matrices B of rank ≤ k, with error √(σₖ₊₁² + ⋯ + σᵣ²). For real images the singular values drop off quickly, so a small k leaves only a small error. Aₖ is an approximation, and uᵢ, vᵢ have real (not integer) entries."
+  },
+  {
+   "type": "tf",
+   "category": "Image compression",
+   "q": "For a 200×320 image, sending the rank-k SVD approximation always transmits fewer numbers than the raw image, whatever k ≤ 200 is chosen.",
+   "answer": false,
+   "explain": "It costs 521k numbers versus 64,000, which only saves data for k ≤ 122. For k = 123 it already costs 64,083 numbers, more than the original."
+  }
+ ]
+}
