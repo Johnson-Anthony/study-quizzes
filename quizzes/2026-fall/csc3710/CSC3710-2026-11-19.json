@@ -1,0 +1,592 @@
+{
+ "title": "CSC3710 2026-11-19: Finishing NFA-λ to DFA, DFA Minimization",
+ "course": "CSC3710",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "NFA-λ to DFA",
+   "q": "When converting an NFA-λ whose start state is q1 into a DFA, what is the DFA's start state?",
+   "choices": [
+    "λ-closure(q1)",
+    "{q1}",
+    "t(q1, a) ∪ t(q1, b)",
+    "The set of all NFA states"
+   ],
+   "answer": 0,
+   "explain": "The DFA starts in every NFA state reachable from q1 using λ-arcs alone. In the class example that was {1, 2, 3, 5, 8, 9}."
+  },
+  {
+   "type": "mc",
+   "category": "NFA-λ to DFA",
+   "q": "What is the λ-closure of a state q in an NFA-λ?",
+   "choices": [
+    "States reachable from q by λ-arcs alone, including q",
+    "States reachable from q by reading exactly one symbol",
+    "States that have a λ-arc pointing into q",
+    "States reachable from q by any arcs, excluding q"
+   ],
+   "answer": 0,
+   "explain": "λ-closure(q) is every state you can reach from q without reading input, and it always contains q itself."
+  },
+  {
+   "type": "mc",
+   "category": "NFA-λ to DFA",
+   "q": "In the subset construction, how is the arrow δ'(X, a) computed for a DFA state X (a set of NFA states) and a symbol a?",
+   "choices": [
+    "Union of t(q, a) over every q in X",
+    "Intersection of t(q, a) over every q in X",
+    "t(q, a) for the smallest-numbered q in X",
+    "Union of λ-closure(q) over every q in X"
+   ],
+   "answer": 0,
+   "explain": "Mark the rows of the input transition function table for every element of X, read column a, and union those sets. Once the table is filled in you don't need the original diagram any more."
+  },
+  {
+   "type": "mc",
+   "category": "NFA-λ to DFA",
+   "q": "You are building the DFA for an NFA-λ. The DFA state {2,3,5,6,7,8,9,10,11} needs its a-arrow. Column a of the t table gives {2,3,4,5,7,8,9} for rows 2, 3, 6 and 7, ∅ for rows 5, 8 and 9, and {12} for rows 10 and 11. The existing DFA states are {1,2,3,5,8,9}, {2,3,4,5,7,8,9} and {2,3,5,6,7,8,9,10,11}. Where does the a-arrow go?",
+   "choices": [
+    "To a new state {2,3,4,5,7,8,9,12}",
+    "To the existing state {2,3,4,5,7,8,9}",
+    "To a new trap state ∅",
+    "To a new state {12}"
+   ],
+   "answer": 0,
+   "explain": "The union of those rows is {2,3,4,5,7,8,9} ∪ {12}. No existing state is that set, so you create a new state. With 12 as the NFA's final state, the new state is final."
+  },
+  {
+   "type": "tf",
+   "category": "NFA-λ to DFA",
+   "q": "When a union in the subset construction gives a set that isn't a DFA state yet, you may add the extra elements to the closest existing DFA state instead of creating a new one.",
+   "answer": false,
+   "explain": "You never change an old state. A new set always becomes a new DFA state."
+  },
+  {
+   "type": "mc",
+   "category": "NFA-λ to DFA",
+   "q": "Which states of the DFA produced by the subset construction are final?",
+   "choices": [
+    "Those whose set contains an NFA final state",
+    "Those whose set contains only NFA final states",
+    "Those whose set contains the NFA start state",
+    "Only the last state the construction creates"
+   ],
+   "answer": 0,
+   "explain": "A DFA state stands for a set of NFA states. If any of them is final, the NFA could accept there. In the class example only {2,3,4,5,7,8,9,12} contained the final state 12."
+  },
+  {
+   "type": "mc",
+   "category": "NFA-λ to DFA",
+   "q": "When does the subset construction stop?",
+   "choices": [
+    "Every state has an arrow per symbol and no new sets appear",
+    "A state containing an NFA final state has been created",
+    "The DFA has as many states as the NFA-λ",
+    "All 2^n subsets of Q have become states"
+   ],
+   "answer": 0,
+   "explain": "You keep processing states until no arrows are missing and no new sets turn up. In the class example that happened after 4 states, far below the 2^12 bound."
+  },
+  {
+   "type": "num",
+   "category": "NFA-λ to DFA",
+   "q": "An NFA-λ has 12 states. What is the maximum number of states the subset construction can produce?",
+   "answer": 4096,
+   "explain": "Each DFA state is a subset of Q, and a 12-element set has 2^12 = 4096 subsets."
+  },
+  {
+   "type": "tf",
+   "category": "NFA-λ to DFA",
+   "q": "If an NFA-λ's alphabet grows from {a, b} to {a, b, c}, the bound on the number of states the subset construction can produce changes from 2^n to 3^n (n = number of NFA states).",
+   "answer": false,
+   "explain": "The bound counts subsets of Q, so it depends only on n, the number of NFA states. It stays 2^n whatever the alphabet size."
+  },
+  {
+   "type": "tf",
+   "category": "NFA-λ to DFA",
+   "q": "A machine in which one state has no b-arrow is not a DFA, even though JFLAP will treat it as one by sending the missing arrow to a trap state.",
+   "answer": true,
+   "explain": "With an arrow missing the machine can't process every string, so it isn't a deterministic machine. Draw every arrow. An empty union gives the state ∅, a trap that loops on every symbol."
+  },
+  {
+   "type": "mc",
+   "category": "Extended transition function",
+   "q": "For a DFA, what does the extended transition function δ̂(q, w) give?",
+   "choices": [
+    "The state reached after reading all of w from q",
+    "The set of states reachable from q while reading w",
+    "Whether w is accepted when starting from q",
+    "The state reached after reading the first symbol of w"
+   ],
+   "answer": 0,
+   "explain": "δ̂ takes a state and a string and returns one state: where the DFA ends after processing the whole string."
+  },
+  {
+   "type": "mc",
+   "category": "Extended transition function",
+   "q": "By the definition of the extended transition function, δ̂(qi, λ) equals:",
+   "choices": [
+    "qi",
+    "q0",
+    "∅",
+    "Undefined, since λ is not a symbol"
+   ],
+   "answer": 0,
+   "explain": "This is the length-0 case. With no input the machine doesn't move, so it stays in qi."
+  },
+  {
+   "type": "mc",
+   "category": "Extended transition function",
+   "q": "In the recursive case of the definition of δ̂, a string w with |w| > 1 is written w = ua, where a ∈ Σ. Which set does u belong to?",
+   "choices": [
+    "Σ⁺, strings of length at least 1",
+    "Σ*, all strings including λ",
+    "Σ, single symbols only",
+    "{λ}, only the empty string"
+   ],
+   "answer": 0,
+   "explain": "w has at least two symbols and a is one of them, so u has at least one symbol: u ∈ Σ⁺. The slides leave this condition out."
+  },
+  {
+   "type": "mc",
+   "category": "Extended transition function",
+   "q": "Which is the recursive case of the definition of δ̂ for w = ua (u ∈ Σ⁺, a ∈ Σ)?",
+   "choices": [
+    "δ̂(qi, ua) = δ(δ̂(qi, u), a)",
+    "δ̂(qi, ua) = δ̂(δ(qi, a), u)",
+    "δ̂(qi, ua) = δ(qi, u) ∪ δ(qi, a)",
+    "δ̂(qi, ua) = δ̂(qi, u)"
+   ],
+   "answer": 0,
+   "explain": "First process u to reach some state, then take one ordinary transition on the last symbol a. The second choice reads a before u, which is the wrong order for ua."
+  },
+  {
+   "type": "mc",
+   "category": "Extended transition function",
+   "q": "Which set is the language of a DFA M = (Q, Σ, δ, q0, F)?",
+   "choices": [
+    "{w ∈ Σ* | δ̂(q0, w) ∈ F}",
+    "{w ∈ Σ* | δ̂(q0, w) = q0}",
+    "{w ∈ Σ* | δ̂(q, w) ∈ F for some q ∈ Q}",
+    "{w ∈ Σ* | δ(q0, a) ∈ F for the first symbol a of w}"
+   ],
+   "answer": 0,
+   "explain": "A string is accepted when processing all of it from the start state ends in a final state."
+  },
+  {
+   "type": "tf",
+   "category": "Extended transition function",
+   "q": "δ̂(qi, w) = qj says the same thing as the configuration notation [qi, w] ⊢* [qj, λ].",
+   "answer": true,
+   "explain": "Both say that starting in qi with w left to read, the machine ends in qj with nothing left to read."
+  },
+  {
+   "type": "text",
+   "category": "Extended transition function",
+   "q": "DFA over {a, b} with start q0 and one final state, q5. Transitions: q0: a→q1, b→q3; q1: a→q1, b→q2; q2: a→q2, b→q5; q3: a→q3, b→q4; q4: a→q4, b→q5; q5: a→q5, b→q5. What is δ̂(q0, aab)? (Give the state, e.g. q4.)",
+   "answer": [
+    "q2",
+    "Q2",
+    "q_2"
+   ],
+   "explain": "δ̂(q0, aab) = δ(δ̂(q0, aa), b) = δ(δ(δ(q0, a), a), b) = δ(δ(q1, a), b) = δ(q1, b) = q2."
+  },
+  {
+   "type": "text",
+   "category": "Extended transition function",
+   "q": "DFA over {a, b} with start q0 and one final state, q5. Transitions: q0: a→q1, b→q3; q1: a→q1, b→q2; q2: a→q2, b→q5; q3: a→q3, b→q4; q4: a→q4, b→q5; q5: a→q5, b→q5. What is δ̂(q3, abb)? (Give the state, e.g. q4.)",
+   "answer": [
+    "q5",
+    "Q5",
+    "q_5"
+   ],
+   "explain": "q3 goes to q3 on a, then to q4 on b, then to q5 on b. So δ̂(q3, abb) = δ(δ(δ(q3, a), b), b) = δ(q4, b) = q5."
+  },
+  {
+   "type": "mc",
+   "category": "Extended transition function",
+   "q": "DFA over {a, b} with start q0 and one final state, q5. Transitions: q0: a→q1, b→q3; q1: a→q1, b→q2; q2: a→q2, b→q5; q3: a→q3, b→q4; q4: a→q4, b→q5; q5: a→q5, b→q5. What is δ̂(q1, ba)?",
+   "choices": [
+    "q2",
+    "q1",
+    "q3",
+    "q5"
+   ],
+   "answer": 0,
+   "explain": "q1 goes to q2 on b, and q2 loops on a, so the machine ends in q2."
+  },
+  {
+   "type": "mc",
+   "category": "Equivalent states",
+   "q": "States qi and qj of a DFA are equivalent (indistinguishable) when:",
+   "choices": [
+    "for every string u, δ̂(qi, u) ∈ F exactly when δ̂(qj, u) ∈ F",
+    "for some string u, δ̂(qi, u) ∈ F and δ̂(qj, u) ∈ F",
+    "δ(qi, a) = δ(qj, a) for every symbol a",
+    "qi and qj are both final or both non-final"
+   ],
+   "answer": 0,
+   "explain": "Every string must get the same verdict from both states: accepted from both or rejected from both. Agreeing on finality only covers the string λ."
+  },
+  {
+   "type": "tf",
+   "category": "Equivalent states",
+   "q": "Two states of a DFA can be equivalent only if the parts of the diagram reachable from them look alike.",
+   "answer": false,
+   "explain": "Only behavior matters, meaning which strings are accepted and which are rejected from each state. The diagrams can look completely different, as long as you 'see the same behavior on the horizon' from both."
+  },
+  {
+   "type": "multi",
+   "category": "Equivalent states",
+   "q": "Indistinguishability of states is a binary relation on Q. Which properties does it have?",
+   "choices": [
+    "Reflexive",
+    "Symmetric",
+    "Transitive",
+    "Antisymmetric"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "It is an equivalence relation, so it splits Q into equivalence classes. Because it is symmetric, the minimization tables only need the entries with i < j."
+  },
+  {
+   "type": "tf",
+   "category": "Equivalent states",
+   "q": "If one of two states is final and the other is not, the empty string λ distinguishes them.",
+   "answer": true,
+   "explain": "δ̂(q, λ) = q, so λ is accepted from the final state and rejected from the other. This is why the algorithm first marks every final/non-final pair."
+  },
+  {
+   "type": "mc",
+   "category": "Equivalent states",
+   "q": "DFA over {a, b} with start q0 and one final state, q5. Transitions: q0: a→q1, b→q3; q1: a→q1, b→q2; q2: a→q2, b→q5; q3: a→q3, b→q4; q4: a→q4, b→q5; q5: a→q5, b→q5. Which pair of states is equivalent?",
+   "choices": [
+    "q2 and q4",
+    "q0 and q1",
+    "q2 and q3",
+    "q4 and q5"
+   ],
+   "answer": 0,
+   "explain": "From q2 or q4, a loops in place and b goes to q5, which stays final. So a string is accepted from either state exactly when it contains a b. The others are distinguished: q0/q1 by bb, q2/q3 by b, q4/q5 by λ."
+  },
+  {
+   "type": "mc",
+   "category": "Equivalent states",
+   "q": "DFA over {a, b} with start q0 and one final state, q5. Transitions: q0: a→q1, b→q3; q1: a→q1, b→q2; q2: a→q2, b→q5; q3: a→q3, b→q4; q4: a→q4, b→q5; q5: a→q5, b→q5. Which string distinguishes q0 from q3?",
+   "choices": [
+    "bb",
+    "ab",
+    "ba",
+    "b"
+   ],
+   "answer": 0,
+   "explain": "On bb, q0 goes to q3 then q4 (rejected), while q3 goes to q4 then q5 (accepted). ab, ba and b are rejected from both states."
+  },
+  {
+   "type": "mc",
+   "category": "Equivalent states",
+   "q": "Two states of a DFA are said to be distinguishable by the string b. What does that mean?",
+   "choices": [
+    "b is accepted from one state but rejected from the other",
+    "Both states have a b-arrow to the same state",
+    "Both states reject every string that starts with b",
+    "Neither state has an outgoing arrow labeled b"
+   ],
+   "answer": 0,
+   "explain": "Distinguishable by u means u is accepted from one state and rejected from the other. One such string is enough to keep the states from being merged."
+  },
+  {
+   "type": "mc",
+   "category": "Minimal DFA",
+   "q": "Which order of steps takes a regular expression to an optimized machine for it?",
+   "choices": [
+    "Regex → NFA-λ → DFA → minimal DFA",
+    "Regex → DFA → NFA-λ → minimal DFA",
+    "NFA-λ → regex → DFA → minimal DFA",
+    "Regex → NFA-λ → minimal NFA-λ → DFA"
+   ],
+   "answer": 0,
+   "explain": "Build an NFA-λ from the expression (it has lots of λ-arcs), remove nondeterminism with the subset construction, then minimize the DFA. The last step is like optimizing compiled code."
+  },
+  {
+   "type": "tf",
+   "category": "Minimal DFA",
+   "q": "The DFA produced by the subset construction always has the fewest states possible for its language.",
+   "answer": false,
+   "explain": "It can have more states than it needs. In the class example the subset construction gave 4 states, and minimization brought that down to 3."
+  },
+  {
+   "type": "mc",
+   "category": "Minimal DFA",
+   "q": "In class, the subset construction gave a 4-state DFA: X0 = {1,2,3,5,8,9} (start), X1 = {2,3,4,5,7,8,9}, X2 = {2,3,5,6,7,8,9,10,11}, and X3 = {2,3,4,5,7,8,9,12} (the only final state). X0 and X1 both go to X1 on a and to X2 on b. Minimizing gave 3 states. Why could X0 and X1 merge?",
+   "choices": [
+    "Both are non-final and have the same targets on a and b",
+    "Their sets share the NFA states 2, 3, 5, 8 and 9",
+    "Both were created before the final state X3",
+    "X0 is the start state, so it absorbs X1"
+   ],
+   "answer": 0,
+   "explain": "Same finality and identical arrows on every symbol mean every string gets the same verdict from both states. What the sets contain doesn't matter once the DFA is built."
+  },
+  {
+   "type": "mc",
+   "category": "Minimal DFA",
+   "q": "What are the states of the minimized DFA M' built from a DFA M?",
+   "choices": [
+    "The equivalence classes of indistinguishable states",
+    "The states of M that are reachable from q0",
+    "All subsets of the state set Q of M",
+    "The final states of M together with q0"
+   ],
+   "answer": 0,
+   "explain": "Each class of mutually indistinguishable states becomes one state of M'. The start state is [q0], and a class is final when its members are final."
+  },
+  {
+   "type": "mc",
+   "category": "Minimal DFA",
+   "q": "In the minimized DFA M', where does the a-arrow out of the state [qi] go?",
+   "choices": [
+    "[δ(qi, a)]",
+    "[qi]",
+    "[q0]",
+    "δ(qi, a)"
+   ],
+   "answer": 0,
+   "explain": "Pick any member of the class, follow its a-arrow, and go to that state's class. Equivalent states have equivalent successors, so every member gives the same class."
+  },
+  {
+   "type": "tf",
+   "category": "Minimal DFA",
+   "q": "After building M' from the equivalence classes, any state that can't be reached from [q0] is deleted along with its arcs.",
+   "answer": true,
+   "explain": "Unreachable states can't affect which strings are accepted, so they are removed."
+  },
+  {
+   "type": "mc",
+   "category": "Minimal DFA",
+   "q": "DFA over {a, b} with start q0 and one final state, q5. Transitions: q0: a→q1, b→q3; q1: a→q1, b→q2; q2: a→q2, b→q5; q3: a→q3, b→q4; q4: a→q4, b→q5; q5: a→q5, b→q5. Its equivalence classes are {q0}, {q1, q3}, {q2, q4}, {q5}. In the minimized DFA, where does the b-arrow out of {q1, q3} go?",
+   "choices": [
+    "{q2, q4}",
+    "{q1, q3}",
+    "{q5}",
+    "{q0}"
+   ],
+   "answer": 0,
+   "explain": "δ(q1, b) = q2, whose class is {q2, q4}. Using q3 instead gives q4, which is in the same class."
+  },
+  {
+   "type": "multi",
+   "category": "Minimal DFA",
+   "q": "You are designing a 7-state DFA over {a, b, c} so that minimizing it gives exactly the groups {q0, q1}, {q2, q3, q4} and {q5, q6}. For one symbol, which arrangements of that symbol's arrows out of q2, q3 and q4 fit this goal?",
+   "choices": [
+    "All three stay inside {q2, q3, q4}",
+    "All three go into {q5, q6}",
+    "Two stay inside {q2, q3, q4} and one goes into {q5, q6}",
+    "One goes into {q0, q1} and two go into {q5, q6}"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "For each symbol, the arrows out of a group must all stay inside the group or all go into the same other group. The group's states must also be all final or all non-final. A split sends the states into different groups, so some string tells them apart."
+  },
+  {
+   "type": "tf",
+   "category": "Minimal DFA",
+   "q": "When you rearrange arrows in a DFA, you can leave a state with no incoming arrows. Minimization then removes that state because it is unreachable.",
+   "answer": true,
+   "explain": "A state with no way to reach it is deleted, which changes the result as if you had removed states yourself."
+  },
+  {
+   "type": "mc",
+   "category": "Minimal DFA",
+   "q": "A complete DFA over {a, b} has every one of its states final. What does it minimize to?",
+   "choices": [
+    "One state, initial and final, looping on a and b",
+    "Two states: one initial state and one final state",
+    "Itself; a DFA whose states are all final is minimal",
+    "One initial, non-final state looping on a and b"
+   ],
+   "answer": 0,
+   "explain": "From any state every string ends in a final state, so all states are indistinguishable and form one class. The result accepts all of Σ*."
+  },
+  {
+   "type": "tf",
+   "category": "Minimal DFA",
+   "q": "A DFA over {a, b} has non-final start state q0, which goes to final state q1 on both a and b, and q1 loops on a and b. This DFA can be minimized to a single state.",
+   "answer": false,
+   "explain": "q0 and q1 disagree on λ (one is final, the other isn't), so they are distinguishable. The 2-state DFA is already minimal. It accepts Σ⁺."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "To find the indistinguishable states of a 6-state DFA, you set up two 6×6 matrices D and S. Which of their entries are used?",
+   "choices": [
+    "Only those above the diagonal (i < j)",
+    "All 36 entries",
+    "Only those on the diagonal (i = j)",
+    "Only those in row 0 and column 0"
+   ],
+   "answer": 0,
+   "explain": "Distinguishability is symmetric, so [i, j] and [j, i] are the same pair, and a state is never distinguishable from itself. The diagonal and everything below it are shaded out."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "How are the matrices D and S initialized?",
+   "choices": [
+    "Every D entry 0, every S entry ∅",
+    "Every D entry 1, every S entry ∅",
+    "Every D entry 0, S[i,j] = {[i,j]}",
+    "Every D entry 1, S[i,j] = {[i,j]}"
+   ],
+   "answer": 0,
+   "explain": "D holds 0/1 marks, where 1 means distinguishable. S holds sets of pairs waiting on [i, j]. At the start nothing is marked and nobody is waiting."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "What does the first marking step of the algorithm do?",
+   "choices": [
+    "Sets D[i,j] = 1 when exactly one of qi, qj is final",
+    "Sets D[i,j] = 1 when both qi and qj are final",
+    "Sets D[i,j] = 1 when qi and qj share a successor",
+    "Adds [i,j] to S[i,j] when either state is final"
+   ],
+   "answer": 0,
+   "explain": "A final state and a non-final state are distinguishable by λ, so those pairs get a 1 right away."
+  },
+  {
+   "type": "num",
+   "category": "Table-filling algorithm",
+   "q": "A 6-state DFA has exactly one final state. After the first step marks every final/non-final pair, how many pairs [i, j] with i < j are left for the algorithm to examine?",
+   "answer": 10,
+   "explain": "There are C(6, 2) = 15 pairs. The 5 pairs that contain the final state are already marked, which leaves 10."
+  },
+  {
+   "type": "multi",
+   "category": "Table-filling algorithm",
+   "q": "While examining a pair [i, j], which results for a symbol tell you nothing, so you skip that symbol?",
+   "choices": [
+    "Both states go to the same state",
+    "The symbol leads back to the pair [i, j] itself",
+    "The symbol leads to a pair already marked 1",
+    "The symbol leads to a pair not decided yet"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "Landing on one state, or back on the same pair, is a dead end. A pair already marked 1 means [i, j] is distinguishable, so call DIST. An undecided pair may mean recording [i, j] in S."
+  },
+  {
+   "type": "tf",
+   "category": "Table-filling algorithm",
+   "q": "If the first symbol you check sends [i, j] to an undecided pair, you should add [i, j] to that pair's S entry right away, before checking the other symbols.",
+   "answer": false,
+   "explain": "Check the other symbols first. If one of them leads to a marked pair, just call DIST(i, j). Only when no symbol settles it do you record [i, j] in S."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "During the algorithm, the entry S[2,3] contains the pair [0,1]. What does that record?",
+   "choices": [
+    "q0, q1 are distinguishable if q2, q3 are",
+    "q2, q3 are distinguishable if q0, q1 are",
+    "q0, q1, q2 and q3 are all equivalent",
+    "q0, q1 have been marked distinguishable"
+   ],
+   "answer": 0,
+   "explain": "[0,1] is waiting on [2,3]. If [2,3] is ever marked distinguishable, DIST will mark [0,1] too."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "What does the procedure DIST(i, j) do?",
+   "choices": [
+    "Sets D[i,j] = 1, then calls DIST on each pair in S[i,j]",
+    "Sets D[i,j] = 1, then empties every S entry in the table",
+    "Sets D[i,j] = 0, then adds [i,j] to each S entry",
+    "Sets D[i,j] = 1 and leaves the waiting pairs as they are"
+   ],
+   "answer": 0,
+   "explain": "Marking a pair tells every pair waiting on it that it is distinguishable too, and those calls pass the news on recursively."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "The algorithm examines the pair [0,2]. On a it goes to (q1, q2), which isn't decided yet. On b it goes to (q3, q5), and D[3,5] = 1. What happens?",
+   "choices": [
+    "DIST(0,2): they are distinguishable by b",
+    "Add [0,2] to S[1,2] and wait for [1,2]",
+    "Skip both symbols; D[0,2] stays 0 for now",
+    "Add [0,2] to S[3,5] since b reached [3,5]"
+   ],
+   "answer": 0,
+   "explain": "Symbol b leads to a pair already marked, so [0,2] is distinguishable and DIST(0,2) is called. Nothing has to wait on [1,2]."
+  },
+  {
+   "type": "multi",
+   "category": "Table-filling algorithm",
+   "q": "The algorithm examines the pair [0,3]. On a it goes to (q1, q3), and on b it goes to (q3, q4). Neither of those pairs is decided yet. What does the algorithm record?",
+   "choices": [
+    "Add [0,3] to S[1,3]",
+    "Add [0,3] to S[3,4]",
+    "Set D[0,3] = 1",
+    "Add [1,3] and [3,4] to S[0,3]"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "q0 and q3 are distinguishable if [1,3] is or if [3,4] is, so [0,3] goes on both waiting lists. Whichever of them gets marked first will mark [0,3]."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "Later in the algorithm DIST(2,3) is called, and S[2,3] = {[0,1]}. What else happens?",
+   "choices": [
+    "DIST(0,1) is called, so D[0,1] becomes 1",
+    "[0,1] is removed and D[0,1] stays 0",
+    "[2,3] is added to S[0,1]",
+    "Nothing; S only matters at the end"
+   ],
+   "answer": 0,
+   "explain": "DIST marks [2,3] and then recursively calls DIST on everything waiting in S[2,3], so [0,1] is marked too."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "The algorithm examines the pair [2,4]. On a it goes to (q2, q4), the same pair. On b both states go to q5. What happens?",
+   "choices": [
+    "Nothing recorded; D[2,4] stays 0",
+    "DIST(2,4), since b reaches the final q5",
+    "Add [2,4] to S[2,4] and to S[5,5]",
+    "Add [2,4] to S[2,5] and to S[4,5]"
+   ],
+   "answer": 0,
+   "explain": "Both results are dead ends (the same pair, then the same state), so nothing is learned or recorded. Unless something waiting changes it, D[2,4] stays 0 and q2 and q4 can be merged."
+  },
+  {
+   "type": "multi",
+   "category": "Table-filling algorithm",
+   "q": "DFA over {a, b} with start q0 and one final state, q5. Transitions: q0: a→q1, b→q3; q1: a→q1, b→q2; q2: a→q2, b→q5; q3: a→q3, b→q4; q4: a→q4, b→q5; q5: a→q5, b→q5. Run the D/S table algorithm. Which pairs end with D = 0, meaning the two states can be merged?",
+   "choices": [
+    "[1,3]",
+    "[2,4]",
+    "[0,1]",
+    "[3,4]",
+    "[0,3]",
+    "[0,2]"
+   ],
+   "answer": [
+    0,
+    1
+   ],
+   "explain": "[2,4] learns nothing on either symbol, so it stays 0. [1,3] waits only in S[2,4], which is never marked, so it stays 0 too. [0,1] and [0,3] are marked through S when DIST(2,3) and DIST(3,4) run. [0,2] is marked by b. The classes are {q0}, {q1,q3}, {q2,q4}, {q5}."
+  }
+ ]
+}
