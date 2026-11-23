@@ -1,0 +1,605 @@
+{
+ "title": "CSC3710 2026-11-12: Regular Expression to NFA-λ, λ-Closure, Input Transition Function",
+ "course": "CSC3710",
+ "questions": [
+  {
+   "type": "tf",
+   "category": "Regular sets and automata",
+   "q": "Because NFA-λs allow nondeterminism and λ-transitions, they can accept some languages that no DFA accepts.",
+   "answer": false,
+   "explain": "DFAs, NFAs and NFA-λs all accept exactly the regular languages. Nondeterminism and λ-moves feel more powerful, but they don't add any languages to the class."
+  },
+  {
+   "type": "mc",
+   "category": "Regular sets and automata",
+   "q": "Which class of languages do NFA-λs accept?",
+   "choices": [
+    "Exactly the regular languages",
+    "All context-free languages",
+    "A strict superset of the regular languages",
+    "A strict subset of the regular languages"
+   ],
+   "answer": 0,
+   "explain": "NFA-λs accept exactly the regular languages, just like DFAs, NFAs and regular grammars."
+  },
+  {
+   "type": "multi",
+   "category": "Regular sets and automata",
+   "q": "Which sets are in the basis of the recursive definition of regular sets over an alphabet Σ?",
+   "choices": [
+    "∅",
+    "{λ}",
+    "{a} for each a ∈ Σ",
+    "Σ*",
+    "{ab} for a, b ∈ Σ"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "The basis is ∅, {λ}, and {a} for each symbol a. Sets like Σ* and {ab} are regular, but they come from the recursive step, not the basis."
+  },
+  {
+   "type": "multi",
+   "category": "Regular sets and automata",
+   "q": "Which operations appear in the recursive step of the definition of regular sets?",
+   "choices": [
+    "Union",
+    "Concatenation",
+    "Kleene star",
+    "Intersection",
+    "Reversal"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "If X and Y are regular, then X ∪ Y, XY and X* are regular. The construction of NFA-λs has one rule for each of these three operations."
+  },
+  {
+   "type": "tf",
+   "category": "Regular sets and automata",
+   "q": "To show that the set described by (a ∪ b)*ba is regular, {ba} must be built before {a, b}, or the argument fails.",
+   "answer": false,
+   "explain": "Any valid build-up works. {ba} and {a, b}* are independent pieces, so either one can be built first. Only the final concatenation {a, b}*{ba} has to come last."
+  },
+  {
+   "type": "tf",
+   "category": "Regular sets and automata",
+   "q": "The regex-to-NFA-λ construction mirrors the recursive definition of regular sets: one machine for each basis set, plus a way to build a machine for each operation from the machines of its parts. So every regular language has an NFA-λ.",
+   "answer": true,
+   "explain": "Every regular set is produced by the recursive definition, and each step of that definition has a matching machine construction."
+  },
+  {
+   "type": "mc",
+   "category": "NFA-λ construction rules",
+   "q": "The construction keeps every machine in a standard form (given by a lemma). What is that form?",
+   "choices": [
+    "Exactly one start state with no arrows into it and exactly one final state with no arrows out of it",
+    "Exactly one start state with no arrows out of it and exactly one final state with no arrows into it",
+    "No λ-transitions, and every state has exactly one transition for each symbol",
+    "Exactly one start state, and every state except the start state is final"
+   ],
+   "answer": 0,
+   "explain": "Nothing points into the start and nothing leaves the final, so the machine dangles between two handles that can be wired to other machines without creating unintended paths."
+  },
+  {
+   "type": "mc",
+   "category": "NFA-λ construction rules",
+   "q": "Which basis machine accepts ∅?",
+   "choices": [
+    "A start state and a final state with no transitions",
+    "A start state and a final state joined by a λ-transition",
+    "A single state that is both start and final",
+    "A start state and a final state joined by an a-transition"
+   ],
+   "answer": 0,
+   "explain": "With no transitions the final state can't be reached, so nothing is accepted. The λ-joined machine accepts {λ}, and the a-joined machine accepts {a}."
+  },
+  {
+   "type": "mc",
+   "category": "NFA-λ construction rules",
+   "q": "Building a machine for L(M1) ∪ L(M2) adds how many states and λ-transitions?",
+   "choices": [
+    "2 new states and 4 λ-transitions",
+    "0 new states and 1 λ-transition",
+    "1 new state and 2 λ-transitions",
+    "2 new states and 2 λ-transitions"
+   ],
+   "answer": 0,
+   "explain": "Union adds a new start and a new final state, plus λ-transitions from the new start to both old starts and from both old finals to the new final."
+  },
+  {
+   "type": "multi",
+   "category": "NFA-λ construction rules",
+   "q": "M1 has start s1 and final f1, and M2 has start s2 and final f2. For the union, a new start s and a new final f are added. Which λ-transitions are added?",
+   "choices": [
+    "s → s1",
+    "s → s2",
+    "f1 → f",
+    "f2 → f",
+    "f1 → s2",
+    "s → f"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "explain": "Union: λ from s to each old start, and λ from each old final to f. f1 → s2 belongs to concatenation, and s → f belongs to Kleene star."
+  },
+  {
+   "type": "mc",
+   "category": "NFA-λ construction rules",
+   "q": "To build a machine for L(M1)L(M2), where M1 has start s1 and final f1 and M2 has start s2 and final f2, which single λ-transition is added?",
+   "choices": [
+    "f1 → s2",
+    "f2 → s1",
+    "s1 → s2",
+    "f1 → f2"
+   ],
+   "answer": 0,
+   "explain": "Concatenation puts M1 on the left and M2 on the right and joins them with one λ-transition from M1's final to M2's start."
+  },
+  {
+   "type": "multi",
+   "category": "NFA-λ construction rules",
+   "q": "After building the concatenation L(M1)L(M2) (M1: start s1, final f1; M2: start s2, final f2), which statements are true?",
+   "choices": [
+    "f1 is no longer a final state",
+    "s2 is no longer a start state",
+    "f2 is the only final state",
+    "s1 is no longer a start state",
+    "A new start state is added"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "Concatenation adds no states. s1 stays the start, f2 becomes the only final, f1 loses its final status, and s2 loses its start status."
+  },
+  {
+   "type": "tf",
+   "category": "NFA-λ construction rules",
+   "q": "In the concatenation construction, it doesn't matter which machine goes on the left and which goes on the right.",
+   "answer": false,
+   "explain": "Order matters. For L(M1)L(M2), M1's machine goes on the left, because XY and YX are generally different languages."
+  },
+  {
+   "type": "multi",
+   "category": "NFA-λ construction rules",
+   "q": "For the Kleene star L(M1)*, a new start and a new final state are added. Which four λ-transitions are added?",
+   "choices": [
+    "new start → new final",
+    "old final → old start",
+    "new start → old start",
+    "old final → new final",
+    "old start → old final",
+    "new final → new start"
+   ],
+   "answer": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "explain": "Star: new start → new final (accepts λ), old final → old start (repeat), new start → old start (enter M1), old final → new final (exit). The old final loses its final status."
+  },
+  {
+   "type": "mc",
+   "category": "NFA-λ construction rules",
+   "q": "In the Kleene star construction, what is the λ-transition from the new start state to the new final state for?",
+   "choices": [
+    "It lets the machine accept λ (zero repetitions)",
+    "It lets the machine repeat M1's language",
+    "It connects the star machine to the next piece",
+    "It keeps the new final state free of outgoing arrows"
+   ],
+   "answer": 0,
+   "explain": "X* always contains λ. The direct λ from the new start to the new final accepts zero repetitions. Repeating comes from the old final → old start transition."
+  },
+  {
+   "type": "tf",
+   "category": "NFA-λ construction rules",
+   "q": "In the Kleene star construction, the λ-transition from the old final state back to the old start state is what lets M1's language be repeated.",
+   "answer": true,
+   "explain": "After one pass through M1, the λ from the old final back to the old start lets the machine go around again."
+  },
+  {
+   "type": "mc",
+   "category": "NFA-λ construction rules",
+   "q": "Which operation in the construction adds no new states?",
+   "choices": [
+    "Concatenation",
+    "Union",
+    "Kleene star",
+    "Each operation adds 2 new states"
+   ],
+   "answer": 0,
+   "explain": "Concatenation adds only one λ-transition (f1 → s2). Union and star each add 2 states and 4 λ-transitions."
+  },
+  {
+   "type": "mc",
+   "category": "NFA-λ construction rules",
+   "q": "A machine for a*b that is NOT in standard form: start q0 has an a-loop, q0 –b→ q1, and q1 is final. A shortcut for star makes q0 final and adds a λ from q1 to q0. Which string does the result wrongly accept as part of (a*b)*?",
+   "choices": [
+    "a",
+    "b",
+    "λ",
+    "ab"
+   ],
+   "answer": 0,
+   "explain": "Every nonempty string in (a*b)* ends in b. With q0 final, reading a loops on q0 and stops in a final state, so a is accepted. The theorem's new states and standard-form machines prevent paths like this."
+  },
+  {
+   "type": "num",
+   "category": "Applying the construction",
+   "q": "Following the construction exactly (no simplifying), how many states does the NFA-λ for (a ∪ b)*ba have?",
+   "answer": 12,
+   "explain": "4 basis machines × 2 states = 8, plus 2 for the union and 2 for the star, gives 12. Concatenations add no states."
+  },
+  {
+   "type": "num",
+   "category": "Applying the construction",
+   "q": "Following the construction exactly, how many λ-transitions does the NFA-λ for (a ∪ b)*ba have?",
+   "answer": 10,
+   "explain": "Union 4 + star 4 + concatenation for ba 1 + final concatenation 1 = 10. There are also 4 symbol transitions."
+  },
+  {
+   "type": "num",
+   "category": "Applying the construction",
+   "q": "Without drawing it, how many states does the construction produce for (ab)* ∪ a?",
+   "answer": 10,
+   "explain": "Basis machines for a, b, a give 6 states. ab adds 0, (ab)* adds 2, and the union with a adds 2. Total 10 (with 9 λ-transitions)."
+  },
+  {
+   "type": "num",
+   "category": "Applying the construction",
+   "q": "Without drawing it, how many states does the construction produce for a*b*?",
+   "answer": 8,
+   "explain": "Each basis machine has 2 states and each star adds 2, so a* and b* have 4 states each. The concatenation adds none. Total 8."
+  },
+  {
+   "type": "num",
+   "category": "Applying the construction",
+   "q": "Without drawing it, how many λ-transitions does the construction produce for (a ∪ b)(a ∪ b)?",
+   "answer": 9,
+   "explain": "Each union adds 4 λ-transitions (8 total), and the concatenation adds 1. Total 9."
+  },
+  {
+   "type": "num",
+   "category": "Applying the construction",
+   "q": "Following the construction exactly, how many λ-transitions does the NFA-λ for a*b have?",
+   "answer": 5,
+   "explain": "The star on a adds 4 λ-transitions and the concatenation with b adds 1. Total 5 (and 6 states)."
+  },
+  {
+   "type": "tf",
+   "category": "Applying the construction",
+   "q": "When applying the construction, you should delete λ-transitions that are obviously unnecessary, such as the one inside the machine for ba, to keep the machine correct.",
+   "answer": false,
+   "explain": "Don't simplify. The theorem is generic and works on any machines, and simplifying by hand is a common source of errors. The goal here is not minimization."
+  },
+  {
+   "type": "tf",
+   "category": "Applying the construction",
+   "q": "Every concatenation in the construction gets its own λ-transition, even when it joins two single-symbol machines like the ones for b and a.",
+   "answer": true,
+   "explain": "Concatenation always adds one λ from the left machine's final to the right machine's start. Skipping it is an error."
+  },
+  {
+   "type": "mc",
+   "category": "Applying the construction",
+   "q": "Why should you follow the construction exactly instead of simplifying while you build?",
+   "choices": [
+    "The theorem is generic, and shortcuts often break the machine",
+    "Removing a λ-transition always changes the start state",
+    "A DFA can only be built from an unsimplified NFA-λ",
+    "Simplified machines can never accept the empty string"
+   ],
+   "answer": 0,
+   "explain": "The construction is guaranteed correct for any machines in standard form. Ad hoc shortcuts can add or remove accepted strings."
+  },
+  {
+   "type": "mc",
+   "category": "Applying the construction",
+   "q": "When building the NFA-λ for (a ∪ b)*ba from its parts, which operation is applied last?",
+   "choices": [
+    "Concatenate the (a ∪ b)* machine with the ba machine",
+    "Apply Kleene star to the a ∪ b machine",
+    "Take the union of the a machine and the b machine",
+    "Concatenate the b machine with the a machine"
+   ],
+   "answer": 0,
+   "explain": "The outermost operation is the concatenation of (a ∪ b)* with ba, so that step comes last. The other steps build its parts."
+  },
+  {
+   "type": "mc",
+   "category": "Applying the construction",
+   "q": "In the NFA-λ for (a ∪ b)*ba, the union machine for a ∪ b has start 2 and final 7. The star step adds a new start 1 and a new final 8. Which rule produced the λ-transition 1 → 8?",
+   "choices": [
+    "Kleene star: new start to new final",
+    "Kleene star: old final to new final",
+    "Union: new start to old start",
+    "Concatenation of the star machine with ba"
+   ],
+   "answer": 0,
+   "explain": "1 is the star's new start and 8 is its new final. The λ from 1 to 8 lets the star accept λ."
+  },
+  {
+   "type": "tf",
+   "category": "Applying the construction",
+   "q": "In the NFA-λ for (a ∪ b)*ba, the union machine for a ∪ b has start 2 and final 7, and the star step wraps it with new states 1 and 8. The λ-transition 7 → 2 is the star's old-final-to-old-start transition.",
+   "answer": true,
+   "explain": "7 is the old final and 2 is the old start of the machine being starred, so 7 → 2 is the repeat transition."
+  },
+  {
+   "type": "tf",
+   "category": "λ-closure",
+   "q": "λ-closure(q) can be the empty set.",
+   "answer": false,
+   "explain": "By the basis of the definition, q ∈ λ-closure(q), so it is never empty."
+  },
+  {
+   "type": "mc",
+   "category": "λ-closure",
+   "q": "What is λ-closure(q)?",
+   "choices": [
+    "States reachable from q by zero or more λ-moves, including q",
+    "States reachable from q by exactly one λ-transition",
+    "States reachable from q by reading one input symbol",
+    "States that have a λ-transition pointing into q"
+   ],
+   "answer": 0,
+   "explain": "λ-closure(q) is q plus every state reachable for free (without reading input) through any chain of λ-transitions."
+  },
+  {
+   "type": "tf",
+   "category": "λ-closure",
+   "q": "If q –λ→ p and p –λ→ r, then r ∈ λ-closure(q).",
+   "answer": true,
+   "explain": "The recursive step follows chains: p is in the closure, and r is one λ-step from p, so r is in the closure too."
+  },
+  {
+   "type": "tf",
+   "category": "λ-closure",
+   "q": "If no λ-transitions leave state q, then λ-closure(q) = {q}.",
+   "answer": true,
+   "explain": "Nothing is reachable for free, so only q itself (from the basis) is in its closure."
+  },
+  {
+   "type": "mc",
+   "category": "λ-closure",
+   "q": "An NFA-λ has states q0, q1, q2, and its only λ-transition is q2 → q1. What is λ-closure(q2)?",
+   "choices": [
+    "{q1, q2}",
+    "{q1}",
+    "{q2}",
+    "{q0, q1, q2}"
+   ],
+   "answer": 0,
+   "explain": "q2 is in its own closure (basis), and q1 is reachable by the λ-transition."
+  },
+  {
+   "type": "mc",
+   "category": "λ-closure",
+   "q": "An NFA-λ has states q0–q3 and transitions q0 –λ→ q1, q0 –a→ q1, q0 –b→ q2, q1 –b→ q1, q1 –b→ q3, q2 –λ→ q3, q3 –a→ q0, q3 –b→ q2. What is λ-closure(q2)?",
+   "choices": [
+    "{q2, q3}",
+    "{q3}",
+    "{q2}",
+    "{q0, q1, q2, q3}"
+   ],
+   "answer": 0,
+   "explain": "q3 is reachable by λ, and q2 itself belongs by the basis. Leaving out the state itself is a common mistake."
+  },
+  {
+   "type": "mc",
+   "category": "λ-closure",
+   "q": "The NFA-λ for (a ∪ b)*ba has states 1–12 (start 1, final 12), λ-transitions 1→2, 1→8, 2→3, 2→5, 4→7, 6→7, 7→2, 7→8, 8→9, 10→11, and symbol transitions 3 –a→ 4, 5 –b→ 6, 9 –b→ 10, 11 –a→ 12. What is λ-closure(1)?",
+   "choices": [
+    "{1, 2, 3, 5, 8, 9}",
+    "{2, 3, 5, 8, 9}",
+    "{1, 2, 8}",
+    "{1, 2, 3, 5, 8, 9, 10}"
+   ],
+   "answer": 0,
+   "explain": "From 1: λ to 2 and 8, from 2 to 3 and 5, from 8 to 9. Include 1 itself. 10 needs a b-step, so it isn't free."
+  },
+  {
+   "type": "mc",
+   "category": "λ-closure",
+   "q": "The NFA-λ for (a ∪ b)*ba has states 1–12 (start 1, final 12), λ-transitions 1→2, 1→8, 2→3, 2→5, 4→7, 6→7, 7→2, 7→8, 8→9, 10→11, and symbol transitions 3 –a→ 4, 5 –b→ 6, 9 –b→ 10, 11 –a→ 12. What is λ-closure(4)?",
+   "choices": [
+    "{2, 3, 4, 5, 7, 8, 9}",
+    "{4, 7}",
+    "{4, 7, 8, 9}",
+    "{4, 7, 8, 9, 10}"
+   ],
+   "answer": 0,
+   "explain": "4 → 7, then 7 → 8 → 9 and 7 → 2 → 3, 5. Plus 4 itself. Forgetting 7 → 2 gives the incomplete {4, 7, 8, 9}."
+  },
+  {
+   "type": "multi",
+   "category": "λ-closure",
+   "q": "The NFA-λ for (a ∪ b)*ba has states 1–12 (start 1, final 12), λ-transitions 1→2, 1→8, 2→3, 2→5, 4→7, 6→7, 7→2, 7→8, 8→9, 10→11, and symbol transitions 3 –a→ 4, 5 –b→ 6, 9 –b→ 10, 11 –a→ 12. Which of these states are in λ-closure(6)?",
+   "choices": [
+    "1",
+    "2",
+    "5",
+    "6",
+    "8",
+    "10"
+   ],
+   "answer": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "fixed": true,
+   "explain": "λ-closure(6) = {2, 3, 5, 6, 7, 8, 9}. 1 has no λ-transitions pointing into it, and 10 is only reachable by reading b."
+  },
+  {
+   "type": "mc",
+   "category": "λ-closure",
+   "q": "The NFA-λ for (a ∪ b)*ba has states 1–12 (start 1, final 12), λ-transitions 1→2, 1→8, 2→3, 2→5, 4→7, 6→7, 7→2, 7→8, 8→9, 10→11, and symbol transitions 3 –a→ 4, 5 –b→ 6, 9 –b→ 10, 11 –a→ 12. What is λ-closure(7)?",
+   "choices": [
+    "{2, 3, 5, 7, 8, 9}",
+    "{7, 8, 9}",
+    "{2, 7, 8}",
+    "{2, 3, 4, 5, 7, 8, 9}"
+   ],
+   "answer": 0,
+   "explain": "7 → 2 → 3, 5 and 7 → 8 → 9, plus 7 itself. 4 needs an a-step from 3, so it isn't included."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "How is t(q, a) computed?",
+   "choices": [
+    "λ-closure of q, then one a-step, then λ-closure of each landing state",
+    "One a-step from q, then the λ-closure of q itself",
+    "λ-closure of q, then any number of a-steps, then λ-closure",
+    "λ-closure of q, then one a-step, with no closure afterward"
+   ],
+   "answer": 0,
+   "explain": "t(q, a) = λ*, then exactly one a, then λ*: the union of λ-closure(δ(qj, a)) over every qj in λ-closure(q)."
+  },
+  {
+   "type": "tf",
+   "category": "Input transition function",
+   "q": "Unlike λ-closure(q), t(q, a) can be the empty set.",
+   "answer": true,
+   "explain": "If no state in λ-closure(q) has an a-step, then t(q, a) = ∅. For example, t(3, b) = ∅ in the machine for (a ∪ b)*ba."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "An NFA-λ has states q0–q3 and transitions q0 –λ→ q1, q0 –a→ q1, q0 –b→ q2, q1 –b→ q1, q1 –b→ q3, q2 –λ→ q3, q3 –a→ q0, q3 –b→ q2. What is t(q2, a)?",
+   "choices": [
+    "{q0, q1}",
+    "∅",
+    "{q0}",
+    "{q0, q1, q3}"
+   ],
+   "answer": 0,
+   "explain": "q2 has no a-step, but λ-closure(q2) = {q2, q3}, and q3 –a→ q0. λ-closure(q0) = {q0, q1}. Always start from the whole closure, not just q."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "An NFA-λ has states q0–q3 and transitions q0 –λ→ q1, q0 –a→ q1, q0 –b→ q2, q1 –b→ q1, q1 –b→ q3, q2 –λ→ q3, q3 –a→ q0, q3 –b→ q2. What is t(q0, b)?",
+   "choices": [
+    "{q1, q2, q3}",
+    "{q2, q3}",
+    "{q2}",
+    "{q1, q3}"
+   ],
+   "answer": 0,
+   "explain": "λ-closure(q0) = {q0, q1}. q0 –b→ q2 gives {q2, q3}. q1 –b→ q1 and q1 –b→ q3 give {q1} and {q3}. The union is {q1, q2, q3}."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "An NFA-λ has states q0–q3 and transitions q0 –λ→ q1, q0 –a→ q1, q0 –b→ q2, q1 –b→ q1, q1 –b→ q3, q2 –λ→ q3, q3 –a→ q0, q3 –b→ q2. t(q3, a) = {q0, q1}. Why is q1 in it?",
+   "choices": [
+    "One a-step lands on q0, and the λ-move q0 → q1 adds q1",
+    "The a is read twice: q3 to q0, then q0 to q1",
+    "q1 is in λ-closure(q3), so it is always included",
+    "q1 can be reached from q3 by reading b and then a"
+   ],
+   "answer": 0,
+   "explain": "t allows exactly one symbol step. q3 –a→ q0, and the closure after landing adds q1 through λ. It is not a second a-step."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "The NFA-λ for (a ∪ b)*ba has states 1–12 (start 1, final 12), λ-transitions 1→2, 1→8, 2→3, 2→5, 4→7, 6→7, 7→2, 7→8, 8→9, 10→11, and symbol transitions 3 –a→ 4, 5 –b→ 6, 9 –b→ 10, 11 –a→ 12. What is t(1, b)?",
+   "choices": [
+    "{2, 3, 5, 6, 7, 8, 9, 10, 11}",
+    "{6, 10}",
+    "{2, 3, 5, 6, 7, 8, 9}",
+    "{10, 11}"
+   ],
+   "answer": 0,
+   "explain": "λ-closure(1) = {1, 2, 3, 5, 8, 9}. The b-steps are 5 → 6 and 9 → 10. λ-closure(6) ∪ λ-closure(10) = {2, 3, 5, 6, 7, 8, 9} ∪ {10, 11}. {6, 10} forgets the closure after landing."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "The NFA-λ for (a ∪ b)*ba has states 1–12 (start 1, final 12), λ-transitions 1→2, 1→8, 2→3, 2→5, 4→7, 6→7, 7→2, 7→8, 8→9, 10→11, and symbol transitions 3 –a→ 4, 5 –b→ 6, 9 –b→ 10, 11 –a→ 12. What is t(9, b)?",
+   "choices": [
+    "{10, 11}",
+    "{10, 11, 12}",
+    "{10}",
+    "{9, 10, 11}"
+   ],
+   "answer": 0,
+   "explain": "9 –b→ 10, and λ-closure(10) = {10, 11}. Reaching 12 would also need 11 –a→ 12, a second symbol step."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "The NFA-λ for (a ∪ b)*ba has states 1–12 (start 1, final 12), λ-transitions 1→2, 1→8, 2→3, 2→5, 4→7, 6→7, 7→2, 7→8, 8→9, 10→11, and symbol transitions 3 –a→ 4, 5 –b→ 6, 9 –b→ 10, 11 –a→ 12. What is t(3, b)?",
+   "choices": [
+    "∅",
+    "{6}",
+    "{3}",
+    "{2, 3, 5, 6, 7, 8, 9}"
+   ],
+   "answer": 0,
+   "explain": "λ-closure(3) = {3}, and 3 has no b-step, so there is nowhere to land."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "The NFA-λ for (a ∪ b)*ba has states 1–12 (start 1, final 12), λ-transitions 1→2, 1→8, 2→3, 2→5, 4→7, 6→7, 7→2, 7→8, 8→9, 10→11, and symbol transitions 3 –a→ 4, 5 –b→ 6, 9 –b→ 10, 11 –a→ 12. What is t(2, a)?",
+   "choices": [
+    "{2, 3, 4, 5, 7, 8, 9}",
+    "{4}",
+    "{4, 7}",
+    "{2, 3, 4, 5, 7, 8, 9, 12}"
+   ],
+   "answer": 0,
+   "explain": "λ-closure(2) = {2, 3, 5}. Only 3 has an a-step (to 4), and λ-closure(4) = {2, 3, 4, 5, 7, 8, 9}."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "The NFA-λ for (a ∪ b)*ba has states 1–12 (start 1, final 12), λ-transitions 1→2, 1→8, 2→3, 2→5, 4→7, 6→7, 7→2, 7→8, 8→9, 10→11, and symbol transitions 3 –a→ 4, 5 –b→ 6, 9 –b→ 10, 11 –a→ 12. What is t(10, a)?",
+   "choices": [
+    "{12}",
+    "∅",
+    "{11, 12}",
+    "{10, 11, 12}"
+   ],
+   "answer": 0,
+   "explain": "10 has no a-step, but λ-closure(10) = {10, 11}, and 11 –a→ 12. λ-closure(12) = {12}."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "While computing t(1, b), you use the step 5 –b→ 6. What goes into the result from this step?",
+   "choices": [
+    "λ-closure(6)",
+    "λ-closure(5)",
+    "λ-closure(1)",
+    "Only {6}, with no closure"
+   ],
+   "answer": 0,
+   "explain": "Take the λ-closure of the state you land on (6), not the state you stepped from, and not just the landed state by itself."
+  },
+  {
+   "type": "tf",
+   "category": "Input transition function",
+   "q": "In the machine for (a ∪ b)*ba, once b is used on 5 –b→ 6 while computing t(1, b), it is used up, so the path 1 ⇝ 8 ⇝ 9 –b→ 10 can't also add to t(1, b).",
+   "answer": false,
+   "explain": "Different paths are separate scenarios, and each one uses b exactly once. t(1, b) is the union of all of them, so both λ-closure(6) and λ-closure(10) are included."
+  }
+ ]
+}
