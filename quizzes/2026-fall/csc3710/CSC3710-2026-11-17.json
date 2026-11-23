@@ -1,0 +1,420 @@
+{
+ "title": "CSC3710 2026-11-17: Removing Nondeterminism (NFA-λ to DFA)",
+ "course": "CSC3710",
+ "questions": [
+  {
+   "type": "tf",
+   "category": "Lambda closure",
+   "q": "The λ-closure of a state can be the empty set if that state has no outgoing λ-transitions.",
+   "answer": false,
+   "explain": "A λ-closure always contains the state itself, so it is never empty. A state with no λ-arrows has the closure {q}. For example, λ-closure(11) = {11}."
+  },
+  {
+   "type": "mc",
+   "category": "Lambda closure",
+   "q": "An NFA-λ has the λ-transitions 1→2, 1→8, 2→3, 2→5 and 8→9, and no other λ-transitions leave these states. What is λ-closure(1)?",
+   "choices": [
+    "{1, 2, 3, 5, 8, 9}",
+    "{2, 3, 5, 8, 9}",
+    "{1, 2, 8}",
+    "{2, 8}"
+   ],
+   "answer": 0,
+   "explain": "Include 1 itself, then follow λ-arrows transitively: 1→2→3, 1→2→5, 1→8→9. That gives {1, 2, 3, 5, 8, 9}."
+  },
+  {
+   "type": "multi",
+   "category": "Lambda closure",
+   "q": "An NFA-λ has the λ-transitions 7→2, 7→8, 2→3, 2→5 and 8→9. States 3, 5 and 9 have no λ-transitions. Which states are in λ-closure(7)?",
+   "choices": [
+    "2",
+    "3",
+    "4",
+    "5",
+    "7",
+    "8",
+    "9",
+    "10"
+   ],
+   "answer": [
+    0,
+    1,
+    3,
+    4,
+    5,
+    6
+   ],
+   "fixed": true,
+   "explain": "λ-closure(7) contains 7 itself plus everything reachable using only λ-arrows: 2 and 8 directly, then 3 and 5 through 2, and 9 through 8. So it is {2, 3, 5, 7, 8, 9}."
+  },
+  {
+   "type": "mc",
+   "category": "Lambda closure",
+   "q": "For a set of states X, how is λ-closure(X) defined?",
+   "choices": [
+    "The union of λ-closure(q) over every q in X",
+    "The intersection of λ-closure(q) over every q in X",
+    "The λ-closure of the smallest-numbered state in X",
+    "The set X itself, since closures apply only to single states"
+   ],
+   "answer": 0,
+   "explain": "The closure of a set is the union of the closures of its members. The textbook left this out, but the definition of the input transition function needs it."
+  },
+  {
+   "type": "tf",
+   "category": "Lambda closure",
+   "q": "λ-closure(∅) = ∅.",
+   "answer": true,
+   "explain": "With no members there is nothing to take closures of, so the result is the empty set. This case matters because δ(q, a) is often empty."
+  },
+  {
+   "type": "mc",
+   "category": "Lambda closure",
+   "q": "Why does the definition of the input transition function t need the λ-closure of a set of states, not just of a single state?",
+   "choices": [
+    "Because δ(q, a) in an NFA-λ returns a set of states",
+    "Because the DFA's start state is always the set Q",
+    "Because λ-transitions can only leave final states",
+    "Because t must return exactly one state per symbol"
+   ],
+   "answer": 0,
+   "explain": "In an NFA-λ, δ(q_j, a) is a set of states that may be empty. The definition takes λ-closure(δ(q_j, a)), so it needs the closure of a set."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "Which expression defines the input transition function t(q_i, a) of an NFA-λ with transition function δ?",
+   "choices": [
+    "Union over q_j in λ-closure(q_i) of λ-closure(δ(q_j, a))",
+    "Union over q_j in λ-closure(q_i) of δ(q_j, a)",
+    "λ-closure(δ(q_i, a)), using only q_i itself",
+    "Sum over q_j in λ-closure(q_i) of |δ(q_j, a)|"
+   ],
+   "answer": 0,
+   "explain": "Take λ-moves first (every q_j in λ-closure(q_i)), take one a-step from each, take λ-moves after (the closure of where you land), and union everything. The big symbol is set union, not summation."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "An NFA-λ over {a, b} has states Q0 (start), Q1 (final) and Q2, with transitions Q0 –a→ Q0, Q0 –a→ Q1, Q0 –a→ Q2, Q1 –b→ Q1 and Q2 –λ→ Q1. What is t(Q2, b)?",
+   "choices": [
+    "{Q1}",
+    "∅",
+    "{Q1, Q2}",
+    "{Q2}"
+   ],
+   "answer": 0,
+   "explain": "λ-closure(Q2) = {Q1, Q2}. Q2 has no b-arrow, but Q1 goes to Q1 on b, and λ-closure(Q1) = {Q1}. Answering ∅ means you forgot the closure before the step."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "An NFA-λ over {a, b} has states Q0 (start), Q1 (final) and Q2, with transitions Q0 –a→ Q0, Q0 –a→ Q1, Q0 –a→ Q2, Q1 –b→ Q1 and Q2 –λ→ Q1. What is t(Q2, a)?",
+   "choices": [
+    "∅",
+    "{Q1}",
+    "{Q2}",
+    "{Q0, Q1, Q2}"
+   ],
+   "answer": 0,
+   "explain": "λ-closure(Q2) = {Q1, Q2}, and neither Q1 nor Q2 has an a-arrow. No state in the closure can step on a, so t(Q2, a) = ∅."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "In an NFA-λ, λ-closure(4) = {2, 3, 4, 5, 7, 8, 9}. Among these states, the only symbol arrows are 3 –a→ 4, 5 –b→ 6 and 9 –b→ 10. What is t(4, a)?",
+   "choices": [
+    "{2, 3, 4, 5, 7, 8, 9}",
+    "{2, 3, 5, 7, 8, 9}",
+    "{4}",
+    "{3, 4}"
+   ],
+   "answer": 0,
+   "explain": "Go through the closure of 4: only 3 can step on a, and it lands on 4. Then take λ-closure(4) = {2, 3, 4, 5, 7, 8, 9}. Writing {4} forgets the closure after the step."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "In an NFA-λ, λ-closure(4) = {2, 3, 4, 5, 7, 8, 9}. Among these states, the only symbol arrows are 3 –a→ 4, 5 –b→ 6 and 9 –b→ 10. Also λ-closure(6) = {2, 3, 5, 6, 7, 8, 9} and λ-closure(10) = {10, 11}. What is t(4, b)?",
+   "choices": [
+    "{2, 3, 5, 6, 7, 8, 9, 10, 11}",
+    "{2, 3, 5, 6, 7, 8, 9}",
+    "{6, 10}",
+    "{10, 11}"
+   ],
+   "answer": 0,
+   "explain": "Two members of the closure step on b: 5 goes to 6 and 9 goes to 10. Union their closures: {2, 3, 5, 6, 7, 8, 9} ∪ {10, 11}."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "In an NFA-λ, λ-closure(10) = {10, 11}. State 10 has no a-arrow, 11 –a→ 12, and state 12 has no λ-transitions. What is t(10, a)?",
+   "choices": [
+    "{12}",
+    "∅",
+    "{11, 12}",
+    "{10, 11, 12}"
+   ],
+   "answer": 0,
+   "explain": "11 is in the closure of 10 and steps to 12 on a. λ-closure(12) = {12}, so t(10, a) = {12}."
+  },
+  {
+   "type": "tf",
+   "category": "Input transition function",
+   "q": "If no state in λ-closure(q) has an arrow on symbol a, then t(q, a) = ∅.",
+   "answer": true,
+   "explain": "Every δ(q_j, a) is empty, their closures are empty, and a union of empty sets is ∅ (A ∪ ∅ = A)."
+  },
+  {
+   "type": "mc",
+   "category": "Input transition function",
+   "q": "State 9 has no λ-transitions, 9 –b→ 10, and λ-closure(10) = {10, 11}. A student writes t(9, b) = {10}. What did the student forget?",
+   "choices": [
+    "The λ-closure after taking the b-step",
+    "The λ-closure before taking the b-step",
+    "Including state 9 itself in the answer",
+    "Unioning in the trap state ∅"
+   ],
+   "answer": 0,
+   "explain": "After the step lands on 10, you take λ-closure(10) = {10, 11}. The correct value is t(9, b) = {10, 11}. Copy the closure from your closure table instead of working it out again."
+  },
+  {
+   "type": "mc",
+   "category": "Subset construction",
+   "q": "In the subset construction from an NFA-λ with start state q0, which set does the DFA's start state correspond to?",
+   "choices": [
+    "λ-closure(q0)",
+    "{q0}",
+    "The set of all NFA-λ final states",
+    "t(q0, a) for the first symbol a"
+   ],
+   "answer": 0,
+   "explain": "The DFA starts in λ-closure(q0), since the NFA-λ can reach every state in it from q0 before reading any input."
+  },
+  {
+   "type": "tf",
+   "category": "Subset construction",
+   "q": "If an NFA-λ has start state Q0 and λ-closure(Q0) = {Q0, Q1}, then the DFA built from it starts in the state {Q0}.",
+   "answer": false,
+   "explain": "The DFA start state is λ-closure(Q0) = {Q0, Q1}, not {Q0}. Using {q0} is a common mistake."
+  },
+  {
+   "type": "mc",
+   "category": "Subset construction",
+   "q": "A DFA state X (a set of NFA-λ states) is being processed. Where does its arrow on symbol a go?",
+   "choices": [
+    "To the state for the union of t(q, a) over all q in X",
+    "To the state for the intersection of t(q, a) over q in X",
+    "To the state for t(q, a), where q is any one member of X",
+    "To the state for λ-closure(X), skipping the symbol a"
+   ],
+   "answer": 0,
+   "explain": "Look at the rows of the t table for the states in X and the column for a, then union those entries. Reuse an existing DFA state if that set already has one."
+  },
+  {
+   "type": "mc",
+   "category": "Subset construction",
+   "q": "An NFA-λ over {a, b} has this input transition table: t(Q0,a) = {Q0, Q1, Q2}, t(Q0,b) = ∅, t(Q1,a) = ∅, t(Q1,b) = {Q1}, t(Q2,a) = ∅, t(Q2,b) = {Q1}. In the DFA, where does the b-arrow from state {Q0, Q1, Q2} go?",
+   "choices": [
+    "{Q1}",
+    "∅",
+    "{Q0, Q1, Q2}",
+    "{Q1, Q2}"
+   ],
+   "answer": 0,
+   "explain": "Union the b-column entries for rows Q0, Q1 and Q2: ∅ ∪ {Q1} ∪ {Q1} = {Q1}."
+  },
+  {
+   "type": "num",
+   "category": "Subset construction",
+   "q": "An NFA-λ over {a, b} has λ-closure(Q0) = {Q0} and this input transition table: t(Q0,a) = {Q0, Q1, Q2}, t(Q0,b) = ∅, t(Q1,a) = ∅, t(Q1,b) = {Q1}, t(Q2,a) = ∅, t(Q2,b) = {Q1}. How many states does the DFA from the subset construction have, counting the trap state?",
+   "answer": 4,
+   "explain": "Start at {Q0}. On a it goes to {Q0, Q1, Q2} (new) and on b to ∅ (new, the trap). {Q0, Q1, Q2} loops to itself on a and goes to {Q1} (new) on b. {Q1} goes to ∅ on a and to itself on b. That gives {Q0}, ∅, {Q0, Q1, Q2} and {Q1}."
+  },
+  {
+   "type": "tf",
+   "category": "Subset construction",
+   "q": "If the union for a DFA state and a symbol gives a set that already has a DFA state, you still create a new state for it.",
+   "answer": false,
+   "explain": "You draw the arrow to the existing state for that set. You create a new state only for a set that doesn't have one yet."
+  },
+  {
+   "type": "mc",
+   "category": "Subset construction",
+   "q": "Several DFA states are still missing outgoing arrows. Which one should the subset construction process next?",
+   "choices": [
+    "Any of them; the order does not matter",
+    "The one with the most NFA-λ states in it",
+    "The one that was created first, always",
+    "The one containing a final state of the NFA-λ"
+   ],
+   "answer": 0,
+   "explain": "You can pick any unfinished state. You keep going until every DFA state has one outgoing arrow per symbol."
+  },
+  {
+   "type": "mc",
+   "category": "Subset construction",
+   "q": "In an NFA-λ over {a, b}: t(q, a) = {2, 3, 4, 5, 7, 8, 9} for q in {2, 3, 6, 7}; t(q, a) = ∅ for q in {5, 8, 9}; t(q, a) = {12} for q in {10, 11}. In the DFA, where does the a-arrow from the state {2, 3, 5, 6, 7, 8, 9, 10, 11} go?",
+   "choices": [
+    "{2, 3, 4, 5, 7, 8, 9, 12}",
+    "{2, 3, 4, 5, 7, 8, 9}",
+    "{12}",
+    "{2, 3, 5, 6, 7, 8, 9, 10, 11}"
+   ],
+   "answer": 0,
+   "explain": "Union the a-entries for every member: {2, 3, 4, 5, 7, 8, 9} from 2, 3, 6 and 7, nothing from 5, 8 and 9, and {12} from 10 and 11. The result is {2, 3, 4, 5, 7, 8, 9, 12}."
+  },
+  {
+   "type": "tf",
+   "category": "Subset construction",
+   "q": "{Q0, Q1, Q3} and {Q0, Q3, Q1} are two different DFA states.",
+   "answer": false,
+   "explain": "DFA states are sets, and order inside a set doesn't matter, so these are the same state."
+  },
+  {
+   "type": "mc",
+   "category": "Final and trap states",
+   "q": "In the subset construction, which DFA states are final?",
+   "choices": [
+    "Those whose set contains at least one NFA-λ final state",
+    "Those whose set contains only NFA-λ final states",
+    "Those reached by strings the language should accept",
+    "Only the state whose set equals λ-closure(q0)"
+   ],
+   "answer": 0,
+   "explain": "A DFA state is final if and only if its set contains at least one final state of the NFA-λ. Apply the rule directly. Trying to work out which strings should be accepted can take forever."
+  },
+  {
+   "type": "multi",
+   "category": "Final and trap states",
+   "q": "An NFA-λ has Q1 as its only final state. The subset construction gives the DFA states {Q0}, ∅, {Q0, Q1, Q2} and {Q1}. Which DFA states are final?",
+   "choices": [
+    "{Q0}",
+    "∅",
+    "{Q0, Q1, Q2}",
+    "{Q1}"
+   ],
+   "answer": [
+    2,
+    3
+   ],
+   "fixed": true,
+   "explain": "Only the sets containing Q1 are final: {Q0, Q1, Q2} and {Q1}. If you skip this step, the DFA accepts nothing."
+  },
+  {
+   "type": "tf",
+   "category": "Final and trap states",
+   "q": "If every state of a DFA built by the subset construction is final except the trap state, the DFA accepts every string.",
+   "answer": false,
+   "explain": "The trap state (∅) is never final, so any string that reaches it is rejected."
+  },
+  {
+   "type": "mc",
+   "category": "Final and trap states",
+   "q": "When is the DFA's start state final?",
+   "choices": [
+    "Exactly when the NFA-λ accepts the empty string λ",
+    "Exactly when q0 has at least one λ-transition",
+    "Only when the NFA-λ has a single final state",
+    "Never; start states are not final in this method"
+   ],
+   "answer": 0,
+   "explain": "The start state is λ-closure(q0). It contains a final state exactly when the NFA-λ can reach a final state without reading input, which means it accepts λ."
+  },
+  {
+   "type": "mc",
+   "category": "Final and trap states",
+   "q": "During the subset construction, the union for some DFA state on symbol b comes out to ∅. What do you draw?",
+   "choices": [
+    "An arrow on b to a trap state for ∅, which loops to itself on every symbol",
+    "Nothing; the b-transition from that state is simply left out",
+    "An arrow on b back to the same state, as a self-loop",
+    "An arrow on b to the start state, λ-closure(q0)"
+   ],
+   "answer": 0,
+   "explain": "∅ is the trap state, which is also rejecting. Create it if it doesn't exist yet, and give it a self-loop on every symbol."
+  },
+  {
+   "type": "tf",
+   "category": "Final and trap states",
+   "q": "The trap state ∅ produced by the subset construction is never a final state.",
+   "answer": true,
+   "explain": "∅ contains no NFA-λ states, so it can't contain a final one. It also loops to itself, so strings that reach it are rejected."
+  },
+  {
+   "type": "tf",
+   "category": "Final and trap states",
+   "q": "In a DFA, every state must have exactly one outgoing arrow for every symbol, so a machine with a missing transition is not a DFA.",
+   "answer": true,
+   "explain": "That is why you draw the trap state with its self-loops instead of leaving transitions out."
+  },
+  {
+   "type": "mc",
+   "category": "Final and trap states",
+   "q": "JFLAP's Convert to DFA result shows no trap state. How does JFLAP treat the missing transitions?",
+   "choices": [
+    "They implicitly go to a rejecting trap state",
+    "They implicitly loop back to the current state",
+    "They make JFLAP label the machine an NFA",
+    "They implicitly go to the start state"
+   ],
+   "answer": 0,
+   "explain": "JFLAP sends missing transitions to an undrawn trap state and still calls the machine a DFA. It calls a machine an NFA only if some state has two arrows on the same symbol, or a λ-arrow. On paper, draw the trap state yourself."
+  },
+  {
+   "type": "num",
+   "category": "Number of DFA states",
+   "q": "An NFA-λ has 4 states. What is the maximum number of states the DFA from the subset construction can have, counting the trap state?",
+   "answer": 16,
+   "explain": "Each DFA state is a subset of Q, including ∅. There are 2^4 = 16 subsets."
+  },
+  {
+   "type": "num",
+   "category": "Number of DFA states",
+   "q": "An NFA-λ has 12 states. What is the maximum number of states the DFA from the subset construction can have, counting the trap state?",
+   "answer": 4096,
+   "explain": "2^12 = 4096, the number of subsets of a 12-element set."
+  },
+  {
+   "type": "mc",
+   "category": "Number of DFA states",
+   "q": "Why is 4! = 24 the wrong bound on the number of DFA states built from a 4-state NFA-λ?",
+   "choices": [
+    "DFA states are unordered sets, so you count subsets, not orderings",
+    "4! is too small, since a state can appear several times in a set",
+    "Factorials count subsets, and the trap state must be added to it",
+    "The real bound is n + 1, since only one trap state can be added"
+   ],
+   "answer": 0,
+   "explain": "A factorial counts permutations, or orderings. DFA states are sets, where order doesn't matter, so the bound is the number of subsets: 2^4 = 16. n + 1 is only what happens in easy cases."
+  },
+  {
+   "type": "text",
+   "category": "Number of DFA states",
+   "q": "The maximum number of DFA states equals the cardinality of which set built from the NFA-λ's state set Q? (Two words.)",
+   "answer": [
+    "power set",
+    "the power set",
+    "power set of Q",
+    "the power set of Q",
+    "powerset",
+    "P(Q)"
+   ],
+   "explain": "The power set P(Q) is the set of all subsets of Q. Its size is 2^|Q|."
+  },
+  {
+   "type": "tf",
+   "category": "Number of DFA states",
+   "q": "The subset construction always terminates, because every DFA state is a subset of the NFA-λ's finite state set Q.",
+   "answer": true,
+   "explain": "Only finitely many subsets exist (2^|Q|), so the construction eventually runs out of new sets to create."
+  },
+  {
+   "type": "tf",
+   "category": "Number of DFA states",
+   "q": "In practice the DFA usually has far fewer than 2^n states, because the t-table entries repeat and their unions keep producing sets that already exist.",
+   "answer": true,
+   "explain": "For example, the 12-state machine from class (bound 4096) gives a DFA with only 4 states."
+  }
+ ]
+}
