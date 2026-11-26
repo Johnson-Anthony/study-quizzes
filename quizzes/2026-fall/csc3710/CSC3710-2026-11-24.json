@@ -1,0 +1,743 @@
+{
+ "title": "CSC3710 2026-11-24: DFA Minimization and Nondeterministic Pushdown Automata",
+ "course": "CSC3710",
+ "questions": [
+  {
+   "type": "mc",
+   "category": "Distinguishability",
+   "q": "Two DFA states p and q are distinguishable when:",
+   "choices": [
+    "Some input string takes exactly one of them to a final state",
+    "Some input string takes both of them to a final state",
+    "They have different arrows on at least one input symbol",
+    "One is reachable from the start state and the other is not"
+   ],
+   "answer": 0,
+   "explain": "p and q are distinguishable if some string w makes exactly one of δ*(p,w) and δ*(q,w) final. Different arrows alone don't prove anything, because the targets might behave the same way."
+  },
+  {
+   "type": "tf",
+   "category": "Distinguishability",
+   "q": "A final state and a non-final state can be combined in the minimized DFA if their outgoing arrows go to the same states.",
+   "answer": false,
+   "explain": "The empty string separates them: one accepts it and the other doesn't. Final states only combine with final states, and non-final states only with non-final states."
+  },
+  {
+   "type": "mc",
+   "category": "Distinguishability",
+   "q": "Which string always distinguishes a final state from a non-final state?",
+   "choices": [
+    "The empty string λ",
+    "Any string of length 1",
+    "The string a",
+    "None; the pair needs further checking"
+   ],
+   "answer": 0,
+   "explain": "Reading nothing leaves each state where it is, so λ ends in a final state from one of them and a non-final state from the other. That is why step 1 marks every final/non-final pair right away."
+  },
+  {
+   "type": "tf",
+   "category": "Distinguishability",
+   "q": "\"p and q are distinguishable by a\" means exactly one of δ(p, a) and δ(q, a) is a final state.",
+   "answer": true,
+   "explain": "The one-symbol string a already separates them, so you can mark the pair without checking anything else."
+  },
+  {
+   "type": "mc",
+   "category": "Distinguishability",
+   "q": "In a DFA over {a, b}, two non-final states q_i and q_j both go to q7 on a and both go to q2 on b. What can you conclude?",
+   "choices": [
+    "They are indistinguishable and can be combined",
+    "They are distinguishable by a",
+    "They are distinguishable by b",
+    "Nothing until the auxiliary table is complete"
+   ],
+   "answer": 0,
+   "explain": "If both states go to the same state on every symbol and have the same final status, then every string leads them to the same place. The pair stays 0 for sure, like (q3, q5) in the 7-state example."
+  },
+  {
+   "type": "tf",
+   "category": "Distinguishability",
+   "q": "Two indistinguishable states accept exactly the same set of continuations, i.e. the same strings read from that state onward.",
+   "answer": true,
+   "explain": "In the professor's words, from either state \"I see the same landscape\". That is why they can be merged into one state."
+  },
+  {
+   "type": "tf",
+   "category": "Distinguishability",
+   "q": "A finished table shows (q0, q1) = 0 and (q1, q2) = 0 but (q0, q2) = 1. The table must contain an error.",
+   "answer": true,
+   "explain": "Indistinguishability is an equivalence relation. If q0 ≡ q1 and q1 ≡ q2, then q0 ≡ q2, so (q0, q2) would also have to be 0."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "While checking pair (q1, q3), you find that on input a the target pair is (q1, q3) itself. What do you do?",
+   "choices": [
+    "Drop it and try the next symbol",
+    "Mark (q1, q3) with 1",
+    "Leave (q1, q3) at 0 for good",
+    "Put (q1, q3) on its own auxiliary list"
+   ],
+   "answer": 0,
+   "explain": "\"1 and 3 are distinguishable if 1 and 3 are distinguishable\" is circular, so this symbol is a dead end. Move on to the next symbol."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "While checking pair (q2, q4), you find that on input b both states go to q5. What does this target tell you?",
+   "choices": [
+    "Drop it: q5 cannot be told apart from q5",
+    "Mark (q2, q4) with 1 because q5 is final",
+    "Put (q2, q4) on the auxiliary list of (q5, q5)",
+    "Leave (q2, q4) at 0 without checking a"
+   ],
+   "answer": 0,
+   "explain": "When the target is the same state twice, that symbol cannot separate the pair. Drop it and check the remaining symbols."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "While checking pair (q0, q1), you find that on input b the target pair (q2, q3) is still 0 and undecided. What do you do?",
+   "choices": [
+    "Write (q0, q1) on the auxiliary list of (q2, q3)",
+    "Write (q2, q3) on the auxiliary list of (q0, q1)",
+    "Mark (q0, q1) with 1",
+    "Leave (q0, q1) at 0 permanently"
+   ],
+   "answer": 0,
+   "explain": "The entry on (q2, q3)'s list reads: \"if (q2, q3) is ever marked, mark (q0, q1) too.\" The pair you are checking goes on the target's list, not the other way around."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "Pair (q2, q3) has just been marked 1, and its auxiliary list contains (q0, q1). What happens next?",
+   "choices": [
+    "Mark (q0, q1) with 1, then anything on its list",
+    "Remove (q0, q1) from the list; it stays 0",
+    "Move (q2, q3) onto the list of (q0, q1)",
+    "Nothing until the whole table has been scanned"
+   ],
+   "answer": 0,
+   "explain": "Marking a pair marks everything on its list, then everything on those pairs' lists, and so on. This chain is what lets the algorithm handle any number of states."
+  },
+  {
+   "type": "tf",
+   "category": "Table-filling algorithm",
+   "q": "The order in which you check the pairs changes which states end up combined.",
+   "answer": false,
+   "explain": "The order doesn't matter: the result is the same. Going systematically (01, 02, 03, ..., 34) just keeps you from getting lost."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "You finish the table-filling algorithm and no cell is 0. What does that mean?",
+   "choices": [
+    "The DFA is already minimal and cannot be reduced",
+    "Every pair of states can be combined",
+    "The algorithm must be run a second time",
+    "The DFA accepts no strings at all"
+   ],
+   "answer": 0,
+   "explain": "A 1 means distinguishable. If every pair is distinguishable, there is nothing to merge, so the DFA cannot be minimized."
+  },
+  {
+   "type": "mc",
+   "category": "Table-filling algorithm",
+   "q": "At the end of the algorithm, cell (q1, q3) still holds 0. What does it mean?",
+   "choices": [
+    "q1 and q3 are indistinguishable and can be merged",
+    "q1 and q3 are distinguishable by every string",
+    "The check of (q1, q3) was never finished",
+    "q1 and q3 must both be non-final trap states"
+   ],
+   "answer": 0,
+   "explain": "Any 0 left at the end is permanent (\"nothing can help it\"), and each 0 is a pair of states you can combine."
+  },
+  {
+   "type": "num",
+   "category": "Table-filling algorithm",
+   "q": "A DFA has 6 states, and exactly one of them is final. After step 1 (marking every final/non-final pair), how many pairs are left to check?",
+   "answer": 10,
+   "explain": "There are C(6,2) = 15 pairs. The final state pairs with each of the 5 non-final states, so 5 pairs are marked in step 1, which leaves 10."
+  },
+  {
+   "type": "num",
+   "category": "Table-filling algorithm",
+   "q": "A DFA has 7 states, and exactly one of them is non-final. After step 1 (marking every final/non-final pair), how many pairs are left to check?",
+   "answer": 15,
+   "explain": "There are C(7,2) = 21 pairs. The non-final state pairs with each of the 6 final states, so 6 pairs are marked in step 1, which leaves 15."
+  },
+  {
+   "type": "mc",
+   "category": "Pre-pass shortcut",
+   "q": "In the \"distinguishable by a or by b\" pre-pass, what do you do with a pair that is distinguishable by a?",
+   "choices": [
+    "Mark it 1 and move on without checking b",
+    "Check b as well before marking it",
+    "Put it on the auxiliary list of its a-targets",
+    "Leave it for the main pass as a hard case"
+   ],
+   "answer": 0,
+   "explain": "One distinguishing symbol is enough. You only look at b when a fails to separate the pair."
+  },
+  {
+   "type": "mc",
+   "category": "Pre-pass shortcut",
+   "q": "Why does the pre-pass make the rest of the table-filling algorithm easier?",
+   "choices": [
+    "Hard cases then often hit an already-marked pair",
+    "It finds every indistinguishable pair directly",
+    "It removes the need for step 1 (final vs non-final)",
+    "It changes which states end up combined"
+   ],
+   "answer": 0,
+   "explain": "Each extra 1 gives the hard cases a marked target to point at, so most of them are settled in one look and the auxiliary table is rarely needed. The final result does not change."
+  },
+  {
+   "type": "tf",
+   "category": "Pre-pass shortcut",
+   "q": "If a pair is distinguishable neither by a nor by b in the pre-pass, it must be indistinguishable.",
+   "answer": false,
+   "explain": "It is only a hard case: its answer depends on other pairs, and a longer string may still separate the states. For example, in the 6-state example (q0, q1) is separated by bb."
+  },
+  {
+   "type": "mc",
+   "category": "Pre-pass shortcut",
+   "q": "DFA B over {a, b}: start state q0; every state is final except q6. Transitions: q0: a→q1, b→q2; q1: a→q1, b→q2; q2: a→q1, b→q3; q3: a→q4, b→q6; q4: a→q4, b→q5; q5: a→q4, b→q6; q6: a→q6, b→q6. After the pre-pass you check (q0, q2): on a both go to q1, and on b the target is (q2, q3). What is the decision?",
+   "choices": [
+    "Mark (q0, q2) with 1, since (q2, q3) is already marked",
+    "Leave (q0, q2) at 0 forever",
+    "Put (q0, q2) on the auxiliary list of (q2, q3)",
+    "Put (q2, q3) on the auxiliary list of (q0, q2)"
+   ],
+   "answer": 0,
+   "explain": "(q2, q3) is distinguishable by b (q3 goes to the non-final q6, q2 goes to the final q3), so the pre-pass already marked it. Thanks to that, no auxiliary list is needed."
+  },
+  {
+   "type": "multi",
+   "category": "Worked example: 6-state DFA",
+   "q": "DFA A over {a, b}: start state q0, only final state q5. Transitions: q0: a→q1, b→q3; q1: a→q1, b→q2; q2: a→q2, b→q5; q3: a→q3, b→q4; q4: a→q4, b→q5. Select every pair that is distinguishable by b.",
+   "choices": [
+    "(q1, q4)",
+    "(q0, q1)",
+    "(q0, q2)",
+    "(q1, q3)",
+    "(q2, q4)",
+    "(q0, q4)",
+    "(q3, q4)"
+   ],
+   "answer": [
+    0,
+    2,
+    5,
+    6
+   ],
+   "explain": "On b, q2 and q4 go to the final state q5, while q0, q1 and q3 go to non-final states. A pair is distinguishable by b exactly when it has one state from each group. (q2, q4) both reach q5, and (q0, q1) and (q1, q3) both reach non-final states."
+  },
+  {
+   "type": "mc",
+   "category": "Worked example: 6-state DFA",
+   "q": "DFA A over {a, b}: start state q0, only final state q5. Transitions: q0: a→q1, b→q3; q1: a→q1, b→q2; q2: a→q2, b→q5; q3: a→q3, b→q4; q4: a→q4, b→q5. Which states end up combined?",
+   "choices": [
+    "{q1, q3} and {q2, q4}",
+    "{q1, q2} and {q3, q4}",
+    "{q0, q1} and {q2, q3}",
+    "{q0, q1, q3} and {q2, q4}"
+   ],
+   "answer": 0,
+   "explain": "Only (q1, q3) and (q2, q4) stay 0. q0 is separated from q1 by bb (q1 reaches q5, q0 reaches q4), and from q3 by bb as well."
+  },
+  {
+   "type": "num",
+   "category": "Worked example: 6-state DFA",
+   "q": "DFA A over {a, b}: start state q0, only final state q5. Transitions: q0: a→q1, b→q3; q1: a→q1, b→q2; q2: a→q2, b→q5; q3: a→q3, b→q4; q4: a→q4, b→q5. How many states does the minimized DFA have?",
+   "answer": 4,
+   "explain": "The classes are {q0}, {q1, q3}, {q2, q4} and {q5}, so the DFA goes from 6 states to 4."
+  },
+  {
+   "type": "mc",
+   "category": "Worked example: 6-state DFA",
+   "q": "DFA A over {a, b}: start state q0, only final state q5. Transitions: q0: a→q1, b→q3; q1: a→q1, b→q2; q2: a→q2, b→q5; q3: a→q3, b→q4; q4: a→q4, b→q5. Why does pair (q2, q4) stay 0 no matter what?",
+   "choices": [
+    "On a it maps to itself; on b both go to q5",
+    "Both q2 and q4 are final states",
+    "Neither state can ever reach a final state",
+    "It was never put on any auxiliary list"
+   ],
+   "answer": 0,
+   "explain": "On a the target is (q2, q4) again, which is circular. On b both states go to q5, the same state. Neither symbol can ever lead to a marked pair."
+  },
+  {
+   "type": "tf",
+   "category": "Worked example: 6-state DFA",
+   "q": "DFA A over {a, b}: start state q0, only final state q5. Transitions: q0: a→q1, b→q3; q1: a→q1, b→q2; q2: a→q2, b→q5; q3: a→q3, b→q4; q4: a→q4, b→q5. Pair (q1, q3) stays 0 because the pair it waits on, (q2, q4), is never marked.",
+   "answer": true,
+   "explain": "On a, (q1, q3) maps to itself, so that is a dead end. On b it goes to (q2, q4), so (q1, q3) sits on (q2, q4)'s list. (q2, q4) stays 0, so (q1, q3) is never marked."
+  },
+  {
+   "type": "tf",
+   "category": "Worked example: 7-state DFA",
+   "q": "DFA B over {a, b}: start state q0; every state is final except q6. Transitions: q0: a→q1, b→q2; q1: a→q1, b→q2; q2: a→q1, b→q3; q3: a→q4, b→q6; q4: a→q4, b→q5; q5: a→q4, b→q6; q6: a→q6, b→q6. At least one pair of states among q0 through q5 is distinguishable by a.",
+   "answer": false,
+   "explain": "Every a-arrow out of q0 through q5 goes to q1 or q4, and both are final. So a never sends a pair to one final and one non-final state."
+  },
+  {
+   "type": "multi",
+   "category": "Worked example: 7-state DFA",
+   "q": "DFA B over {a, b}: start state q0; every state is final except q6. Transitions: q0: a→q1, b→q2; q1: a→q1, b→q2; q2: a→q1, b→q3; q3: a→q4, b→q6; q4: a→q4, b→q5; q5: a→q4, b→q6; q6: a→q6, b→q6. Select every pair that is distinguishable by b.",
+   "choices": [
+    "(q0, q4)",
+    "(q3, q4)",
+    "(q3, q5)",
+    "(q1, q5)",
+    "(q0, q1)",
+    "(q2, q3)",
+    "(q4, q5)"
+   ],
+   "answer": [
+    1,
+    3,
+    5,
+    6
+   ],
+   "explain": "On b, q3 and q5 go to the non-final q6, while q0, q1, q2 and q4 go to final states. A pair is distinguishable by b exactly when it has one state from {q3, q5} and one from {q0, q1, q2, q4}."
+  },
+  {
+   "type": "mc",
+   "category": "Worked example: 7-state DFA",
+   "q": "DFA B over {a, b}: start state q0; every state is final except q6. Transitions: q0: a→q1, b→q2; q1: a→q1, b→q2; q2: a→q1, b→q3; q3: a→q4, b→q6; q4: a→q4, b→q5; q5: a→q4, b→q6; q6: a→q6, b→q6. Which states are combined in the minimized DFA?",
+   "choices": [
+    "q0 with q1, and q3 with q5",
+    "q0 with q1, and q2 with q4",
+    "q3 with q5 only",
+    "q0, q1, q2 and q4 into one state"
+   ],
+   "answer": 0,
+   "explain": "(q0, q1) go to the same states on both symbols, and so do (q3, q5). The other pairs inside {q0, q1, q2, q4} are all marked using pairs the pre-pass had already marked: (q0,q2), (q1,q2), (q0,q4), (q1,q4) and (q2,q4) all get a 1."
+  },
+  {
+   "type": "num",
+   "category": "Worked example: 7-state DFA",
+   "q": "DFA B over {a, b}: start state q0; every state is final except q6. Transitions: q0: a→q1, b→q2; q1: a→q1, b→q2; q2: a→q1, b→q3; q3: a→q4, b→q6; q4: a→q4, b→q5; q5: a→q4, b→q6; q6: a→q6, b→q6. How many equivalence classes (states of the minimized DFA) are there?",
+   "answer": 5,
+   "explain": "The classes are {q0, q1}, {q2}, {q3, q5}, {q4} and {q6}, so the DFA goes from 7 states to 5."
+  },
+  {
+   "type": "mc",
+   "category": "Worked example: 7-state DFA",
+   "q": "DFA B over {a, b}: start state q0; every state is final except q6. Transitions: q0: a→q1, b→q2; q1: a→q1, b→q2; q2: a→q1, b→q3; q3: a→q4, b→q6; q4: a→q4, b→q5; q5: a→q4, b→q6; q6: a→q6, b→q6. Why can q6 never be combined with another state?",
+   "choices": [
+    "It is the only non-final state",
+    "It is unreachable from the start state",
+    "It has no outgoing arrows",
+    "It is distinguishable from every state by b"
+   ],
+   "answer": 0,
+   "explain": "Non-final states only combine with non-final states, and q6 is the only one. (q6 is reachable, for example by bbb, and it loops on both symbols. On b it goes to q6, just as q3 does.)"
+  },
+  {
+   "type": "mc",
+   "category": "Building the minimized DFA",
+   "q": "In minimized DFA B, the classes are {q0, q1}, {q2}, {q3, q5}, {q4}, {q6}. Originally q3: a→q4, b→q6 and q5: a→q4, b→q6. Where does class {q3, q5} go?",
+   "choices": [
+    "a → {q4}, b → {q6}",
+    "a → {q4}, b → {q3, q5}",
+    "a → {q0, q1}, b → {q6}",
+    "a → {q3, q5}, b → {q6}"
+   ],
+   "answer": 0,
+   "explain": "Both members go to q4 on a and to q6 on b. Since they agree, the class is consistent, and its arrows point to the classes containing q4 and q6."
+  },
+  {
+   "type": "mc",
+   "category": "Building the minimized DFA",
+   "q": "How do you draw the arrow on symbol x out of a merged class?",
+   "choices": [
+    "Pick any member q; point to the class holding δ(q, x)",
+    "Draw one arrow for each member of the class",
+    "Point to the class holding δ(q0, x)",
+    "Use only the member with the largest index"
+   ],
+   "answer": 0,
+   "explain": "\"It doesn't have to be all of the states that are in the set, as long as it's one.\" Every member sends x into the same class, so any member gives the same answer."
+  },
+  {
+   "type": "tf",
+   "category": "Building the minimized DFA",
+   "q": "If two members of a class send symbol a into different classes, there is a mistake in your table.",
+   "answer": true,
+   "explain": "This is the built-in check. Indistinguishable states always send each symbol into the same class, so a disagreement means those states could not really be combined."
+  },
+  {
+   "type": "mc",
+   "category": "Building the minimized DFA",
+   "q": "A class contains q5 and q6. On b, q6 goes to q5 and q5 goes to q5. What b-arrow does the class get in the minimized DFA?",
+   "choices": [
+    "A b-loop from the class back to itself",
+    "A b-arrow to a separate state {q5}",
+    "Two b-arrows, one for each member",
+    "No b-arrow, since q5 is already in it"
+   ],
+   "answer": 0,
+   "explain": "q5 is in this same class, so the b-arrow points back to the class itself."
+  },
+  {
+   "type": "mc",
+   "category": "Building the minimized DFA",
+   "q": "Which state is the start state of the minimized DFA?",
+   "choices": [
+    "The class containing q0",
+    "The class with the most states",
+    "The first final class",
+    "The class containing the trap state"
+   ],
+   "answer": 0,
+   "explain": "The start state is the class that contains the original start state q0."
+  },
+  {
+   "type": "tf",
+   "category": "Building the minimized DFA",
+   "q": "By the course's definition of a DFA, the minimized DFA may leave out the arrows of a trap state (as JFLAP's minimizer sometimes does).",
+   "answer": false,
+   "explain": "A DFA has an arrow for every symbol out of every state, trap states included. In the 7-state example, {q6} must loop on both a and b."
+  },
+  {
+   "type": "tf",
+   "category": "Building the minimized DFA",
+   "q": "A merged class in the minimized DFA can contain both final and non-final states.",
+   "answer": false,
+   "explain": "Every final/non-final pair is marked in step 1, so the members of a class always agree. A class is final exactly when its members are final."
+  },
+  {
+   "type": "mc",
+   "category": "PDAs and language classes",
+   "q": "Why can no DFA accept {aⁿbⁿ : n ≥ 0}?",
+   "choices": [
+    "It would need infinitely many states to count a's",
+    "It contains the empty string, which DFAs reject",
+    "Its strings must alternate between a and b",
+    "It is a finite language, too small for a DFA"
+   ],
+   "answer": 0,
+   "explain": "The machine has to remember how many a's it has read, and that count has no upper bound. A DFA has only finitely many states."
+  },
+  {
+   "type": "mc",
+   "category": "PDAs and language classes",
+   "q": "How do the regular languages relate to the context-free languages (CFLs)?",
+   "choices": [
+    "Regular languages are a proper subset of CFLs",
+    "CFLs are a proper subset of regular languages",
+    "The two classes are equal",
+    "The two classes are disjoint"
+   ],
+   "answer": 0,
+   "explain": "Every regular language is context-free, but not the other way around: {aⁿbⁿ : n ≥ 0} is context-free and not regular."
+  },
+  {
+   "type": "mc",
+   "category": "PDAs and language classes",
+   "q": "Which kind of machine accepts exactly the context-free languages?",
+   "choices": [
+    "Nondeterministic pushdown automata",
+    "Deterministic pushdown automata",
+    "Nondeterministic finite automata",
+    "Deterministic finite automata"
+   ],
+   "answer": 0,
+   "explain": "NPDAs go with context-free languages the way finite automata go with regular languages. The word \"nondeterministic\" matters here."
+  },
+  {
+   "type": "mc",
+   "category": "PDAs and language classes",
+   "q": "What do deterministic pushdown automata accept?",
+   "choices": [
+    "The deterministic CFLs, a proper subset of the CFLs",
+    "Exactly the context-free languages",
+    "Exactly the regular languages",
+    "More languages than nondeterministic PDAs do"
+   ],
+   "answer": 0,
+   "explain": "Deterministic PDAs define the deterministic context-free languages, a smaller circle inside the CFL circle."
+  },
+  {
+   "type": "tf",
+   "category": "PDAs and language classes",
+   "q": "DFAs, NFAs and NFA-λs all accept the same class of languages, but deterministic and nondeterministic pushdown automata do not.",
+   "answer": true,
+   "explain": "Finite automata of all three kinds accept the regular languages (NFA-λ converts to DFA). For PDAs, nondeterminism adds power: NPDAs accept all CFLs, while DPDAs accept only the deterministic CFLs."
+  },
+  {
+   "type": "mc",
+   "category": "PDAs and language classes",
+   "q": "What does a pushdown automaton add to a finite automaton?",
+   "choices": [
+    "A stack with no size limit",
+    "A second input tape",
+    "A fixed-size counter",
+    "A read-write tape"
+   ],
+   "answer": 0,
+   "explain": "A PDA is a finite-state automaton plus memory in the form of a stack. The stack has no size limit, so the machine has unbounded memory."
+  },
+  {
+   "type": "mc",
+   "category": "PDAs and language classes",
+   "q": "Which grammar generates {aⁿbⁿ : n ≥ 0}?",
+   "choices": [
+    "S → aSb | λ",
+    "S → aS | bS | λ",
+    "S → aSa | bSb | λ",
+    "S → ab | λ"
+   ],
+   "answer": 0,
+   "explain": "Each use of S → aSb adds one a on the left and one b on the right, and S → λ ends the derivation. The other grammars generate all strings, even-length palindromes, or only {ab, λ}."
+  },
+  {
+   "type": "num",
+   "category": "NPDA definition and moves",
+   "q": "How many components does the formal tuple of an NPDA have?",
+   "answer": 7,
+   "explain": "M = (Q, Σ, Γ, δ, q0, z, F): states, input alphabet, stack alphabet, transition function, initial state, stack start symbol and final states."
+  },
+  {
+   "type": "mc",
+   "category": "NPDA definition and moves",
+   "q": "In M = (Q, Σ, Γ, δ, q0, z, F), what is z?",
+   "choices": [
+    "A stack symbol that marks the bottom of the stack",
+    "An input symbol that marks the end of the input",
+    "The state the machine enters when it rejects",
+    "The empty string read from the input"
+   ],
+   "answer": 0,
+   "explain": "z ∈ Γ is the special stack start symbol. Seeing it on top tells the machine its counting symbols are used up."
+  },
+  {
+   "type": "mc",
+   "category": "NPDA definition and moves",
+   "q": "In M = (Q, Σ, Γ, δ, q0, z, F), what is Γ?",
+   "choices": [
+    "The stack alphabet",
+    "The input alphabet",
+    "The set of final states",
+    "The transition function"
+   ],
+   "answer": 0,
+   "explain": "Σ is the input alphabet and Γ is the stack alphabet. In the lecture's example Σ = {a, b} and Γ = {0, z}."
+  },
+  {
+   "type": "mc",
+   "category": "NPDA definition and moves",
+   "q": "Besides the current state, what determines each move of an NPDA?",
+   "choices": [
+    "The input symbol (or λ) and the top stack symbol",
+    "The input symbol and the entire stack contents",
+    "The input symbol only",
+    "The top stack symbol only"
+   ],
+   "answer": 0,
+   "explain": "A move reads an input symbol, or nothing in a λ-move, and looks only at the top of the stack. It then replaces that top symbol with a string, which may be λ (a pop)."
+  },
+  {
+   "type": "tf",
+   "category": "NPDA definition and moves",
+   "q": "A PDA can still make a move with an empty stack, as long as it has input left to read.",
+   "answer": false,
+   "explain": "Every move needs a symbol on top of the stack. With an empty stack the machine cannot move at all."
+  },
+  {
+   "type": "mc",
+   "category": "NPDA definition and moves",
+   "q": "δ(q0, a, z) = {(q1, 0z), (q3, λ)}. What does it mean that this set has two elements?",
+   "choices": [
+    "Two separate processes start, one per choice",
+    "Only the first pair is used; the second is a backup",
+    "Both changes are applied to one stack, in order",
+    "The transition is not allowed in an NPDA"
+   ],
+   "answer": 0,
+   "explain": "This is the nondeterminism. One process goes to q1 and replaces z with 0z, and another goes to q3 and pops z."
+  },
+  {
+   "type": "text",
+   "category": "NPDA definition and moves",
+   "q": "Stack contents are written as a string with the top on the left. Which symbol is on top of the stack 0z?",
+   "answer": [
+    "0",
+    "zero"
+   ],
+   "explain": "The leftmost symbol is the top, so in 0z the 0 is on top and z is at the bottom. This may feel backwards compared with how stacks are drawn in data structures."
+  },
+  {
+   "type": "tf",
+   "category": "NPDA definition and moves",
+   "q": "In a PDA move, replacing the top symbol z with the string 0z has the same effect as pushing a 0.",
+   "answer": true,
+   "explain": "The z stays at the bottom and a 0 now sits on top of it."
+  },
+  {
+   "type": "mc",
+   "category": "NPDA definition and moves",
+   "q": "In the JFLAP label format \"input, pop; push\", what does the transition a, 0; 00 do?",
+   "choices": [
+    "Reads a with 0 on top and pushes one more 0",
+    "Reads a and pops two 0s off the stack",
+    "Reads a only if the stack holds exactly 00",
+    "Reads a and replaces the whole stack with 00"
+   ],
+   "answer": 0,
+   "explain": "The top 0 is replaced by 00, so the net effect is one more 0 on the stack. Only the top symbol is affected."
+  },
+  {
+   "type": "mc",
+   "category": "NPDA definition and moves",
+   "q": "An NPDA for palindromes over {a, b} copies about half of the input onto the stack, then pops while the input matches the top. What is a natural stack alphabet for it?",
+   "choices": [
+    "{a, b, z}",
+    "{0, z}",
+    "{a, b}",
+    "{z}"
+   ],
+   "answer": 0,
+   "explain": "The stack holds copies of the input symbols, plus the special bottom-of-stack symbol z. So the stack alphabet is the input alphabet plus z."
+  },
+  {
+   "type": "multi",
+   "category": "Tracing the example NPDA",
+   "q": "NPDA M: states q0–q3, start q0, final state q3, stack alphabet {0, z}, stack starts as z. δ(q0, a, z) = {(q1, 0z), (q3, λ)}; δ(q0, λ, z) = {(q3, λ)}; δ(q1, a, 0) = {(q1, 00)}; δ(q1, b, 0) = {(q2, λ)}; δ(q2, b, 0) = {(q2, λ)}; δ(q2, λ, z) = {(q3, λ)}. Acceptance is by final state. Select every string M accepts.",
+   "choices": [
+    "λ (the empty string)",
+    "a",
+    "b",
+    "ab",
+    "aa",
+    "aab",
+    "aabb",
+    "abb",
+    "ba"
+   ],
+   "answer": [
+    0,
+    1,
+    3,
+    6
+   ],
+   "explain": "λ is accepted by δ(q0, λ, z), and a by the second choice of δ(q0, a, z). ab and aabb push one 0 per a, pop one 0 per b, then reach q3 when z shows. aa and aab get stuck in q1 or q2 with 0 on top. With abb and b, z is on top while a b is still unread. ba has no b-move from q0."
+  },
+  {
+   "type": "num",
+   "category": "Tracing the example NPDA",
+   "q": "NPDA M: states q0–q3, start q0, final state q3, stack starts as z. δ(q0, a, z) = {(q1, 0z), (q3, λ)}; δ(q0, λ, z) = {(q3, λ)}; δ(q1, a, 0) = {(q1, 00)}; δ(q1, b, 0) = {(q2, λ)}; δ(q2, b, 0) = {(q2, λ)}; δ(q2, λ, z) = {(q3, λ)}. Starting from (q0, aaabbb, z), how many configurations are there after one move?",
+   "answer": 3,
+   "explain": "The two choices of δ(q0, a, z) give (q1, aabbb, 0z) and (q3, aabbb, λ). The λ-move δ(q0, λ, z) gives (q3, aaabbb, λ). Only the q1 process survives."
+  },
+  {
+   "type": "mc",
+   "category": "Tracing the example NPDA",
+   "q": "NPDA M: states q0–q3, start q0, final state q3, stack starts as z. δ(q0, a, z) = {(q1, 0z), (q3, λ)}; δ(q0, λ, z) = {(q3, λ)}; δ(q1, a, 0) = {(q1, 00)}; δ(q1, b, 0) = {(q2, λ)}; δ(q2, b, 0) = {(q2, λ)}; δ(q2, λ, z) = {(q3, λ)}. On input aaabbb, why are the two processes that reach q3 on the first move rejected, even though q3 is final?",
+   "choices": [
+    "They still have input to read, with an empty stack",
+    "q3 counts as final only for the empty string",
+    "They popped z, which a PDA is never allowed to do",
+    "They were created by λ-moves, which cannot accept"
+   ],
+   "answer": 0,
+   "explain": "A process accepts only if it consumes the whole input and ends in a final state. These two processes have input left and an empty stack, so they cannot move and they die."
+  },
+  {
+   "type": "mc",
+   "category": "Tracing the example NPDA",
+   "q": "NPDA M: states q0–q3, start q0, final state q3, stack starts as z. δ(q0, a, z) = {(q1, 0z), (q3, λ)}; δ(q0, λ, z) = {(q3, λ)}; δ(q1, a, 0) = {(q1, 00)}; δ(q1, b, 0) = {(q2, λ)}; δ(q2, b, 0) = {(q2, λ)}; δ(q2, λ, z) = {(q3, λ)}. What happens on input aaaa?",
+   "choices": [
+    "Rejected: it ends in q1 with 0 on top and no λ,0 move",
+    "Accepted: a process reaches q3 after the first move",
+    "Accepted: all four a's are read by the q1 process",
+    "Rejected: the stack can hold at most three 0s"
+   ],
+   "answer": 0,
+   "explain": "The surviving process ends at (q1, λ, 0000z). Every λ-move needs z on top, so it is stuck in q1, which is not final. The q3 processes died with input left. Reading all the input is not enough: the process must also end in a final state."
+  },
+  {
+   "type": "num",
+   "category": "Tracing the example NPDA",
+   "q": "NPDA M: states q0–q3, start q0, final state q3, stack starts as z. δ(q0, a, z) = {(q1, 0z), (q3, λ)}; δ(q0, λ, z) = {(q3, λ)}; δ(q1, a, 0) = {(q1, 00)}; δ(q1, b, 0) = {(q2, λ)}; δ(q2, b, 0) = {(q2, λ)}; δ(q2, λ, z) = {(q3, λ)}. Follow the process that goes through q1 on input aaaabb. After it has read all six symbols, how many 0s are on its stack?",
+   "answer": 2,
+   "explain": "Each a pushes one 0 (z → 0z, then 0 → 00 three times), which gives 0000z. Each b pops one 0, so after two b's the stack is 00z."
+  },
+  {
+   "type": "mc",
+   "category": "Tracing the example NPDA",
+   "q": "NPDA M: states q0–q3, start q0, final state q3, stack starts as z. δ(q0, a, z) = {(q1, 0z), (q3, λ)}; δ(q0, λ, z) = {(q3, λ)}; δ(q1, a, 0) = {(q1, 00)}; δ(q1, b, 0) = {(q2, λ)}; δ(q2, b, 0) = {(q2, λ)}; δ(q2, λ, z) = {(q3, λ)}. Why is abb rejected?",
+   "choices": [
+    "After ab, z is on top with b unread; no b-move on z",
+    "The stack becomes empty before the first b is read",
+    "q2 has no transition that reads b, whatever the top is",
+    "It has more a's than b's, so 0s stay on the stack"
+   ],
+   "answer": 0,
+   "explain": "(q0, abb, z) ⊢ (q1, bb, 0z) ⊢ (q2, b, z). No move reads b with z on top. δ(q2, λ, z) leads to (q3, b, λ), but that process still has input left and an empty stack, so it dies."
+  },
+  {
+   "type": "mc",
+   "category": "Acceptance and the language of the example NPDA",
+   "q": "NPDA M: states q0–q3, start q0, final state q3, stack starts as z. δ(q0, a, z) = {(q1, 0z), (q3, λ)}; δ(q0, λ, z) = {(q3, λ)}; δ(q1, a, 0) = {(q1, 00)}; δ(q1, b, 0) = {(q2, λ)}; δ(q2, b, 0) = {(q2, λ)}; δ(q2, λ, z) = {(q3, λ)}. What is L(M)?",
+   "choices": [
+    "{aⁱbⁱ : i ≥ 0} ∪ {a}",
+    "{aⁱbⁱ : i ≥ 0}",
+    "{aⁱbⁱ : i ≥ 1} ∪ {a}",
+    "{aⁱbʲ : i ≥ j ≥ 0}"
+   ],
+   "answer": 0,
+   "explain": "The path through q1 and q2 accepts aⁱbⁱ for i ≥ 1, δ(q0, λ, z) accepts λ, and the second choice of δ(q0, a, z) adds the odd extra string a."
+  },
+  {
+   "type": "mc",
+   "category": "Acceptance and the language of the example NPDA",
+   "q": "NPDA M: states q0–q3, start q0, final state q3, stack starts as z. δ(q0, a, z) = {(q1, 0z), (q3, λ)}; δ(q0, λ, z) = {(q3, λ)}; δ(q1, a, 0) = {(q1, 00)}; δ(q1, b, 0) = {(q2, λ)}; δ(q2, b, 0) = {(q2, λ)}; δ(q2, λ, z) = {(q3, λ)}. Which single change makes M accept exactly {aⁿbⁿ : n ≥ 0}?",
+   "choices": [
+    "Remove the choice (q3, λ) from δ(q0, a, z)",
+    "Remove the transition δ(q0, λ, z) = {(q3, λ)}",
+    "Make q2 a final state in addition to q3",
+    "Remove the transition δ(q2, λ, z) = {(q3, λ)}"
+   ],
+   "answer": 0,
+   "explain": "That choice is the only way to accept the extra string a. Removing δ(q0, λ, z) would lose λ. Removing δ(q2, λ, z) would lose every aⁿbⁿ with n ≥ 1. Making q2 final would accept strings like aab."
+  },
+  {
+   "type": "mc",
+   "category": "Acceptance and the language of the example NPDA",
+   "q": "NPDA M: states q0–q3, start q0, final state q3, stack starts as z. δ(q0, a, z) = {(q1, 0z), (q3, λ)}; δ(q0, λ, z) = {(q3, λ)}; δ(q1, a, 0) = {(q1, 00)}; δ(q1, b, 0) = {(q2, λ)}; δ(q2, b, 0) = {(q2, λ)}; δ(q2, λ, z) = {(q3, λ)}. Which transition lets M accept the empty string?",
+   "choices": [
+    "δ(q0, λ, z) = {(q3, λ)}",
+    "δ(q2, λ, z) = {(q3, λ)}",
+    "δ(q0, a, z) ∋ (q3, λ)",
+    "δ(q1, a, 0) = {(q1, 00)}"
+   ],
+   "answer": 0,
+   "explain": "(q0, λ, z) ⊢ (q3, λ, λ) uses the λ-move out of q0. Nothing is left to read and q3 is final, so λ is accepted."
+  },
+  {
+   "type": "tf",
+   "category": "Acceptance and the language of the example NPDA",
+   "q": "With acceptance by final state, a string is accepted if some process reaches a final state, even with input still unread.",
+   "answer": false,
+   "explain": "At least one process must consume the whole input and end in a final state."
+  },
+  {
+   "type": "tf",
+   "category": "Acceptance and the language of the example NPDA",
+   "q": "With acceptance by final state, the stack must be empty at the end for the string to be accepted.",
+   "answer": false,
+   "explain": "The stack contents at the end don't matter (\"there may be trash\"). That is why changing the last transition to push :) instead of popping made no difference."
+  },
+  {
+   "type": "tf",
+   "category": "Acceptance and the language of the example NPDA",
+   "q": "If a PDA gives the expected answer on every string of length 0 to 6 in a multiple-run test, that proves it accepts the intended language.",
+   "answer": false,
+   "explain": "Testing on examples is useful, but it is not a proof. A machine can be right on every short string and still be wrong on a longer one."
+  }
+ ]
+}
